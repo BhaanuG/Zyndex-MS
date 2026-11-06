@@ -333,7 +333,7 @@ export default function AdminLogs() {
     reloadAll();
   }, [serviceFilter, levelFilter]);
 
-  // Live auto-refresh polling every 60 seconds (1 minute)
+  // Live auto-refresh polling every 10 seconds for real-time responsiveness
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
@@ -342,7 +342,7 @@ export default function AdminLogs() {
       } else {
         fetchSystemLogs(systemPage);
       }
-    }, 60000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [autoRefresh, activeTab, readingPage, systemPage]);
 
@@ -475,7 +475,7 @@ export default function AdminLogs() {
               title="Toggle automatic live updates every minute"
             >
               <span className={`size-2 rounded-full ${autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
-              Auto Refresh: {autoRefresh ? '1m Active' : 'Off'}
+              Auto Refresh: {autoRefresh ? '10s Active' : 'Off'}
             </button>
 
             <button

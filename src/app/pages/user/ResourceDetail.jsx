@@ -111,7 +111,6 @@ export default function ResourceDetail() {
   }, [id]);
 
   useEffect(() => {
-    const startTime = Date.now();
     let accumulatedSeconds = 0;
     let lastActiveTimestamp = Date.now();
     let isTabVisible = !document.hidden;
@@ -142,53 +141,49 @@ export default function ResourceDetail() {
     window.addEventListener('scroll', handleUserActivity, { passive: true });
     window.addEventListener('touchstart', handleUserActivity, { passive: true });
 
-    let sent = false;
-    const sendDuration = () => {
-      if (sent) return;
-      sent = true;
+    const sendDuration = (forceDuration = null) => {
       const now = Date.now();
       if (isTabVisible) {
         accumulatedSeconds += Math.round((now - lastActiveTimestamp) / 1000);
+        lastActiveTimestamp = now;
       }
-      // Cap individual reading duration to 120 minutes (7200 seconds) to prevent runaway timer if tab left open
+      // Cap individual reading duration to 120 minutes (7200 seconds)
       const totalSeconds = Math.min(Math.max(0, accumulatedSeconds), 7200);
-      // Convert to minutes: if read for at least 20 seconds, count as 1 min; otherwise round normally
-      const totalMinutes = totalSeconds >= 20 ? Math.max(1, Math.round(totalSeconds / 60)) : 0;
+      const totalMinutes = forceDuration !== null
+        ? forceDuration
+        : (totalSeconds >= 15 ? Math.max(1, Math.round(totalSeconds / 60)) : 0);
+
       if (totalMinutes > 0) {
-        const token = localStorage.getItem('auth_token') || '';
-        const payload = JSON.stringify({ duration: totalMinutes });
-        const endpoint = `${apiBaseUrl}/resources/${id}/track-duration`;
-        if (navigator.sendBeacon) {
-          const blob = new Blob([payload], { type: 'application/json' });
-          navigator.sendBeacon(endpoint, blob);
-        } else {
-          fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: payload,
-            keepalive: true
-          }).catch(() => {});
-        }
+        resourceService.trackReadingDuration(id, totalMinutes).catch(() => {});
       }
     };
 
-    window.addEventListener('pagehide', sendDuration);
-    window.addEventListener('beforeunload', sendDuration);
+    // Periodic live heartbeat every 30 seconds while user is actively reading
+    const heartbeatInterval = setInterval(() => {
+      if (isTabVisible) {
+        sendDuration();
+      }
+    }, 30000);
+
+    const onExit = () => {
+      sendDuration();
+    };
+
+    window.addEventListener('pagehide', onExit);
+    window.addEventListener('beforeunload', onExit);
 
     return () => {
+      clearInterval(heartbeatInterval);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('mousemove', handleUserActivity);
       window.removeEventListener('keydown', handleUserActivity);
       window.removeEventListener('scroll', handleUserActivity);
       window.removeEventListener('touchstart', handleUserActivity);
-      window.removeEventListener('pagehide', sendDuration);
-      window.removeEventListener('beforeunload', sendDuration);
+      window.removeEventListener('pagehide', onExit);
+      window.removeEventListener('beforeunload', onExit);
       sendDuration();
     };
-  }, [id, apiBaseUrl]);
+  }, [id]);
 
   const handleSubmitFeedback = async (e) => {
     e.preventDefault();
