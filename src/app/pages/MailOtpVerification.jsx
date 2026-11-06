@@ -11,19 +11,19 @@ const OTP_EXPIRY_SECONDS = 120;
 const OTP_REQUEST_SESSION_KEY = 'mail_otp_request_state';
 
 // 6 Available geometric shapes that digits dynamically assemble into:
-// 1. SQUARE
-// 2. CIRCLE
-// 3. DIAMOND
-// 4. TRIANGLE (with 4th digit in the center)
-// 5. HEXAGON
-// 6. STAR FORMATION
+// 1. CIRCLE: smooth circular radial formation
+// 2. SQUARE: 4 corners aligned
+// 3. DIAMOND: rotated diamond vertex coordinates
+// 4. TRIANGLE: 3 outer vertices with 4th digit positioned directly in the center
+// 5. HEXAGON: wide honeycomb layout
+// 6. LINEAR WAVE: dynamic fluid waveform
 const AVAILABLE_SHAPE_SEQUENCES = [
+  ['circle', 'square', 'diamond', 'triangle', 'hexagon'],
   ['square', 'circle', 'diamond', 'triangle', 'hexagon'],
   ['diamond', 'circle', 'triangle', 'square', 'hexagon'],
-  ['circle', 'triangle', 'square', 'diamond', 'hexagon'],
-  ['triangle', 'diamond', 'circle', 'square', 'hexagon'],
-  ['hexagon', 'square', 'circle', 'diamond', 'triangle'],
-  ['diamond', 'square', 'hexagon', 'circle', 'triangle']
+  ['triangle', 'circle', 'diamond', 'square', 'hexagon'],
+  ['circle', 'diamond', 'triangle', 'square', 'hexagon'],
+  ['hexagon', 'circle', 'triangle', 'diamond', 'square']
 ];
 
 export default function MailOtpVerification() {
@@ -57,14 +57,16 @@ export default function MailOtpVerification() {
   const filledCount = digits.filter((d) => d !== '').length;
   const isAllFilled = filledCount === 4;
 
-  // Once user clicks verify, start rapid shape rotation and step through shapes:
-  // rotates/morphs fastly -> pauses at shape for 1 second -> morphs fastly to next shape
+  // Step through shapes every 900ms while animating
   useEffect(() => {
-    if (!isAnimatingShapes) return;
+    if (!isAnimatingShapes) {
+      setCurrentShapeIndex(0);
+      return;
+    }
 
     const interval = setInterval(() => {
       setCurrentShapeIndex((prev) => (prev + 1) % shapeSequence.length);
-    }, 1500); // 500ms fast transition + 1000ms pause on shape
+    }, 900);
 
     return () => clearInterval(interval);
   }, [isAnimatingShapes, shapeSequence.length]);
@@ -265,7 +267,12 @@ export default function MailOtpVerification() {
         if (inputRefs.current[index + 1]) {
           inputRefs.current[index + 1].focus();
         }
-      }, 20);
+      }, 30);
+    } else if (index === 3) {
+      // All 4 digits entered: automatically trigger senior UI shape morphing constellation
+      setTimeout(() => {
+        executeVerification();
+      }, 150);
     }
   };
 
@@ -498,14 +505,12 @@ export default function MailOtpVerification() {
                         animate={{
                           x: coords.x,
                           y: coords.y,
-                          rotate: [0, 360],
-                          scale: [1, 1.05, 1],
+                          scale: [1, 1.08, 1],
                         }}
                         transition={{
-                          x: { duration: 0.45, ease: 'easeInOut' },
-                          y: { duration: 0.45, ease: 'easeInOut' },
-                          rotate: { duration: 0.45, ease: 'easeInOut' },
-                          scale: { duration: 0.3 }
+                          x: { duration: 0.65, ease: [0.34, 1.56, 0.64, 1] },
+                          y: { duration: 0.65, ease: [0.34, 1.56, 0.64, 1] },
+                          scale: { duration: 0.4 }
                         }}
                         className="absolute size-12 sm:size-14 flex items-center justify-center"
                       >
@@ -534,12 +539,7 @@ export default function MailOtpVerification() {
                     const isVisible = index <= filledCount; // Only reveal up to the current active diamond box
 
                     if (!isVisible) {
-                      return (
-                        <div
-                          key={index}
-                          className="size-12 sm:size-15 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex items-center justify-center opacity-25"
-                        />
-                      );
+                      return null;
                     }
 
                     return (

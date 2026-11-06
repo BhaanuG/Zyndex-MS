@@ -147,18 +147,26 @@ export default function AdminLogs() {
       if (rec.accessStatus) current.accessStatus = rec.accessStatus;
       if (rec.category) current.category = rec.category;
 
-      current.resources.push({
-        usageId: rec.usageId,
-        contentId: rec.contentId,
-        title: rec.title,
-        type: rec.type,
-        author: rec.author,
-        category: rec.category,
-        durationMinutes: rec.durationMinutes,
-        timestamp: rec.timestamp,
-        startTime: rec.startTime,
-        endTime: rec.endTime
-      });
+      // Deduplicate resources in the session: if same resource is viewed multiple times, aggregate duration and show latest timestamp
+      const existingResource = current.resources.find((r) => r.contentId === rec.contentId);
+      if (existingResource) {
+        existingResource.durationMinutes += (rec.durationMinutes || 0);
+        existingResource.timestamp = rec.timestamp;
+        existingResource.endTime = rec.endTime || rec.timestamp;
+      } else {
+        current.resources.push({
+          usageId: rec.usageId,
+          contentId: rec.contentId,
+          title: rec.title,
+          type: rec.type,
+          author: rec.author,
+          category: rec.category,
+          durationMinutes: rec.durationMinutes,
+          timestamp: rec.timestamp,
+          startTime: rec.startTime,
+          endTime: rec.endTime
+        });
+      }
     });
 
     if (current) clusters.push(current);
@@ -256,12 +264,15 @@ export default function AdminLogs() {
     return Object.values(map);
   }, [readingHistory]);
 
-  // Tier distribution
+  // Tier / User Type distribution
   const tierChartData = useMemo(() => {
+    if (engagement?.tierBreakdown && engagement.tierBreakdown.length > 0) {
+      return engagement.tierBreakdown;
+    }
     return [
-      { tier: 'STUDENT', readers: metrics.totalReaders, totalMinutes: metrics.totalMinutes }
+      { tier: 'Student', readers: metrics.totalReaders, totalMinutes: metrics.totalMinutes }
     ];
-  }, [metrics]);
+  }, [engagement, metrics]);
 
   const fetchReadingData = async (page = 0) => {
     try {
@@ -758,16 +769,10 @@ export default function AdminLogs() {
                             </td>
 
                             <td className="px-6 py-4">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-semibold text-gray-900 text-xs">
-                                  {firstRes.title || 'Academic Resource'}
-                                </span>
-                                {additionalCount > 0 && (
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200">
-                                    +{additionalCount}
-                                  </span>
-                                )}
-                              </div>
+                              <span className="font-semibold text-gray-900 text-xs">
+                                {firstRes.title || 'Academic Resource'}
+                                {additionalCount > 0 ? ` +${additionalCount}` : ''}
+                              </span>
                               <p className="text-[11px] text-gray-500 mt-0.5">{firstRes.author || 'Zyndex Faculty'}</p>
                             </td>
 

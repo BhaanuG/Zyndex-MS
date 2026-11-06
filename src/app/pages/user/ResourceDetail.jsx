@@ -110,16 +110,83 @@ export default function ResourceDetail() {
 
   useEffect(() => {
     const startTime = Date.now();
-    return () => {
-      const endTime = Date.now();
-      const durationSeconds = Math.round((endTime - startTime) / 1000);
-      if (durationSeconds > 0) {
-        resourceService.trackReadingDuration(id, durationSeconds).catch((err) => {
-          console.warn('Failed to log reading duration:', err);
-        });
+    let accumulatedSeconds = 0;
+    let lastActiveTimestamp = Date.now();
+    let isTabVisible = !document.hidden;
+
+    // Track active reading time only when tab is visible and user is not idle
+    const handleVisibility = () => {
+      const now = Date.now();
+      if (document.hidden) {
+        if (isTabVisible) {
+          accumulatedSeconds += Math.round((now - lastActiveTimestamp) / 1000);
+        }
+        isTabVisible = false;
+      } else {
+        lastActiveTimestamp = now;
+        isTabVisible = true;
       }
     };
-  }, [id]);
+
+    const handleUserActivity = () => {
+      if (isTabVisible) {
+        lastActiveTimestamp = Date.now();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('mousemove', handleUserActivity, { passive: true });
+    window.addEventListener('keydown', handleUserActivity, { passive: true });
+    window.addEventListener('scroll', handleUserActivity, { passive: true });
+    window.addEventListener('touchstart', handleUserActivity, { passive: true });
+
+    let sent = false;
+    const sendDuration = () => {
+      if (sent) return;
+      sent = true;
+      const now = Date.now();
+      if (isTabVisible) {
+        accumulatedSeconds += Math.round((now - lastActiveTimestamp) / 1000);
+      }
+      // Cap individual reading duration to 120 minutes (7200 seconds) to prevent runaway timer if tab left open
+      const totalSeconds = Math.min(Math.max(0, accumulatedSeconds), 7200);
+      // Convert to minutes: if read for at least 20 seconds, count as 1 min; otherwise round normally
+      const totalMinutes = totalSeconds >= 20 ? Math.max(1, Math.round(totalSeconds / 60)) : 0;
+      if (totalMinutes > 0) {
+        const token = localStorage.getItem('auth_token') || '';
+        const payload = JSON.stringify({ duration: totalMinutes });
+        const endpoint = `${apiBaseUrl}/resources/${id}/track-duration`;
+        if (navigator.sendBeacon) {
+          const blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon(endpoint, blob);
+        } else {
+          fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: payload,
+            keepalive: true
+          }).catch(() => {});
+        }
+      }
+    };
+
+    window.addEventListener('pagehide', sendDuration);
+    window.addEventListener('beforeunload', sendDuration);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('mousemove', handleUserActivity);
+      window.removeEventListener('keydown', handleUserActivity);
+      window.removeEventListener('scroll', handleUserActivity);
+      window.removeEventListener('touchstart', handleUserActivity);
+      window.removeEventListener('pagehide', sendDuration);
+      window.removeEventListener('beforeunload', sendDuration);
+      sendDuration();
+    };
+  }, [id, apiBaseUrl]);
 
   const handleSubmitFeedback = async (e) => {
     e.preventDefault();

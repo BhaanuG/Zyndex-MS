@@ -33,9 +33,9 @@ public class UsageController {
             jdbc.update("INSERT INTO downloads (resource_id, user_id, downloaded_at) VALUES (?, ?, NOW())", resourceId, userId);
         } else {
             jdbc.update("INSERT INTO resource_views (resource_id, user_id, viewed_at) VALUES (?, ?, NOW())", resourceId, userId);
-            // Deduplicate usages: only insert an initial 1-minute tracking row if user doesn't already have a view on this resource in the last 15 minutes
+            // Deduplicate usages: only insert an initial 1-minute tracking row if user doesn't already have an active usage record for this resource in the last 30 minutes
             Integer countRecent = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM usages WHERE user_id = ? AND content_id = ? AND created_at >= NOW() - INTERVAL 15 MINUTE",
+                "SELECT COUNT(*) FROM usages WHERE user_id = ? AND content_id = ? AND created_at >= NOW() - INTERVAL 30 MINUTE",
                 Integer.class, userId, resourceId);
             if (countRecent == null || countRecent == 0) {
                 jdbc.update("INSERT INTO usages (user_id, content_id, duration) VALUES (?, ?, 1)", userId, resourceId);
@@ -131,13 +131,28 @@ public class UsageController {
         if (contentId == null) {
             contentId = getLong(body.get("resourceId"));
         }
-        Integer duration = body.get("duration") != null ? Integer.parseInt(String.valueOf(body.get("duration"))) : 0;
+        int rawDuration = body.get("duration") != null ? Integer.parseInt(String.valueOf(body.get("duration"))) : 0;
+        // Cap excessive spikes (max 120 minutes per reading batch)
+        int duration = Math.min(Math.max(1, rawDuration), 120);
 
         if (userId == null || contentId == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "userId and contentId are required.");
         }
 
-        jdbc.update("INSERT INTO usages (user_id, content_id, duration) VALUES (?, ?, ?)", userId, contentId, duration);
+        // Check if there is an existing usage entry for this user and resource created within the last 30 minutes
+        List<Map<String, Object>> recentUsages = jdbc.queryForList(
+                "SELECT usage_id, duration FROM usages WHERE user_id = ? AND content_id = ? AND created_at >= NOW() - INTERVAL 30 MINUTE ORDER BY usage_id DESC LIMIT 1",
+                userId, contentId
+        );
+
+        if (!recentUsages.isEmpty()) {
+            Long existingUsageId = getLong(recentUsages.get(0).get("usage_id"));
+            // Update the existing usage duration instead of inserting duplicate rows
+            jdbc.update("UPDATE usages SET duration = GREATEST(duration, ?), created_at = NOW() WHERE usage_id = ?", duration, existingUsageId);
+        } else {
+            jdbc.update("INSERT INTO usages (user_id, content_id, duration) VALUES (?, ?, ?)", userId, contentId, duration);
+        }
+
         return Map.of("message", "Reading duration logged successfully.");
     }
 
@@ -152,16 +167,18 @@ public class UsageController {
         Long totalSessions = jdbc.queryForObject("SELECT COUNT(*) FROM usages", Long.class);
         Long uniqueReaders = jdbc.queryForObject("SELECT COUNT(DISTINCT user_id) FROM usages", Long.class);
         
-        // Active readers today (from today's reading events or users active within last 24 hours)
+        // Active readers today: only count non-admin users who logged in or were active today
         Long todayReaders = jdbc.queryForObject("""
                 SELECT COUNT(DISTINCT user_id) FROM (
                     SELECT user_id FROM usages WHERE created_at >= CURRENT_DATE()
                     UNION
-                    SELECT id AS user_id FROM zyndex_auth.users WHERE last_active_at >= NOW() - INTERVAL 24 HOUR
+                    SELECT id AS user_id FROM zyndex_auth.users 
+                    WHERE (role IS NULL OR UPPER(role) != 'ADMIN') 
+                      AND last_active_at >= CURRENT_DATE()
                 ) active_users
                 """, Long.class);
 
-        // Real-time active reading sessions right now: only count users who actually logged reading activity within the last 15 minutes
+        // Real-time active reading sessions right now: readers with active reading activity within the last 15 minutes
         Long activeSessionsNow = jdbc.queryForObject("""
                 SELECT COUNT(DISTINCT user_id) FROM usages 
                 WHERE created_at >= NOW() - INTERVAL 15 MINUTE
@@ -201,17 +218,18 @@ public class UsageController {
             System.err.println("Category breakdown query failed: " + e.getMessage());
         }
 
-        // Live breakdown of active readers by user role / tier
+        // Live breakdown of active readers by user role / tier (excluding ADMIN)
         List<Map<String, Object>> tierBreakdown = new ArrayList<>();
         try {
             tierBreakdown = jdbc.queryForList("""
                     SELECT 
-                        COALESCE(usr.role, 'STUDENT') AS tier,
+                        COALESCE(usr.user_type, usr.role, 'Student') AS tier,
                         COUNT(DISTINCT u.user_id) AS readers,
                         COALESCE(SUM(u.duration), 0) AS totalMinutes
                     FROM zyndex_usage.usages u
                     LEFT JOIN zyndex_auth.users usr ON usr.id = u.user_id
-                    GROUP BY COALESCE(usr.role, 'STUDENT')
+                    WHERE usr.role IS NULL OR UPPER(usr.role) != 'ADMIN'
+                    GROUP BY COALESCE(usr.user_type, usr.role, 'Student')
                     ORDER BY readers DESC
                     """);
         } catch (Exception e) {
@@ -246,7 +264,7 @@ public class UsageController {
                 "totalReadingMinutes", totalMinutes != null ? totalMinutes : 0L,
                 "totalSessions", totalSessions != null ? totalSessions : 0L,
                 "totalReaders", uniqueReaders != null ? uniqueReaders : 0L,
-                "activeReadersToday", activeSessionsNow != null && activeSessionsNow > 0 ? activeSessionsNow : (todayReaders != null ? todayReaders : 0L),
+                "activeReadersToday", todayReaders != null ? todayReaders : 0L,
                 "activeSessionsNow", activeSessionsNow != null ? activeSessionsNow : 0L,
                 "avgSessionMinutes", avgMinutes,
                 "trendData", trendData,

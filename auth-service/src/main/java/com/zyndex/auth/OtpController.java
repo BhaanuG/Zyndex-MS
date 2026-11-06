@@ -206,23 +206,23 @@ class OtpController {
 
     private String otpDisplayBoxHtml(String label, String otp, String borderHex, String bgHex, String textHex, String subtextHex) {
         return """
-                <div style="background-color: %s; border: 2px dashed %s; border-radius: 12px; padding: 20px 16px 14px 16px; text-align: center; margin: 20px 0; position: relative;">
+                <div style="background-color: %s; border: 2px dashed %s; border-radius: 12px; padding: 22px 18px 16px 18px; text-align: center; margin: 20px 0; position: relative;">
                     <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: %s; display: block; margin-bottom: 8px;">%s</span>
-                    <div style="text-align: center; margin: 6px 0;">
-                        <span style="font-size: 32px; font-weight: 900; letter-spacing: 6px; color: %s; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; display: inline-block; user-select: all; -webkit-user-select: all; -moz-user-select: all; cursor: pointer;">%s</span>
+                    <div style="text-align: center; margin: 8px 0 10px 0;">
+                        <span style="font-size: 34px; font-weight: 900; letter-spacing: 7px; color: %s; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; display: inline-block; user-select: all; -webkit-user-select: all; -moz-user-select: all; cursor: pointer;">%s</span>
                     </div>
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="margin-top: 10px; border-collapse: collapse;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="margin-top: 8px; border-collapse: collapse;">
                         <tr>
-                            <td align="left" style="font-size: 11px; color: %s; line-height: 1.3; vertical-align: bottom;">
+                            <td align="left" style="font-size: 11px; color: %s; line-height: 1.4; vertical-align: middle;">
                                 Valid for 2 minutes · Single-use code
                             </td>
-                            <td align="right" style="vertical-align: bottom; white-space: nowrap; width: 24px;">
-                                <span title="Copy Code" style="display: inline-block; color: %s; font-size: 14px; line-height: 1; cursor: pointer; user-select: none;">&#10697;</span>
+                            <td align="right" style="vertical-align: middle; white-space: nowrap; width: 48px;">
+                                <span title="Tap code to copy" style="display: inline-block; font-size: 16px; line-height: 1; color: %s; cursor: pointer; user-select: all; -webkit-user-select: all;">&#128203;</span>
                             </td>
                         </tr>
                     </table>
                 </div>
-                """.formatted(bgHex, borderHex, subtextHex, label, textHex, otp, subtextHex, borderHex);
+                """.formatted(bgHex, borderHex, subtextHex, label, textHex, otp, subtextHex, textHex);
     }
 
     private String accountCreationOtpHtml(String username, String email, String role, String otp) {
