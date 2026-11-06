@@ -127,28 +127,20 @@ export default function Terms() {
       title: '8. Payments & Subscriptions',
       content: [
         {
-          subtitle: 'Pricing Model',
-          text: 'Zyndex offers various subscription plans with different features and pricing tiers. Current pricing information is available on our pricing page. We reserve the right to change our fees and pricing at any time with at least 30 days\' notice for existing subscribers.'
+          subtitle: 'Transparent Pricing & UPI Protocol',
+          text: 'Zyndex offers flexible subscription tiers (Free / Demo, Student Basic, Student Plus, PhD Scholar / Researcher, University, and Enterprise / Institution). Upgrades are paid in Indian Rupees (INR) via direct UPI transfer to our recipient merchant address (918897337687@waaxis) with 12-digit UTR reference validation.'
         },
         {
-          subtitle: 'Billing Cycle',
-          text: 'Subscription fees are billed in advance on a recurring basis (monthly or annually, depending on your chosen plan). By subscribing, you authorize us to charge the payment method on file at the beginning of each billing cycle.'
+          subtitle: 'No Auto-Debit or Surprise Charges',
+          text: 'We maintain a strictly transparent, non-recurring billing standard. Zyndex NEVER stores payment card secrets or conducts automated recurring debits without explicit consent. When your active duration concludes, your membership safely transitions to our Free Academic Plan.'
         },
         {
-          subtitle: 'Auto-Renewal Terms',
-          text: 'Your subscription will automatically renew at the end of each billing period unless you cancel before the renewal date. You can cancel your subscription at any time through your account settings. Cancellations take effect at the end of the current billing period—you will continue to have access until then.'
+          subtitle: 'Advance Expiry Notifications',
+          text: 'Subscribers receive automated advance reminder notices 24 hours prior to subscription expiration. You may choose to renew or upgrade your tier at any time through the Pricing and Billing settings.'
         },
         {
-          subtitle: 'Refund Policy',
-          text: 'We offer a 14-day money-back guarantee for new subscribers. If you are not satisfied with the Service within the first 14 days of your initial subscription, you may request a full refund. After the 14-day period, subscription fees are non-refundable. We do not provide pro-rated refunds for partial billing periods.'
-        },
-        {
-          subtitle: 'Taxes and Fees',
-          text: 'All fees are exclusive of applicable taxes, duties, or similar governmental assessments, including without limitation, sales, use, value-added, and withholding taxes (collectively, "Taxes"). You are responsible for payment of all Taxes associated with your use of the Service. If we are required to collect or pay Taxes, they will be charged to your payment method.'
-        },
-        {
-          subtitle: 'Payment Method Updates',
-          text: 'You must keep a valid payment method on file. If your payment method fails or your account is past due, we may suspend or terminate your access to the Service until payment is received.'
+          subtitle: 'Refund Policy & Verification',
+          text: 'Because subscriptions grant instant digital library access and verified UTR activations, payments are generally non-refundable once approved. If a payment is placed on administrative hold or an erroneous UTR is submitted, our billing desk conducts prompt statement audits to confirm or decline transactions.'
         }
       ]
     },

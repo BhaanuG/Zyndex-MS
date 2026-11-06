@@ -9,35 +9,47 @@ export default function FAQ() {
   const faqs = [
     {
       question: 'What is Zyndex?',
-      answer: 'Zyndex is a comprehensive educational resource library platform that provides access to curated learning materials across various subjects and disciplines.',
+      answer: 'Zyndex is a state-of-the-art academic digital library and research repository platform that provides scholars, university students, educators, and researchers with instantaneous access to curated learning materials, peer-reviewed textbooks, guides, and academic assets.',
     },
     {
-      question: 'How do I access resources?',
-      answer: 'Simply create a free account, browse our categories, and access any resource that interests you. Some premium resources may require additional permissions.',
+      question: 'How do I access and read resources on Zyndex?',
+      answer: 'Simply create a free account, browse academic categories (such as AI, Machine Learning, Computer Science, and Mathematics), and open any material in our web-based viewer. Reading modes, active chapter navigation, and search indexes are built directly into the reading interface.',
     },
     {
-      question: 'Is Zyndex free to use?',
-      answer: 'Yes, Zyndex offers a free tier with access to a wide range of educational resources. We also offer premium features for enhanced functionality.',
+      question: 'What are the account roles available on registration?',
+      answer: 'When signing up, you can select the role that matches your academic profile: Student, Teacher / Educator, Researcher, Professional, or General Reader. This customizes your academic experience, recommendations, and role entitlements across Zyndex.',
     },
     {
-      question: 'Can I upload my own resources?',
-      answer: 'Admin users can upload and manage resources through the admin dashboard. Regular users can suggest resources through our contact form.',
+      question: 'How does 2-Step OTP Security Verification work?',
+      answer: 'Zyndex uses an advanced 2-step security verification system powered by JavaMail and HMAC tokens. Upon login or account creation, a single-use 4-digit code is dispatched to your registered email. Entering the digits activates interactive geometric shape transformations (Circle, Square, Diamond, Triangle, and Hexagon) that confirm your secure cryptographic handshake.',
     },
     {
-      question: 'How are resources organized?',
-      answer: 'Resources are organized by categories, subjects, and resource types. You can use our search and filter tools to find exactly what you need.',
+      question: 'How does the UPI QR and UTR payment verification operate?',
+      answer: 'Zyndex supports fast, transparent Indian UPI payments (Google Pay, PhonePe, Paytm, BHIM, and bank apps). When upgrading your tier, a dynamic merchant QR is generated for our recipient UPI ID (918897337687@waaxis). After completing the transfer, enter your 12-digit bank UTR reference number. Our admin and automated billing system verify the UTR against live statements and activate your subscription.',
     },
     {
-      question: 'What file formats are supported?',
-      answer: 'We support a wide range of file formats including PDF, DOCX, PPTX, videos, and interactive content. Check the upload guidelines for complete details.',
+      question: 'Is there any automatic debit or hidden auto-renewal charge?',
+      answer: 'No. Zyndex adheres to a transparent, non-recurring billing model. We never store credit card secrets or trigger surprise auto-debits. When your subscription period concludes, your account gracefully transitions to our Free Academic Plan without penalties, and advance reminder notices are delivered 24 hours prior.',
     },
     {
-      question: 'How do I report an issue with a resource?',
-      answer: 'You can report issues directly on the resource page using the feedback feature, or contact our support team through the Help Center.',
+      question: 'Can I download textbooks and papers for offline study?',
+      answer: 'Yes! Download entitlements are governed by subscription plans. Paid tiers allow full offline PDF downloads with watermarking, while Free tier readers can preview and study documents within our secure in-browser reader.',
     },
     {
-      question: 'Can I download resources?',
-      answer: 'Yes, most resources can be downloaded for offline access. Download permissions depend on the resource type and your account level.',
+      question: 'How do Admin Requests and privileges work?',
+      answer: 'Administrative rights require strict verification. Prospective faculty and administrators submit an Admin Access Request from our portal with their official institution details. Zyndex executive administrators review, approve, or decline applications with instant email audit dispatches.',
+    },
+    {
+      question: 'How is my reading time and activity calculated in analytics?',
+      answer: 'Zyndex employs idle-protected, visibility-aware telemetry. Reading duration only logs while your browser tab is active and visible. If you minimize or close the tab, the session safely finalizes via sendBeacon without inflating reading minutes or generating duplicate records.',
+    },
+    {
+      question: 'What should I do if I did not receive my verification OTP email?',
+      answer: 'Check your spam or junk folder first. OTPs are valid for 2 minutes. If needed, click the "Resend OTP" button on the authenticator page to generate a brand-new code. Make sure your email provider allows messages from support@zyndex.com or our official notification address.',
+    },
+    {
+      question: 'How do I submit reviews, ratings, or report content issues?',
+      answer: 'Every academic resource features a feedback module where authenticated readers can submit 1-to-5 star ratings and detailed reviews. You can also contact our 24/7 scholar support team via the Contact Us page.',
     },
   ];
 

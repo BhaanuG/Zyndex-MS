@@ -163,6 +163,10 @@ export const router = createBrowserRouter([
         element: <PageTransitionWrapper duration={5000}><FAQ /></PageTransitionWrapper>
       },
       {
+        path: "Zyndex/Support/Frequently-Asked-Questions",
+        element: <PageTransitionWrapper duration={5000}><FAQ /></PageTransitionWrapper>
+      },
+      {
         path: "Zyndex/Privacy-Policy",
         element: <PageTransitionWrapper duration={5000}><Privacy /></PageTransitionWrapper>
       },

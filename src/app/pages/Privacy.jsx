@@ -27,20 +27,20 @@ export default function Privacy() {
       title: '2. Information We Collect',
       content: [
         {
-          subtitle: 'Personal Information',
-          text: 'Name, email address, username, profile information, and any other information you voluntarily provide during registration or account setup. We DO NOT collect payment information directly—all payment processing is handled securely by third-party payment processors who comply with PCI DSS standards.'
+          subtitle: 'Personal Information & Roles',
+          text: 'Name, email address, password hash, and user role selection (Student, Teacher / Educator, Researcher, Professional, or General Reader). Optional profile details such as college/university affiliations or profession for customized recommendations. We DO NOT collect or store payment secrets or debit details—all payments are processed via direct UPI UTR verification without storing payment credentials.'
         },
         {
-          subtitle: 'Account Data',
-          text: 'Reading history, resource access logs, bookmarks, notes, favorites, search queries, and preferences. This data helps us provide personalized recommendations and improve your user experience.'
+          subtitle: 'Account & Reading Telemetry',
+          text: 'Active reading history, resource access logs, bookmarks, notes, favorites, search queries, and subject preferences. Reading duration is collected with privacy-safe, visibility-aware tracking that automatically pauses when browser tabs are inactive or minimized.'
         },
         {
           subtitle: 'Usage & Technical Data',
-          text: 'IP address, browser type and version, device information, operating system, access times and dates, pages visited, time spent on pages, referral sources, and clickstream data collected through cookies and similar technologies.'
+          text: 'IP address, browser type and version, device indicators, access timestamps, and session security hashes required to prevent unauthorized account access and secure multi-device authorization.'
         },
         {
-          subtitle: 'User-Generated Content',
-          text: 'Reviews, comments, ratings, feedback, and any files or content you upload to the platform (if permitted by your user role). You retain ownership of your user-generated content, but grant us a license to use it as described in our Terms of Service.'
+          subtitle: 'User-Generated Content & Feedback',
+          text: 'Reviews, ratings (1 to 5 stars), commentary, feedback suggestions, and contact inquiries submitted directly through our verified messaging gateways.'
         }
       ]
     },
@@ -49,16 +49,16 @@ export default function Privacy() {
       title: '3. How Information Is Collected',
       content: [
         {
-          subtitle: 'Direct User Input',
-          text: 'Information you provide when registering for an account, updating your profile, filling out contact forms, participating in surveys, or communicating with our support team.'
+          subtitle: 'Direct User Input & OTP Handshake',
+          text: 'Information you provide during account creation, 2-step OTP email verification handshakes, profile edits, feedback submissions, and support enquiries.'
         },
         {
-          subtitle: 'Automatic Collection',
-          text: 'We automatically collect certain information through cookies, web beacons, log files, and similar tracking technologies. This includes your IP address, browser type, device identifiers, and interaction data with our platform.'
+          subtitle: 'Automatic Session Telemetry',
+          text: 'Session and reading telemetry logged dynamically while exploring digital textbooks and papers. Telemetry uses standard browser visibility APIs and Beacon mechanisms to avoid unnecessary background tracking.'
         },
         {
-          subtitle: 'Third-Party Integrations',
-          text: 'We may receive information from third-party services you connect to your Zyndex account, such as single sign-on providers (Google, Microsoft), payment gateways, analytics tools (Google Analytics), and content delivery networks.'
+          subtitle: 'Administrative Review Records',
+          text: 'Applications submitted for administrator access, review logs, decision statuses, and audit timestamps retained for institutional compliance.'
         }
       ]
     },
@@ -218,7 +218,7 @@ export default function Privacy() {
         },
         {
           subtitle: 'Effective Date',
-          text: 'This Privacy Policy is effective as of January 28, 2026. Your continued use of the platform after any changes indicates your acceptance of the updated Privacy Policy. If you do not agree with the updated policy, please discontinue use of the platform and contact us to delete your account.'
+          text: 'This Privacy Policy is effective as of November 2026. Your continued use of the platform after any changes indicates your acceptance of the updated Privacy Policy. If you do not agree with the updated policy, please discontinue use of the platform and contact us to delete your account.'
         }
       ]
     },

@@ -21,60 +21,59 @@ export default function HelpCenter() {
       id: 1,
       category: 'Getting Started',
       title: 'How to create an account',
-      description: 'Step-by-step guide to register on Zyndex',
+      description: 'Step-by-step guide to register on Zyndex with your academic role',
       content: `
         <h2>Creating Your Zyndex Account</h2>
-        <p>Welcome to Zyndex! Follow these simple steps to create your account:</p>
-        <h3>For User Accounts:</h3>
+        <p>Welcome to Zyndex Educational Resource Platform! Follow these simple steps to create your account:</p>
+        <h3>For Reader & Academic Accounts:</h3>
         <ol>
-          <li>Visit the Zyndex Login page</li>
-          <li>Select "User Access" tab</li>
-          <li>Click "Sign Up" to switch to registration mode</li>
-          <li>Enter your full name</li>
-          <li>Provide a valid email address</li>
-          <li>Create a secure password (use the show/hide toggle to verify)</li>
-          <li>Click "Create Account"</li>
-          <li>Complete the Security Verification process</li>
-          <li>You'll be redirected to your User Dashboard</li>
+          <li>Visit the Zyndex Login page.</li>
+          <li>Select the <strong>"User Access"</strong> tab and switch to <strong>"Sign Up"</strong>.</li>
+          <li>Enter your full name and a valid email address.</li>
+          <li>Choose your personalized <strong>"I Am"</strong> academic profile role (Student, Faculty / Professor, Researcher, Librarian, Independent Scholar, or Professional Reader) — this customizes your reader badge across your workspace.</li>
+          <li>Create a secure password with at least 8 characters.</li>
+          <li>Click <strong>"Create Account"</strong>.</li>
+          <li>Complete the 2-Step Email OTP Security Verification with high-speed dynamic geometric shape morphing.</li>
+          <li>You'll be instantly redirected to your personalized User Dashboard.</li>
         </ol>
         <h3>For Admin Accounts:</h3>
-        <p>Admin access requires approval. Visit the "Admin Request" page from the login screen to submit your application. Our team will review and respond within 24-48 hours.</p>
+        <p>Admin access requires administrative verification. Visit the "Admin Request" page from the login screen to submit your institutional request with designation and purpose. Our compliance team reviews requests within 24-48 business hours with automated email updates.</p>
         <h3>Important Tips:</h3>
         <ul>
-          <li>Use a professional email address for admin requests</li>
-          <li>Create a strong password with at least 8 characters</li>
-          <li>Keep your login credentials secure</li>
+          <li>Provide an active email address to receive your 4-digit verification and security handshakes.</li>
+          <li>Ensure your academic profile role matches your field of study for customized resource recommendations.</li>
+          <li>Keep your login credentials strictly private.</li>
         </ul>
       `,
-      tags: ['account', 'register', 'signup', 'create', 'getting started', 'user', 'admin'],
+      tags: ['account', 'register', 'signup', 'create', 'getting started', 'user', 'admin', 'role'],
       readTime: '3 min read'
     },
     {
       id: 2,
       category: 'Getting Started',
       title: 'Understanding the Security Verification',
-      description: 'How the authenticator page works',
+      description: 'How the 2-step OTP email handshake and geometric morphing work',
       content: `
         <h2>Security Verification Process</h2>
-        <p>After entering your credentials, Zyndex uses a Security Verification step to ensure account security.</p>
+        <p>Every login and account registration on Zyndex is guarded by an enterprise-grade 2-Step Email Verification system.</p>
         <h3>What is Security Verification?</h3>
-        <p>This is an additional security layer that verifies your identity before granting access to your account.</p>
-        <h3>The Process:</h3>
+        <p>Whenever you sign up or log in, Zyndex sends a cryptographically signed, single-use 4-digit numeric OTP to your registered email address with a 5-minute validity window.</p>
+        <h3>The Verification Experience:</h3>
         <ol>
-          <li>Enter your login credentials on the Login page</li>
-          <li>You'll be redirected to the Authenticator page</li>
-          <li>Complete the verification challenge</li>
-          <li>Once verified, you'll be directed to your dashboard</li>
+          <li>Enter your email and credentials on the Login screen.</li>
+          <li>You are transitioned to the Security Authenticator screen.</li>
+          <li>Notice the modern, interactive input boxes: as you enter digits, input tiles morph dynamically from diamond orientation into smooth circular tokens.</li>
+          <li>Upon entering all four digits, the tokens animate smoothly through a randomized constellation sequence of 3 to 6 geometric shapes (Square, Circle, Diamond, Triangle with central apex, Polygon) before concluding verification.</li>
+          <li>Check your registered inbox (or copy the code directly using the one-click copy button in the responsive email template) and enter the 4 digits to authenticate.</li>
         </ol>
-        <h3>Why Security Verification?</h3>
+        <h3>Why This Verification?</h3>
         <ul>
-          <li>Protects your account from unauthorized access</li>
-          <li>Ensures data privacy and security</li>
-          <li>Prevents automated bot attacks</li>
-          <li>Required for both User and Admin accounts</li>
+          <li>Eliminates credential stuffing and unauthorized automated access.</li>
+          <li>Validates email ownership in real-time without storing sensitive device identifiers.</li>
+          <li>Protects reader history, personal favorites, and academic session telemetry.</li>
         </ul>
       `,
-      tags: ['security', 'verification', 'authenticator', 'login', 'safety'],
+      tags: ['security', 'verification', 'authenticator', 'otp', 'email', 'shapes', 'morphing', 'safety'],
       readTime: '3 min read'
     },
     {
@@ -1382,6 +1381,66 @@ export default function HelpCenter() {
       tags: ['rating', 'feedback', 'articles', 'helpful', 'improve'],
       readTime: '2 min read'
     },
+
+    // Subscription, Plans & Billing (New refined platform articles)
+    {
+      id: 101,
+      category: 'Account & Profile',
+      title: 'Upgrading your plan with UPI QR & UTR verification',
+      description: 'How to upgrade to Scholar or Institutional tier using UPI QR code and UTR',
+      content: `
+        <h2>Upgrading Your Zyndex Plan</h2>
+        <p>Zyndex offers premium tiers (Scholar Pro & Institutional Unlimited) with expanded offline downloads, unlimited reading time, and research tools.</p>
+        <h3>How UPI Payment Works:</h3>
+        <ol>
+          <li>Navigate to your User Dashboard and click on <strong>Upgrade Plan</strong> or visit your Profile subscription tab.</li>
+          <li>Select your desired tier (Monthly or Annual pass).</li>
+          <li>Scan the displayed dynamic UPI QR Code using any UPI application (Google Pay, PhonePe, Paytm, BHIM, or banking app) targeting verified merchant VPA <code>918897337687@waaxis</code>.</li>
+          <li>Complete payment and copy the 12-digit <strong>UTR / Bank Reference Number</strong> from your payment receipt.</li>
+          <li>Enter the 12-digit UTR into the verification box on Zyndex and click <strong>Submit Verification</strong>.</li>
+          <li>Our backend verifies the reference and upgrades your account tier immediately. An automated HTML invoice receipt is dispatched to your email.</li>
+        </ol>
+      `,
+      tags: ['plan', 'upgrade', 'upi', 'utr', 'payment', 'scholar', 'billing'],
+      readTime: '4 min read'
+    },
+    {
+      id: 102,
+      category: 'Account & Profile',
+      title: 'Zero auto-debit policy and transparent billing',
+      description: 'Understanding Zyndex non-recurring fixed passes and renewal policy',
+      content: `
+        <h2>Zero Auto-Debit Guarantee</h2>
+        <p>At Zyndex, we believe in 100% financial transparency. We <strong>never</strong> store your credit or debit card numbers, and we never set up recurring auto-debits without explicit action.</p>
+        <h3>Key Principles:</h3>
+        <ul>
+          <li><strong>No Surprise Recurring Charges:</strong> All plan upgrades are one-time prepaid period passes. You are never silently charged at the end of a month or year.</li>
+          <li><strong>24-Hour Expiry Alert:</strong> Exactly 24 hours prior to pass expiration, Zyndex sends a courteous notification email to your registered inbox.</li>
+          <li><strong>Graceful Degradation:</strong> If you choose not to renew, your account simply transitions to the Free Academic Reader tier. Your reading history, bookmarks, notes, and profile settings remain 100% intact.</li>
+        </ul>
+      `,
+      tags: ['auto-debit', 'no recurring', 'billing', 'transparency', 'refund', 'subscription'],
+      readTime: '3 min read'
+    },
+    {
+      id: 103,
+      category: 'Finding Resources',
+      title: 'Understanding active reading telemetry and idle protection',
+      description: 'How Zyndex tracks genuine active reading time without inflating durations',
+      content: `
+        <h2>Accurate Active Reading Telemetry</h2>
+        <p>Zyndex provides real-time reading analytics to help scholars monitor their study habits and librarians review library engagement.</p>
+        <h3>How Reading Duration is Measured:</h3>
+        <ul>
+          <li><strong>Active Engagement Only:</strong> Duration only increments while the resource document is actively visible in your browser tab.</li>
+          <li><strong>Tab Switching & Background Detection:</strong> Utilizing the HTML5 Page Visibility API, the timer pauses immediately when you switch tabs, minimize the browser, or lock your workstation.</li>
+          <li><strong>Tab Close / Session End:</strong> When you close the reader tab or navigate away, the browser sends an asynchronous <code>navigator.sendBeacon</code> payload that finalizes the reading segment cleanly, preventing hung sessions or inflated timestamps.</li>
+          <li><strong>Discrete Reader Sessions:</strong> If you read a paper, log out, and log back in later, each session is cataloged as a distinct chronological event in the analytics ledger, guaranteeing pristine precision.</li>
+        </ul>
+      `,
+      tags: ['reading', 'analytics', 'telemetry', 'duration', 'privacy', 'active time', 'logs'],
+      readTime: '4 min read'
+    },
   ];
 
   // Merge all help articles (base 50 + additional 30 + additional 20 = 100 articles)
@@ -1454,7 +1513,7 @@ export default function HelpCenter() {
   };
 
   const quickLinks = [
-    { icon: HelpCircle, text: 'Frequently Asked Questions', link: '/Zyndex/Support/FAQ' },
+    { icon: HelpCircle, text: 'Frequently Asked Questions', link: '/Zyndex/Support/Frequently-Asked-Questions' },
     { icon: MessageSquare, text: 'Contact Support', link: '/Zyndex/About/Contact' },
   ];
 

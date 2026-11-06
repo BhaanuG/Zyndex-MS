@@ -542,7 +542,7 @@ export default function ForgotPassword() {
               <Link to="/Zyndex/Legal/Terms" className="text-sm text-slate-600 hover:text-orange-600 transition-colors">
                 Terms
               </Link>
-              <Link to="/Zyndex/Support/FAQ" className="text-sm text-slate-600 hover:text-orange-600 transition-colors">
+              <Link to="/Zyndex/Support/Frequently-Asked-Questions" className="text-sm text-slate-600 hover:text-orange-600 transition-colors">
                 FAQ
               </Link>
             </div>

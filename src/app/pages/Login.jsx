@@ -186,7 +186,7 @@ export default function Login() {
             <Link to="/Zyndex/Resources/Categories" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Categories</Link>
             <span className="text-slate-300 px-1">|</span>
             <Link to="/Zyndex/Support/Help-Center" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Help Center</Link>
-            <Link to="/Zyndex/Support/FAQ" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">FAQ</Link>
+            <Link to="/Zyndex/Support/Frequently-Asked-Questions" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">FAQ</Link>
             <span className="text-slate-300 px-1">|</span>
             <Link to="/Zyndex/Legal/Privacy" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Privacy</Link>
             <Link to="/Zyndex/Legal/Terms" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Terms</Link>

@@ -114,7 +114,7 @@ export default function PublicLayout({ children, showBack = true }) {
                 Help Center
               </Link>
               <Link
-                to="/Zyndex/Support/FAQ"
+                to="/Zyndex/Support/Frequently-Asked-Questions"
                 className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
                   isActive('/Support/FAQ')
                     ? 'text-orange-600 bg-orange-50 font-semibold'
@@ -222,7 +222,7 @@ export default function PublicLayout({ children, showBack = true }) {
                     Help Center
                   </Link>
                   <Link
-                    to="/Zyndex/Support/FAQ"
+                    to="/Zyndex/Support/Frequently-Asked-Questions"
                     className="px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
                   >
                     FAQ
