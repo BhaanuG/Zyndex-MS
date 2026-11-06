@@ -52,11 +52,8 @@ public class SqlSupport {
     }
 
     public static String dbType(String resourceType) {
-        if ("article".equalsIgnoreCase(resourceType)) {
+        if ("article".equalsIgnoreCase(resourceType) || "paper".equalsIgnoreCase(resourceType)) {
             return "PAPER";
-        }
-        if ("pdf".equalsIgnoreCase(resourceType)) {
-            return "GUIDE";
         }
         return "TEXTBOOK";
     }

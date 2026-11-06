@@ -67,13 +67,12 @@ public class UsageController {
             @RequestParam(name = "size", defaultValue = "10") int size) {
         int offset = page * size;
         var rows = jdbc.queryForList("""
-            SELECT rv.resource_id, rv.viewed_at
-            FROM resource_views rv
-            INNER JOIN (
-                SELECT resource_id, MAX(viewed_at) AS latest_viewed_at
-                FROM resource_views WHERE user_id = ? GROUP BY resource_id
-            ) latest ON latest.resource_id = rv.resource_id AND latest.latest_viewed_at = rv.viewed_at
-            WHERE rv.user_id = ? ORDER BY rv.viewed_at DESC LIMIT ? OFFSET ?
+            SELECT resource_id, MAX(viewed_at) AS viewed_at
+            FROM resource_views
+            WHERE user_id = ?
+            GROUP BY resource_id
+            ORDER BY viewed_at DESC
+            LIMIT ? OFFSET ?
                 """, userId, size, offset);
         long total = jdbc.queryForObject("SELECT COUNT(DISTINCT resource_id) FROM resource_views WHERE user_id = ?", Long.class, userId);
 

@@ -64,7 +64,8 @@ export default function UserHome() {
       }
 
       if (recentViewsResult.status === 'fulfilled') {
-        setRecentViews(recentViewsResult.value.resources || []);
+        const viewsList = recentViewsResult.value.resources || [];
+        setRecentViews(viewsList.slice(0, 3));
       } else {
         console.error('Failed to load recent views:', recentViewsResult.reason);
         setRecentViews([]);

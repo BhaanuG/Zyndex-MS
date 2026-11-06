@@ -57,9 +57,11 @@ export default function ResourceDetail() {
   const userPlanName = PLAN_NAMES[userPlan] || String(userPlan).replace(/_/g, ' ');
   const userTimeLeft = isAdmin
     ? 'Lifetime'
-    : !user?.subscriptionExpiresAt || isSubExpired
-      ? 'No active subscription'
-      : `${Math.ceil((new Date(user.subscriptionExpiresAt) - new Date()) / (1000 * 60 * 60 * 24))} day${Math.ceil((new Date(user.subscriptionExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)) === 1 ? '' : 's'} left`;
+    : userPlan === 'FREE'
+      ? 'Lifetime'
+      : !user?.subscriptionExpiresAt || isSubExpired
+        ? 'No active subscription'
+        : `${Math.ceil((new Date(user.subscriptionExpiresAt) - new Date()) / (1000 * 60 * 60 * 24))} day${Math.ceil((new Date(user.subscriptionExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)) === 1 ? '' : 's'} left`;
   const userTier = isAdmin ? 99 : (PLAN_TIERS[userPlan] ?? 0);
   const requiredPlan = resource?.requiredPlan || 'FREE';
   const requiredTier = PLAN_TIERS[requiredPlan] ?? 0;

@@ -49,7 +49,8 @@ export default function UserAccessManagement() {
   const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
   const [adminRequests, setAdminRequests] = useState([]);
 
-  const getTimeLeft = (expiryDate) => {
+  const getTimeLeft = (expiryDate, plan) => {
+    if (!plan || plan === 'FREE') return 'Lifetime';
     if (!expiryDate || expiryDate === '') return 'N/A';
     const ms = new Date(expiryDate) - new Date();
     if (ms <= 0) return 'Expired';
@@ -353,8 +354,8 @@ export default function UserAccessManagement() {
                       {user.role?.toLowerCase() === 'admin' ? (
                         <span className="text-emerald-700 text-xs font-semibold">Lifetime / Unlimited</span>
                       ) : (
-                        <span className={getTimeLeft(user.subscriptionExpiresAt) === 'Expired' ? 'text-red-600 text-xs' : 'text-gray-700 text-xs'}>
-                          {getTimeLeft(user.subscriptionExpiresAt)}
+                        <span className={getTimeLeft(user.subscriptionExpiresAt, user.subscriptionPlan) === 'Expired' ? 'text-red-600 text-xs' : 'text-gray-700 text-xs'}>
+                          {getTimeLeft(user.subscriptionExpiresAt, user.subscriptionPlan)}
                         </span>
                       )}
                     </td>
