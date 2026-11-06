@@ -1,0 +1,56 @@
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:zyndex_auth}?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 30MB
+  mail:
+    host: ${OTP_SMTP_HOST:}
+    port: ${OTP_SMTP_PORT:587}
+    username: ${OTP_SMTP_USER:}
+    password: ${OTP_SMTP_PASS:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          connectiontimeout: 15000
+          timeout: 30000
+          writetimeout: 15000
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+            protocols: TLSv1.2 TLSv1.3
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+zyndex:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  jwt-secret: ${JWT_SECRET:replace-this-with-a-long-random-secret}
+  main-admin-email: ${MAIN_ADMIN_EMAIL:Bhaanugali@gmail.com}
+  main-admin-password: ${MAIN_ADMIN_PASSWORD:}
+  main-admin-name: ${MAIN_ADMIN_NAME:Main Admin}
+  otp-mail-from: ${OTP_MAIL_FROM:${OTP_SMTP_USER:}}
+  otp-smtp-secure: ${OTP_SMTP_SECURE:false}
+  expose-otp-in-development: ${OTP_EXPOSE_IN_DEVELOPMENT:false}

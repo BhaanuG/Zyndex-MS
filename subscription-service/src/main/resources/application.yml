@@ -1,0 +1,54 @@
+server:
+  port: 8085
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    mail:
+      enabled: false
+
+spring:
+  application:
+    name: subscription-service
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:zyndex_subscription}?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+  mail:
+    host: ${OTP_SMTP_HOST:}
+    port: ${OTP_SMTP_PORT:587}
+    username: ${OTP_SMTP_USER:}
+    password: ${OTP_SMTP_PASS:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          connectiontimeout: 15000
+          timeout: 30000
+          writetimeout: 15000
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+            protocols: TLSv1.2 TLSv1.3
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:}
+  key-secret: ${RAZORPAY_KEY_SECRET:}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+
+zyndex:
+  otp-mail-from: ${OTP_MAIL_FROM:${OTP_SMTP_USER:}}
+  receiver-upi-id: ${RECEIVER_UPI_ID:918897337687@waaxis}
+
+payment:
+  mode: ${PAYMENT_MODE:UPI_DIRECT}

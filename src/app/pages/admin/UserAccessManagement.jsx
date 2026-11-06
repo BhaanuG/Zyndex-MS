@@ -1,0 +1,556 @@
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff } from 'lucide-react';
+import AdminLayout from '@/app/components/AdminLayout';
+import { useAuth } from '@/app/context/AuthContext';
+import userService from '@/services/api/userService';
+import authService from '@/services/api/authService';
+
+const emptyUser = {
+  id: null,
+  name: '',
+  email: '',
+  password: '',
+  registrationNo: '',
+  role: 'user',
+  userType: 'Student',
+  profession: '',
+  collegeName: '',
+  universityName: '',
+  bio: '',
+  active: true,
+  subscriptionPlan: 'FREE',
+  durationDays: 30
+};
+const emptyResetState = { id: null, name: '', password: '', confirmPassword: '' };
+
+const PLATFORM_PLANS = [
+  { id: 'FREE', name: 'Free / Demo' },
+  { id: 'STUDENT_BASIC', name: 'Student Basic' },
+  { id: 'STUDENT_PLUS', name: 'Student Plus' },
+  { id: 'RESEARCHER_PRO', name: 'PhD Scholar / Researcher' },
+  { id: 'UNIVERSITY', name: 'University' },
+  { id: 'ENTERPRISE', name: 'Enterprise / Institution' }
+];
+
+export default function UserAccessManagement() {
+  const { user: currentUser, refreshUser, isPrimaryAdmin } = useAuth();
+  const canManageUsers = currentUser?.isPrimaryAdmin === true;
+  const [showModal, setShowModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [users, setUsers] = useState([]);
+  const [formUser, setFormUser] = useState(emptyUser);
+  const [originalUserState, setOriginalUserState] = useState({ subscriptionPlan: 'FREE', active: true });
+  const [resetUser, setResetUser] = useState(emptyResetState);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
+  const [adminRequests, setAdminRequests] = useState([]);
+
+  const getTimeLeft = (expiryDate) => {
+    if (!expiryDate || expiryDate === '') return 'N/A';
+    const ms = new Date(expiryDate) - new Date();
+    if (ms <= 0) return 'Expired';
+    const days = Math.ceil(ms / (1000 * 60 * 60 * 24));
+    return `${days} day${days > 1 ? 's' : ''} left`;
+  };
+
+  const loadUsers = async (search = '') => {
+    try {
+      const response = await userService.getAllUsers({ search, size: 100 });
+      setUsers(response.users || []);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!isPrimaryAdmin) return;
+    loadUsers();
+    if (canManageUsers) {
+      authService.getAdminRequests().then((response) => setAdminRequests(response.requests || [])).catch((error) => console.error('Failed to load admin requests:', error));
+    }
+  }, [canManageUsers, isPrimaryAdmin]);
+
+  const decideAdminRequest = async (request, decision) => {
+    const reason = decision === 'decline' ? window.prompt('Reason for declining this request:') || '' : '';
+    try {
+      await authService.decideAdminRequest(request.id, decision, reason);
+      setAdminRequests((current) => current.filter((item) => item.id !== request.id));
+      await loadUsers(searchTerm);
+    } catch (error) {
+      window.alert(error.message || 'Unable to update admin request.');
+    }
+  };
+
+  useEffect(() => {
+    const interval = window.setInterval(() => loadUsers(searchTerm), 60000);
+    return () => window.clearInterval(interval);
+  }, [searchTerm]);
+
+  const openCreateModal = () => {
+    setIsEditing(false);
+    setFormUser(emptyUser);
+    setOriginalUserState({ subscriptionPlan: 'FREE', active: true });
+    setShowModal(true);
+  };
+
+  const openEditModal = (user) => {
+    setIsEditing(true);
+    const nextUser = {
+      ...emptyUser,
+      ...user,
+      active: user.active !== false && user.active !== 0,
+      subscriptionPlan: user.subscriptionPlan || 'FREE',
+      durationDays: 30
+    };
+    setFormUser(nextUser);
+    setOriginalUserState({ subscriptionPlan: nextUser.subscriptionPlan, active: nextUser.active });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setFormUser(emptyUser);
+  };
+
+  const openResetModal = (user) => {
+    setResetUser({
+      id: user.id,
+      name: user.name,
+      password: '',
+      confirmPassword: '',
+    });
+    setShowResetModal(true);
+  };
+
+  const closeResetModal = () => {
+    setShowResetModal(false);
+    setResetUser(emptyResetState);
+    setShowResetPassword(false);
+    setShowResetConfirmPassword(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      if (isEditing) {
+        const userUpdate = {
+          name: formUser.name,
+          email: formUser.email,
+          role: formUser.role,
+          userType: formUser.userType,
+          profession: formUser.profession,
+          collegeName: formUser.collegeName,
+          universityName: formUser.universityName,
+          bio: formUser.bio,
+          password: formUser.password || undefined,
+        };
+        if (formUser.subscriptionPlan !== originalUserState.subscriptionPlan) {
+          userUpdate.subscriptionPlan = formUser.subscriptionPlan;
+          userUpdate.durationDays = formUser.durationDays;
+        }
+        const updateResponse = await userService.updateUser(formUser.id, userUpdate);
+        if (formUser.active !== originalUserState.active) {
+          await userService.updateUserStatus(formUser.id, formUser.active);
+        }
+        if (Number(formUser.id) === Number(currentUser?.id)) {
+          await refreshUser();
+        }
+
+        closeModal();
+        await loadUsers(searchTerm);
+        alert(updateResponse?.notificationEmailSent === false
+          ? 'User updated successfully, but the plan-upgrade email could not be sent. Check SMTP configuration and service logs.'
+          : 'User updated successfully.');
+        return;
+      }
+
+      const createdUser = {
+        name: formUser.name.trim(),
+        email: formUser.email.trim(),
+        role: formUser.role,
+      };
+
+      const createResponse = await userService.createUser({
+        name: createdUser.name,
+        email: createdUser.email,
+        password: formUser.password,
+        registrationNo: formUser.registrationNo,
+        role: createdUser.role,
+        userType: formUser.userType,
+        profession: formUser.profession,
+        collegeName: formUser.collegeName,
+        universityName: formUser.universityName,
+        bio: formUser.bio,
+        subscriptionPlan: formUser.subscriptionPlan,
+        durationDays: formUser.durationDays,
+      });
+
+      closeModal();
+      await loadUsers(searchTerm);
+      alert(
+        createResponse?.confirmationEmailSent === false
+          ? `User created successfully, but the confirmation email could not be sent: ${createResponse.confirmationEmailError || 'SMTP configuration is required.'}`
+          : `User created successfully. The confirmation email was sent through the auth service to ${createdUser.email}.`
+      );
+    } catch (error) {
+      alert(error.message || 'Failed to save user.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    try {
+      await userService.deleteUser(userId);
+      await loadUsers(searchTerm);
+    } catch (error) {
+      alert(error.message || 'Failed to delete user.');
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    if (resetUser.password.length < 6) {
+      alert('Password must be at least 6 characters.');
+      return;
+    }
+
+    if (resetUser.password !== resetUser.confirmPassword) {
+      alert('Passwords do not match.');
+      return;
+    }
+
+    try {
+      const currentUser = users.find((user) => user.id === resetUser.id);
+      if (!currentUser) {
+        throw new Error('User not found.');
+      }
+
+      await userService.updateUser(resetUser.id, {
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role,
+        password: resetUser.password,
+      });
+
+      closeResetModal();
+      alert(`Password reset successfully for ${currentUser.name}.`);
+    } catch (error) {
+      alert(error.message || 'Failed to reset password.');
+    }
+  };
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">User Access Management</h1>
+            <p className="text-gray-600 mt-1">Create, read, update, and delete users. Showing {users.length} users.</p>
+          </div>
+          {canManageUsers && (
+            <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors">
+              <Plus className="size-5" />
+              Add User
+            </button>
+          )}
+        </motion.div>
+
+        <form onSubmit={(e) => { e.preventDefault(); loadUsers(searchTerm); }} className="bg-white rounded-xl shadow-md p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+            <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users by name or email..." className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg" />
+          </div>
+        </form>
+
+        {canManageUsers && adminRequests.length > 0 && (
+          <section className="bg-white rounded-xl shadow-md p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Pending Admin Access Requests</h2>
+            <div className="space-y-3">
+              {adminRequests.filter((request) => request.status === 'pending').map((request) => (
+                <div key={request.id} className="flex flex-wrap items-center justify-between gap-3 border border-gray-200 rounded-lg p-4">
+                  <div>
+                    <p className="font-medium text-gray-900">{request.full_name} ({request.display_name})</p>
+                    <p className="text-sm text-gray-600">{request.email}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => decideAdminRequest(request, 'approve')} className="px-3 py-2 bg-green-600 text-white rounded-lg">Accept</button>
+                    <button onClick={() => decideAdminRequest(request, 'decline')} className="px-3 py-2 bg-amber-600 text-white rounded-lg">Ignore</button>
+                    <button onClick={() => decideAdminRequest(request, 'delete')} className="px-3 py-2 bg-red-600 text-white rounded-lg">Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Name</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Email</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Role</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">User Type</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Institution</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Subscription Plan</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Time Left</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Joined</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length === 0 ? (
+                  <tr><td colSpan="9" className="text-center py-16 text-gray-400">No users found.</td></tr>
+                ) : users.map((user) => (
+                  <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6 font-medium text-gray-900">{user.name}</td>
+                    <td className="py-4 px-6 text-gray-600">{user.email}</td>
+                    <td className="py-4 px-6">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        user.role?.toLowerCase() === 'admin'
+                          ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-gray-700 text-sm">{user.userType === 'Other' && user.profession ? `Other (${user.profession})` : (user.userType || 'Other')}</td>
+                    <td className="py-4 px-6 text-gray-700 text-sm">{user.collegeName || user.universityName || '-'}</td>
+                    <td className="py-4 px-6">
+                      {user.role?.toLowerCase() === 'admin' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-sm">
+                          👑 Platform Admin (All-Access)
+                        </span>
+                      ) : (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                          !user.subscriptionPlan || user.subscriptionPlan === 'FREE'
+                            ? 'bg-gray-100 text-gray-700'
+                            : user.subscriptionPlan === 'STUDENT_BASIC'
+                            ? 'bg-blue-100 text-blue-700'
+                            : user.subscriptionPlan === 'STUDENT_PLUS'
+                            ? 'bg-indigo-100 text-indigo-700'
+                            : user.subscriptionPlan === 'RESEARCHER_PRO'
+                            ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                            : user.subscriptionPlan === 'UNIVERSITY'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        }`}>
+                          {PLATFORM_PLANS.find(p => p.id === user.subscriptionPlan)?.name || (user.subscriptionPlan || 'FREE').replace('_', ' ')}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 font-semibold">
+                      {user.role?.toLowerCase() === 'admin' ? (
+                        <span className="text-emerald-700 text-xs font-semibold">Lifetime / Unlimited</span>
+                      ) : (
+                        <span className={getTimeLeft(user.subscriptionExpiresAt) === 'Expired' ? 'text-red-600 text-xs' : 'text-gray-700 text-xs'}>
+                          {getTimeLeft(user.subscriptionExpiresAt)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 text-gray-600 text-sm">{new Date(user.dateJoined).toLocaleDateString()}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        {canManageUsers && <>
+                          <button onClick={() => openEditModal(user)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors" title="Edit User & Plan"><Edit className="size-4" /></button>
+                          <button onClick={() => openResetModal(user)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors" title="Reset Password"><KeyRound className="size-4" /></button>
+                          <button onClick={() => handleDeleteUser(user.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors" title="Delete User"><Trash2 className="size-4" /></button>
+                        </>}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showModal && (
+          <>
+            <motion.div className="fixed inset-0 bg-black/50 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeModal} />
+            <motion.div className="fixed inset-0 flex items-center justify-center z-50 p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
+              <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">{isEditing ? 'Edit User & Subscription' : 'Add New User'}</h2>
+                  <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X className="size-5 text-gray-500" /></button>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Full Name</label>
+                    <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" /><input type="text" value={formUser.name} onChange={(e) => setFormUser({ ...formUser, name: e.target.value })} placeholder="Full name" className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm" required /></div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Email Address</label>
+                    <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" /><input type="email" value={formUser.email} onChange={(e) => setFormUser({ ...formUser, email: e.target.value })} placeholder="user@email.com" className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm" required /></div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">{isEditing ? 'New Password (Optional)' : 'Password'}</label>
+                    <div className="relative"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" /><input type="password" value={formUser.password} onChange={(e) => setFormUser({ ...formUser, password: e.target.value })} placeholder={isEditing ? "Leave blank to keep current" : "Password (min 6 chars)"} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm" required={!isEditing} /></div>
+                  </div>
+                  {(
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">Registration / Roll No</label>
+                      <div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" /><input type="text" value={formUser.registrationNo} onChange={(e) => setFormUser({ ...formUser, registrationNo: e.target.value })} placeholder="Registration number" className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm" /></div>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Platform Role</label>
+                    <select value={formUser.role} onChange={(e) => setFormUser({ ...formUser, role: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm">
+                      <option value="user">User (Standard)</option>
+                      <option value="admin">Admin (Full Access)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">User Type</label>
+                    <select value={formUser.userType} onChange={(e) => setFormUser({ ...formUser, userType: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm">
+                      <option>Student</option><option>Teacher / Educator</option><option>Researcher</option><option>Professional</option><option>General Reader</option><option>Other</option>
+                    </select>
+                  </div>
+                  {formUser.userType === 'Other' && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">What best describes you?</label>
+                      <input type="text" value={formUser.profession} onChange={(e) => setFormUser({ ...formUser, profession: e.target.value })} placeholder="What best describes you?" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">University / College name (Optional)</label>
+                    <input type="text" value={formUser.collegeName || formUser.universityName} onChange={(e) => setFormUser({ ...formUser, collegeName: e.target.value, universityName: '' })} placeholder="University or college name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Bio (Optional)</label>
+                    <textarea value={formUser.bio} onChange={(e) => setFormUser({ ...formUser, bio: e.target.value })} placeholder="About the user" rows="3" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+
+                  {isEditing && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">Account Status</label>
+                      <select
+                        value={formUser.active ? 'active' : 'inactive'}
+                        onChange={(e) => setFormUser({ ...formUser, active: e.target.value === 'active' })}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Subscription Plan & Duration (Optional for Admin to specify) */}
+                  <div className="pt-2 border-t border-gray-100">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Subscription Plan (Optional)</label>
+                    <select
+                      value={formUser.subscriptionPlan}
+                      onChange={(e) => setFormUser({ ...formUser, subscriptionPlan: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-orange-50/40 focus:bg-white"
+                    >
+                      {PLATFORM_PLANS.map((plan) => (
+                        <option key={plan.id} value={plan.id}>{plan.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Validity Duration (Days)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="3650"
+                      value={formUser.durationDays}
+                      onChange={(e) => setFormUser({ ...formUser, durationDays: e.target.value })}
+                      placeholder="e.g. 30, 90, 365"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Default is 30 days for new subscriptions.</p>
+                  </div>
+
+                  {isEditing && (
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                      Existing passwords cannot be viewed. Enter a new password here only if you want to reset it.
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 pt-4">
+                    <button type="button" onClick={closeModal} className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" disabled={isSaving} className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:opacity-60 disabled:cursor-not-allowed text-sm">
+                      {isSaving ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create User')}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showResetModal && (
+          <>
+            <motion.div className="fixed inset-0 bg-black/50 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeResetModal} />
+            <motion.div className="fixed inset-0 flex items-center justify-center z-50 p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
+              <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Reset Password</h2>
+                    <p className="text-sm text-gray-600 mt-1">{resetUser.name}</p>
+                  </div>
+                  <button onClick={closeResetModal} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X className="size-5 text-gray-500" /></button>
+                </div>
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                    <input
+                      type={showResetPassword ? 'text' : 'password'}
+                      value={resetUser.password}
+                      onChange={(e) => setResetUser({ ...resetUser, password: e.target.value })}
+                      placeholder="New password"
+                      className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowResetPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600">
+                      {showResetPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                    <input
+                      type={showResetConfirmPassword ? 'text' : 'password'}
+                      value={resetUser.confirmPassword}
+                      onChange={(e) => setResetUser({ ...resetUser, confirmPassword: e.target.value })}
+                      placeholder="Confirm new password"
+                      className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowResetConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600">
+                      {showResetConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                  <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    This will replace the user's current password immediately.
+                  </p>
+                  <div className="flex items-center gap-3 pt-2">
+                    <button type="button" onClick={closeResetModal} className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">Cancel</button>
+                    <button type="submit" className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Reset Password</button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </AdminLayout>
+  );
+}
+
+
+

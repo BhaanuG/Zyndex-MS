@@ -1,0 +1,231 @@
+/* Help Center Article Styling */
+
+.article-content {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: #1e293b;
+  line-height: 1.75;
+}
+
+.article-heading {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid #f97316;
+}
+
+.article-intro {
+  font-size: 1.125rem;
+  color: #475569;
+  margin-bottom: 2rem;
+  line-height: 1.75;
+  font-weight: 500;
+}
+
+.section-block {
+  margin-bottom: 2.5rem;
+}
+
+.section-heading {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+}
+
+.subsection h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.article-list {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.article-list li {
+  margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
+  line-height: 1.75;
+  color: #475569;
+}
+
+.article-list li strong {
+  color: #f97316;
+  font-weight: 600;
+}
+
+.article-list ul, .article-list ol {
+  margin-top: 0.75rem;
+  margin-left: 1.25rem;
+}
+
+.article-list ul li, .article-list ol li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.tip-box {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border-left: 4px solid #f97316;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
+}
+
+.tip-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ea580c;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tip-box p, .tip-box ul {
+  color: #78350f;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.tip-box ul {
+  margin-top: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.tip-box li {
+  margin-bottom: 0.5rem;
+}
+
+.warning-box {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-left: 4px solid #dc2626;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+}
+
+.warning-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.warning-box p, .warning-box ul {
+  color: #7f1d1d;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.warning-box ul {
+  margin-top: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.warning-box li {
+  margin-bottom: 0.5rem;
+}
+
+.code-block {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.code-block pre {
+  margin: 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+.subsection {
+  margin-top: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid #fed7aa;
+}
+
+/* Make sure article content headings are styled */
+.article-content h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid #f97316;
+}
+
+.article-content h3 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  margin-top: 2rem;
+}
+
+.article-content h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.article-content p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+  color: #475569;
+}
+
+.article-content ol, .article-content ul {
+  margin-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.article-content li {
+  margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
+  line-height: 1.75;
+  color: #475569;
+}
+
+.article-content strong {
+  color: #f97316;
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .article-heading {
+    font-size: 1.5rem;
+  }
+  
+  .article-intro {
+    font-size: 1rem;
+  }
+  
+  .section-heading {
+    font-size: 1.125rem;
+  }
+  
+  .tip-box, .warning-box {
+    padding: 1rem;
+  }
+}

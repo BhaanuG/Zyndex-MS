@@ -1,0 +1,463 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  
+  /* Modern Professional Color System - Orange Theme */
+  --background: #ffffff;
+  --foreground: #0f172a;
+  
+  /* Brand Colors - Professional Orange Gradient System */
+  --primary: #f97316;
+  --primary-dark: #ea580c;
+  --primary-light: #fb923c;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #fffbeb;
+  --secondary-foreground: #78350f;
+  
+  --accent: #fff7ed;
+  --accent-foreground: #7c2d12;
+  
+  /* Neutrals - Professional Gray Scale */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  
+  /* Semantic Colors */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  
+  --info: #f97316;
+  --info-foreground: #ffffff;
+  
+  /* Borders & Inputs */
+  --border: #fed7aa;
+  --input: #fff7ed;
+  --input-border: #fdba74;
+  --ring: #f97316;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  
+  /* 3D Depth Shadows - Apple Style */
+  --shadow-3d-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-3d-card: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06), inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
+  --shadow-3d-elevated: 0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --shadow-3d-float: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --shadow-3d-modal: 0 16px 48px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-3d-button: 0 2px 6px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+  --shadow-3d-button-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-3d-input: inset 0 2px 4px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-3d-input-focus: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 0 0 3px rgba(249, 115, 22, 0.12);
+  
+  /* Radius - Modern Rounded System */
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  
+  /* Typography */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #f97316;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fff7ed;
+  --sidebar-accent-foreground: #78350f;
+  --sidebar-border: #fed7aa;
+  --sidebar-ring: #f97316;
+  
+  /* Charts */
+  --chart-1: #f97316;
+  --chart-2: #fb923c;
+  --chart-3: #fdba74;
+  --chart-4: #ea580c;
+  --chart-5: #c2410c;
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  
+  --primary: #fb923c;
+  --primary-dark: #f97316;
+  --primary-light: #fdba74;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+  
+  --accent: #1e293b;
+  --accent-foreground: #f1f5f9;
+  
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  
+  --info: #fb923c;
+  --info-foreground: #ffffff;
+  
+  --border: #334155;
+  --input: #1e293b;
+  --input-border: #475569;
+  --ring: #fb923c;
+  
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #fb923c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-border: #334155;
+  --sidebar-ring: #fb923c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-border: var(--input-border);
+  --color-ring: var(--ring);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  html {
+    font-size: var(--font-size);
+    scroll-behavior: smooth;
+  }
+
+  /* Modern Typography System */
+  h1 {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+
+  h2 {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+
+  h4 {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+  }
+
+  h5 {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+  }
+
+  h6 {
+    font-size: 1rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+  }
+
+  p {
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.75;
+    color: var(--muted-foreground);
+  }
+
+  label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input, textarea, select {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+
+  /* Smooth Transitions */
+  a, button, input, select, textarea {
+    transition: all 0.2s ease-in-out;
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  /* Focus Visible */
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+  }
+}
+
+/* Custom Utility Classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .glass-dark {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+  }
+
+  .shadow-glow-lg {
+    box-shadow: 0 0 40px rgba(249, 115, 22, 0.4);
+  }
+
+  /* Professional 3D Depth Classes - Apple Style */
+  .depth-3d-card {
+    box-shadow: var(--shadow-3d-card);
+    transform: translateZ(0);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .depth-3d-card:hover {
+    box-shadow: var(--shadow-3d-elevated);
+    transform: translateY(-2px) translateZ(0);
+  }
+
+  .depth-3d-elevated {
+    box-shadow: var(--shadow-3d-elevated);
+    transform: translateZ(0);
+  }
+
+  .depth-3d-float {
+    box-shadow: var(--shadow-3d-float);
+    transform: translateZ(0);
+  }
+
+  .depth-3d-modal {
+    box-shadow: var(--shadow-3d-modal);
+    transform: translateZ(0);
+  }
+
+  .depth-3d-button {
+    box-shadow: var(--shadow-3d-button);
+    transform: translateZ(0);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .depth-3d-button:hover {
+    box-shadow: var(--shadow-3d-elevated);
+    transform: translateY(-1px) translateZ(0);
+  }
+
+  .depth-3d-button:active {
+    box-shadow: var(--shadow-3d-button-pressed);
+    transform: translateY(0) translateZ(0);
+  }
+
+  .depth-3d-input {
+    box-shadow: var(--shadow-3d-input);
+    transform: translateZ(0);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .depth-3d-input:focus {
+    box-shadow: var(--shadow-3d-input-focus);
+  }
+
+  /* Subtle top highlight for elevated surfaces */
+  .surface-highlight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+    border-radius: inherit;
+  }
+
+  /* Glass morphism with depth */
+  .glass-3d {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: var(--shadow-3d-elevated);
+  }
+
+  .glass-3d-dark {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow-3d-elevated);
+  }
+
+  /* Layered depth effect */
+  .layer-depth-1 {
+    position: relative;
+    z-index: 1;
+  }
+
+  .layer-depth-2 {
+    position: relative;
+    z-index: 2;
+  }
+
+  .layer-depth-3 {
+    position: relative;
+    z-index: 3;
+  }
+
+  /* Subtle border highlight for depth */
+  .border-3d-light {
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+    border-left: 0.5px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .border-3d-shadow {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-right: 0.5px solid rgba(0, 0, 0, 0.06);
+  }
+}

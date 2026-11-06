@@ -1,0 +1,1448 @@
+import { useEffect, useState, useTransition, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  ScrollText,
+  Search,
+  Filter,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  Server,
+  Download,
+  Calendar,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  X,
+  Database,
+  BarChart3,
+  Clock,
+  BookOpen,
+  Users,
+  Activity,
+  Flame,
+  ShieldCheck,
+  FileSpreadsheet
+} from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
+import AdminLayout from '@/app/components/AdminLayout';
+import logService from '@/services/api/logService';
+
+const SERVICES = [
+  'ALL',
+  'AUTH-SERVICE',
+  'SUBSCRIPTION-SERVICE',
+  'CONTENT-SERVICE',
+  'ACCESS-SERVICE',
+  'USAGE-SERVICE',
+  'API-GATEWAY',
+  'EUREKA-SERVER'
+];
+
+const LEVELS = ['ALL', 'INFO', 'WARN', 'ERROR', 'SUCCESS'];
+
+// 30 minutes inactivity gap between reading sessions to segment distinct sessions
+const SESSION_GAP_MS = 30 * 60 * 1000;
+
+export default function AdminLogs() {
+  const [activeTab, setActiveTab] = useState('reading'); // 'reading' | 'system'
+  const [loading, setLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
+
+  // 1. Live Engagement & Raw Reading History
+  const [engagement, setEngagement] = useState({
+    totalReadingMinutes: 0,
+    totalSessions: 0,
+    totalReaders: 0,
+    activeReadersToday: 0,
+    activeSessionsNow: 0,
+    avgSessionMinutes: 0,
+    trendData: [],
+    categoryBreakdown: [],
+    tierBreakdown: []
+  });
+  const [readingHistory, setReadingHistory] = useState([]);
+  const [readingTotal, setReadingTotal] = useState(0);
+  const [readingPage, setReadingPage] = useState(0);
+
+  // 2. System Audit Logs States
+  const [systemLogs, setSystemLogs] = useState([]);
+  const [systemStats, setSystemStats] = useState({ totalLogs: 0, errorCount: 0, warnCount: 0, infoCount: 0 });
+  const [systemTotal, setSystemTotal] = useState(0);
+  const [systemPage, setSystemPage] = useState(0);
+  const systemPageSize = 20;
+
+  // Filters & Search
+  const [serviceFilter, setServiceFilter] = useState('ALL');
+  const [levelFilter, setLevelFilter] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+
+  // Selected Log for System Modal
+  const [selectedLog, setSelectedLog] = useState(null);
+  // Selected Reading Session for Detail Modal (opens with full session details + resource table)
+  const [selectedSession, setSelectedSession] = useState(null);
+  // Detailed Stats Modal ('reading_time' | 'readers' | 'active_today' | 'avg_session' | null)
+  const [statModal, setStatModal] = useState(null);
+
+  /**
+   * SESSION CLUSTERING:
+   * Reconstruct distinct reading sessions from chronological reading events.
+   * If User 1 reads, explores multiple resources within their session -> grouped into 1 session row.
+   * If User 1 logs out and returns later (gap > 30 mins) -> recorded as a FRESH separate session row.
+   * If User 2 reads in between -> recorded as a separate session row.
+   */
+  const readingSessions = useMemo(() => {
+    if (!readingHistory || readingHistory.length === 0) return [];
+
+    // Sort chronologically ascending
+    const sorted = [...readingHistory].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const clusters = [];
+    let current = null;
+
+    sorted.forEach((rec) => {
+      const recTime = new Date(rec.timestamp).getTime();
+      const isNewSession =
+        !current ||
+        current.userId !== rec.userId ||
+        recTime - current.lastEventTime > SESSION_GAP_MS;
+
+      if (isNewSession) {
+        if (current) clusters.push(current);
+        current = {
+          sessionId: `SESS_${rec.usageId}`,
+          userId: rec.userId,
+          userName: rec.userName || 'Scholar',
+          userEmail: rec.userEmail || 'student@zyndex.com',
+          startTime: rec.startTime || rec.timestamp,
+          endTime: rec.endTime || rec.timestamp,
+          lastEventTime: recTime,
+          totalDuration: 0,
+          accessStatus: rec.accessStatus || 'ACTIVE',
+          category: rec.category || 'General Academics',
+          resources: []
+        };
+      }
+
+      current.totalDuration += (rec.durationMinutes || 0);
+      current.endTime = rec.endTime || rec.timestamp;
+      current.lastEventTime = recTime;
+      if (rec.accessStatus) current.accessStatus = rec.accessStatus;
+      if (rec.category) current.category = rec.category;
+
+      current.resources.push({
+        usageId: rec.usageId,
+        contentId: rec.contentId,
+        title: rec.title,
+        type: rec.type,
+        author: rec.author,
+        category: rec.category,
+        durationMinutes: rec.durationMinutes,
+        timestamp: rec.timestamp,
+        startTime: rec.startTime,
+        endTime: rec.endTime
+      });
+    });
+
+    if (current) clusters.push(current);
+
+    // Order descending so latest session is at Serial #1
+    clusters.reverse();
+    return clusters;
+  }, [readingHistory]);
+
+  // Accurate Live Metrics from verified Database Sessions
+  const metrics = useMemo(() => {
+    // Unique readers count
+    const uniqueUserSet = new Set(readingHistory.map((r) => (r.userEmail || '').trim().toLowerCase()));
+    const totalReaders = uniqueUserSet.size || engagement.totalReaders || 0;
+
+    // Cumulative reading minutes
+    const totalMinutes = readingHistory.reduce((acc, r) => acc + (r.durationMinutes || 0), 0) || engagement.totalReadingMinutes || 0;
+
+    // Distinct sessions count
+    const totalSessions = readingSessions.length || (readingHistory.length > 0 ? 1 : 0);
+
+    // Average session length
+    const avgMinutes = totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0;
+
+    // Active readers today (checked against today's date)
+    const todayStr = new Date().toDateString();
+    const todayReadersSet = new Set(
+      readingHistory
+        .filter((r) => r.timestamp && new Date(r.timestamp).toDateString() === todayStr)
+        .map((r) => (r.userEmail || '').trim().toLowerCase())
+    );
+    const activeReadersToday = todayReadersSet.size;
+
+    // Live readers online now: events logged in the last 15 minutes
+    const fifteenMinsAgo = Date.now() - 15 * 60 * 1000;
+    const onlineNowSet = new Set(
+      readingHistory
+        .filter((r) => r.timestamp && new Date(r.timestamp).getTime() >= fifteenMinsAgo)
+        .map((r) => (r.userEmail || '').trim().toLowerCase())
+    );
+    const onlineNow = onlineNowSet.size;
+
+    return {
+      totalReaders,
+      totalMinutes,
+      totalSessions,
+      avgMinutes,
+      activeReadersToday,
+      onlineNow
+    };
+  }, [readingHistory, readingSessions, engagement]);
+
+  // Live Continuous Graph Timeline
+  const chartTimelineData = useMemo(() => {
+    if (!readingHistory || readingHistory.length === 0) return [];
+
+    const bucketMap = {};
+    readingHistory.forEach((rec) => {
+      if (!rec.timestamp) return;
+      const d = new Date(rec.timestamp);
+      const label = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) + ' ' + String(d.getHours()).padStart(2, '0') + ':00';
+      if (!bucketMap[label]) {
+        bucketMap[label] = {
+          timeLabel: label,
+          durationMinutes: 0,
+          activeReadersSet: new Set(),
+          sessionCount: 0,
+          rawTime: d.getTime()
+        };
+      }
+      bucketMap[label].durationMinutes += (rec.durationMinutes || 0);
+      bucketMap[label].activeReadersSet.add(rec.userId);
+      bucketMap[label].sessionCount += 1;
+    });
+
+    return Object.values(bucketMap)
+      .sort((a, b) => a.rawTime - b.rawTime)
+      .map((b) => ({
+        timeLabel: b.timeLabel,
+        durationMinutes: b.durationMinutes,
+        activeReaders: b.activeReadersSet.size,
+        sessionCount: b.sessionCount
+      }));
+  }, [readingHistory]);
+
+  // Category distribution
+  const categoryChartData = useMemo(() => {
+    const map = {};
+    readingHistory.forEach((r) => {
+      const cat = r.category || 'General Academics';
+      if (!map[cat]) map[cat] = { name: cat, minutes: 0, sessions: 0 };
+      map[cat].minutes += (r.durationMinutes || 0);
+      map[cat].sessions += 1;
+    });
+    return Object.values(map);
+  }, [readingHistory]);
+
+  // Tier distribution
+  const tierChartData = useMemo(() => {
+    return [
+      { tier: 'STUDENT', readers: metrics.totalReaders, totalMinutes: metrics.totalMinutes }
+    ];
+  }, [metrics]);
+
+  const fetchReadingData = async (page = 0) => {
+    try {
+      const [analyticsRes, historyRes] = await Promise.allSettled([
+        logService.getEngagementAnalytics(),
+        logService.getLiveReadingHistory({ page, size: 100 })
+      ]);
+
+      startTransition(() => {
+        if (analyticsRes.status === 'fulfilled' && analyticsRes.value) {
+          setEngagement(analyticsRes.value);
+        }
+        if (historyRes.status === 'fulfilled' && historyRes.value) {
+          const recs = historyRes.value.records || [];
+          setReadingHistory(recs);
+          setReadingTotal(historyRes.value.total || 0);
+          setReadingPage(historyRes.value.page || 0);
+        }
+      });
+    } catch (e) {
+      console.error('Failed to load reading engagement data:', e);
+    }
+  };
+
+  const fetchSystemLogs = async (page = 0) => {
+    try {
+      const response = await logService.getLogs({
+        page,
+        size: systemPageSize,
+        service: serviceFilter === 'ALL' ? '' : serviceFilter,
+        level: levelFilter === 'ALL' ? '' : levelFilter,
+        search: searchTerm,
+      });
+
+      startTransition(() => {
+        setSystemLogs(response.logs || []);
+        setSystemTotal(response.total || 0);
+        setSystemPage(response.page || 0);
+        if (response.stats) {
+          setSystemStats(response.stats);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to load system logs:', error);
+    }
+  };
+
+  const reloadAll = async () => {
+    setLoading(true);
+    await Promise.allSettled([
+      fetchReadingData(readingPage),
+      fetchSystemLogs(systemPage)
+    ]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    reloadAll();
+  }, [serviceFilter, levelFilter]);
+
+  // Live auto-refresh polling every 60 seconds (1 minute)
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      if (activeTab === 'reading') {
+        fetchReadingData(readingPage);
+      } else {
+        fetchSystemLogs(systemPage);
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, activeTab, readingPage, systemPage]);
+
+  // COMPLETE EXPORT: Downloads all Session data, Summary Metrics, and all detailed Resource items viewed inside the Eye Action
+  const exportCompleteDataToExcel = () => {
+    const headers = [
+      'Serial No',
+      'Session ID',
+      'Reader Name',
+      'Reader Email',
+      'Active Reading Duration (Mins)',
+      'Duration Formatted',
+      'Session Start Time',
+      'Session End Time',
+      'Access Status',
+      'Primary Subject',
+      'Total Resources Read',
+      'Resource Titles Accessed',
+      'Resource Types',
+      'Resource Authors',
+      'Resource Categories'
+    ];
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = readingSessions.map((s, idx) => {
+      const resourceTitles = s.resources.map((r) => r.title).join(' | ');
+      const resourceTypes = s.resources.map((r) => r.type || 'TEXTBOOK').join(' | ');
+      const resourceAuthors = s.resources.map((r) => r.author || 'Zyndex Faculty').join(' | ');
+      const resourceCategories = s.resources.map((r) => r.category || 'General Academics').join(' | ');
+
+      return [
+        idx + 1,
+        s.sessionId,
+        s.userName,
+        s.userEmail,
+        s.totalDuration,
+        `${Math.floor(s.totalDuration / 60)}h ${s.totalDuration % 60}m 00s`,
+        new Date(s.startTime).toLocaleString('en-IN'),
+        new Date(s.endTime).toLocaleString('en-IN'),
+        s.accessStatus,
+        s.category,
+        s.resources.length,
+        resourceTitles,
+        resourceTypes,
+        resourceAuthors,
+        resourceCategories
+      ];
+    });
+
+    const csvContent =
+      '\uFEFF' +
+      [
+        headers.map(escapeCsv).join(','),
+        ...rows.map((r) => r.map(escapeCsv).join(','))
+      ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Zyndex_Reading_Sessions_Complete_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const getLevelBadge = (level) => {
+    switch (level?.toUpperCase()) {
+      case 'ERROR':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+            <AlertCircle className="size-3.5" /> ERROR
+          </span>
+        );
+      case 'WARN':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            <AlertTriangle className="size-3.5" /> WARN
+          </span>
+        );
+      case 'SUCCESS':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
+            <CheckCircle2 className="size-3.5" /> SUCCESS
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+            <Info className="size-3.5" /> INFO
+          </span>
+        );
+    }
+  };
+
+  const totalSystemPages = Math.ceil(systemTotal / systemPageSize) || 1;
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6 min-h-screen pb-12">
+        {/* Top Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+              Platform Logs & Engagement Analytics
+            </h1>
+            <p className="text-gray-600 mt-1 text-sm">
+              Live reading sessions, student engagement metrics, and microservice audit records stored permanently in MySQL.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                autoRefresh
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                  : 'bg-gray-100 text-gray-600 border border-gray-200'
+              }`}
+              title="Toggle automatic live updates every minute"
+            >
+              <span className={`size-2 rounded-full ${autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
+              Auto Refresh: {autoRefresh ? '1m Active' : 'Off'}
+            </button>
+
+            <button
+              onClick={reloadAll}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-xs cursor-pointer"
+            >
+              <RefreshCw className={`size-3.5 ${loading ? 'animate-spin text-orange-500' : ''}`} />
+              Refresh Now
+            </button>
+
+            <button
+              onClick={exportCompleteDataToExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl text-xs font-semibold hover:from-orange-700 hover:to-red-700 transition-all shadow-sm cursor-pointer"
+              title="Export complete session history and all accessed resources to CSV / Excel"
+            >
+              <FileSpreadsheet className="size-3.5" />
+              Export Excel (Complete Data)
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('reading')}
+            className={`flex items-center gap-2 py-3 px-6 font-semibold text-sm border-b-2 transition-all cursor-pointer ${
+              activeTab === 'reading'
+                ? 'border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-xl'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <BarChart3 className="size-4" />
+            Reading History & Engagement Analytics
+          </button>
+          <button
+            onClick={() => setActiveTab('system')}
+            className={`flex items-center gap-2 py-3 px-6 font-semibold text-sm border-b-2 transition-all cursor-pointer ${
+              activeTab === 'system'
+                ? 'border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-xl'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <ScrollText className="size-4" />
+            Microservice & Audit Logs
+          </button>
+        </div>
+
+        {/* TAB 1: READING HISTORY & LIVE ENGAGEMENT ANALYTICS */}
+        {activeTab === 'reading' && (
+          <div className="space-y-6">
+            {/* Live KPI Metric Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div
+                onClick={() => setStatModal('reading_time')}
+                className="bg-white rounded-2xl border border-orange-200/80 shadow-sm p-5 hover:shadow-md hover:border-orange-400 transition-all cursor-pointer group"
+                title="Click to view detailed reading time breakdown and charts"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider group-hover:text-orange-600 transition-colors">
+                      Total Reading Time
+                    </p>
+                    <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                      {Math.floor(metrics.totalMinutes / 60)}h {metrics.totalMinutes % 60}m 0s
+                    </h3>
+                  </div>
+                  <div className="size-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Clock className="size-6" />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-orange-600">
+                  <span>View Details & Charts →</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setStatModal('readers')}
+                className="bg-white rounded-2xl border border-blue-200/80 shadow-sm p-5 hover:shadow-md hover:border-blue-400 transition-all cursor-pointer group"
+                title="Click to view detailed reader distribution breakdown and charts"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
+                      Total Readers Tracked
+                    </p>
+                    <h3 className="text-2xl font-bold text-blue-600 mt-1">{metrics.totalReaders}</h3>
+                  </div>
+                  <div className="size-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Users className="size-6" />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-blue-600">
+                  <span>View Reader Analytics →</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setStatModal('active_today')}
+                className="bg-white rounded-2xl border border-emerald-200/80 shadow-sm p-5 hover:shadow-md hover:border-emerald-400 transition-all cursor-pointer group"
+                title="Click to view active readers breakdown"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">Active Today / Live</p>
+                    <h3 className="text-2xl font-bold text-emerald-600 mt-1">{metrics.activeReadersToday}</h3>
+                  </div>
+                  <div className="size-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Activity className="size-6" />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-emerald-600">
+                  <span className="flex items-center gap-1">
+                    <span className={`size-2 rounded-full ${metrics.onlineNow > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
+                    {metrics.onlineNow} {metrics.onlineNow === 1 ? 'reader' : 'readers'} online now
+                  </span>
+                  <span>View Breakdown →</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setStatModal('avg_session')}
+                className="bg-white rounded-2xl border border-purple-200/80 shadow-sm p-5 hover:shadow-md hover:border-purple-400 transition-all cursor-pointer group"
+                title="Click to view session length distribution"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider group-hover:text-purple-600 transition-colors">Avg Session Length</p>
+                    <h3 className="text-2xl font-bold text-purple-600 mt-1">
+                      {metrics.avgMinutes} <span className="text-sm font-normal text-gray-500">mins</span>
+                    </h3>
+                  </div>
+                  <div className="size-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <BookOpen className="size-6" />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-purple-600">
+                  <span>{metrics.avgMinutes}m 00s avg duration</span>
+                  <span>View Stats →</span>
+                </div>
+              </div>
+            </div>
+
+            {/* LIVE ENGAGEMENT GRAPH (RECHARTS) */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Activity className="size-5 text-orange-600" />
+                    Live Reading Duration & Active Readers Graph
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Live hourly engagement timeline computed from actual database reading sessions.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="flex items-center gap-1.5 text-orange-600 font-bold">
+                    <span className="size-3 rounded-full bg-orange-500" /> Duration (Minutes)
+                  </span>
+                  <span className="flex items-center gap-1.5 text-blue-600 font-bold">
+                    <span className="size-3 rounded-full bg-blue-500" /> Active Readers
+                  </span>
+                </div>
+              </div>
+
+              <div className="h-72 w-full">
+                {chartTimelineData && chartTimelineData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartTimelineData} margin={{ top: 10, right: 25, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="durationGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ea580c" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#ea580c" stopOpacity={0.0} />
+                        </linearGradient>
+                        <linearGradient id="readersGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="timeLabel" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <YAxis yAxisId="left" stroke="#ea580c" fontSize={11} tickLine={false} unit="m" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" fontSize={11} tickLine={false} allowDecimals={false} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#ffffff',
+                          borderColor: '#e2e8f0',
+                          borderRadius: '12px',
+                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                          fontSize: '12px',
+                        }}
+                        formatter={(val, name) => [name === 'Reading Minutes' ? `${val} mins` : `${val} readers`, name]}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
+                      <Area
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="durationMinutes"
+                        name="Reading Minutes"
+                        stroke="#ea580c"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#durationGrad)"
+                      />
+                      <Area
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="activeReaders"
+                        name="Active Readers"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#readersGrad)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                    <Activity className="size-8 text-orange-400 mb-2 opacity-50" />
+                    <p className="text-sm font-semibold text-gray-700">No Engagement Recorded</p>
+                    <p className="text-xs text-gray-500 mt-1">Live hourly reading intervals will chart here dynamically as users open and read resources.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* LIVE READING SESSIONS TABLE (DISCRETE SESSIONS CHRONOLOGICALLY) */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                    <BookOpen className="size-4.5 text-orange-600" />
+                    Live Reading History & Session Records
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Real-time reader sessions segmented by login activity and time. Multiple resources read in one session appear together; subsequent logins create fresh records.
+                  </p>
+                </div>
+                <div className="text-xs text-gray-500 font-semibold">
+                  {readingSessions.length} Verified Reading Sessions
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-600">
+                  <thead className="bg-gray-50/80 text-xs uppercase font-semibold text-gray-500 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-3.5">Session</th>
+                      <th className="px-6 py-3.5">Reader</th>
+                      <th className="px-6 py-3.5">Content Explored</th>
+                      <th className="px-6 py-3.5">Duration</th>
+                      <th className="px-6 py-3.5">Access Status</th>
+                      <th className="px-6 py-3.5">Recorded Timestamp</th>
+                      <th className="px-6 py-3.5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {loading && readingSessions.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-12 text-gray-500">
+                          <RefreshCw className="size-6 text-orange-500 animate-spin mx-auto mb-2" />
+                          <p className="text-xs">Loading live SQL reading history...</p>
+                        </td>
+                      </tr>
+                    ) : readingSessions.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-16 text-gray-400">
+                          <BookOpen className="size-10 mx-auto mb-2 opacity-30" />
+                          <p className="text-sm font-medium text-gray-700">No reading records found</p>
+                          <p className="text-xs text-gray-500">Reading sessions will populate here in real-time as users open resources.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      readingSessions.map((session, index) => {
+                        const firstRes = session.resources[0] || {};
+                        const additionalCount = session.resources.length - 1;
+
+                        return (
+                          <tr
+                            key={session.sessionId}
+                            onClick={() => setSelectedSession(session)}
+                            className="hover:bg-orange-50/40 transition-colors cursor-pointer group"
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap font-mono text-xs font-bold text-gray-400">
+                              #{index + 1}
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <p className="text-xs font-bold text-gray-900">{session.userName}</p>
+                              <p className="text-[11px] text-gray-500 font-mono">{session.userEmail}</p>
+                            </td>
+
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-gray-900 text-xs">
+                                  {firstRes.title || 'Academic Resource'}
+                                </span>
+                                {additionalCount > 0 && (
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200">
+                                    +{additionalCount}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-gray-500 mt-0.5">{firstRes.author || 'Zyndex Faculty'}</p>
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="font-bold text-xs text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-lg">
+                                {session.totalDuration} mins
+                              </span>
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <ShieldCheck className="size-3" />
+                                {session.accessStatus}
+                              </span>
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-gray-500">
+                              {session.endTime ? new Date(session.endTime).toLocaleString('en-IN', {
+                                year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                              }) : 'Just now'}
+                            </td>
+
+                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedSession(session);
+                                }}
+                                className="p-2 hover:bg-orange-100 text-gray-500 hover:text-orange-600 rounded-xl transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+                                title="View Detailed Live Reading Session"
+                              >
+                                <Eye className="size-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: MICROSERVICE AUDIT LOGS */}
+        {activeTab === 'system' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <span className="text-xs text-gray-500 font-semibold uppercase">Total Stored Logs</span>
+                <h3 className="text-2xl font-bold text-gray-900 mt-1">{systemStats.totalLogs}</h3>
+              </div>
+              <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-4">
+                <span className="text-xs text-red-500 font-semibold uppercase">System Errors</span>
+                <h3 className="text-2xl font-bold text-red-600 mt-1">{systemStats.errorCount}</h3>
+              </div>
+              <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-4">
+                <span className="text-xs text-amber-500 font-semibold uppercase">System Warnings</span>
+                <h3 className="text-2xl font-bold text-amber-600 mt-1">{systemStats.warnCount}</h3>
+              </div>
+              <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-4">
+                <span className="text-xs text-blue-500 font-semibold uppercase">Info Operations</span>
+                <h3 className="text-2xl font-bold text-blue-600 mt-1">{systemStats.infoCount}</h3>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="flex flex-1 items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 w-full">
+                <Search className="size-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search actions, emails, or telemetry details..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && fetchSystemLogs(0)}
+                  className="bg-transparent text-xs outline-none w-full text-gray-700"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <select
+                  value={serviceFilter}
+                  onChange={(e) => setServiceFilter(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 outline-none cursor-pointer"
+                >
+                  {SERVICES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={levelFilter}
+                  onChange={(e) => setLevelFilter(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 outline-none cursor-pointer"
+                >
+                  {LEVELS.map((l) => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-600">
+                  <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-500 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-3.5">Log ID</th>
+                      <th className="px-6 py-3.5">Timestamp</th>
+                      <th className="px-6 py-3.5">Microservice</th>
+                      <th className="px-6 py-3.5">Level</th>
+                      <th className="px-6 py-3.5">Action & Description</th>
+                      <th className="px-6 py-3.5">Actor</th>
+                      <th className="px-6 py-3.5 text-right">View</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {systemLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-12 text-gray-400">
+                          <ScrollText className="size-8 mx-auto mb-2 opacity-30" />
+                          <p className="text-sm font-medium">No system audit logs found</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      systemLogs.map((log) => (
+                        <tr
+                          key={log.id}
+                          onClick={() => setSelectedLog(log)}
+                          className="hover:bg-gray-50/80 transition-colors cursor-pointer group"
+                        >
+                          <td className="px-6 py-3.5 font-mono text-xs text-gray-400">#{log.id}</td>
+                          <td className="px-6 py-3.5 whitespace-nowrap font-mono text-xs text-gray-500">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap">
+                            <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                              {log.service}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap">{getLevelBadge(log.level)}</td>
+                          <td className="px-6 py-3.5">
+                            <p className="font-semibold text-xs text-gray-900">{log.action}</p>
+                            <p className="text-[11px] text-gray-500 truncate max-w-xs">{log.details}</p>
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap text-xs text-gray-600 font-mono">
+                            {log.actorEmail || 'System'}
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedLog(log);
+                              }}
+                              className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                            >
+                              <Eye className="size-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                <span className="text-xs text-gray-500">
+                  Showing page <span className="font-semibold text-gray-900">{systemPage + 1}</span> of{' '}
+                  <span className="font-semibold text-gray-900">{totalSystemPages}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    disabled={systemPage === 0}
+                    onClick={() => fetchSystemLogs(systemPage - 1)}
+                    className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="size-4" />
+                  </button>
+                  <button
+                    disabled={systemPage >= totalSystemPages - 1}
+                    onClick={() => fetchSystemLogs(systemPage + 1)}
+                    className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 transition-colors cursor-pointer"
+                  >
+                    <ChevronRight className="size-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* EYE ACTION MODAL: DETAILED READING SESSION PROFILE & RESOURCE SUMMARY TABLE */}
+        <AnimatePresence>
+          {selectedSession && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+              onClick={() => setSelectedSession(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden my-8 max-h-[90vh] flex flex-col"
+              >
+                <div className="p-6 bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="size-11 rounded-2xl bg-white/20 flex items-center justify-center font-bold text-lg">
+                      {(selectedSession.userName || 'S').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold">
+                        Live Reading Session Telemetry
+                      </h3>
+                      <p className="text-xs text-orange-100">
+                        {selectedSession.userName} ({selectedSession.userEmail})
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedSession(null)}
+                    className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <X className="size-5" />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-5 overflow-y-auto flex-1">
+                  <div className="space-y-3 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-200/60">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider">Reader Name:</span>
+                      <span className="font-bold text-slate-900 text-sm">{selectedSession.userName}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-200/60">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider">Reader Email:</span>
+                      <span className="font-mono text-slate-800 text-xs font-bold">{selectedSession.userEmail}</span>
+                    </div>
+
+                    <div className="py-2 border-b border-slate-200/60">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider block mb-1">Action:</span>
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 text-slate-700 leading-relaxed font-medium space-y-1">
+                        <p>
+                          • Opened and actively engaged with <strong>{selectedSession.resources.length} academic resource item{selectedSession.resources.length === 1 ? '' : 's'}</strong> during this dedicated session.
+                        </p>
+                        <p>
+                          • Active entitlement verified: <strong>{selectedSession.accessStatus}</strong> membership.
+                        </p>
+                        <p>
+                          • Active reading duration logged: <strong>{selectedSession.totalDuration} minutes</strong> ({Math.floor(selectedSession.totalDuration / 60)}h {selectedSession.totalDuration % 60}m 00s).
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-200/60">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider">Active Reading Duration:</span>
+                      <span className="font-bold text-orange-600 text-sm">
+                        {selectedSession.totalDuration} minutes ({Math.floor(selectedSession.totalDuration / 60)} hours {selectedSession.totalDuration % 60} minutes 00 seconds)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-200/60">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider">Exact Recorded Timestamp:</span>
+                      <span className="font-mono text-slate-800 text-xs">
+                        {selectedSession.endTime ? new Date(selectedSession.endTime).toLocaleString('en-IN', {
+                          year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        }) : 'Just now'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-200/60">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider">Start Time:</span>
+                      <span className="font-mono text-slate-900 text-xs font-bold">
+                        {selectedSession.startTime ? new Date(selectedSession.startTime).toLocaleTimeString('en-IN', {
+                          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        }) : 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider">End Time:</span>
+                      <span className="font-mono text-slate-900 text-xs font-bold">
+                        {selectedSession.endTime ? new Date(selectedSession.endTime).toLocaleTimeString('en-IN', {
+                          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        }) : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Resource Summary Table */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Resource Summary Table ({selectedSession.resources.length} accessed items)
+                    </p>
+                    <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
+                            <th className="py-2.5 px-3">Resource Title</th>
+                            <th className="py-2.5 px-3">Author / Faculty</th>
+                            <th className="py-2.5 px-3">Resource Type</th>
+                            <th className="py-2.5 px-3">Category / Subject</th>
+                            <th className="py-2.5 px-3 text-right">Duration</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {selectedSession.resources.map((res, i) => (
+                            <tr key={i} className="hover:bg-slate-50/80 transition-colors">
+                              <td className="py-2.5 px-3 font-semibold text-slate-900">
+                                {res.title || 'Academic Resource'}
+                              </td>
+                              <td className="py-2.5 px-3 text-slate-600">{res.author || 'Zyndex Faculty'}</td>
+                              <td className="py-2.5 px-3">
+                                <span className="px-2 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-800 text-[10px]">
+                                  {res.type || 'TEXTBOOK'}
+                                </span>
+                              </td>
+                              <td className="py-2.5 px-3">
+                                <span className="px-2 py-0.5 rounded font-semibold bg-orange-100 text-orange-800 text-[10px]">
+                                  {res.category || 'General Academics'}
+                                </span>
+                              </td>
+                              <td className="py-2.5 px-3 text-right font-mono font-bold text-orange-600">
+                                {res.durationMinutes}m
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                  <button
+                    onClick={() => setSelectedSession(null)}
+                    className="px-5 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors cursor-pointer"
+                  >
+                    Close Details
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* Detailed Statistics Modal for KPI Metric Cards */}
+          {statModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+              onClick={() => setStatModal(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-100 overflow-hidden my-8"
+              >
+                <div className="p-6 bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold flex items-center gap-2">
+                      {statModal === 'reading_time' && (
+                        <>
+                          <Clock className="size-6 text-white" />
+                          <span>Detailed Reading Time Analytics</span>
+                        </>
+                      )}
+                      {statModal === 'readers' && (
+                        <>
+                          <Users className="size-6 text-white" />
+                          <span>Total Readers Breakdown & Distribution</span>
+                        </>
+                      )}
+                      {statModal === 'active_today' && (
+                        <>
+                          <Activity className="size-6 text-white" />
+                          <span>Active Readers Today Breakdown</span>
+                        </>
+                      )}
+                      {statModal === 'avg_session' && (
+                        <>
+                          <BookOpen className="size-6 text-white" />
+                          <span>Session Length Distribution</span>
+                        </>
+                      )}
+                    </h3>
+                    <p className="text-xs text-orange-100 mt-1">
+                      {statModal === 'reading_time' && 'Pin-to-pin breakdown in hours, minutes, and seconds across all active sessions'}
+                      {statModal === 'readers' && 'Real-time reader engagement, authenticated users, and distribution breakdown'}
+                      {statModal === 'active_today' && 'Real-time breakdown of unique readers active today in MySQL'}
+                      {statModal === 'avg_session' && 'Distribution of duration per active reading session'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setStatModal(null)}
+                    className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <X className="size-5" />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {statModal === 'reading_time' && (
+                    <>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="p-3.5 bg-orange-50 border border-orange-100 rounded-xl text-center">
+                          <span className="text-[11px] font-bold text-orange-600 uppercase block">Hours</span>
+                          <span className="text-2xl font-black text-orange-950 mt-0.5 block">
+                            {Math.floor(metrics.totalMinutes / 60)}h
+                          </span>
+                        </div>
+                        <div className="p-3.5 bg-orange-50 border border-orange-100 rounded-xl text-center">
+                          <span className="text-[11px] font-bold text-orange-600 uppercase block">Minutes</span>
+                          <span className="text-2xl font-black text-orange-950 mt-0.5 block">
+                            {metrics.totalMinutes % 60}m
+                          </span>
+                        </div>
+                        <div className="p-3.5 bg-orange-50 border border-orange-100 rounded-xl text-center">
+                          <span className="text-[11px] font-bold text-orange-600 uppercase block">Seconds</span>
+                          <span className="text-2xl font-black text-orange-950 mt-0.5 block">
+                            0s
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-700 uppercase mb-2">Live Reading Time by Subject</h4>
+                          <div className="h-48 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={
+                                    categoryChartData && categoryChartData.length > 0
+                                      ? categoryChartData.map((item, idx) => ({
+                                          name: item.name,
+                                          value: item.minutes,
+                                          color: ['#ea580c', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b'][idx % 6]
+                                        }))
+                                      : [{ name: 'Reading Time', value: Math.max(1, metrics.totalMinutes), color: '#ea580c' }]
+                                  }
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={45}
+                                  outerRadius={70}
+                                  paddingAngle={4}
+                                  dataKey="value"
+                                >
+                                  {categoryChartData.map((entry, index) => (
+                                    <Cell
+                                      key={`cell-${index}`}
+                                      fill={['#ea580c', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b'][index % 6]}
+                                    />
+                                  ))}
+                                </Pie>
+                                <Tooltip formatter={(val) => [`${val} mins`, 'Duration']} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                          {categoryChartData && categoryChartData.length > 0 ? (
+                            categoryChartData.map((cat, idx) => (
+                              <div key={cat.name} className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between">
+                                <span className="font-semibold text-slate-700 flex items-center gap-2 truncate max-w-[150px]">
+                                  <span
+                                    className="size-2.5 rounded-full shrink-0"
+                                    style={{ backgroundColor: ['#ea580c', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b'][idx % 6] }}
+                                  />
+                                  {cat.name}
+                                </span>
+                                <span className="font-mono font-bold text-slate-900 shrink-0">
+                                  {cat.minutes} mins ({cat.sessions} sessions)
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-3 bg-slate-50 rounded-lg text-slate-500 text-xs">
+                              {metrics.totalMinutes} total minutes logged across active reader accounts.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {statModal === 'readers' && (
+                    <>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-center">
+                          <span className="text-[11px] font-bold text-blue-600 uppercase block">Total Readers</span>
+                          <span className="text-2xl font-black text-blue-950 mt-0.5 block">{metrics.totalReaders}</span>
+                        </div>
+                        <div className="p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
+                          <span className="text-[11px] font-bold text-emerald-600 uppercase block">Active Today</span>
+                          <span className="text-2xl font-black text-emerald-950 mt-0.5 block">{metrics.activeReadersToday}</span>
+                        </div>
+                        <div className="p-3.5 bg-purple-50 border border-purple-100 rounded-xl text-center">
+                          <span className="text-[11px] font-bold text-purple-600 uppercase block">Online Now</span>
+                          <span className="text-2xl font-black text-purple-950 mt-0.5 block">{metrics.onlineNow}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-700 uppercase mb-2">Readers by Account Role</h4>
+                          <div className="h-48 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={tierChartData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="tier" fontSize={11} />
+                                <YAxis fontSize={11} allowDecimals={false} />
+                                <Tooltip />
+                                <Bar dataKey="readers" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                          {tierChartData.map((t) => (
+                            <div key={t.tier} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                              <div>
+                                <p className="font-bold text-slate-800">{t.tier} Accounts</p>
+                                <p className="text-slate-500 text-[11px] mt-0.5">{t.totalMinutes} total reading minutes</p>
+                              </div>
+                              <span className="font-mono text-base font-black text-blue-600">{t.readers} readers</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {statModal === 'active_today' && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-emerald-900 uppercase">Live Active Readers Today</p>
+                          <p className="text-xs text-emerald-700 mt-0.5">Distinct user accounts with reading events logged today</p>
+                        </div>
+                        <span className="text-3xl font-black text-emerald-800">{metrics.activeReadersToday}</span>
+                      </div>
+
+                      <div className="border border-slate-200 rounded-xl overflow-hidden">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-50 font-bold text-slate-600 uppercase border-b border-slate-200">
+                            <tr>
+                              <th className="py-2.5 px-3">Reader Name</th>
+                              <th className="py-2.5 px-3">Email</th>
+                              <th className="py-2.5 px-3 text-right">Today's Duration</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {readingSessions
+                              .filter((s) => {
+                                if (!s.endTime) return false;
+                                return new Date(s.endTime).toDateString() === new Date().toDateString();
+                              })
+                              .map((s) => (
+                                <tr key={s.sessionId} className="hover:bg-slate-50">
+                                  <td className="py-2.5 px-3 font-semibold text-slate-900">{s.userName}</td>
+                                  <td className="py-2.5 px-3 font-mono text-slate-600">{s.userEmail}</td>
+                                  <td className="py-2.5 px-3 text-right font-bold text-emerald-700">{s.totalDuration}m</td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {statModal === 'avg_session' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 text-center">
+                          <span className="text-xs font-bold text-purple-700 uppercase block">Average Session</span>
+                          <span className="text-3xl font-black text-purple-950 mt-1 block">{metrics.avgMinutes} mins</span>
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                          <span className="text-xs font-bold text-slate-700 uppercase block">Total Sessions</span>
+                          <span className="text-3xl font-black text-slate-950 mt-1 block">{metrics.totalSessions}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        Average session length is calculated directly by dividing the cumulative active reading minutes ({metrics.totalMinutes} mins) by the total number of verified reading sessions ({metrics.totalSessions} sessions) recorded in MySQL.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                  <button
+                    onClick={() => setStatModal(null)}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Close Analytics
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* System Audit Log Detail Modal */}
+          {selectedLog && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+              onClick={() => setSelectedLog(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl shadow-xl max-w-xl w-full border border-gray-200 overflow-hidden"
+              >
+                <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                  <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <ScrollText className="size-5 text-orange-500" />
+                    Audit Log #{selectedLog.id}
+                  </h3>
+                  <button
+                    onClick={() => setSelectedLog(null)}
+                    className="size-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+                <div className="p-5 space-y-3 text-xs">
+                  <div className="flex justify-between py-1 border-b border-gray-100">
+                    <span className="font-semibold text-gray-500">Service:</span>
+                    <span className="font-mono font-bold text-gray-900">{selectedLog.service}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-gray-100">
+                    <span className="font-semibold text-gray-500">Level:</span>
+                    <span>{getLevelBadge(selectedLog.level)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-gray-100">
+                    <span className="font-semibold text-gray-500">Timestamp:</span>
+                    <span className="font-mono text-gray-900">{new Date(selectedLog.timestamp).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-gray-100">
+                    <span className="font-semibold text-gray-500">Actor:</span>
+                    <span className="font-mono text-gray-900">{selectedLog.actorEmail || 'N/A'}</span>
+                  </div>
+                  <div className="py-2">
+                    <span className="font-semibold text-gray-500 block mb-1">Details:</span>
+                    <pre className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-mono text-gray-800 whitespace-pre-wrap overflow-x-auto">
+                      {selectedLog.details || 'No additional details provided.'}
+                    </pre>
+                  </div>
+                </div>
+                <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                  <button
+                    onClick={() => setSelectedLog(null)}
+                    className="px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-semibold hover:bg-gray-800 transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </AdminLayout>
+  );
+}

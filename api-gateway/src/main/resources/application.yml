@@ -1,0 +1,62 @@
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 30s
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        - id: content-user-service
+          uri: lb://CONTENT-SERVICE
+          predicates:
+            - Path=/api/users/favorites/**, /api/users/downloads/**, /api/users/recent-views/**
+
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/auth/**, /api/users/**, /api/send-otp, /api/verify-otp, /api/logs/**
+
+        - id: content-service
+          uri: lb://CONTENT-SERVICE
+          predicates:
+            - Path=/api/resources/**, /api/feedback/**
+
+        - id: access-service
+          uri: lb://ACCESS-SERVICE
+          predicates:
+            - Path=/api/access/**
+
+        - id: usage-service
+          uri: lb://USAGE-SERVICE
+          predicates:
+            - Path=/api/usage/**
+
+        - id: subscription-service
+          uri: lb://SUBSCRIPTION-SERVICE
+          predicates:
+            - Path=/api/subscriptions/**, /api/payments/**, /api/webhooks/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+zyndex:
+  jwt-secret: ${JWT_SECRET:replace-this-with-a-long-random-secret}

@@ -1,0 +1,795 @@
+// Additional 20 Help Articles for Zyndex (Articles 81-100)
+export const additionalHelpArticles2 = [
+  // Privacy & Legal (10 articles)
+  {
+    id: 81,
+    category: 'Privacy & Legal',
+    title: 'Understanding our Privacy Policy',
+    description: 'How we protect your data',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Privacy Policy Overview</h2>
+        <p class="article-intro">Zyndex is committed to protecting your privacy and personal information.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">What We Collect:</h3>
+          <ul class="article-list">
+            <li>Name and email address for account creation</li>
+            <li>Usage data (pages visited, resources downloaded)</li>
+            <li>Technical data (browser type, IP address)</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">How We Use Your Data:</h3>
+          <ul class="article-list">
+            <li>To provide and improve our services</li>
+            <li>To communicate important updates</li>
+            <li>To personalize your experience</li>
+            <li>To maintain security and prevent fraud</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Your Rights:</h3>
+          <ul class="article-list">
+            <li>Access your personal data</li>
+            <li>Request data deletion</li>
+            <li>Opt out of communications</li>
+            <li>Update your information</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">📄 Full Policy:</h4>
+          <p>Read our complete Privacy Policy at /Zyndex/Legal/Privacy</p>
+        </div>
+      </div>
+    `,
+    tags: ['privacy', 'policy', 'data', 'legal', 'protection'],
+    readTime: '4 min read'
+  },
+  {
+    id: 82,
+    category: 'Privacy & Legal',
+    title: 'Terms of Service explained',
+    description: 'Understanding user agreements',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Terms of Service Summary</h2>
+        <p class="article-intro">By using Zyndex, you agree to our Terms of Service.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Key Terms:</h3>
+          <ul class="article-list">
+            <li><strong>Acceptable Use:</strong> Educational purposes only</li>
+            <li><strong>User Conduct:</strong> Respect copyright and intellectual property</li>
+            <li><strong>Account Responsibility:</strong> Keep credentials secure</li>
+            <li><strong>Content Rights:</strong> Respect resource licensing</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Prohibited Activities:</h3>
+          <ul class="article-list">
+            <li>Sharing copyrighted materials without permission</li>
+            <li>Creating multiple accounts to abuse services</li>
+            <li>Uploading malicious or inappropriate content</li>
+            <li>Attempting to breach security measures</li>
+          </ul>
+        </div>
+
+        <div class="warning-box">
+          <h4 class="warning-heading">⚠️ Violations:</h4>
+          <p>Violating Terms of Service may result in account suspension or termination.</p>
+        </div>
+      </div>
+    `,
+    tags: ['terms', 'service', 'legal', 'agreement', 'rules'],
+    readTime: '4 min read'
+  },
+  {
+    id: 83,
+    category: 'Privacy & Legal',
+    title: 'Copyright and intellectual property',
+    description: 'Respecting content ownership',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Copyright Guidelines</h2>
+        <p class="article-intro">Zyndex respects intellectual property rights and expects users to do the same.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">For Admins Uploading:</h3>
+          <ul class="article-list">
+            <li>Only upload content you own or have permission to share</li>
+            <li>Provide proper attribution when required</li>
+            <li>Respect Creative Commons licenses</li>
+            <li>Verify content is not copyrighted</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">For Users Downloading:</h3>
+          <ul class="article-list">
+            <li>Use resources for personal educational purposes</li>
+            <li>Do not redistribute without permission</li>
+            <li>Respect any licensing terms stated</li>
+            <li>Give credit to original creators</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Reporting Copyright Violations:</h3>
+          <p>If you believe content violates copyright, contact us immediately at legal@zyndex.com with details.</p>
+        </div>
+      </div>
+    `,
+    tags: ['copyright', 'intellectual property', 'legal', 'licensing', 'rights'],
+    readTime: '4 min read'
+  },
+  {
+    id: 84,
+    category: 'Privacy & Legal',
+    title: 'Data retention and deletion',
+    description: 'How long we keep your data',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Data Retention Policy</h2>
+        <p class="article-intro">Understanding how long Zyndex retains your personal information.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Retention Periods:</h3>
+          <ul class="article-list">
+            <li><strong>Active Accounts:</strong> Data retained while account is active</li>
+            <li><strong>Inactive Accounts:</strong> Data deleted after 2 years of inactivity</li>
+            <li><strong>Deleted Accounts:</strong> Data purged within 30 days</li>
+            <li><strong>Usage Logs:</strong> Retained for 1 year</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Request Data Deletion:</h3>
+          <ol class="article-list">
+            <li>Contact support at privacy@zyndex.com</li>
+            <li>Provide your registered email</li>
+            <li>Verification may be required</li>
+            <li>Data deleted within 30 days</li>
+          </ol>
+        </div>
+      </div>
+    `,
+    tags: ['data', 'retention', 'deletion', 'privacy', 'GDPR'],
+    readTime: '3 min read'
+  },
+  {
+    id: 85,
+    category: 'Privacy & Legal',
+    title: 'Cookie usage and tracking',
+    description: 'How Zyndex uses cookies',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Cookie Policy</h2>
+        <p class="article-intro">Zyndex uses cookies to enhance your experience and maintain functionality.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Types of Cookies We Use:</h3>
+          <ul class="article-list">
+            <li><strong>Essential Cookies:</strong> Required for login and core functionality</li>
+            <li><strong>Preference Cookies:</strong> Remember your settings and choices</li>
+            <li><strong>Analytics Cookies:</strong> Help us understand usage patterns</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Managing Cookies:</h3>
+          <ul class="article-list">
+            <li>Essential cookies cannot be disabled</li>
+            <li>Clear cookies via browser settings</li>
+            <li>Private/Incognito mode uses temporary cookies</li>
+          </ul>
+        </div>
+
+        <div class="warning-box">
+          <h4 class="warning-heading">⚠️ Note:</h4>
+          <p>Disabling cookies may affect Zyndex functionality, including the ability to log in.</p>
+        </div>
+      </div>
+    `,
+    tags: ['cookies', 'tracking', 'privacy', 'data', 'browser'],
+    readTime: '3 min read'
+  },
+  {
+    id: 86,
+    category: 'Privacy & Legal',
+    title: 'Third-party services and integrations',
+    description: 'External services Zyndex uses',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Third-Party Services</h2>
+        <p class="article-intro">Zyndex integrates with select third-party services to enhance functionality.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Services We Use:</h3>
+          <ul class="article-list">
+            <li><strong>SMTP:</strong> For contact forms and password resets</li>
+            <li><strong>Cloud Storage:</strong> For resource file hosting</li>
+            <li><strong>Analytics:</strong> To understand usage patterns</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Data Sharing:</h3>
+          <p>We only share data necessary for service functionality and never sell your personal information to third parties.</p>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Third-Party Privacy:</h3>
+          <p>Each service has its own privacy policy. We carefully vet partners for data protection standards.</p>
+        </div>
+      </div>
+    `,
+    tags: ['third-party', 'integrations', 'services', 'privacy', 'data'],
+    readTime: '3 min read'
+  },
+  {
+    id: 87,
+    category: 'Privacy & Legal',
+    title: 'GDPR and CCPA compliance',
+    description: 'Your data protection rights',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Data Protection Compliance</h2>
+        <p class="article-intro">Zyndex complies with GDPR (Europe) and CCPA (California) data protection regulations.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Your Rights Under GDPR/CCPA:</h3>
+          <ul class="article-list">
+            <li><strong>Right to Access:</strong> Request copy of your data</li>
+            <li><strong>Right to Rectification:</strong> Correct inaccurate data</li>
+            <li><strong>Right to Erasure:</strong> Request data deletion</li>
+            <li><strong>Right to Portability:</strong> Receive data in transferable format</li>
+            <li><strong>Right to Object:</strong> Opt out of certain processing</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Exercising Your Rights:</h3>
+          <p>Contact privacy@zyndex.com with your request. We'll respond within 30 days.</p>
+        </div>
+      </div>
+    `,
+    tags: ['GDPR', 'CCPA', 'compliance', 'rights', 'privacy'],
+    readTime: '4 min read'
+  },
+  {
+    id: 88,
+    category: 'Privacy & Legal',
+    title: 'Account termination and data',
+    description: 'What happens when you delete your account',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Account Deletion Process</h2>
+        <p class="article-intro">Understanding what happens to your data when you delete your account.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Deletion Process:</h3>
+          <ol class="article-list">
+            <li>Contact support requesting account deletion</li>
+            <li>Identity verification required</li>
+            <li>30-day grace period before permanent deletion</li>
+            <li>All personal data is purged</li>
+          </ol>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">What Gets Deleted:</h3>
+          <ul class="article-list">
+            <li>Profile information</li>
+            <li>Download and favorite history</li>
+            <li>Account credentials</li>
+            <li>Personal settings</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">What Remains:</h3>
+          <ul class="article-list">
+            <li>Resources uploaded by admins (anonymized)</li>
+            <li>Anonymized usage statistics</li>
+            <li>Public comments or reviews (if any)</li>
+          </ul>
+        </div>
+
+        <div class="warning-box">
+          <h4 class="warning-heading">⚠️ Important:</h4>
+          <p>Account deletion is permanent and cannot be undone after the grace period.</p>
+        </div>
+      </div>
+    `,
+    tags: ['account', 'deletion', 'termination', 'data', 'privacy'],
+    readTime: '3 min read'
+  },
+  {
+    id: 89,
+    category: 'Privacy & Legal',
+    title: 'Security measures and encryption',
+    description: 'How we protect your data',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Data Security</h2>
+        <p class="article-intro">Zyndex employs industry-standard security measures to protect your information.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Security Measures:</h3>
+          <ul class="article-list">
+            <li><strong>Encryption:</strong> HTTPS/SSL encryption for all data transmission</li>
+            <li><strong>Password Hashing:</strong> Passwords are never stored in plain text</li>
+            <li><strong>Authentication:</strong> Security verification on login</li>
+            <li><strong>Access Control:</strong> Role-based permissions</li>
+            <li><strong>Regular Audits:</strong> Security assessments and updates</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Your Responsibility:</h3>
+          <ul class="article-list">
+            <li>Use strong, unique passwords</li>
+            <li>Don't share account credentials</li>
+            <li>Log out on shared devices</li>
+            <li>Report suspicious activity immediately</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    tags: ['security', 'encryption', 'protection', 'safety', 'data'],
+    readTime: '3 min read'
+  },
+  {
+    id: 90,
+    category: 'Privacy & Legal',
+    title: 'Reporting security vulnerabilities',
+    description: 'How to report security issues',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Security Vulnerability Reporting</h2>
+        <p class="article-intro">Help us keep Zyndex secure by reporting vulnerabilities responsibly.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">How to Report:</h3>
+          <ol class="article-list">
+            <li>Email security@zyndex.com immediately</li>
+            <li>Include detailed description of the issue</li>
+            <li>Provide steps to reproduce (if applicable)</li>
+            <li>Do NOT exploit the vulnerability</li>
+            <li>Do NOT publicly disclose until fixed</li>
+          </ol>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Our Response:</h3>
+          <ul class="article-list">
+            <li>Acknowledgment within 48 hours</li>
+            <li>Investigation and assessment</li>
+            <li>Fix deployment as soon as possible</li>
+            <li>Credit to reporter (if desired)</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">🛡️ Responsible Disclosure:</h4>
+          <p>We appreciate responsible disclosure and work quickly to address security issues.</p>
+        </div>
+      </div>
+    `,
+    tags: ['security', 'vulnerability', 'reporting', 'disclosure', 'safety'],
+    readTime: '3 min read'
+  },
+
+  // Tips & Best Practices (10 articles)
+  {
+    id: 91,
+    category: 'Tips & Best Practices',
+    title: 'Organizing your favorites effectively',
+    description: 'Tips for managing saved resources',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Favorites Organization Tips</h2>
+        <p class="article-intro">Make the most of your favorites collection with these strategies.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Organization Strategies:</h3>
+          <ul class="article-list">
+            <li>Favorite resources immediately when you find them valuable</li>
+            <li>Regularly review and remove outdated favorites</li>
+            <li>Use specific search terms to filter favorites</li>
+            <li>Download frequently-used resources for offline access</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">💡 Pro Tip:</h4>
+          <p>Create a personal note system for why you favorited each resource to remember its value later.</p>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Maintenance Schedule:</h3>
+          <ul class="article-list">
+            <li><strong>Weekly:</strong> Review new favorites</li>
+            <li><strong>Monthly:</strong> Remove unused items</li>
+            <li><strong>Quarterly:</strong> Deep clean and reorganize</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    tags: ['favorites', 'organization', 'tips', 'management', 'best practices'],
+    readTime: '3 min read'
+  },
+  {
+    id: 92,
+    category: 'Tips & Best Practices',
+    title: 'Effective search strategies',
+    description: 'Find resources faster with smart searching',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Search Like a Pro</h2>
+        <p class="article-intro">Master Zyndex search to find exactly what you need quickly.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Search Best Practices:</h3>
+          <ul class="article-list">
+            <li><strong>Be Specific:</strong> "photosynthesis worksheet grade 7" vs "science"</li>
+            <li><strong>Use Keywords:</strong> Focus on main concepts</li>
+            <li><strong>Try Synonyms:</strong> "math" and "mathematics" may yield different results</li>
+            <li><strong>Filter by Category:</strong> Narrow results after initial search</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Advanced Techniques:</h3>
+          <ul class="article-list">
+            <li>Search by grade level (e.g., "algebra 2")</li>
+            <li>Include file type if relevant (e.g., "worksheet PDF")</li>
+            <li>Browse category first, then search within</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">💡 Quick Tip:</h4>
+          <p>If search returns too many results, add more specific terms. Too few? Try broader keywords.</p>
+        </div>
+      </div>
+    `,
+    tags: ['search', 'tips', 'strategies', 'find', 'best practices'],
+    readTime: '3 min read'
+  },
+  {
+    id: 93,
+    category: 'Tips & Best Practices',
+    title: 'Maximizing download organization',
+    description: 'Manage downloaded resources efficiently',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Download Management Tips</h2>
+        <p class="article-intro">Keep your downloaded resources organized and accessible.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">File Organization:</h3>
+          <ul class="article-list">
+            <li>Create folders by subject on your device</li>
+            <li>Use descriptive filenames (rename after download)</li>
+            <li>Organize by semester or unit</li>
+            <li>Keep a master folder for all Zyndex downloads</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Folder Structure Example:</h3>
+          <div class="code-block">
+            <pre>
+Zyndex Resources/
+  ├── Science/
+  │   ├── Biology/
+  │   └── Chemistry/
+  ├── Mathematics/
+  │   ├── Algebra/
+  │   └── Geometry/
+  └── Literature/
+            </pre>
+          </div>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">💡 Efficiency Tip:</h4>
+          <p>Set your browser to prompt for download location so you can save directly to the right folder.</p>
+        </div>
+      </div>
+    `,
+    tags: ['downloads', 'organization', 'files', 'management', 'tips'],
+    readTime: '3 min read'
+  },
+  {
+    id: 94,
+    category: 'Tips & Best Practices',
+    title: 'Admin content curation best practices',
+    description: 'Tips for admins uploading quality content',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Content Curation Excellence</h2>
+        <p class="article-intro">Admins: Create a high-quality resource library with these practices.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Quality Standards:</h3>
+          <ul class="article-list">
+            <li><strong>Accuracy:</strong> Verify all information before uploading</li>
+            <li><strong>Clarity:</strong> Ensure content is well-formatted and readable</li>
+            <li><strong>Completeness:</strong> Include all necessary components</li>
+            <li><strong>Attribution:</strong> Credit original sources properly</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Metadata Best Practices:</h3>
+          <ul class="article-list">
+            <li>Write clear, descriptive titles</li>
+            <li>Provide comprehensive descriptions</li>
+            <li>Choose the most specific category</li>
+            <li>Add 5-10 relevant tags</li>
+            <li>Specify accurate grade level</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">💡 Quality Check:</h4>
+          <p>Always preview resources before publishing and check both desktop and mobile views.</p>
+        </div>
+      </div>
+    `,
+    tags: ['admin', 'curation', 'quality', 'content', 'best practices'],
+    readTime: '4 min read'
+  },
+  {
+    id: 95,
+    category: 'Tips & Best Practices',
+    title: 'Using Zyndex for classroom integration',
+    description: 'Tips for educators',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Classroom Integration Strategies</h2>
+        <p class="article-intro">Educators: Leverage Zyndex effectively in your teaching practice.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Preparation Strategies:</h3>
+          <ul class="article-list">
+            <li>Browse resources before the school year starts</li>
+            <li>Create favorites collections for each unit</li>
+            <li>Download materials in advance for offline access</li>
+            <li>Share resource links with students</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">In-Class Usage:</h3>
+          <ul class="article-list">
+            <li>Project resources for whole-class instruction</li>
+            <li>Assign specific resources for homework</li>
+            <li>Use worksheets for practice and assessment</li>
+            <li>Supplement textbook with diverse materials</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Student Access:</h3>
+          <ul class="article-list">
+            <li>Encourage students to create their own accounts</li>
+            <li>Teach research skills using Zyndex search</li>
+            <li>Promote self-directed learning</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    tags: ['classroom', 'educators', 'teaching', 'integration', 'tips'],
+    readTime: '4 min read'
+  },
+  {
+    id: 96,
+    category: 'Tips & Best Practices',
+    title: 'Accessibility features and tips',
+    description: 'Making Zyndex work for everyone',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Accessibility Features</h2>
+        <p class="article-intro">Zyndex is designed to be accessible to all users.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Built-in Accessibility:</h3>
+          <ul class="article-list">
+            <li>Keyboard navigation support</li>
+            <li>High contrast orange theme for visibility</li>
+            <li>Responsive design for various screen sizes</li>
+            <li>Clear, readable typography</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Enhance Accessibility:</h3>
+          <ul class="article-list">
+            <li>Use browser zoom for larger text (Ctrl/Cmd + Plus)</li>
+            <li>Enable browser screen reader</li>
+            <li>Adjust browser contrast settings</li>
+            <li>Use keyboard shortcuts (Tab, Enter, Escape)</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">♿ Accessibility Help:</h4>
+          <p>Contact support if you encounter accessibility barriers. We're committed to continuous improvement.</p>
+        </div>
+      </div>
+    `,
+    tags: ['accessibility', 'inclusive', 'features', 'support', 'tips'],
+    readTime: '3 min read'
+  },
+  {
+    id: 97,
+    category: 'Tips & Best Practices',
+    title: 'Collaborating with colleagues',
+    description: 'Team strategies for shared resources',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Teacher Collaboration</h2>
+        <p class="article-intro">Work together with colleagues to build comprehensive resource collections.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Collaboration Ideas:</h3>
+          <ul class="article-list">
+            <li>Share favorite resource links via email or messaging</li>
+            <li>Create department-wide resource lists</li>
+            <li>Coordinate uploads if multiple teachers have admin access</li>
+            <li>Review and recommend resources to each other</li>
+            <li>Build unit plans together using Zyndex materials</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Team Meetings:</h3>
+          <ul class="article-list">
+            <li>Discuss valuable resources found on Zyndex</li>
+            <li>Share success stories from classroom use</li>
+            <li>Identify gaps and request needed content</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    tags: ['collaboration', 'teamwork', 'colleagues', 'sharing', 'tips'],
+    readTime: '3 min read'
+  },
+  {
+    id: 98,
+    category: 'Tips & Best Practices',
+    title: 'Staying updated with new resources',
+    description: 'How to discover fresh content',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Discovering New Content</h2>
+        <p class="article-intro">Stay current with the latest educational resources on Zyndex.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Discovery Strategies:</h3>
+          <ul class="article-list">
+            <li>Check dashboard featured resources regularly</li>
+            <li>Explore different categories periodically</li>
+            <li>Try searches with new keywords</li>
+            <li>Review recently uploaded content</li>
+            <li>Browse popular and trending resources</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Make It a Habit:</h3>
+          <ul class="article-list">
+            <li><strong>Weekly:</strong> Check featured resources</li>
+            <li><strong>Monthly:</strong> Explore a new category</li>
+            <li><strong>Seasonally:</strong> Search for upcoming unit materials</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">💡 Stay Fresh:</h4>
+          <p>Set a reminder to explore Zyndex for 10 minutes each week to discover new treasures.</p>
+        </div>
+      </div>
+    `,
+    tags: ['discovery', 'new content', 'updates', 'resources', 'tips'],
+    readTime: '2 min read'
+  },
+  {
+    id: 99,
+    category: 'Tips & Best Practices',
+    title: 'Providing constructive feedback',
+    description: 'How to give helpful feedback to admins',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Effective Feedback</h2>
+        <p class="article-intro">Help improve Zyndex by providing thoughtful, constructive feedback.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Good Feedback Includes:</h3>
+          <ul class="article-list">
+            <li><strong>Specific:</strong> Reference particular resources or features</li>
+            <li><strong>Actionable:</strong> Suggest clear improvements</li>
+            <li><strong>Balanced:</strong> Mention both strengths and areas for improvement</li>
+            <li><strong>Respectful:</strong> Professional tone and language</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Feedback Topics:</h3>
+          <ul class="article-list">
+            <li>Resource quality and accuracy</li>
+            <li>Missing content areas or topics</li>
+            <li>Feature requests and enhancements</li>
+            <li>Usability improvements</li>
+            <li>Bug reports and technical issues</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">📝 Example:</h4>
+          <p>"The biology worksheets are excellent! Could you add more genetics resources for grade 10?"</p>
+        </div>
+      </div>
+    `,
+    tags: ['feedback', 'constructive', 'improvement', 'support', 'tips'],
+    readTime: '3 min read'
+  },
+  {
+    id: 100,
+    category: 'Tips & Best Practices',
+    title: 'Maximizing productivity on Zyndex',
+    description: 'Workflow optimization tips',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Productivity Optimization</h2>
+        <p class="article-intro">Get the most out of Zyndex with these efficiency strategies.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Workflow Tips:</h3>
+          <ul class="article-list">
+            <li>Use specific searches to save time</li>
+            <li>Favorite immediately when you find good resources</li>
+            <li>Download resources in batches for offline access</li>
+            <li>Bookmark Zyndex for quick access</li>
+            <li>Learn keyboard shortcuts</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Admin Productivity:</h3>
+          <ul class="article-list">
+            <li>Use bulk operations when managing multiple resources</li>
+            <li>Resize sidebar to optimize workspace</li>
+            <li>Prepare upload metadata in advance</li>
+            <li>Schedule regular maintenance time</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Time-Saving Habits:</h3>
+          <ul class="article-list">
+            <li>Plan lesson resources at start of semester</li>
+            <li>Create favorites collections per topic</li>
+            <li>Download frequently-used materials</li>
+            <li>Use filters before searching</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">⚡ Speed Tip:</h4>
+          <p>Open frequently-used categories in browser tabs to access them instantly.</p>
+        </div>
+      </div>
+    `,
+    tags: ['productivity', 'efficiency', 'workflow', 'optimization', 'tips'],
+    readTime: '4 min read'
+  },
+];
