@@ -104,7 +104,7 @@ apiClient.interceptors.response.use(
                 new CustomEvent('zyndex:session-expired', {
                   detail: {
                     role,
-                    reason: 'Your session has expired due to 30 minutes of inactivity. Please log in again to continue.'
+                    reason: 'Your session has expired due to 2 hours and 30 minutes of inactivity. Please log in again to continue.'
                   }
                 })
               );

@@ -144,7 +144,7 @@ public class AuthSupport {
                 .claim("email", user.get("email"))
                 .claim("name", first(user.get("name"), user.get("username")))
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plusSeconds(24 * 60 * 60))) // 24-hour token validity so idle tracking governs exact 30-min idle timeout
+                .expiration(Date.from(now.plusSeconds(150 * 60))) // 2 hours 30 minutes (150 mins) JWT lifetime per policy
                 .signWith(secretKey())
                 .compact();
     }

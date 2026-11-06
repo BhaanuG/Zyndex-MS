@@ -4,8 +4,12 @@ import { AlertCircle, Clock, LogIn, ShieldAlert } from 'lucide-react';
 
 /**
  * Global Session Timeout & Inactivity Modal
- * Listens for 30-minute idle timeouts and JWT expiration events,
- * and displays a clear, informative modal directing users or admins back to their login page.
+ * Accurately renders the official Session Time-Out notification design matching the screenshot:
+ * - Gradient red-orange top header banner with shield-alert icon
+ * - "Session Time-Out" heading
+ * - "2 hr 30 min Inactivity Protection Triggered"
+ * - Styled alert callout explaining why session was terminated
+ * - Solid red direct action button: "-> Return to Admin/User Log In"
  */
 export default function SessionTimeoutModal() {
   const [modalData, setModalData] = useState(null); // { role, reason }
@@ -14,7 +18,7 @@ export default function SessionTimeoutModal() {
     const handleSessionExpired = (e) => {
       setModalData(e.detail || {
         role: 'user',
-        reason: 'Your session has expired due to 30 minutes of inactivity. Please log in again to continue.'
+        reason: 'Your session has expired due to 2 hours and 30 minutes of inactivity. Please log in again to continue.'
       });
     };
 
@@ -36,52 +40,49 @@ export default function SessionTimeoutModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden text-center"
+          exit={{ opacity: 0, scale: 0.95, y: 15 }}
+          className="bg-white rounded-[28px] max-w-sm w-full shadow-2xl border border-slate-200/80 overflow-hidden text-center"
         >
-          {/* Header Banner */}
-          <div className={`p-6 ${isAdmin ? 'bg-gradient-to-r from-red-600 to-orange-600' : 'bg-gradient-to-r from-orange-500 to-amber-500'} text-white`}>
-            <div className="size-16 rounded-2xl bg-white/20 mx-auto flex items-center justify-center mb-3 shadow-inner">
-              {isAdmin ? <ShieldAlert className="size-8 text-white" /> : <Clock className="size-8 text-white" />}
+          {/* Header Banner: Gradient from red to vibrant orange with soft radial glow */}
+          <div className="bg-gradient-to-b from-[#e61919] via-[#f43f14] to-[#f95716] p-7 text-white text-center relative overflow-hidden">
+            <div className="size-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-3.5 shadow-inner ring-4 ring-white/10">
+              <ShieldAlert className="size-8 text-white" />
             </div>
-            <h3 className="text-xl font-black tracking-tight">Session Time-Out</h3>
-            <p className="text-xs text-orange-100 font-medium mt-1">
-              30-Minute Inactivity Protection Triggered
+            <h3 className="text-2xl font-extrabold tracking-tight text-white">Session Time-Out</h3>
+            <p className="text-xs text-orange-100 font-semibold mt-1">
+              2 hr 30 min Inactivity Protection Triggered
             </p>
           </div>
 
           {/* Body Content */}
-          <div className="p-6 space-y-4">
-            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-left flex items-start gap-3">
-              <AlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
-              <div className="text-xs text-amber-900 leading-relaxed font-medium">
-                <p className="font-bold mb-1">Why was I logged out?</p>
+          <div className="p-6 pt-5 space-y-4">
+            {/* Why was I logged out callout box */}
+            <div className="p-4 bg-[#fffbeb] border border-[#fef3c7] rounded-2xl text-left flex items-start gap-3 shadow-xs">
+              <AlertCircle className="size-5 text-[#d97706] shrink-0 mt-0.5" />
+              <div className="text-xs text-[#92400e] leading-relaxed">
+                <p className="font-bold text-sm text-[#78350f] mb-1">Why was I logged out?</p>
                 <p>
                   To secure your academic account and data, sessions automatically terminate after{' '}
-                  <span className="font-bold underline">30 minutes</span> without active interactions or upon token expiration.
+                  <span className="font-bold underline text-[#78350f]">2 hours and 30 minutes</span> without active interactions or upon token expiration.
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              {modalData.reason || 'Please log in again to resume your research and continue browsing Zyndex.'}
+            <p className="text-xs text-slate-500 leading-normal px-1 text-center font-normal">
+              Your session has expired due to 2 hours and 30 minutes of inactivity. Please log in again to continue.
             </p>
 
             <div className="pt-2">
               <button
                 type="button"
                 onClick={handleRedirect}
-                className={`w-full py-3.5 px-5 rounded-2xl text-xs font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2 ${
-                  isAdmin
-                    ? 'bg-red-600 hover:bg-red-700 shadow-red-600/30'
-                    : 'bg-orange-600 hover:bg-orange-700 shadow-orange-600/30'
-                }`}
+                className="w-full py-3.5 px-5 rounded-2xl text-sm font-bold text-white bg-[#e50914] hover:bg-[#c70812] shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <LogIn className="size-4" />
+                <ArrowRight className="size-4" />
                 <span>Return to {isAdmin ? 'Admin' : 'User'} Log In</span>
               </button>
             </div>

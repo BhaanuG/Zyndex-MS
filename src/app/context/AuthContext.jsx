@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { TransitionLoader } from '@/app/components/PageTransitionWrapper';
 import SessionTimeoutModal from '@/app/components/SessionTimeoutModal';
+import SessionWarningModal from '@/app/components/SessionWarningModal';
 import authService from '@/services/api/authService';
 import userService from '@/services/api/userService';
 
@@ -176,25 +177,56 @@ export const AuthProvider = ({ children }) => {
     getUrlSafeEmail,
   };
 
-  // 30-Minute Inactivity Protection Tracker
+  // 2 hours 30 minutes (150 minutes) Inactivity Protection Tracker
+  // At 2 hours (120 minutes) of inactivity: sends pop-up warning "session will close within 30 min"
+  // At 2 hours 30 minutes (150 minutes) if no response: automatically terminates session with Session Time-Out modal
   const lastActivityRef = useRef(Date.now());
+  const hasWarnedRef = useRef(false);
 
   useEffect(() => {
     if (!user || !localStorage.getItem('auth_token')) return undefined;
 
-    const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // Exactly 30 minutes
+    const WARNING_TIMEOUT_MS = 120 * 60 * 1000;   // 2 hours (120 minutes)
+    const TERMINATION_TIMEOUT_MS = 150 * 60 * 1000; // 2 hours 30 minutes (150 minutes)
 
     const updateActivity = () => {
       lastActivityRef.current = Date.now();
+      hasWarnedRef.current = false;
     };
+
+    const handleContinueSession = () => {
+      lastActivityRef.current = Date.now();
+      hasWarnedRef.current = false;
+      refreshUser();
+    };
+
+    const handleForceLogout = () => {
+      logout();
+    };
+
+    window.addEventListener('zyndex:session-continue', handleContinueSession);
+    window.addEventListener('zyndex:session-force-logout', handleForceLogout);
 
     const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     activityEvents.forEach((evt) => window.addEventListener(evt, updateActivity, { passive: true }));
 
     const checkInterval = window.setInterval(() => {
       const idleTime = Date.now() - lastActivityRef.current;
-      if (idleTime >= INACTIVITY_TIMEOUT_MS) {
-        // Trigger timeout logout and show modal
+
+      // 1. Send warning pop up at 2 hours
+      if (idleTime >= WARNING_TIMEOUT_MS && idleTime < TERMINATION_TIMEOUT_MS) {
+        if (!hasWarnedRef.current) {
+          hasWarnedRef.current = true;
+          window.dispatchEvent(
+            new CustomEvent('zyndex:session-warning', {
+              detail: { role: role || 'user' }
+            })
+          );
+        }
+      }
+
+      // 2. Automatic termination at 2 hours 30 minutes
+      if (idleTime >= TERMINATION_TIMEOUT_MS) {
         const currentRole = role || 'user';
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
@@ -205,7 +237,7 @@ export const AuthProvider = ({ children }) => {
           new CustomEvent('zyndex:session-expired', {
             detail: {
               role: currentRole,
-              reason: 'No activity detected for 30 minutes. Your session has been safely closed to protect your account. Please log in again to continue.'
+              reason: 'Your session has expired due to 2 hours and 30 minutes of inactivity. Please log in again to continue.'
             }
           })
         );
@@ -214,6 +246,8 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       activityEvents.forEach((evt) => window.removeEventListener(evt, updateActivity));
+      window.removeEventListener('zyndex:session-continue', handleContinueSession);
+      window.removeEventListener('zyndex:session-force-logout', handleForceLogout);
       window.clearInterval(checkInterval);
     };
   }, [user?.id, role]);
@@ -221,6 +255,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={value}>
       {children}
+      <SessionWarningModal />
       <SessionTimeoutModal />
       {/* Logout Loader */}
       <AnimatePresence>
