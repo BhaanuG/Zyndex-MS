@@ -51,6 +51,22 @@ export default function FAQ() {
       question: 'How do I submit reviews, ratings, or report content issues?',
       answer: 'Every academic resource features a feedback module where authenticated readers can submit 1-to-5 star ratings and detailed reviews. You can also contact our 24/7 scholar support team via the Contact Us page.',
     },
+    {
+      question: 'Can I use Zyndex on multiple devices simultaneously?',
+      answer: 'Yes. You can access Zyndex on your laptop, desktop, tablet, and mobile smartphone. Every login is safeguarded by 2-step email verification to ensure that only you can authorize new browser sessions.',
+    },
+    {
+      question: 'What happens if my payment UTR is pending review?',
+      answer: 'UPI UTR verification typically clears within 15 to 30 minutes during standard processing cycles. If there is a bank delay or reference discrepancy, you can monitor the status directly under your Account Billing tab or ping support with your payment receipt.',
+    },
+    {
+      question: 'How is intellectual property and author attribution protected on Zyndex?',
+      answer: 'All educational works uploaded to Zyndex undergo administrative review. Authors, faculty, and publishers retain full moral and academic rights. Materials are distributed under fair-use educational licenses or open-access agreements with transparent citation guides.',
+    },
+    {
+      question: 'What should I do if I forget my password or change my email?',
+      answer: 'Visit the Forgot Password page from the Login portal. Enter your registered email address to receive an instant, single-use password reset link and verification code. For email migrations, reach out to our support desk with your current identity credentials.',
+    },
   ];
 
   const toggleFAQ = (index) => {

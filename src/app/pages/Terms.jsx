@@ -228,19 +228,19 @@ export default function Terms() {
     },
     {
       icon: Scale,
-      title: '14. Governing Law & Jurisdiction',
+      title: '14. Governing Law & Dispute Resolution',
       content: [
         {
           subtitle: 'Applicable Law',
-          text: 'These Terms and your use of the Service shall be governed by and construed in accordance with the laws of [specify state/country, e.g., the State of California, United States], without regard to its conflict of law principles.'
+          text: 'These Terms and your use of the Service shall be governed by, construed, and enforced in accordance with the laws of India and international academic copyright standards, without regard to conflict of law principles.'
         },
         {
-          subtitle: 'Dispute Resolution',
-          text: 'Any dispute, claim, or controversy arising out of or relating to these Terms or your use of the Service shall be resolved through:\n\n1. Informal Negotiation: We encourage you to contact us first to resolve any disputes informally.\n\n2. Binding Arbitration: If informal resolution fails, disputes shall be resolved through binding arbitration in accordance with the rules of the American Arbitration Association (AAA). Arbitration shall be conducted in [specify location]. The arbitrator\'s decision shall be final and binding.\n\n3. Class Action Waiver: You agree that any arbitration or legal proceeding shall be conducted on an individual basis and not as a class action, consolidated action, or representative action.'
+          subtitle: 'Good-Faith Dispute Resolution',
+          text: 'In the event of any question or dispute regarding service access, reading telemetry, or content attributions, parties agree to first pursue informal good-faith resolution by contacting the Zyndex administrative office at lmno1432@gmail.com.'
         },
         {
-          subtitle: 'Venue for Legal Actions',
-          text: 'If arbitration is not applicable or is deemed unenforceable, you agree that any legal action arising from these Terms shall be filed exclusively in the state or federal courts located in [specify location], and you consent to the personal jurisdiction of such courts.'
+          subtitle: 'Jurisdiction',
+          text: 'If informal resolution fails within thirty (30) days, both parties agree to submit to the exclusive jurisdiction of the competent courts of law presiding in Andhra Pradesh, India.'
         }
       ]
     },

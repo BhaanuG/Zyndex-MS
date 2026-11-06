@@ -91,20 +91,20 @@ export default function Privacy() {
       title: '6. Data Sharing & Disclosure',
       content: [
         {
-          subtitle: 'Service Providers',
-          text: 'We share your information with trusted third-party service providers who assist us in operating our platform, including: cloud hosting providers (AWS, Google Cloud), payment processors (Stripe, PayPal), email service providers, analytics services (Google Analytics), and content delivery networks. These providers are contractually obligated to protect your data and use it only for the purposes we specify.'
+          subtitle: 'Service Providers & Infrastructure',
+          text: 'We share your information strictly with vetted service providers necessary for operating our platform: secure cloud computing and object storage platforms (AWS, Google Cloud), transactional email routing gateways (SMTP relay services), and containerized app hosting environments. For subscriptions and tier upgrades, transactions occur via UPI VPA verification (918897337687@waaxis) requiring user-submitted 12-digit UTR references; no banking passwords, credit card numbers, or CVVs are ever requested, processed, or stored on Zyndex infrastructure.'
         },
         {
-          subtitle: 'Legal Requirements',
-          text: 'We may disclose your information when required by law, court order, subpoena, or other legal process, or when we believe in good faith that disclosure is necessary to protect our rights, your safety or the safety of others, investigate fraud, or respond to a government request.'
+          subtitle: 'Legal Requirements & Academic Compliance',
+          text: 'We may disclose information when required by applicable law, judicial order, or regulatory process, or when deemed essential in good faith to safeguard intellectual property integrity, investigate fraudulent impersonation, or ensure compliance with our platform policies.'
         },
         {
-          subtitle: 'Business Transfers',
-          text: 'In the event of a merger, acquisition, reorganization, bankruptcy, or sale of assets, your information may be transferred to the successor entity. We will notify you via email and/or prominent notice on our platform before your information is transferred and becomes subject to a different privacy policy.'
+          subtitle: 'No Sale of Personal Data',
+          text: 'Zyndex maintains a strict zero-data-brokerage policy: we NEVER sell, rent, monetize, or trade reader data, personal profiles, or individual study reading behaviors to third-party advertisers or data aggregators.'
         },
         {
           subtitle: 'Public Information',
-          text: 'Certain information you choose to make public (such as public reviews, comments, or profile information) may be visible to other users of the platform. Please exercise caution when deciding what information to make publicly available.'
+          text: 'Certain information you choose to make public (such as published resource ratings, community reviews, or contributor attribution on uploaded academic guides) may be visible across the reader community. Please exercise caution before including personal contact information in public reviews.'
         }
       ]
     },
@@ -114,15 +114,15 @@ export default function Privacy() {
       content: [
         {
           subtitle: 'Where Data Is Stored',
-          text: 'Your data is stored on secure servers provided by reputable cloud hosting providers located in [specify regions, e.g., United States, European Union]. We use industry-standard data centers with physical and electronic security measures.'
+          text: 'Platform telemetry, account databases, and academic files are maintained in secure, ISO/IEC 27001-certified data centers located in modern cloud availability zones. All data access requires encrypted credentials and multi-tenant isolation.'
         },
         {
-          subtitle: 'Security Measures',
-          text: 'We implement appropriate technical and organizational security measures to protect your personal information, including: encryption of data in transit (SSL/TLS) and at rest, regular security assessments and vulnerability testing, access controls and authentication mechanisms, employee training on data protection, and regular backups and disaster recovery procedures.'
+          subtitle: 'Multi-Layer Security Architecture',
+          text: 'Zyndex implements defense-in-depth security measures: TLS 1.3 encryption for all data in transit, AES-256 encryption at rest, BCrypt cryptographic password hashing, short-lived 5-minute single-use OTP handshakes, dynamic geometric challenge verification, and automated session invalidation on tab closure or workstation lock.'
         },
         {
           subtitle: 'No Guarantee Disclaimer',
-          text: 'While we strive to protect your personal information, no method of transmission over the Internet or electronic storage is 100% secure. We cannot guarantee absolute security of your data. You use our platform at your own risk and are responsible for maintaining the confidentiality of your account credentials.'
+          text: 'While we employ industry-leading protocols to safeguard personal data, no internet transmission is infallible. You are responsible for safeguarding your registered email inbox and setting a resilient password containing uppercase letters, numbers, and symbols.'
         }
       ]
     },
@@ -162,15 +162,15 @@ export default function Privacy() {
     },
     {
       icon: FileText,
-      title: '9. Data Retention',
+      title: '9. Data Retention & Academic Archiving',
       content: [
         {
           subtitle: 'How Long We Keep Your Data',
-          text: 'We retain your personal information for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law. Active user accounts and associated data are retained as long as your account remains active. Inactive accounts may be deleted after [specify period, e.g., 2 years] of inactivity following email notification.'
+          text: 'We retain your personal information, reading history, and bookmarks for as long as your account remains in active status. Inactive accounts that have not authenticated for 24 consecutive months may be archived following multiple courtesy email notifications.'
         },
         {
-          subtitle: 'Criteria for Deletion',
-          text: 'Data may be deleted or anonymized when: you request deletion of your account, your account has been inactive for the specified retention period, the data is no longer needed for the purposes for which it was collected, or we are legally required to delete the data. Certain data may be retained for legal compliance, dispute resolution, and enforcement of our agreements.'
+          subtitle: 'Immediate Self-Service Account Closure',
+          text: 'You may request full account and data purging at any time via your Profile Settings or by emailing lmno1432@gmail.com. Upon verified request, your personal identifiers, reading telemetry, and active sessions will be completely purged from our active databases within 14 business days, retaining only anonymized platform-level aggregate counts required for statutory audits.'
         }
       ]
     },

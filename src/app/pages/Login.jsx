@@ -24,6 +24,7 @@ export default function Login() {
   const [institutionName, setInstitutionName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -85,6 +86,12 @@ export default function Login() {
 
     try {
       if (isSignUpMode) {
+        if (!agreedToTerms) {
+          setError('Please review and agree to the Terms of Service and Privacy Policy to create your account.');
+          setSubmitting(false);
+          return;
+        }
+
         const trimmedName = name.trim();
         const trimmedEmail = email.trim();
 
@@ -290,6 +297,43 @@ export default function Login() {
                     </button>
                   </div>
                 </div>
+
+                {isSignUpMode && (
+                  <div className="flex items-start gap-3 p-3 bg-orange-50/60 border border-orange-100 rounded-xl">
+                    <input
+                      type="checkbox"
+                      id="terms-checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => {
+                        setAgreedToTerms(e.target.checked);
+                        if (e.target.checked) setError('');
+                      }}
+                      className="mt-1 size-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                      required
+                    />
+                    <label htmlFor="terms-checkbox" className="text-xs text-slate-600 leading-relaxed cursor-pointer select-none">
+                      I have read, understood, and agree to the{' '}
+                      <Link
+                        to="/Zyndex/Legal/Terms"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-orange-600 font-semibold underline underline-offset-2 hover:text-orange-700"
+                      >
+                        Terms of Service
+                      </Link>{' '}
+                      and{' '}
+                      <Link
+                        to="/Zyndex/Legal/Privacy"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-orange-600 font-semibold underline underline-offset-2 hover:text-orange-700"
+                      >
+                        Privacy Policy
+                      </Link>
+                      .
+                    </label>
+                  </div>
+                )}
 
                 {error && (
                   <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
