@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { AlertCircle, ArrowLeft, Mail, RefreshCw, ShieldCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Mail, RefreshCw, ShieldCheck, CheckCircle2, XCircle, Info, Laptop } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import apiClient from '@/services/api/apiClient';
 import authService from '@/services/api/authService';
 import { resolveAuthRedirectPath } from '@/utils/redirectHelper';
+import { getOrCreateDeviceToken, getDeviceInfo } from '@/utils/deviceHelper';
 
 const OTP_EXPIRY_SECONDS = 120;
 const OTP_REQUEST_SESSION_KEY = 'mail_otp_request_state';
@@ -42,6 +43,8 @@ export default function MailOtpVerification() {
 
   // Verification state: null | 'success' | 'error'
   const [verifyState, setVerifyState] = useState(null);
+  const [trustDevice, setTrustDevice] = useState(true);
+  const [showTrustInfo, setShowTrustInfo] = useState(false);
 
   // Randomize senior-level UI shape sequence dynamically on each mount/session
   const shapeSequence = useMemo(() => {
@@ -401,6 +404,23 @@ export default function MailOtpVerification() {
       // Existing login flow
       const userData = await login(pendingAuth.email, pendingAuth.password, pendingAuth.role);
 
+      // If user opted to trust this device, register it for 24-hour OTP skip
+      if (trustDevice) {
+        try {
+          const deviceToken = getOrCreateDeviceToken();
+          const info = getDeviceInfo();
+          await authService.trustDevice({
+            email: pendingAuth.email,
+            deviceToken,
+            deviceName: info.deviceName,
+            browser: info.browser,
+            os: info.os,
+          });
+        } catch (e) {
+          console.warn('Failed to register trusted device:', e);
+        }
+      }
+
       sessionStorage.removeItem('pending_auth');
       sessionStorage.removeItem('human_verification_passed');
       sessionStorage.removeItem(OTP_REQUEST_SESSION_KEY);
@@ -627,6 +647,64 @@ export default function MailOtpVerification() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* TRUST THIS DEVICE FOR 24 HOURS (WITH INFO INDICATION TOOLTIP/PANEL) */}
+            <div className="my-4 p-3 rounded-2xl bg-orange-50/70 border border-orange-200/60 transition-all">
+              <div className="flex items-center justify-between gap-2">
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={trustDevice}
+                    onChange={(e) => setTrustDevice(e.target.checked)}
+                    className="size-4.5 rounded text-orange-600 focus:ring-orange-500 border-gray-300 transition-colors cursor-pointer"
+                  />
+                  <span className="text-xs sm:text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                    <Laptop className="size-3.5 text-orange-600" />
+                    Trust this device
+                  </span>
+                </label>
+
+                {/* Indication Symbol (ⓘ) Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowTrustInfo(!showTrustInfo)}
+                  className="size-6 rounded-full bg-orange-100 hover:bg-orange-200 text-orange-700 flex items-center justify-center transition-all cursor-pointer"
+                  title="What happens if I enable 'Trust this device'?"
+                >
+                  <Info className="size-3.5" />
+                </button>
+              </div>
+
+              {/* Collapsible / Clickable Indication Explainer */}
+              <AnimatePresence>
+                {showTrustInfo && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-2.5 pt-2.5 border-t border-orange-200/50 text-[11px] leading-relaxed text-slate-600 space-y-1.5">
+                      <p className="font-bold text-orange-950 flex items-center gap-1">
+                        <ShieldCheck className="size-3.5 text-emerald-600 inline" />
+                        What happens when you enable "Trust this device"?
+                      </p>
+                      <ul className="list-disc pl-4 space-y-1 text-slate-700">
+                        <li>
+                          <b>Skip Repeated OTPs for 24 Hours:</b> If your session times out or you re-login later today on this same browser, you will <b>only solve the captcha verification</b> and bypass entering an email OTP.
+                        </li>
+                        <li>
+                          <b>24-Hour Expiry:</b> When the 24-hour day period ends, the security system will request an email OTP again for safety.
+                        </li>
+                        <li>
+                          <b>New / Another Devices Protected:</b> If someone tries to log in with your credentials on a different phone, computer, or incognito tab, <b>Mail OTP will still strictly be required</b>.
+                        </li>
+                      </ul>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* SUBMIT BUTTON: Only enabled when all 4 digits are completed */}
             <button

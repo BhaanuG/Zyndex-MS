@@ -1,9 +1,15 @@
 import { useNavigate } from 'react-router';
 import Authenticator from '@/app/components/Authenticator';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/app/context/AuthContext';
+import authService from '@/services/api/authService';
+import { getOrCreateDeviceToken } from '@/utils/deviceHelper';
+import { resolveAuthRedirectPath } from '@/utils/redirectHelper';
 
 export default function UserAuthenticator() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [checkingDevice, setCheckingDevice] = useState(false);
 
   // Check if there's pending authentication
   useEffect(() => {
@@ -15,12 +21,41 @@ export default function UserAuthenticator() {
   }, [navigate]);
 
   const handleAuthSuccess = async () => {
-    const pendingAuth = sessionStorage.getItem('pending_auth');
-    if (!pendingAuth) {
+    const rawPending = sessionStorage.getItem('pending_auth');
+    if (!rawPending) {
       navigate('/');
       return;
     }
 
+    const pendingAuth = JSON.parse(rawPending);
+
+    // If logging in (not signup), check if this browser device is already trusted for 24 hours
+    if (!pendingAuth.isSignUp) {
+      setCheckingDevice(true);
+      try {
+        const deviceToken = getOrCreateDeviceToken();
+        const checkRes = await authService.checkTrustedDevice(pendingAuth.email, deviceToken);
+
+        if (checkRes?.trusted) {
+          // Device is trusted! Bypass Mail OTP, perform direct authenticated login
+          const userData = await login(pendingAuth.email, pendingAuth.password, pendingAuth.role || 'user');
+          sessionStorage.removeItem('pending_auth');
+          sessionStorage.removeItem('human_verification_passed');
+          sessionStorage.removeItem('mail_otp_request_state');
+          sessionStorage.setItem('show_auth_transition', 'true');
+
+          const targetDestination = resolveAuthRedirectPath(userData);
+          navigate(targetDestination, { replace: true });
+          return;
+        }
+      } catch (err) {
+        console.warn('Could not verify trusted device status, proceeding to OTP:', err);
+      } finally {
+        setCheckingDevice(false);
+      }
+    }
+
+    // Unrecognized or untrusted device: proceed to Mail OTP Verification
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
     sessionStorage.setItem('human_verification_passed', 'true');
@@ -33,5 +68,5 @@ export default function UserAuthenticator() {
     navigate('/Zyndex/User/Log-In');
   };
 
-  return <Authenticator onSuccess={handleAuthSuccess} onBack={handleAuthBack} />;
+  return <Authenticator onSuccess={handleAuthSuccess} onBack={handleAuthBack} loading={checkingDevice} />;
 }

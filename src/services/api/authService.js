@@ -188,6 +188,24 @@ const authService = {
       throw error;
     }
   },
+
+  checkTrustedDevice: async (email, deviceToken) => {
+    try {
+      const response = await apiClient.post('/auth/check-trusted-device', { email, deviceToken });
+      return response;
+    } catch {
+      return { trusted: false };
+    }
+  },
+
+  trustDevice: async (payload) => {
+    try {
+      const response = await apiClient.post('/auth/trust-device', payload);
+      return response;
+    } catch (error) {
+      console.warn('Could not register trusted device:', error);
+    }
+  },
 };
 
 export default authService;

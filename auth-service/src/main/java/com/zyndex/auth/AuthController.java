@@ -124,6 +124,65 @@ class AuthController {
         return login(body);
     }
 
+    @PostMapping("/check-trusted-device")
+    Map<String, Object> checkTrustedDevice(@RequestBody Map<String, Object> body) {
+        String email = AuthSupport.str(body.get("email")).trim().toLowerCase();
+        String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();
+
+        if (email.isBlank() || deviceToken.isBlank()) {
+            return Map.of("trusted", false);
+        }
+
+        // Clean expired trusted devices
+        try {
+            jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= NOW()");
+        } catch (Exception ignored) {}
+
+        // Check if device is trusted and not expired
+        var rows = jdbc.queryForList(
+                "SELECT id, expires_at FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ? AND expires_at > NOW() LIMIT 1",
+                email, deviceToken
+        );
+
+        boolean isTrusted = !rows.isEmpty();
+        return Map.of("trusted", isTrusted);
+    }
+
+    @PostMapping("/trust-device")
+    Map<String, Object> trustDevice(@RequestBody Map<String, Object> body) {
+        String email = AuthSupport.str(body.get("email")).trim().toLowerCase();
+        String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();
+        String deviceName = AuthSupport.str(body.get("deviceName")).trim();
+        String browser = AuthSupport.str(body.get("browser")).trim();
+        String os = AuthSupport.str(body.get("os")).trim();
+
+        if (email.isBlank() || deviceToken.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Email and deviceToken are required.");
+        }
+
+        Map<String, Object> user = auth.findUserByEmail(email);
+        if (user == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
+        }
+        long userId = AuthSupport.number(user.get("id"));
+
+        // Delete any existing device record for this token & email
+        jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
+
+        // Store trust with exactly 24-hour expiration
+        jdbc.update("""
+                INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, '127.0.0.1', NOW(), NOW() + INTERVAL 24 HOUR)
+                """,
+                userId, email, deviceToken,
+                deviceName.isBlank() ? "Trusted Web Browser" : deviceName,
+                browser.isBlank() ? "Browser" : browser,
+                os.isBlank() ? "Desktop/Mobile" : os
+        );
+
+        return Map.of("message", "Device trusted successfully for 24 hours.", "expiresInHours", 24);
+    }
+
     @GetMapping("/account-details")
     Map<String, Object> accountDetails(@RequestParam("email") String email, @RequestParam(value = "role", defaultValue = "user") String role) {
         Map<String, Object> user = auth.findUserByEmail(email.trim().toLowerCase());

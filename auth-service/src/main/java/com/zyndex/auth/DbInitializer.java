@@ -97,6 +97,23 @@ class DbInitializer implements CommandLineRunner {
                   INDEX idx_syslogs_time (timestamp)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                 """);
+        jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS trusted_devices (
+                  id BIGINT NOT NULL AUTO_INCREMENT,
+                  user_id BIGINT NOT NULL,
+                  email VARCHAR(190) NOT NULL,
+                  device_token VARCHAR(255) NOT NULL,
+                  device_name VARCHAR(120) NULL,
+                  browser VARCHAR(80) NULL,
+                  operating_system VARCHAR(80) NULL,
+                  ip_address VARCHAR(80) NULL,
+                  trusted_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                  expires_at DATETIME(6) NOT NULL,
+                  PRIMARY KEY (id),
+                  INDEX idx_trusted_lookup (email, device_token),
+                  INDEX idx_trusted_expiry (expires_at)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                """);
         seedInitialLogsIfEmpty();
         ensureMainAdmin();
     }
