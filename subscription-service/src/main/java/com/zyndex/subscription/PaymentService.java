@@ -654,32 +654,49 @@ public class PaymentService {
             String htmlBody = """
                     <!DOCTYPE html>
                     <html>
-                    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 24px;">
-                        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                            <div style="background: linear-gradient(135deg, #ea580c 0%%, #dc2626 100%%); padding: 28px; text-align: center;">
-                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">Zyndex</h1>
-                                <p style="color: #ffedd5; margin: 6px 0 0 0; font-size: 13px;">Official Payment & Subscription Receipt</p>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <title>Official Payment & Subscription Receipt</title>
+                      <style>
+                        body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                        .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                        .header-box { background: linear-gradient(135deg, #ea580c 0%%, #dc2626 100%%); padding: 24px 20px; text-align: center; }
+                        .content-box { padding: 24px 20px; }
+                        .receipt-table td { padding: 5px 0; font-size: 13px; word-break: break-word; }
+                        @media only screen and (max-width: 480px) {
+                          body { padding: 8px 4px !important; }
+                          .header-box { padding: 20px 14px !important; }
+                          .content-box { padding: 18px 14px !important; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                        <div class="email-wrapper">
+                            <div class="header-box">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
+                                <p style="color: #ffedd5; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Official Payment & Subscription Receipt</p>
                             </div>
-                            <div style="padding: 32px 28px;">
+                            <div class="content-box">
                                 <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Hello %s,</p>
-                                <p style="margin: 0 0 16px 0; color: #334155;">Your subscription payment has been processed and verified successfully.</p>
-                                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 20px 0;">
-                                    <h3 style="margin: 0 0 12px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #ea580c; letter-spacing: 0.5px;">Payment Receipt</h3>
-                                    <table style="width: 100%%; font-size: 13px; color: #334155; border-collapse: collapse;">
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Customer Name:</td><td>%s</td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Customer Email:</td><td style="font-family: monospace;">%s</td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Plan:</td><td><strong style="color: #ea580c;">%s</strong></td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Amount Paid:</td><td><strong>₹%.2f</strong></td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Payment ID:</td><td style="font-family: monospace;">%s</td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Order ID:</td><td style="font-family: monospace;">%s</td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">UTR / Ref:</td><td style="font-family: monospace;">%s</td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Start Date:</td><td>%s</td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Expiry Date:</td><td>%s</td></tr>
-                                        <tr><td style="padding: 4px 0; font-weight: 600;">Billing Period:</td><td>%s</td></tr>
+                                <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">Your subscription payment has been processed and verified successfully.</p>
+                                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 20px 0;">
+                                    <h3 style="margin: 0 0 10px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #ea580c; letter-spacing: 0.5px;">Payment Receipt</h3>
+                                    <table class="receipt-table" style="width: 100%%; font-size: 13px; color: #334155; border-collapse: collapse;">
+                                        <tr><td style="padding: 5px 0; font-weight: 600; width: 40%%; color: #64748b;">Customer Name:</td><td style="padding: 5px 0; font-weight: 500;">%s</td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">Customer Email:</td><td style="padding: 5px 0; font-family: monospace;">%s</td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">Plan:</td><td style="padding: 5px 0;"><strong style="color: #ea580c;">%s</strong></td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">Amount Paid:</td><td style="padding: 5px 0;"><strong>₹%.2f</strong></td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">Payment ID:</td><td style="padding: 5px 0; font-family: monospace; font-size: 12px;">%s</td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">Order ID:</td><td style="padding: 5px 0; font-family: monospace; font-size: 12px;">%s</td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">UTR / Ref:</td><td style="padding: 5px 0; font-family: monospace; font-size: 12px;">%s</td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">Start Date:</td><td style="padding: 5px 0;">%s</td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">Expiry Date:</td><td style="padding: 5px 0;">%s</td></tr>
+                                        <tr><td style="padding: 5px 0; font-weight: 600; color: #64748b;">Billing Period:</td><td style="padding: 5px 0;">%s</td></tr>
                                     </table>
                                 </div>
-                                <p style="margin: 16px 0; font-size: 13px; color: #475569;">Your premium digital library access has been activated immediately. Thank you for choosing Zyndex!</p>
-                                <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b;">
+                                <p style="margin: 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">Your premium digital library access has been activated immediately. Thank you for choosing Zyndex!</p>
+                                <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                     <p style="margin: 0;">Best regards,</p>
                                     <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                                 </div>

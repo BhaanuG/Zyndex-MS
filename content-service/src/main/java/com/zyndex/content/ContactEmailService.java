@@ -70,17 +70,29 @@ class ContactEmailService {
                 <html>
                 <head>
                   <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
                   <title>%s</title>
+                  <style>
+                    body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                    .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+                    .header-box { background: linear-gradient(135deg, #ea580c 0%%, #dc2626 100%%); padding: 24px 20px; text-align: center; }
+                    .content-box { padding: 24px 20px; }
+                    @media only screen and (max-width: 480px) {
+                      body { padding: 8px 4px !important; }
+                      .header-box { padding: 20px 14px !important; }
+                      .content-box { padding: 18px 14px !important; }
+                    }
+                  </style>
                 </head>
-                <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 24px;">
-                    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-                        <div style="background: linear-gradient(135deg, #ea580c 0%%, #dc2626 100%%); padding: 28px; text-align: center;">
+                <body>
+                    <div class="email-wrapper">
+                        <div class="header-box">
                             <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
                             <p style="color: #ffedd5; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Academic Digital Library & Research Platform</p>
                         </div>
-                        <div style="padding: 32px 28px;">
+                        <div class="content-box">
                             %s
-                            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b; margin-top: 24px;">
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b; margin-top: 24px;">
                                 <p style="margin: 0;">Best regards,</p>
                                 <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                             </div>

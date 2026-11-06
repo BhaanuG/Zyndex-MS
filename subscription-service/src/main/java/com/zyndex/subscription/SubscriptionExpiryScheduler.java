@@ -164,22 +164,38 @@ public class SubscriptionExpiryScheduler {
             String htmlBody = """
                     <!DOCTYPE html>
                     <html>
-                    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 24px;">
-                        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                            <div style="background: linear-gradient(135deg, #64748b 0%%, #475569 100%%); padding: 28px; text-align: center;">
-                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">Zyndex</h1>
-                                <p style="color: #e2e8f0; margin: 6px 0 0 0; font-size: 13px;">Subscription Expiry Notice</p>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <title>Subscription Expiry Notice</title>
+                      <style>
+                        body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                        .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                        .header-box { background: linear-gradient(135deg, #64748b 0%%, #475569 100%%); padding: 24px 20px; text-align: center; }
+                        .content-box { padding: 24px 20px; }
+                        @media only screen and (max-width: 480px) {
+                          body { padding: 8px 4px !important; }
+                          .header-box { padding: 20px 14px !important; }
+                          .content-box { padding: 18px 14px !important; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                        <div class="email-wrapper">
+                            <div class="header-box">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
+                                <p style="color: #e2e8f0; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Subscription Expiry Notice</p>
                             </div>
-                            <div style="padding: 32px 28px;">
+                            <div class="content-box">
                                 <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Dear %s,</p>
-                                <p style="margin: 0 0 16px 0; color: #334155;">Your Zyndex <strong>%s</strong> subscription period has ended today.</p>
-                                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 20px 0; font-size: 13px; color: #334155;">
+                                <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">Your Zyndex <strong>%s</strong> subscription period has ended today.</p>
+                                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 20px 0; font-size: 13px; color: #334155; line-height: 1.6;">
                                     <p style="margin: 4px 0;">• <strong>No Surprise Debits:</strong> We do not store payment secrets or auto-charge without consent.</p>
                                     <p style="margin: 4px 0;">• <strong>Graceful Transition:</strong> Your account is safely on the Free Academic tier.</p>
                                     <p style="margin: 4px 0;">• <strong>Continuous Learning:</strong> You can still preview chapters and open academic resources.</p>
                                 </div>
-                                <p style="margin: 16px 0; font-size: 13px; color: #475569;">To renew or choose another tier, visit the <a href="http://localhost:5173/pricing" style="color: #ea580c; font-weight: 600;">Zyndex Pricing Page</a>.</p>
-                                <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b;">
+                                <p style="margin: 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">To renew or choose another tier, visit the <a href="http://localhost:5173/pricing" style="color: #ea580c; font-weight: 600;">Zyndex Pricing Page</a>.</p>
+                                <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                     <p style="margin: 0;">Best regards,</p>
                                     <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                                 </div>
@@ -232,22 +248,38 @@ public class SubscriptionExpiryScheduler {
             String htmlBody = """
                     <!DOCTYPE html>
                     <html>
-                    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 24px;">
-                        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                            <div style="background: linear-gradient(135deg, #f59e0b 0%%, #d97706 100%%); padding: 28px; text-align: center;">
-                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">Zyndex</h1>
-                                <p style="color: #fef3c7; margin: 6px 0 0 0; font-size: 13px;">Subscription Expiry Reminder</p>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <title>Subscription Expiry Reminder</title>
+                      <style>
+                        body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                        .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                        .header-box { background: linear-gradient(135deg, #f59e0b 0%%, #d97706 100%%); padding: 24px 20px; text-align: center; }
+                        .content-box { padding: 24px 20px; }
+                        @media only screen and (max-width: 480px) {
+                          body { padding: 8px 4px !important; }
+                          .header-box { padding: 20px 14px !important; }
+                          .content-box { padding: 18px 14px !important; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                        <div class="email-wrapper">
+                            <div class="header-box">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
+                                <p style="color: #fef3c7; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Subscription Expiry Reminder</p>
                             </div>
-                            <div style="padding: 32px 28px;">
+                            <div class="content-box">
                                 <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Dear %s,</p>
-                                <p style="margin: 0 0 16px 0; color: #334155;">This is a friendly reminder that your Zyndex <strong>%s</strong> subscription will expire in <strong>24 hours</strong> (Valid until: %s).</p>
-                                <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; margin: 20px 0; font-size: 13px; color: #92400e;">
+                                <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">This is a friendly reminder that your Zyndex <strong>%s</strong> subscription will expire in <strong>24 hours</strong> (Valid until: %s).</p>
+                                <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 16px; margin: 20px 0; font-size: 13px; color: #92400e; line-height: 1.6;">
                                     <p style="margin: 4px 0;">• We do not auto-renew or charge automatically.</p>
                                     <p style="margin: 4px 0;">• After expiry, you'll still have access to the Free Academic plan.</p>
                                     <p style="margin: 4px 0;">• To avoid interruption, you can renew anytime from your dashboard.</p>
                                 </div>
-                                <p style="margin: 16px 0; font-size: 13px; color: #475569;">Visit the <a href="http://localhost:5173/pricing" style="color: #d97706; font-weight: 600;">Pricing Page</a> to renew or upgrade your plan.</p>
-                                <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b;">
+                                <p style="margin: 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">Visit the <a href="http://localhost:5173/pricing" style="color: #d97706; font-weight: 600;">Pricing Page</a> to renew or upgrade your plan.</p>
+                                <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                     <p style="margin: 0;">Warm regards,</p>
                                     <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                                 </div>

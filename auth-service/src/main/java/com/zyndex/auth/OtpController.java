@@ -206,21 +206,23 @@ class OtpController {
 
     private String otpDisplayBoxHtml(String label, String otp, String borderHex, String bgHex, String textHex, String subtextHex) {
         return """
-                <div style="background-color: %s; border: 2px dashed %s; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
-                    <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: %s; display: block; margin-bottom: 8px;">%s</span>
-                    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <div style="background-color: %s; border: 2px dashed %s; border-radius: 12px; padding: 20px 16px 14px 16px; text-align: center; margin: 20px 0; position: relative;">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: %s; display: block; margin-bottom: 8px;">%s</span>
+                    <div style="text-align: center; margin: 6px 0;">
+                        <span style="font-size: 32px; font-weight: 900; letter-spacing: 6px; color: %s; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; display: inline-block; user-select: all; -webkit-user-select: all; -moz-user-select: all; cursor: pointer;">%s</span>
+                    </div>
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="margin-top: 10px; border-collapse: collapse;">
                         <tr>
-                            <td align="center" style="vertical-align: middle;">
-                                <span style="font-size: 34px; font-weight: 900; letter-spacing: 8px; color: %s; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; display: inline-block; padding-right: 12px;">%s</span>
+                            <td align="left" style="font-size: 11px; color: %s; line-height: 1.3; vertical-align: bottom;">
+                                Valid for 2 minutes · Single-use code
                             </td>
-                            <td align="center" style="vertical-align: middle;">
-                                <a href="javascript:void(0);" onclick="navigator.clipboard.writeText('%s');" style="display: inline-block; background-color: #ffffff; border: 1px solid %s; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: %s; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">Copy Code</a>
+                            <td align="right" style="vertical-align: bottom; white-space: nowrap; width: 24px;">
+                                <span title="Copy Code" style="display: inline-block; color: %s; font-size: 14px; line-height: 1; cursor: pointer; user-select: none;">&#10697;</span>
                             </td>
                         </tr>
                     </table>
-                    <span style="font-size: 11px; color: %s; display: block; margin-top: 8px;">Valid for 2 minutes only · Single use authorization code</span>
                 </div>
-                """.formatted(bgHex, borderHex, subtextHex, label, textHex, otp, otp, borderHex, textHex, subtextHex);
+                """.formatted(bgHex, borderHex, subtextHex, label, textHex, otp, subtextHex, borderHex);
     }
 
     private String accountCreationOtpHtml(String username, String email, String role, String otp) {
@@ -232,53 +234,66 @@ class OtpController {
                 <html>
                 <head>
                   <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
                   <title>Welcome to Zyndex</title>
+                  <style>
+                    body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                    .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+                    .header-box { background: linear-gradient(135deg, #ea580c 0%%, #dc2626 100%%); padding: 24px 20px; text-align: center; }
+                    .content-box { padding: 24px 20px; }
+                    .details-table td { padding: 5px 0; font-size: 13px; word-break: break-word; }
+                    @media only screen and (max-width: 480px) {
+                      body { padding: 8px 4px !important; }
+                      .header-box { padding: 20px 14px !important; }
+                      .content-box { padding: 18px 14px !important; }
+                    }
+                  </style>
                 </head>
-                <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 24px;">
-                    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-                        <div style="background: linear-gradient(135deg, #ea580c 0%%, #dc2626 100%%); padding: 28px; text-align: center;">
+                <body>
+                    <div class="email-wrapper">
+                        <div class="header-box">
                             <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
                             <p style="color: #ffedd5; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Academic Digital Library & Research Platform</p>
                         </div>
-                        <div style="padding: 32px 28px;">
+                        <div class="content-box">
                             <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Dear %s,</p>
-                            <p style="margin: 0 0 16px 0; color: #334155;">
+                            <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
                                 Thanks for choosing our platform! We are excited to welcome you to <b>Zyndex</b>. To complete your account registration and verify your ownership of this email address, please use the One-Time Password (OTP) provided below:
                             </p>
                             
                             %s
 
-                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 24px 0;">
-                                <h3 style="margin: 0 0 10px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Registration Details</h3>
-                                <table style="width: 100%%; font-size: 13px; color: #334155; border-collapse: collapse;">
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 20px 0;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Registration Details</h3>
+                                <table class="details-table" style="width: 100%%; font-size: 13px; color: #334155; border-collapse: collapse;">
                                     <tr>
-                                        <td style="padding: 4px 0; font-weight: 600; width: 40%%;">Full Name:</td>
-                                        <td style="padding: 4px 0;">%s</td>
+                                        <td style="padding: 5px 0; font-weight: 600; width: 38%%; color: #64748b;">Full Name:</td>
+                                        <td style="padding: 5px 0; font-weight: 500;">%s</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 4px 0; font-weight: 600;">Email Address:</td>
-                                        <td style="padding: 4px 0; font-family: monospace;">%s</td>
+                                        <td style="padding: 5px 0; font-weight: 600; color: #64748b;">Email Address:</td>
+                                        <td style="padding: 5px 0; font-family: monospace;">%s</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 4px 0; font-weight: 600;">Account Role:</td>
-                                        <td style="padding: 4px 0;"><span style="background-color: #ffedd5; color: #c2410c; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; text-transform: uppercase;">%s</span></td>
+                                        <td style="padding: 5px 0; font-weight: 600; color: #64748b;">Account Role:</td>
+                                        <td style="padding: 5px 0;"><span style="background-color: #ffedd5; color: #c2410c; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; text-transform: uppercase; display: inline-block;">%s</span></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 4px 0; font-weight: 600;">Timestamp:</td>
-                                        <td style="padding: 4px 0; font-family: monospace; font-size: 12px;">%s</td>
+                                        <td style="padding: 5px 0; font-weight: 600; color: #64748b;">Timestamp:</td>
+                                        <td style="padding: 5px 0; font-family: monospace; font-size: 12px;">%s</td>
                                     </tr>
                                 </table>
                             </div>
 
-                            <p style="margin: 20px 0 12px 0; font-size: 13px; font-weight: 600; color: #0f172a;">Security & Verification Advisory:</p>
-                            <p style="margin: 0 0 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">
+                            <p style="margin: 20px 0 8px 0; font-size: 13px; font-weight: 600; color: #0f172a;">Security & Verification Advisory:</p>
+                            <p style="margin: 0 0 14px 0; font-size: 13px; color: #475569; line-height: 1.6;">
                                 If you did not initiate this account creation or did not request any verification code on Zyndex, someone may have entered your email address by mistake. Please check your Google account activity or simply ignore and discard this email. No account will be activated or created without submitting this OTP.
                             </p>
-                            <p style="margin: 0 0 24px 0; font-size: 13px; color: #475569; line-height: 1.6;">
+                            <p style="margin: 0 0 20px 0; font-size: 13px; color: #475569; line-height: 1.6;">
                                 For your security, our team and representatives will never contact you to ask for this code or your password.
                             </p>
 
-                            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b;">
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                 <p style="margin: 0;">Best regards,</p>
                                 <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                             </div>
@@ -297,19 +312,35 @@ class OtpController {
         return """
                 <!DOCTYPE html>
                 <html>
-                <body style="font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
-                    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                        <div style="background: linear-gradient(135deg, #f97316 0%%, #ea580c 100%%); padding: 32px 28px; text-align: center;">
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Zyndex Login Verification</title>
+                  <style>
+                    body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                    .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+                    .header-box { background: linear-gradient(135deg, #f97316 0%%, #ea580c 100%%); padding: 24px 20px; text-align: center; }
+                    .content-box { padding: 24px 20px; }
+                    @media only screen and (max-width: 480px) {
+                      body { padding: 8px 4px !important; }
+                      .header-box { padding: 20px 14px !important; }
+                      .content-box { padding: 18px 14px !important; }
+                    }
+                  </style>
+                </head>
+                <body>
+                    <div class="email-wrapper">
+                        <div class="header-box">
                             <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
                             <p style="color: #ffedd5; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Secure Login Authentication</p>
                         </div>
-                        <div style="padding: 32px 28px;">
+                        <div class="content-box">
                             <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Hello %s,</p>
                             <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
                                 We received a request to authenticate your login session on <b>Zyndex</b>. Please use the One-Time Password (OTP) below to complete your 2-step verification:
                             </p>
                             %s
-                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 20px 0; font-size: 12px; color: #64748b;">
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin: 20px 0; font-size: 12px; color: #64748b; word-break: break-word;">
                                 <b>Authentication Timestamp:</b> %s
                             </div>
                             <p style="margin: 20px 0 8px 0; font-size: 13px; font-weight: 600; color: #0f172a;">Security Advisory:</p>
@@ -318,7 +349,7 @@ class OtpController {
                                 <li>Zyndex administrators and support representatives will never contact you requesting this code.</li>
                                 <li>If you did not initiate this login request, please check your Google account activity immediately or change your password.</li>
                             </ul>
-                            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b;">
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                 <p style="margin: 0;">Best regards,</p>
                                 <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                             </div>
@@ -337,26 +368,42 @@ class OtpController {
         return """
                 <!DOCTYPE html>
                 <html>
-                <body style="font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
-                    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                        <div style="background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); padding: 32px 28px; text-align: center;">
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Zyndex Password Reset Verification</title>
+                  <style>
+                    body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                    .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+                    .header-box { background: linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%); padding: 24px 20px; text-align: center; }
+                    .content-box { padding: 24px 20px; }
+                    @media only screen and (max-width: 480px) {
+                      body { padding: 8px 4px !important; }
+                      .header-box { padding: 20px 14px !important; }
+                      .content-box { padding: 18px 14px !important; }
+                    }
+                  </style>
+                </head>
+                <body>
+                    <div class="email-wrapper">
+                        <div class="header-box">
                             <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
                             <p style="color: #fee2e2; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Password Reset Security Verification</p>
                         </div>
-                        <div style="padding: 32px 28px;">
+                        <div class="content-box">
                             <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Dear %s,</p>
                             <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
                                 We received a formal request to reset the password for your <b>Zyndex</b> account. To confirm your identity and proceed with setting a new password, enter the verification code below:
                             </p>
                             %s
-                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 20px 0; font-size: 12px; color: #64748b;">
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin: 20px 0; font-size: 12px; color: #64748b; word-break: break-word;">
                                 <b>Request Timestamp:</b> %s
                             </div>
                             <p style="margin: 20px 0 8px 0; font-size: 13px; font-weight: 600; color: #0f172a;">Critical Security Notice:</p>
-                            <p style="margin: 0 0 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">
+                            <p style="margin: 0 0 16px 0; font-size: 13px; color: #475569; line-height: 1.6; word-break: break-word;">
                                 If you did not request a password reset, your credentials may be safe but we recommend checking your Google account activity or reaching out to support at <a href="mailto:%s" style="color: #ef4444;">%s</a>. Your password will remain unchanged without this OTP.
                             </p>
-                            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b;">
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                 <p style="margin: 0;">Best regards,</p>
                                 <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                             </div>
@@ -375,26 +422,42 @@ class OtpController {
         return """
                 <!DOCTYPE html>
                 <html>
-                <body style="font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
-                    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                        <div style="background: linear-gradient(135deg, #7c3aed 0%%, #6d28d9 100%%); padding: 32px 28px; text-align: center;">
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Zyndex Password Change Verification</title>
+                  <style>
+                    body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                    .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+                    .header-box { background: linear-gradient(135deg, #7c3aed 0%%, #6d28d9 100%%); padding: 24px 20px; text-align: center; }
+                    .content-box { padding: 24px 20px; }
+                    @media only screen and (max-width: 480px) {
+                      body { padding: 8px 4px !important; }
+                      .header-box { padding: 20px 14px !important; }
+                      .content-box { padding: 18px 14px !important; }
+                    }
+                  </style>
+                </head>
+                <body>
+                    <div class="email-wrapper">
+                        <div class="header-box">
                             <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
                             <p style="color: #ede9fe; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Password Modification Security Check</p>
                         </div>
-                        <div style="padding: 32px 28px;">
+                        <div class="content-box">
                             <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Dear %s,</p>
-                            <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
+                            <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6; word-break: break-word;">
                                 An in-session request was made to update the password for your account (<b>%s</b>). To authorize this change, please submit the authorization code below:
                             </p>
                             %s
-                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 20px 0; font-size: 12px; color: #64748b;">
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin: 20px 0; font-size: 12px; color: #64748b; word-break: break-word;">
                                 <b>Action Timestamp:</b> %s
                             </div>
                             <p style="margin: 20px 0 8px 0; font-size: 13px; font-weight: 600; color: #0f172a;">Security Advisory:</p>
                             <p style="margin: 0 0 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">
                                 If you did not make this change request from your profile settings, please immediately sign out of all devices and contact our security administration.
                             </p>
-                            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b;">
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                 <p style="margin: 0;">Best regards,</p>
                                 <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                             </div>
@@ -413,26 +476,42 @@ class OtpController {
         return """
                 <!DOCTYPE html>
                 <html>
-                <body style="font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
-                    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                        <div style="background: linear-gradient(135deg, #0284c7 0%%, #0369a1 100%%); padding: 32px 28px; text-align: center;">
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Zyndex Replacement Verification Code</title>
+                  <style>
+                    body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                    .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+                    .header-box { background: linear-gradient(135deg, #0284c7 0%%, #0369a1 100%%); padding: 24px 20px; text-align: center; }
+                    .content-box { padding: 24px 20px; }
+                    @media only screen and (max-width: 480px) {
+                      body { padding: 8px 4px !important; }
+                      .header-box { padding: 20px 14px !important; }
+                      .content-box { padding: 18px 14px !important; }
+                    }
+                  </style>
+                </head>
+                <body>
+                    <div class="email-wrapper">
+                        <div class="header-box">
                             <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
                             <p style="color: #e0f2fe; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Replacement Verification Code</p>
                         </div>
-                        <div style="padding: 32px 28px;">
+                        <div class="content-box">
                             <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Hello %s,</p>
                             <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
                                 As requested, we have invalidated your previous OTP and generated a brand-new replacement code. Please use this fresh code to complete your verification:
                             </p>
                             %s
-                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 20px 0; font-size: 12px; color: #64748b;">
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin: 20px 0; font-size: 12px; color: #64748b; word-break: break-word;">
                                 <b>Generated At:</b> %s
                             </div>
                             <p style="margin: 20px 0 8px 0; font-size: 13px; font-weight: 600; color: #0f172a;">Reminder:</p>
                             <p style="margin: 0 0 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">
                                 If you did not click "Resend OTP" or did not request a new code, please check your Google account activity or contact us.
                             </p>
-                            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 13px; color: #64748b;">
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                 <p style="margin: 0;">Best regards,</p>
                                 <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
                             </div>
