@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import resourceService from '@/services/api/resourceService';
 
@@ -108,6 +108,158 @@ export default function ResourceManagement() {
   });
   const [createStatus, setCreateStatus] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [previewResource, setPreviewResource] = useState(null);
+  const [previewToken, setPreviewToken] = useState('');
+  const [previewBlobUrl, setPreviewBlobUrl] = useState('');
+  const [previewError, setPreviewError] = useState('');
+  const [pdfDocument, setPdfDocument] = useState(null);
+  const [pdfPage, setPdfPage] = useState(1);
+  const [pdfPageCount, setPdfPageCount] = useState(0);
+  const [pdfScale, setPdfScale] = useState(1.15);
+  const pdfCanvasRef = useRef(null);
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
+
+  const openPreviewModal = async (resource) => {
+    setPreviewResource(resource);
+    setPreviewError('');
+    setPreviewBlobUrl('');
+    setPdfDocument(null);
+    setPdfPage(1);
+    setPdfPageCount(0);
+    setPdfScale(1.15);
+
+    try {
+      const tokenRes = await resourceService.getPreviewToken(resource.id);
+      setPreviewToken(tokenRes?.token || '');
+    } catch (err) {
+      console.error('Failed to get preview token:', err);
+      setPreviewToken('');
+    }
+  };
+
+  const closePreviewModal = () => {
+    setPreviewResource(null);
+    setPreviewToken('');
+    setPreviewBlobUrl('');
+    setPreviewError('');
+    setPdfDocument(null);
+  };
+
+  const isPdfPreview = previewResource && (
+    /\.pdf($|\?)/i.test(previewResource.fileUrl || '') || 
+    /\.pdf($|\?)/i.test(previewResource.fileName || '')
+  );
+
+  const previewFileUrl = previewResource?.fileUrl
+    ? (previewToken ? `${apiBaseUrl}/resources/${previewResource.id}/file?token=${encodeURIComponent(previewToken)}` : '')
+    : '';
+
+  useEffect(() => {
+    if (!previewResource || !previewFileUrl || !isPdfPreview) return undefined;
+
+    let objectUrl = '';
+    const controller = new AbortController();
+    setPreviewBlobUrl('');
+    setPreviewError('');
+
+    fetch(previewFileUrl, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+      },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(body || `Preview request failed with HTTP ${response.status}.`);
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        objectUrl = URL.createObjectURL(blob);
+        setPreviewBlobUrl(objectUrl);
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        setPreviewError(error.message || 'Failed to load preview.');
+      });
+
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [previewResource, previewFileUrl, isPdfPreview]);
+
+  useEffect(() => {
+    if (!previewBlobUrl || !isPdfPreview) return undefined;
+
+    let isCancelled = false;
+    let loadingTask = null;
+
+    import('pdfjs-dist/legacy/build/pdf.mjs').then((pdfjsLib) => {
+      if (isCancelled) return;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+        import.meta.url
+      ).toString();
+
+      loadingTask = pdfjsLib.getDocument(previewBlobUrl);
+      loadingTask.promise
+        .then((doc) => {
+          if (isCancelled) return;
+          setPdfDocument(doc);
+          setPdfPageCount(doc.numPages || 1);
+          setPdfPage(1);
+        })
+        .catch((error) => {
+          if (!isCancelled) {
+            setPreviewError(error?.message || 'Failed to parse PDF preview.');
+          }
+        });
+    });
+
+    return () => {
+      isCancelled = true;
+      if (loadingTask?.destroy) loadingTask.destroy();
+    };
+  }, [previewBlobUrl, isPdfPreview]);
+
+  useEffect(() => {
+    if (!pdfDocument || !pdfCanvasRef.current) return undefined;
+
+    let renderTask = null;
+    let isCancelled = false;
+
+    pdfDocument
+      .getPage(pdfPage)
+      .then((page) => {
+        if (isCancelled) return;
+        const canvas = pdfCanvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d');
+        const viewport = page.getViewport({ scale: pdfScale });
+
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        renderTask = page.render({
+          canvasContext: context,
+          viewport,
+        });
+
+        return renderTask.promise;
+      })
+      .catch((error) => {
+        if (!isCancelled && error?.name !== 'RenderingCancelledException') {
+          console.error('PDF render failed:', error);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+      if (renderTask?.cancel) renderTask.cancel();
+    };
+  }, [pdfDocument, pdfPage, pdfScale]);
 
   const loadResources = async (search = '') => {
     try {
@@ -303,6 +455,7 @@ export default function ResourceManagement() {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
+                        <button onClick={() => openPreviewModal(resource)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors" title="Preview Resource Modal"><Eye className="size-4" /></button>
                         <button onClick={() => openEditModal(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors" title="Edit Resource"><Edit className="size-4" /></button>
                         <button onClick={() => handleDelete(resource.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors" title="Delete Resource"><Trash2 className="size-4" /></button>
                       </div>
@@ -478,6 +631,169 @@ export default function ResourceManagement() {
       </AnimatePresence>
 
       {/* Reusable Centered Custom Modal Message */}
+      <AnimatePresence>
+        {previewResource && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/60 z-50 backdrop-blur-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closePreviewModal}
+            />
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <div
+                className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-gray-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-slate-50/80">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                      <FileText className="size-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-base line-clamp-1">{previewResource.title}</h3>
+                      <p className="text-xs text-gray-500">
+                        {previewResource.category} • Author: {previewResource.subject || previewResource.author || 'Zyndex Faculty'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const r = previewResource;
+                        closePreviewModal();
+                        openEditModal(r);
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-50 rounded-lg border border-orange-200 transition-colors flex items-center gap-1"
+                    >
+                      <Edit className="size-3.5" /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const rId = previewResource.id;
+                        closePreviewModal();
+                        handleDelete(rId);
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors flex items-center gap-1"
+                    >
+                      <Trash2 className="size-3.5" /> Delete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closePreviewModal}
+                      className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors ml-1"
+                    >
+                      <X className="size-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Preview Body */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-100 flex flex-col items-center justify-center min-h-[350px]">
+                  {isPdfPreview && previewBlobUrl && pdfDocument ? (
+                    <div className="w-full flex flex-col items-center">
+                      {/* PDF Controls */}
+                      <div className="flex items-center justify-between gap-3 bg-neutral-900 text-white px-4 py-2 rounded-t-xl w-full max-w-2xl select-none text-xs">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={pdfPage <= 1}
+                            onClick={() => setPdfPage((p) => Math.max(1, p - 1))}
+                            className="p-1 hover:bg-white/10 rounded disabled:opacity-40"
+                          >
+                            <ChevronLeft className="size-4" />
+                          </button>
+                          <span>Page {pdfPage} / {pdfPageCount}</span>
+                          <button
+                            type="button"
+                            disabled={pdfPage >= pdfPageCount}
+                            onClick={() => setPdfPage((p) => Math.min(pdfPageCount, p + 1))}
+                            className="p-1 hover:bg-white/10 rounded disabled:opacity-40"
+                          >
+                            <ChevronRight className="size-4" />
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setPdfScale((s) => Math.max(0.75, s - 0.15))}
+                            className="p-1 hover:bg-white/10 rounded"
+                            title="Zoom Out"
+                          >
+                            <ZoomOut className="size-4" />
+                          </button>
+                          <span>{Math.round(pdfScale * 100)}%</span>
+                          <button
+                            type="button"
+                            onClick={() => setPdfScale((s) => Math.min(2.5, s + 0.15))}
+                            className="p-1 hover:bg-white/10 rounded"
+                            title="Zoom In"
+                          >
+                            <ZoomIn className="size-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPdfScale(1.15)}
+                            className="p-1 hover:bg-white/10 rounded"
+                            title="Reset Zoom"
+                          >
+                            <RotateCcw className="size-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* PDF Canvas with Watermark */}
+                      <div className="relative max-h-[60vh] overflow-auto bg-neutral-800 p-4 rounded-b-xl w-full max-w-2xl flex justify-center">
+                        <div className="relative shadow-2xl bg-white">
+                          <canvas ref={pdfCanvasRef} className="block select-none" />
+                          <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-4 gap-6 p-6 select-none overflow-hidden">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                              <div key={i} className="flex items-center justify-center -rotate-25 text-[10px] font-semibold text-gray-900/[0.18] whitespace-nowrap">
+                                Administrator Preview • Zyndex Library
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : previewError ? (
+                    <div className="p-6 bg-red-50 border border-red-200 rounded-xl text-center max-w-md">
+                      <p className="text-red-800 font-semibold text-sm">Failed to load preview</p>
+                      <p className="text-red-600 text-xs mt-1">{previewError}</p>
+                    </div>
+                  ) : previewResource?.description && !previewResource.fileUrl ? (
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 max-w-2xl w-full prose max-w-none">
+                      <h4 className="font-bold text-gray-900 mb-2">Description / Article Content:</h4>
+                      <div dangerouslySetInnerHTML={{ __html: previewResource.description }} />
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="size-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-sm text-gray-600">Loading document preview...</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal Footer Info */}
+                <div className="p-3 bg-white border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 px-6">
+                  <span>Resource ID: #{previewResource.id}</span>
+                  <span className="font-medium text-orange-600">Admin Inspection Mode (Downloads Disabled)</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {modalMessage && (
           <>

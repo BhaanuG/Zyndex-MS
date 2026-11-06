@@ -166,21 +166,24 @@ public class UsageController {
         Long totalSessions = jdbc.queryForObject("SELECT COUNT(*) FROM usages", Long.class);
         Long uniqueReaders = jdbc.queryForObject("SELECT COUNT(DISTINCT user_id) FROM usages", Long.class);
         
-        // Active readers today: only count non-admin users who logged in or were active today
+        // Active users today: includes all active users and administrators active today
         Long todayReaders = jdbc.queryForObject("""
                 SELECT COUNT(DISTINCT user_id) FROM (
                     SELECT user_id FROM usages WHERE created_at >= CURRENT_DATE()
                     UNION
                     SELECT id AS user_id FROM zyndex_auth.users 
-                    WHERE (role IS NULL OR UPPER(role) != 'ADMIN') 
-                      AND last_active_at >= CURRENT_DATE()
+                    WHERE last_active_at >= CURRENT_DATE()
                 ) active_users
                 """, Long.class);
 
-        // Real-time active reading sessions right now: readers with active reading activity within the last 15 minutes
+        // Real-time active users right now: users and administrators with activity within the last 15 minutes
         Long activeSessionsNow = jdbc.queryForObject("""
-                SELECT COUNT(DISTINCT user_id) FROM usages 
-                WHERE created_at >= NOW() - INTERVAL 15 MINUTE
+                SELECT COUNT(DISTINCT user_id) FROM (
+                    SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 15 MINUTE
+                    UNION
+                    SELECT id AS user_id FROM zyndex_auth.users 
+                    WHERE last_active_at >= NOW() - INTERVAL 15 MINUTE
+                ) active_now
                 """, Long.class);
 
         long avgMinutes = (totalSessions != null && totalSessions > 0) ? (totalMinutes / totalSessions) : 0L;

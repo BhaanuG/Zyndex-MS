@@ -191,23 +191,23 @@ export default function AdminLogs() {
     // Average session length
     const avgMinutes = totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0;
 
-    // Active readers today (checked against today's date)
+    // Active users today (from live backend engagement telemetry or reading history)
     const todayStr = new Date().toDateString();
     const todayReadersSet = new Set(
       readingHistory
         .filter((r) => r.timestamp && new Date(r.timestamp).toDateString() === todayStr)
         .map((r) => (r.userEmail || '').trim().toLowerCase())
     );
-    const activeReadersToday = todayReadersSet.size;
+    const activeReadersToday = Math.max(todayReadersSet.size, engagement.activeReadersToday || 0);
 
-    // Live readers online now: events logged in the last 15 minutes
+    // Live active users online now (including admins and readers active in the last 15 mins)
     const fifteenMinsAgo = Date.now() - 15 * 60 * 1000;
     const onlineNowSet = new Set(
       readingHistory
         .filter((r) => r.timestamp && new Date(r.timestamp).getTime() >= fifteenMinsAgo)
         .map((r) => (r.userEmail || '').trim().toLowerCase())
     );
-    const onlineNow = onlineNowSet.size;
+    const onlineNow = Math.max(onlineNowSet.size, engagement.activeSessionsNow || 0);
 
     return {
       totalReaders,
