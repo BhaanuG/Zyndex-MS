@@ -92,7 +92,7 @@ export default function Privacy() {
       content: [
         {
           subtitle: 'Service Providers & Infrastructure',
-          text: 'We share your information strictly with vetted service providers necessary for operating our platform: secure cloud computing and object storage platforms (AWS, Google Cloud), transactional email routing gateways (SMTP relay services), and containerized app hosting environments. For subscriptions and tier upgrades, transactions occur via UPI VPA verification (918897337687@waaxis) requiring user-submitted 12-digit UTR references; no banking passwords, credit card numbers, or CVVs are ever requested, processed, or stored on Zyndex infrastructure.'
+          text: 'We share your information strictly with vetted service providers necessary for operating our platform: secure cloud computing and object storage platforms (AWS, Google Cloud), transactional email routing gateways (SMTP relay services), and containerized app hosting environments. For subscriptions and tier upgrades, transactions occur via direct UPI QR verification requiring user-submitted 12-digit UTR references; no banking passwords, credit card numbers, or CVVs are ever requested, processed, or stored on Zyndex infrastructure.'
         },
         {
           subtitle: 'Legal Requirements & Academic Compliance',

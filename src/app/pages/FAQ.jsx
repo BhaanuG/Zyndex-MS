@@ -25,7 +25,7 @@ export default function FAQ() {
     },
     {
       question: 'How does the UPI QR and UTR payment verification operate?',
-      answer: 'Zyndex supports fast, transparent Indian UPI payments (Google Pay, PhonePe, Paytm, BHIM, and bank apps). When upgrading your tier, a dynamic merchant QR is generated for our recipient UPI ID (918897337687@waaxis). After completing the transfer, enter your 12-digit bank UTR reference number. Our admin and automated billing system verify the UTR against live statements and activate your subscription.',
+      answer: 'Zyndex supports fast, transparent Indian UPI payments (Google Pay, PhonePe, Paytm, BHIM, and bank apps). When upgrading your tier, a dynamic merchant QR is presented securely in the checkout modal. After completing the transfer, enter your 12-digit bank UTR reference number. Our automated billing system and administrators verify the UTR and activate your subscription.',
     },
     {
       question: 'Is there any automatic debit or hidden auto-renewal charge?',
@@ -66,6 +66,18 @@ export default function FAQ() {
     {
       question: 'What should I do if I forget my password or change my email?',
       answer: 'Visit the Forgot Password page from the Login portal. Enter your registered email address to receive an instant, single-use password reset link and verification code. For email migrations, reach out to our support desk with your current identity credentials.',
+    },
+    {
+      question: 'Are there any restrictions on printing or exporting materials?',
+      answer: 'Access permissions depend on publisher copyright agreements and your active plan. Readers can highlight, bookmark, and study resources in our browser reader, while offline PDF downloads are enabled on supported tiers for personal study.',
+    },
+    {
+      question: 'How does Zyndex handle academic integrity and citations?',
+      answer: 'Every cataloged resource includes formatted citation references (APA, MLA, IEEE, and Chicago styles). We encourage transparent scholarly citation and strictly prohibit commercial redistribution or automated data mining without authorization.',
+    },
+    {
+      question: 'What happens to my account data if my subscription ends?',
+      answer: 'Nothing is lost. Your account automatically defaults to our Free Academic Reader tier. Your bookmarks, custom reading lists, notes, and profile history remain completely preserved and accessible indefinitely.',
     },
   ];
 

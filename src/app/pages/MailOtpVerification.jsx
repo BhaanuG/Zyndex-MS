@@ -57,7 +57,7 @@ export default function MailOtpVerification() {
   const filledCount = digits.filter((d) => d !== '').length;
   const isAllFilled = filledCount === 4;
 
-  // Step through shapes every 900ms while animating
+  // Step through shapes every 800ms while animating
   useEffect(() => {
     if (!isAnimatingShapes) {
       setCurrentShapeIndex(0);
@@ -66,7 +66,7 @@ export default function MailOtpVerification() {
 
     const interval = setInterval(() => {
       setCurrentShapeIndex((prev) => (prev + 1) % shapeSequence.length);
-    }, 900);
+    }, 800);
 
     return () => clearInterval(interval);
   }, [isAnimatingShapes, shapeSequence.length]);
@@ -321,17 +321,30 @@ export default function MailOtpVerification() {
     setError('');
     setVerifyState(null);
 
+    const startTime = Date.now();
+    // Guarantee that at least 3 distinct shape formations finish displaying (approx 2600ms)
+    const MINIMUM_SHAPE_CYCLES_MS = 2600;
+
     try {
       const pendingAuth = JSON.parse(sessionStorage.getItem('pending_auth') || 'null');
       if (!pendingAuth) {
         throw new Error('OTP session is missing. Please log in again.');
       }
 
-      await apiClient.post('/verify-otp', {
+      const verifyPromise = apiClient.post('/verify-otp', {
         email: pendingAuth.email,
         role: pendingAuth.role,
         otp: fullOtp,
       });
+
+      // Await network verification while the shapes continue morphing
+      await verifyPromise;
+
+      // Ensure minimum 3 full shape transformations occur before transitioning
+      const elapsed = Date.now() - startTime;
+      if (elapsed < MINIMUM_SHAPE_CYCLES_MS) {
+        await new Promise((resolve) => setTimeout(resolve, MINIMUM_SHAPE_CYCLES_MS - elapsed));
+      }
 
       setVerifyState('success');
 
@@ -355,12 +368,12 @@ export default function MailOtpVerification() {
                 requestSuccess: `Thank you ${pendingAuth.displayName}! Your verified admin request has been submitted successfully.`,
               },
             });
-          }, 800);
+          }, 900);
           return;
         }
 
         // User signup
-        const registrationResponse = await authService.register({
+        await authService.register({
           name: pendingAuth.name,
           email: pendingAuth.email,
           password: pendingAuth.password,
@@ -381,7 +394,7 @@ export default function MailOtpVerification() {
               signupSuccess: 'Your account has been created and verified successfully. Please sign in.',
             },
           });
-        }, 800);
+        }, 900);
         return;
       }
 
@@ -393,12 +406,15 @@ export default function MailOtpVerification() {
       sessionStorage.removeItem(OTP_REQUEST_SESSION_KEY);
       sessionStorage.setItem('show_auth_transition', 'true');
 
-      // Direct, clean transition to destination without cumbersome message countdown boxes
       setTimeout(() => {
         const targetDestination = resolveAuthRedirectPath(userData);
         navigate(targetDestination, { replace: true });
-      }, 700);
+      }, 900);
     } catch (submitError) {
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1200) {
+        await new Promise((resolve) => setTimeout(resolve, 1200 - elapsed));
+      }
       setVerifyState('error');
       setIsAnimatingShapes(false);
       setError(submitError?.message || 'Invalid OTP. Please check the code and try again.');

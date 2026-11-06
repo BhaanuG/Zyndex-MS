@@ -209,7 +209,9 @@ class OtpController {
                 <div style="background-color: %s; border: 2px dashed %s; border-radius: 12px; padding: 22px 18px 16px 18px; text-align: center; margin: 20px 0; position: relative;">
                     <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: %s; display: block; margin-bottom: 8px;">%s</span>
                     <div style="text-align: center; margin: 8px 0 10px 0;">
-                        <span style="font-size: 34px; font-weight: 900; letter-spacing: 7px; color: %s; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; display: inline-block; user-select: all; -webkit-user-select: all; -moz-user-select: all; cursor: pointer;">%s</span>
+                        <a href="javascript:void(0);" onclick="if(navigator&&navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText('%s');alert('OTP %s copied to clipboard!');}else{prompt('Copy your OTP:', '%s');}return false;" style="text-decoration: none; display: inline-block;">
+                            <span style="font-size: 34px; font-weight: 900; letter-spacing: 7px; color: %s; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; display: inline-block; user-select: all; -webkit-user-select: all; -moz-user-select: all; cursor: pointer;">%s</span>
+                        </a>
                     </div>
                     <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="margin-top: 8px; border-collapse: collapse;">
                         <tr>
@@ -217,12 +219,14 @@ class OtpController {
                                 Valid for 2 minutes · Single-use code
                             </td>
                             <td align="right" style="vertical-align: middle; white-space: nowrap; width: 48px;">
-                                <span title="Tap code to copy" style="display: inline-block; font-size: 16px; line-height: 1; color: %s; cursor: pointer; user-select: all; -webkit-user-select: all;">&#128203;</span>
+                                <a href="javascript:void(0);" onclick="if(navigator&&navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText('%s');alert('OTP %s copied to clipboard!');}else{prompt('Copy your OTP:', '%s');}return false;" title="Click to copy OTP" style="display: inline-block; font-size: 18px; line-height: 1; color: %s; cursor: pointer; text-decoration: none; padding: 4px;">
+                                    &#128203;
+                                </a>
                             </td>
                         </tr>
                     </table>
                 </div>
-                """.formatted(bgHex, borderHex, subtextHex, label, textHex, otp, subtextHex, textHex);
+                """.formatted(bgHex, borderHex, subtextHex, label, otp, otp, otp, textHex, otp, subtextHex, otp, otp, otp, textHex);
     }
 
     private String accountCreationOtpHtml(String username, String email, String role, String otp) {

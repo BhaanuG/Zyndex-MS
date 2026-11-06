@@ -128,7 +128,7 @@ export default function Terms() {
       content: [
         {
           subtitle: 'Transparent Pricing & UPI Protocol',
-          text: 'Zyndex offers flexible subscription tiers (Free / Demo, Student Basic, Student Plus, PhD Scholar / Researcher, University, and Enterprise / Institution). Upgrades are paid in Indian Rupees (INR) via direct UPI transfer to our recipient merchant address (918897337687@waaxis) with 12-digit UTR reference validation.'
+          text: 'Zyndex offers flexible subscription tiers (Free / Demo, Student Basic, Student Plus, PhD Scholar / Researcher, University, and Enterprise / Institution). Upgrades are paid in Indian Rupees (INR) via direct merchant UPI transfer presented in the checkout screen with 12-digit UTR reference validation.'
         },
         {
           subtitle: 'No Auto-Debit or Surprise Charges',

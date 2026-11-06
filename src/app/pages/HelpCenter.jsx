@@ -1395,7 +1395,7 @@ export default function HelpCenter() {
         <ol>
           <li>Navigate to your User Dashboard and click on <strong>Upgrade Plan</strong> or visit your Profile subscription tab.</li>
           <li>Select your desired tier (Monthly or Annual pass).</li>
-          <li>Scan the displayed dynamic UPI QR Code using any UPI application (Google Pay, PhonePe, Paytm, BHIM, or banking app) targeting verified merchant VPA <code>918897337687@waaxis</code>.</li>
+          <li>Scan the displayed dynamic UPI QR Code using any UPI application (Google Pay, PhonePe, Paytm, BHIM, or banking app) presented in the secure checkout interface.</li>
           <li>Complete payment and copy the 12-digit <strong>UTR / Bank Reference Number</strong> from your payment receipt.</li>
           <li>Enter the 12-digit UTR into the verification box on Zyndex and click <strong>Submit Verification</strong>.</li>
           <li>Our backend verifies the reference and upgrades your account tier immediately. An automated HTML invoice receipt is dispatched to your email.</li>
