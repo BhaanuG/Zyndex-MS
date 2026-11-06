@@ -262,6 +262,29 @@ public class UsageController {
             System.err.println("Recent sessions query failed: " + e.getMessage());
         }
 
+        // Active users details today (for detail modal breakdown)
+        List<Map<String, Object>> activeUsersList = new ArrayList<>();
+        try {
+            activeUsersList = jdbc.queryForList("""
+                    SELECT 
+                        usr.id AS userId,
+                        COALESCE(usr.username, CONCAT('Scholar #', usr.id)) AS userName,
+                        COALESCE(usr.email, 'student@zyndex.com') AS userEmail,
+                        COALESCE(usr.role, 'STUDENT') AS role,
+                        COALESCE((
+                            SELECT SUM(duration) FROM zyndex_usage.usages 
+                            WHERE user_id = usr.id AND created_at >= CURRENT_DATE()
+                        ), 0) AS totalDuration,
+                        COALESCE(usr.last_active_at, NOW()) AS lastActiveAt
+                    FROM zyndex_auth.users usr
+                    WHERE usr.last_active_at >= CURRENT_DATE() 
+                       OR usr.id IN (SELECT user_id FROM zyndex_usage.usages WHERE created_at >= CURRENT_DATE())
+                    ORDER BY lastActiveAt DESC
+                    """);
+        } catch (Exception e) {
+            System.err.println("Active users query failed: " + e.getMessage());
+        }
+
         return Map.of(
                 "totalReadingMinutes", totalMinutes != null ? totalMinutes : 0L,
                 "totalSessions", totalSessions != null ? totalSessions : 0L,
@@ -272,7 +295,8 @@ public class UsageController {
                 "trendData", trendData,
                 "categoryBreakdown", categoryBreakdown,
                 "tierBreakdown", tierBreakdown,
-                "recentSessions", recentSessions
+                "recentSessions", recentSessions,
+                "activeUsersList", activeUsersList
         );
     }
 

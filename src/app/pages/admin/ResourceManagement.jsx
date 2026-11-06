@@ -203,7 +203,7 @@ export default function ResourceManagement() {
         import.meta.url
       ).toString();
 
-      loadingTask = pdfjsLib.getDocument(previewBlobUrl);
+      loadingTask = pdfjsLib.getDocument({ url: previewBlobUrl });
       loadingTask.promise
         .then((doc) => {
           if (isCancelled) return;

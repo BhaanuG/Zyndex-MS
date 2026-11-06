@@ -221,6 +221,16 @@ export default function AdminLogs() {
 
   // Live Continuous Graph Timeline
   const chartTimelineData = useMemo(() => {
+    // If backend returns hourly trend points, use that or blend with readingHistory
+    if (engagement?.trendData && engagement.trendData.length > 0) {
+      return engagement.trendData.map((t) => ({
+        timeLabel: t.timeLabel,
+        durationMinutes: t.durationMinutes || 0,
+        activeReaders: t.activeReaders || 0,
+        sessionCount: t.sessionCount || 0
+      }));
+    }
+
     if (!readingHistory || readingHistory.length === 0) return [];
 
     const bucketMap = {};
@@ -250,7 +260,7 @@ export default function AdminLogs() {
         activeReaders: b.activeReadersSet.size,
         sessionCount: b.sessionCount
       }));
-  }, [readingHistory]);
+  }, [readingHistory, engagement]);
 
   // Category distribution
   const categoryChartData = useMemo(() => {
@@ -1318,8 +1328,8 @@ export default function AdminLogs() {
                     <div className="space-y-4">
                       <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between">
                         <div>
-                          <p className="text-xs font-bold text-emerald-900 uppercase">Live Active Readers Today</p>
-                          <p className="text-xs text-emerald-700 mt-0.5">Distinct user accounts with reading events logged today</p>
+                          <p className="text-xs font-bold text-emerald-900 uppercase">Live Active Users & Readers Today</p>
+                          <p className="text-xs text-emerald-700 mt-0.5">Active users and administrators active on the platform today</p>
                         </div>
                         <span className="text-3xl font-black text-emerald-800">{metrics.activeReadersToday}</span>
                       </div>
@@ -1328,24 +1338,51 @@ export default function AdminLogs() {
                         <table className="w-full text-left text-xs">
                           <thead className="bg-slate-50 font-bold text-slate-600 uppercase border-b border-slate-200">
                             <tr>
-                              <th className="py-2.5 px-3">Reader Name</th>
+                              <th className="py-2.5 px-3">User / Administrator</th>
+                              <th className="py-2.5 px-3">Role</th>
                               <th className="py-2.5 px-3">Email</th>
                               <th className="py-2.5 px-3 text-right">Today's Duration</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
-                            {readingSessions
-                              .filter((s) => {
-                                if (!s.endTime) return false;
-                                return new Date(s.endTime).toDateString() === new Date().toDateString();
-                              })
-                              .map((s) => (
-                                <tr key={s.sessionId} className="hover:bg-slate-50">
-                                  <td className="py-2.5 px-3 font-semibold text-slate-900">{s.userName}</td>
-                                  <td className="py-2.5 px-3 font-mono text-slate-600">{s.userEmail}</td>
-                                  <td className="py-2.5 px-3 text-right font-bold text-emerald-700">{s.totalDuration}m</td>
-                                </tr>
-                              ))}
+                            {(() => {
+                              // If engagement returns the full active user list, display all
+                              if (engagement?.activeUsersList && engagement.activeUsersList.length > 0) {
+                                return engagement.activeUsersList.map((u) => (
+                                  <tr key={u.userId} className="hover:bg-slate-50">
+                                    <td className="py-2.5 px-3 font-semibold text-slate-900">{u.userName}</td>
+                                    <td className="py-2.5 px-3">
+                                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                        u.role === 'ADMIN' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                                      }`}>
+                                        {u.role || 'STUDENT'}
+                                      </span>
+                                    </td>
+                                    <td className="py-2.5 px-3 font-mono text-slate-600">{u.userEmail}</td>
+                                    <td className="py-2.5 px-3 text-right font-bold text-emerald-700">{u.totalDuration || 0}m</td>
+                                  </tr>
+                                ));
+                              }
+
+                              // Fallback to reading sessions
+                              return readingSessions
+                                .filter((s) => {
+                                  if (!s.endTime) return false;
+                                  return new Date(s.endTime).toDateString() === new Date().toDateString();
+                                })
+                                .map((s) => (
+                                  <tr key={s.sessionId} className="hover:bg-slate-50">
+                                    <td className="py-2.5 px-3 font-semibold text-slate-900">{s.userName}</td>
+                                    <td className="py-2.5 px-3">
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+                                        STUDENT
+                                      </span>
+                                    </td>
+                                    <td className="py-2.5 px-3 font-mono text-slate-600">{s.userEmail}</td>
+                                    <td className="py-2.5 px-3 text-right font-bold text-emerald-700">{s.totalDuration}m</td>
+                                  </tr>
+                                ));
+                            })()}
                           </tbody>
                         </table>
                       </div>
