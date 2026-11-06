@@ -503,11 +503,16 @@ export default function MailOtpVerification() {
               {isAnimatingShapes ? (
                 /* Dynamic Fast-Rotating & Shape Morphing Constellation of 4 Digits */
                 <div className="relative w-56 sm:w-64 h-44 sm:h-48 flex items-center justify-center select-none overflow-hidden">
-                  {/* Subtle orbital path ring */}
+                  {/* Subtle orbital path ring with dual glowing rings */}
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                    className="absolute size-36 sm:size-44 rounded-full border border-dashed border-orange-300/40 pointer-events-none"
+                    transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
+                    className="absolute size-38 sm:size-46 rounded-full border border-dashed border-orange-400/50 pointer-events-none"
+                  />
+                  <motion.div
+                    animate={{ rotate: -360 }}
+                    transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+                    className="absolute size-46 sm:size-54 rounded-full border border-orange-200/30 pointer-events-none"
                   />
 
                   {[0, 1, 2, 3].map((index) => {

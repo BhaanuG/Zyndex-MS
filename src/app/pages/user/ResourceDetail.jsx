@@ -353,15 +353,6 @@ export default function ResourceDetail() {
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-2">
-                        <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                          <FileText className="size-3.5 text-purple-500" /> Resource Type
-                        </span>
-                        <span className="font-mono font-bold text-slate-800 bg-slate-200 px-2 py-0.5 rounded text-[11px]">
-                          {resource.type || 'TEXTBOOK'}
-                        </span>
-                      </div>
-
                       <div className="flex items-center justify-between pt-2">
                         <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                           <Calendar className="size-3.5 text-emerald-500" /> Published Date

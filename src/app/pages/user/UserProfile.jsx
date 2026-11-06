@@ -176,7 +176,31 @@ export default function UserProfile() {
 
             <div className="lg:col-span-3 bg-white rounded-xl shadow-md">
               <Tabs value={getActiveTabFromPath()} onValueChange={handleTabChange} className="w-full">
-                {/* Tab buttons removed per request: 'My Favorites Account Settings Billing' */}
+                <div className="border-b border-gray-100 px-6 pt-4">
+                  <TabsList className="bg-orange-50/60 p-1 rounded-xl">
+                    <TabsTrigger
+                      value="favourites"
+                      className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all"
+                    >
+                      <Heart className="size-4 mr-1.5" />
+                      My Favourites
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="settings"
+                      className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all"
+                    >
+                      <Settings className="size-4 mr-1.5" />
+                      Account Settings
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="billing"
+                      className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all"
+                    >
+                      <CreditCard className="size-4 mr-1.5" />
+                      Billing & Plans
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
                 <TabsContent value="favourites" className="p-6">
                   {favourites.length === 0 ? (
