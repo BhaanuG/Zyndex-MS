@@ -7,7 +7,7 @@
 <br/>
 <br/>
 
-# ⚡ Z Y N D E X
+#  Z Y N D E X
 ### **Distributed Academic Microservices Engine & Digital Asset Governance Platform**
 #### *Conceived, Architected & Engineered End-to-End by **Bhaanu G (Bhaanu Gali)***
 
