@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { FolderOpen, Users, MessageSquare, TrendingUp, Activity, Plus, UserCog, MessageCircle, BarChart3, ScrollText, CreditCard } from 'lucide-react';
+import { FolderOpen, Users, MessageSquare, BarChart3 } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
@@ -99,20 +99,6 @@ export default function AdminDashboard() {
             );
           })}
         </div>
-
-        <section className="bg-white rounded-xl border border-gray-100 shadow-lg p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div><h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2><p className="text-sm text-gray-500">Common administration tasks</p></div>
-            <Activity className="size-5 text-orange-600" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            <button onClick={() => navigate(`${baseUrl}/Content-Management`)} className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 text-orange-800 text-left hover:bg-orange-100 transition-colors"><Plus className="size-5" /><span>Content Management</span></button>
-            <button onClick={() => navigate(`${baseUrl}/User-Management`)} className="flex items-center gap-3 p-3 rounded-lg bg-red-50 text-red-800 text-left hover:bg-red-100 transition-colors"><UserCog className="size-5" /><span>User Management</span></button>
-            <button onClick={() => navigate(`${baseUrl}/Payments`)} className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 text-emerald-800 text-left hover:bg-emerald-100 transition-colors"><CreditCard className="size-5" /><span>Payments</span></button>
-            <button onClick={() => navigate(`${baseUrl}/Feedback-Review`)} className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 text-amber-800 text-left hover:bg-amber-100 transition-colors"><MessageCircle className="size-5" /><span>Feed Back Review</span></button>
-            <button onClick={() => navigate(`${baseUrl}/Logs`)} className="flex items-center gap-3 p-3 rounded-lg bg-slate-100 text-slate-800 text-left hover:bg-slate-200 transition-colors"><ScrollText className="size-5" /><span>System Logs</span></button>
-          </div>
-        </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border border-gray-100 shadow-lg p-5 lg:col-span-2">

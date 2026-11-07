@@ -15,38 +15,38 @@ export default function Browse() {
   const browseFeatures = [
     {
       icon: Search,
-      title: 'Advanced Search',
-      description: 'Search across all resources with powerful filters and instant results',
+      title: 'Academic Search',
+      description: 'Find digital textbooks, lecture modules, and scholarly papers with real-time title and subject search',
       gradient: 'from-orange-500 to-orange-600'
     },
     {
       icon: Filter,
-      title: 'Smart Filtering',
-      description: 'Filter by categories, topics, difficulty levels, and resource types',
+      title: 'Subject Disciplines',
+      description: 'Filter instantly across Computer Science, Artificial Intelligence, Machine Learning, and Engineering',
       gradient: 'from-amber-500 to-orange-600'
     },
     {
       icon: Grid3x3,
-      title: 'Multiple Views',
-      description: 'Switch between grid, list, and detailed views for better browsing',
+      title: 'Curated Resource Hub',
+      description: 'Explore verified textbooks with complete author metadata, page counts, and interactive PDF preview',
       gradient: 'from-red-500 to-orange-600'
     },
     {
       icon: Tags,
-      title: 'Topic Tags',
-      description: 'Navigate through resources organized by relevant topic tags',
+      title: 'Reading Telemetry',
+      description: 'Track genuine active reading minutes and reading history automatically with smart tab visibility',
       gradient: 'from-orange-600 to-red-600'
     },
     {
       icon: Clock,
-      title: 'Recently Added',
-      description: 'Discover the latest resources added to the library',
+      title: 'Recent Activity',
+      description: 'Resume reading instantly with your top 3 recently explored textbooks and continuous session tracking',
       gradient: 'from-orange-500 to-amber-600'
     },
     {
       icon: Star,
-      title: 'Popular Resources',
-      description: 'Access the most viewed and highly recommended materials',
+      title: 'Scholar Favorites',
+      description: 'Bookmark high-impact textbooks and notes to your personalized personal reading favorites collection',
       gradient: 'from-amber-500 to-orange-500'
     }
   ];
@@ -54,18 +54,18 @@ export default function Browse() {
   const viewModes = [
     {
       icon: Grid3x3,
-      title: 'Grid View',
-      description: 'Visual card layout for quick browsing'
+      title: 'Card Explorer',
+      description: 'Visual resource cards with category badges and author attribution'
     },
     {
       icon: List,
-      title: 'List View',
-      description: 'Compact list for efficient scanning'
+      title: 'Live Catalog',
+      description: 'Structured academic directory with instant search and filtering'
     },
     {
       icon: FolderOpen,
-      title: 'Category View',
-      description: 'Organized by subject categories'
+      title: 'Discipline Categories',
+      description: 'Subject-specific archives curated for university scholars and faculty'
     }
   ];
 

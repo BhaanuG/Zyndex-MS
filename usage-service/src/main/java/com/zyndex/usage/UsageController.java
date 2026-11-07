@@ -285,19 +285,20 @@ public class UsageController {
             System.err.println("Active users query failed: " + e.getMessage());
         }
 
-        return Map.of(
-                "totalReadingMinutes", totalMinutes != null ? totalMinutes : 0L,
-                "totalSessions", totalSessions != null ? totalSessions : 0L,
-                "totalReaders", uniqueReaders != null ? uniqueReaders : 0L,
-                "activeReadersToday", todayReaders != null ? todayReaders : 0L,
-                "activeSessionsNow", activeSessionsNow != null ? activeSessionsNow : 0L,
-                "avgSessionMinutes", avgMinutes,
-                "trendData", trendData,
-                "categoryBreakdown", categoryBreakdown,
-                "tierBreakdown", tierBreakdown,
-                "recentSessions", recentSessions,
-                "activeUsersList", activeUsersList
-        );
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalReadingMinutes", totalMinutes != null ? totalMinutes : 0L);
+        response.put("totalSessions", totalSessions != null ? totalSessions : 0L);
+        response.put("totalReaders", uniqueReaders != null ? uniqueReaders : 0L);
+        response.put("activeReadersToday", todayReaders != null ? todayReaders : 0L);
+        response.put("activeSessionsNow", activeSessionsNow != null ? activeSessionsNow : 0L);
+        response.put("avgSessionMinutes", avgMinutes);
+        response.put("trendData", trendData);
+        response.put("categoryBreakdown", categoryBreakdown);
+        response.put("tierBreakdown", tierBreakdown);
+        response.put("recentSessions", recentSessions);
+        response.put("activeUsersList", activeUsersList);
+
+        return response;
     }
 
     @GetMapping("/history/live")

@@ -34,9 +34,9 @@ export default function AdminLayout({ children }) {
     { icon: LayoutDashboard, label: 'Dashboard', path: `${baseUrl}/Dashboard` },
     { icon: Users, label: 'User Management', path: `${baseUrl}/User-Management` },
     { icon: FolderOpen, label: 'Content Management', path: `${baseUrl}/Content-Management` },
-    { icon: CreditCard, label: 'Payments', path: `${baseUrl}/Payments` },
+    ...(isPrimaryAdmin ? [{ icon: CreditCard, label: 'Payments', path: `${baseUrl}/Payments` }] : []),
     { icon: MessageSquare, label: 'Feed Back Review', path: `${baseUrl}/Feedback-Review` },
-    { icon: ScrollText, label: 'Logs', path: `${baseUrl}/Logs` },
+    ...(isPrimaryAdmin ? [{ icon: ScrollText, label: 'Logs', path: `${baseUrl}/Logs` }] : []),
     { icon: UserCircle, label: 'My Profile', path: `${baseUrl}/Profile` },
   ];
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link } from 'react-router';
-import { FlaskConical, Calculator, BookOpen, Landmark, ArrowRight, Lock, X } from 'lucide-react';
+import { Brain, Cpu, Database, Binary, ArrowRight, Lock, X, BookOpen } from 'lucide-react';
 import PublicLayout from '@/app/components/PublicLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import { setRedirectIntent } from '@/utils/redirectHelper';
@@ -14,32 +14,32 @@ export default function BrowseCategory() {
 
   const categories = [
     {
-      title: 'Science',
-      description: 'Explore physics, chemistry, biology, and more',
-      icon: FlaskConical,
+      title: 'AI',
+      description: 'Artificial intelligence paradigms, foundational neural networks, and prompt engineering',
+      icon: Brain,
       gradient: 'from-orange-500 to-amber-500',
       bgGradient: 'from-orange-50 to-amber-50',
     },
     {
-      title: 'Mathematics',
-      description: 'From algebra to calculus and beyond',
-      icon: Calculator,
-      gradient: 'from-green-500 to-emerald-500',
-      bgGradient: 'from-green-50 to-emerald-50',
+      title: 'ML',
+      description: 'Machine learning fundamentals, predictive algorithms, statistical models, and deep learning',
+      icon: Cpu,
+      gradient: 'from-red-500 to-orange-500',
+      bgGradient: 'from-red-50 to-orange-50',
     },
     {
-      title: 'Literature',
-      description: 'Classic and contemporary literary works',
-      icon: BookOpen,
-      gradient: 'from-purple-500 to-pink-500',
-      bgGradient: 'from-purple-50 to-pink-50',
+      title: 'Computer Science',
+      description: 'Open data structures, algorithms, computational theory, and distributed systems architecture',
+      icon: Binary,
+      gradient: 'from-blue-500 to-indigo-500',
+      bgGradient: 'from-blue-50 to-indigo-50',
     },
     {
-      title: 'History',
-      description: 'Discover the past and its impact on today',
-      icon: Landmark,
-      gradient: 'from-orange-500 to-red-500',
-      bgGradient: 'from-orange-50 to-red-50',
+      title: 'Engineering & Data',
+      description: 'Software engineering principles, database systems, cloud architectures, and applied computing',
+      icon: Database,
+      gradient: 'from-emerald-500 to-teal-500',
+      bgGradient: 'from-emerald-50 to-teal-50',
     },
   ];
 
@@ -86,11 +86,11 @@ export default function BrowseCategory() {
 
             <h1 className="text-5xl font-bold mb-4">
               <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Browse by Category
+                Browse by Academic Discipline
               </span>
             </h1>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Explore our comprehensive collection of educational resources organized by subject
+              Explore our curated digital repository of textbooks and curriculum modules organized by subject
             </p>
           </motion.div>
 
