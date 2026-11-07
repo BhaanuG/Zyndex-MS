@@ -129,7 +129,7 @@ public class AuthSupport {
             Object tokenVer = claims.get("v");
             if (tokenVer != null) {
                 int claimV = Integer.parseInt(String.valueOf(tokenVer));
-                int dbV = user.get("session_token_version") != null ? number(user.get("session_token_version")).intValue() : 1;
+                int dbV = user.get("session_token_version") != null ? (int) number(user.get("session_token_version")) : 1;
                 if (claimV < dbV) {
                     throw new ApiException(HttpStatus.UNAUTHORIZED, "Your session has been terminated by administrator. Please log in again.");
                 }
@@ -164,7 +164,7 @@ public class AuthSupport {
     public String signToken(Map<String, Object> user) {
         Instant now = Instant.now();
         String role = "ADMIN".equalsIgnoreCase(str(user.get("role"))) ? "admin" : "user";
-        int version = user.get("session_token_version") != null ? number(user.get("session_token_version")).intValue() : 1;
+        int version = user.get("session_token_version") != null ? (int) number(user.get("session_token_version")) : 1;
         return Jwts.builder()
                 .subject(String.valueOf(user.get("id")))
                 .claim("role", role)
