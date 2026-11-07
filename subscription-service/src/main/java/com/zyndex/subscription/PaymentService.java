@@ -1131,8 +1131,9 @@ public class PaymentService {
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.set("X-Internal-Service", "subscription-service");
             org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
-            org.springframework.http.ResponseEntity<Map> resp = restTemplate.exchange(
-                    url, org.springframework.http.HttpMethod.GET, entity, Map.class
+            org.springframework.core.ParameterizedTypeReference<Map<String, Object>> typeRef = new org.springframework.core.ParameterizedTypeReference<>() {};
+            org.springframework.http.ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
+                    url, org.springframework.http.HttpMethod.GET, entity, typeRef
             );
             Map<String, Object> profile = resp.getBody();
             if (profile != null) {

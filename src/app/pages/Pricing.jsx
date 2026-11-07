@@ -1018,6 +1018,14 @@ export default function Pricing() {
                                         placeholder="e.g. 430123456789"
                                         value={utrInput}
                                         onChange={(e) => setUtrInput(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (!submittingUtr && utrInput.trim()) {
+                                              handleSubmitUtr();
+                                            }
+                                          }
+                                        }}
                                         className="flex-1 px-3 py-2 bg-white border border-amber-300 rounded-lg text-sm font-mono tracking-wider font-semibold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 outline-none"
                                       />
                                       <button

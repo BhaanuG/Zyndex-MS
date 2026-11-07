@@ -453,6 +453,14 @@ export default function Login() {
                               handleVerifySignupOtp(val);
                             }
                           }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (otpCode.length === 4) {
+                                handleVerifySignupOtp(otpCode);
+                              }
+                            }
+                          }}
                           placeholder="••••"
                           className="w-full pl-10 pr-4 py-2.5 bg-white border border-orange-300 rounded-xl focus:ring-2 focus:ring-orange-500 font-mono text-center tracking-[0.4em] font-bold text-lg text-slate-800 outline-none"
                         />

@@ -442,7 +442,24 @@ export default function ForgotPassword() {
                     OTP
                   </label>
                   <div className="flex gap-2">
-                    <input type="text" inputMode="numeric" maxLength="4" value={otp} onChange={(e) => { setOtp(e.target.value); setOtpVerified(false); }} placeholder="4-digit code" className="flex-1 px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" required />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength="4"
+                      value={otp}
+                      onChange={(e) => { setOtp(e.target.value); setOtpVerified(false); }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (otp && !otpVerified) {
+                            verifyOtp();
+                          }
+                        }
+                      }}
+                      placeholder="4-digit code"
+                      className="flex-1 px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                      required
+                    />
                     <button type="button" onClick={sendOtp} disabled={otpSending || !email} className="px-4 py-3 bg-[#0b1f3a] text-white rounded-xl disabled:opacity-50">{otpSending ? 'Sending...' : 'Send OTP'}</button>
                     <button type="button" onClick={verifyOtp} disabled={!otp || otpVerified} className="px-4 py-3 bg-orange-600 text-white rounded-xl disabled:opacity-50">{otpVerified ? 'Verified' : 'Verify'}</button>
                   </div>
