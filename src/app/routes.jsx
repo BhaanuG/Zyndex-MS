@@ -151,6 +151,18 @@ export const router = createBrowserRouter([
         element: <PageTransitionWrapper duration={5000}><BrowseCategory /></PageTransitionWrapper>
       },
       {
+        path: "Zyndex/Categories",
+        element: <Navigate to="/Zyndex/Resources/Categories" replace />
+      },
+      {
+        path: "Resources/Categories",
+        element: <Navigate to="/Zyndex/Resources/Categories" replace />
+      },
+      {
+        path: "Categories",
+        element: <Navigate to="/Zyndex/Resources/Categories" replace />
+      },
+      {
         path: "Zyndex/Browse-Category/:category",
         element: <PageTransitionWrapper duration={5000}><BrowseCategory /></PageTransitionWrapper>
       },
