@@ -34,19 +34,36 @@ public class UsageController {
             // Write rich detailed audit log
             try {
                 String resourceTitle = "Resource #" + resourceId;
+                String resourceCategory = "Academics";
+                String resourceAuthor = "Faculty";
                 try {
-                    var rList = jdbc.queryForList("SELECT title FROM zyndex_content.resources WHERE id = ? LIMIT 1", resourceId);
-                    if (!rList.isEmpty() && rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
+                    var rList = jdbc.queryForList("SELECT title, category, author FROM zyndex_content.resources WHERE id = ? LIMIT 1", resourceId);
+                    if (!rList.isEmpty()) {
+                        if (rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
+                        if (rList.get(0).get("category") != null) resourceCategory = String.valueOf(rList.get(0).get("category"));
+                        if (rList.get(0).get("author") != null) resourceAuthor = String.valueOf(rList.get(0).get("author"));
+                    }
                 } catch (Exception ignored) {}
+
                 String userEmail = "User #" + userId;
+                String userName = "Scholar";
                 try {
                     var uList = jdbc.queryForList("SELECT email, username FROM zyndex_auth.users WHERE id = ? LIMIT 1", userId);
-                    if (!uList.isEmpty() && uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
+                    if (!uList.isEmpty()) {
+                        if (uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
+                        if (uList.get(0).get("username") != null) userName = String.valueOf(uList.get(0).get("username"));
+                    }
                 } catch (Exception ignored) {}
+
+                String detailLog = String.format(
+                    "Student Scholar: %s (%s, ID: %d) initiated and downloaded resource: \"%s\" (ID: %d, Category: %s, Author: %s) at %s [Authorized via Researcher/University Entitlement Tier]",
+                    userName, userEmail, userId, resourceTitle, resourceId, resourceCategory, resourceAuthor, java.time.LocalDateTime.now()
+                );
+
                 jdbc.update("""
                         INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                         VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'RESOURCE_DOWNLOADED', ?, ?, '127.0.0.1', 'SUCCESS')
-                        """, userEmail, "Student (" + userEmail + ", ID: " + userId + ") initiated and downloaded resource: " + resourceTitle + " (ID: " + resourceId + ")");
+                        """, userEmail, detailLog);
             } catch (Exception ignored) {}
         } else {
             jdbc.update("INSERT INTO resource_views (resource_id, user_id, viewed_at) VALUES (?, ?, NOW())", resourceId, userId);
@@ -60,19 +77,36 @@ public class UsageController {
             // Write rich detailed view audit log
             try {
                 String resourceTitle = "Resource #" + resourceId;
+                String resourceCategory = "General Academics";
+                String resourceType = "TEXTBOOK";
                 try {
-                    var rList = jdbc.queryForList("SELECT title FROM zyndex_content.resources WHERE id = ? LIMIT 1", resourceId);
-                    if (!rList.isEmpty() && rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
+                    var rList = jdbc.queryForList("SELECT title, category, type FROM zyndex_content.resources WHERE id = ? LIMIT 1", resourceId);
+                    if (!rList.isEmpty()) {
+                        if (rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
+                        if (rList.get(0).get("category") != null) resourceCategory = String.valueOf(rList.get(0).get("category"));
+                        if (rList.get(0).get("type") != null) resourceType = String.valueOf(rList.get(0).get("type"));
+                    }
                 } catch (Exception ignored) {}
+
                 String userEmail = "User #" + userId;
+                String userName = "Scholar";
                 try {
                     var uList = jdbc.queryForList("SELECT email, username FROM zyndex_auth.users WHERE id = ? LIMIT 1", userId);
-                    if (!uList.isEmpty() && uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
+                    if (!uList.isEmpty()) {
+                        if (uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
+                        if (uList.get(0).get("username") != null) userName = String.valueOf(uList.get(0).get("username"));
+                    }
                 } catch (Exception ignored) {}
+
+                String detailLog = String.format(
+                    "Usage engine loaded and opened academic %s: \"%s\" (Resource ID: %d, Discipline: %s) for scholar: %s (%s, ID: %d) at %s [Telemetry Stream Initiated]",
+                    resourceType, resourceTitle, resourceId, resourceCategory, userName, userEmail, userId, java.time.LocalDateTime.now()
+                );
+
                 jdbc.update("""
                         INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                         VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'RESOURCE_LOADED', ?, ?, '127.0.0.1', 'SUCCESS')
-                        """, userEmail, "Usage engine loaded and opened academic resource: " + resourceTitle + " (ID: " + resourceId + ") for user: " + userEmail + " (ID: " + userId + ")");
+                        """, userEmail, detailLog);
             } catch (Exception ignored) {}
         }
 

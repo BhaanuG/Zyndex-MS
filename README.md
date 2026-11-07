@@ -1792,16 +1792,16 @@ Statistics were calculated using a native filesystem audit executed across all s
 
 | Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`.jsx`** | React UI Components & Pages | **95 Files** | **25,303 Lines** | **88,371 Words** | **1,121,385 Chars** |
-| **`.java`** | Spring Boot Microservices Backend | **63 Files** | **9,518 Lines** | **38,538 Words** | **476,071 Chars** |
+| **`.jsx`** | React UI Components & Pages | **95 Files** | **25,319 Lines** | **88,532 Words** | **1,123,039 Chars** |
+| **`.java`** | Spring Boot Microservices Backend | **63 Files** | **9,616 Lines** | **39,020 Words** | **483,197 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,567 Lines** | **14,274 Words** | **153,477 Chars** |
 | **`.json`** | Package & Dependency Manifests | **3 Files** | **6,005 Lines** | **11,441 Words** | **170,276 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,398 Lines** | **19,389 Words** | **170,983 Chars** |
+| **`.md`** | Technical Architecture Documentation | **5 Files** | **2,367 Lines** | **19,200 Words** | **169,791 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **801 Lines** | **1,834 Words** | **17,992 Chars** |
-| **`.yml`** | Spring Cloud & Gateway Configurations| **11 Files** | **646 Lines** | **1,245 Words** | **19,247 Chars** |
+| **`.yml`** | Spring Cloud & Gateway Configurations| **9 Files** | **549 Lines** | **881 Words** | **16,193 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **523 Lines** | **552 Words** | **18,789 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
-| **Overall Total** | **Full Stack Application** | **208 Files** | **49,791 Lines** | **175,712 Words** | **2,149,103 Chars** |
+| **Overall Total** | **Full Stack Application** | **205 Files** | **49,777 Lines** | **175,802 Words** | **2,153,637 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:

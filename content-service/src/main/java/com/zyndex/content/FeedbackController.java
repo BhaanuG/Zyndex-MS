@@ -47,17 +47,28 @@ class FeedbackController {
             String uEmail = isAnonymous ? "Anonymous User" : SqlSupport.str(uProf.get("email"));
             String uName = isAnonymous ? "Anonymous" : SqlSupport.str(uProf.get("name"));
             String resTitle = "Resource #" + resourceId;
+            String resCategory = "Uncategorized";
             try {
-                var rList = jdbc.queryForList("SELECT title FROM resources WHERE id = ? LIMIT 1", resourceId);
-                if (!rList.isEmpty()) resTitle = String.valueOf(rList.get(0).get("title"));
+                var rList = jdbc.queryForList("SELECT title, category FROM resources WHERE id = ? LIMIT 1", resourceId);
+                if (!rList.isEmpty()) {
+                    resTitle = String.valueOf(rList.get(0).get("title"));
+                    resCategory = String.valueOf(rList.get(0).get("category"));
+                }
             } catch (Exception ignored) {}
+
+            String formattedTimestamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+            String clientIp = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For").split(",")[0].trim() : request.getRemoteAddr();
+
+            String feedbackSubmissionDetail = String.format(
+                    "Scholar %s (%s, User ID: %d) submitted a %s-star academic review for resource \"%s\" (Resource ID: %d, Category: \"%s\"). Feedback ID: #%d | Anonymous Mode: %s | Submitted Comment: \"%s\" | Exact Submission Timestamp: %s",
+                    uName, isAnonymous ? "[HIDDEN_ANONYMOUS]" : uEmail, userId, body.get("rating"), resTitle, resourceId, resCategory, feedbackId, isAnonymous, SqlSupport.str(body.get("message")), formattedTimestamp
+            );
 
             jdbc.update("""
                     INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'CONTENT-SERVICE', 'INFO', 'FEEDBACK_SUBMITTED', ?, ?, ?, 'SUCCESS')
                     """, isAnonymous ? "anonymous@reader.zyndex" : uEmail,
-                    "User " + uName + " (" + uEmail + ") submitted " + body.get("rating") + "-star feedback on " + resTitle + " (Feedback ID: " + feedbackId + ", Anonymous: " + isAnonymous + "): \"" + SqlSupport.str(body.get("message")) + "\"",
-                    request.getRemoteAddr());
+                    feedbackSubmissionDetail, clientIp);
         } catch (Exception ignored) {}
 
         return Map.of("message", "Feedback submitted successfully.", "feedbackId", feedbackId);
@@ -190,20 +201,27 @@ class FeedbackController {
 
         // Record rich audit logs in both Admin Action Logs and Microservice Audit Logs
         String adminEmail = String.valueOf(SqlSupport.first(request.getHeader("X-User-Email"), "admin@zyndex.com"));
+        String clientIp = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For").split(",")[0].trim() : request.getRemoteAddr();
+        String formattedTimestamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+        
         try {
+            String adminAuditDetail = String.format(
+                    "Administrator %s (%s) replied to feedback #%d on resource \"%s\" (Resource ID: %s) submitted by scholar %s (%s, User ID: %d) on %s. Rating: %d/5 | Scholar Comment: \"%s\" | Admin Response: \"%s\" | Exact Execution Timestamp: %s",
+                    adminName, adminEmail, id, resourceTitle, feedback.get("resource_id") != null ? feedback.get("resource_id") : "N/A", userName, userEmail, userId, feedbackDate, rating, userComment, adminComment, formattedTimestamp
+            );
             jdbc.update("""
                     INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'ADMIN-PORTAL', 'INFO', 'ADMIN_RESPONDED_FEEDBACK', ?, ?, ?, 'SUCCESS')
-                    """, adminEmail,
-                    "Administrator " + adminName + " (" + adminEmail + ") replied to feedback #" + id + " on resource \"" + resourceTitle + "\" for user " + userName + " (" + userEmail + "): \"" + adminComment + "\"",
-                    request.getRemoteAddr());
+                    """, adminEmail, adminAuditDetail, clientIp);
 
+            String microserviceAuditDetail = String.format(
+                    "Content service processed feedback reply workflow for feedback #%d on resource \"%s\" (ID: %s). Dispatched notification email to scholar %s <%s>. Delivery Status: %s | Admin Respondent: %s <%s> | Admin Reply Text: \"%s\" | Action Timestamp: %s",
+                    id, resourceTitle, feedback.get("resource_id") != null ? feedback.get("resource_id") : "N/A", userName, userEmail, (emailSent ? "SUCCESSFULLY_DELIVERED_VIA_SMTP" : "FAILED_OR_SKIPPED"), adminName, adminEmail, adminComment, formattedTimestamp
+            );
             jdbc.update("""
                     INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'CONTENT-SERVICE', 'INFO', 'FEEDBACK_RESPONSE_DISPATCHED', ?, ?, ?, 'SUCCESS')
-                    """, adminEmail,
-                    "Content service dispatched response email to " + userEmail + " for feedback #" + id + " on \"" + resourceTitle + "\". Delivery Status: " + (emailSent ? "SENT_VIA_SMTP" : "QUEUED/SKIPPED"),
-                    request.getRemoteAddr());
+                    """, adminEmail, microserviceAuditDetail, clientIp);
         } catch (Exception ignored) {}
 
         return Map.of(

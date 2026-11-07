@@ -81,39 +81,55 @@ export default function AdminLayout({ children }) {
 
     const handleClick = (e) => {
       const now = Date.now();
-      // Throttle rapid clicks to at most one per 4 seconds
-      if (now - lastClickTimeRef.current < 4000) return;
+      // Throttle identical rapid clicks
+      if (now - lastClickTimeRef.current < 2000) return;
 
       const target = e.target;
       const button = target.closest('button');
       const link = target.closest('a');
-      const input = target.closest('input, select');
+      const input = target.closest('input, select, textarea');
 
+      let actionTitle = 'ADMIN_USER_CLICK';
       let actionDesc = null;
+
+      const pageName = location.pathname.split('/').filter(Boolean).pop() || 'Admin-Dashboard';
+
       if (button) {
-        const text = button.innerText?.trim() || button.getAttribute('title') || button.getAttribute('aria-label');
-        if (text) {
-          actionDesc = `Administrator clicked button: "${text.slice(0, 50)}"`;
-        }
+        const text = button.innerText?.trim() || button.getAttribute('title') || button.getAttribute('aria-label') || 'Button';
+        // Contextual analysis of the clicked button
+        let intent = 'Triggered control';
+        const lower = text.toLowerCase();
+        if (lower.includes('download') || lower.includes('export')) intent = 'Initiated data export / download';
+        else if (lower.includes('filter') || lower.includes('search')) intent = 'Filtered data table or search queries';
+        else if (lower.includes('save') || lower.includes('update')) intent = 'Submitted modifications / settings';
+        else if (lower.includes('delete') || lower.includes('trash')) intent = 'Opened deletion / revocation dialog';
+        else if (lower.includes('terminate') || lower.includes('logout')) intent = 'Triggered session revocation control';
+        else if (lower.includes('confirm') || lower.includes('verify')) intent = 'Initiated verification / confirmation workflow';
+        else if (lower.includes('cancel') || lower.includes('close')) intent = 'Dismissed dialog / cancelled action';
+        else if (lower.includes('tab') || lower.includes('logs') || lower.includes('metrics')) intent = 'Switched dashboard audit view / tab';
+
+        actionTitle = `ADMIN_CLICK_${text.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase().slice(0, 30)}`;
+        actionDesc = `Administrator (${user.name || user.email}) ${intent} by clicking "${text.slice(0, 60)}" on the ${pageName} interface [Element: <button>, Timestamp: ${new Date().toISOString()}]`;
       } else if (link) {
-        const text = link.innerText?.trim() || link.getAttribute('title') || link.getAttribute('href');
-        if (text) {
-          actionDesc = `Administrator clicked navigation link: "${text.slice(0, 50)}"`;
-        }
+        const text = link.innerText?.trim() || link.getAttribute('title') || link.getAttribute('href') || 'Navigation';
+        const href = link.getAttribute('href') || 'link';
+        actionTitle = 'ADMIN_NAVIGATION_CLICK';
+        actionDesc = `Administrator (${user.name || user.email}) navigated via link "${text.slice(0, 50)}" to destination [${href}] from current view ${pageName}`;
       } else if (input) {
-        const placeholder = input.getAttribute('placeholder') || input.getAttribute('name') || input.tagName;
-        actionDesc = `Administrator focused/interacted with input element: [${placeholder}]`;
+        const placeholder = input.getAttribute('placeholder') || input.getAttribute('name') || input.id || input.tagName;
+        const valType = input.type || 'text';
+        actionTitle = 'ADMIN_INPUT_FOCUS';
+        actionDesc = `Administrator (${user.name || user.email}) interacted with form field [${placeholder}] (type: ${valType}) on ${pageName} view`;
       }
 
       if (actionDesc) {
         lastClickTimeRef.current = now;
-        const pageName = location.pathname.split('/').filter(Boolean).pop() || 'Admin-Portal';
         logService.createLog({
           service: 'ADMIN-PORTAL',
           level: 'INFO',
-          action: 'ADMIN_UI_INTERACTION',
+          action: actionTitle,
           actorEmail: user.email || 'admin@zyndex.com',
-          details: `${actionDesc} on page ${pageName}`,
+          details: actionDesc,
           status: 'SUCCESS'
         }).catch(() => {});
       }

@@ -235,6 +235,25 @@ class ResourceController {
 
         logUsageEvent(userId, id, "VIEW");
 
+        // Record granular microservice audit log for resource loading
+        try {
+            Map<String, Object> uProf = fetchUserProfile(userId);
+            String uEmail = SqlSupport.str(uProf.get("email"));
+            String uName = SqlSupport.str(uProf.get("name"));
+            String formattedTimestamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+            String clientIp = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For").split(",")[0].trim() : request.getRemoteAddr();
+            String sliceInfo = (accessDetails != null && accessDetails.containsKey("pageLimit")) ? " [Page preview limited to " + accessDetails.get("pageLimit") + " pages]" : " [Full Document Access]";
+            
+            String logDetail = String.format(
+                    "Content service verified entitlements and streamed resource \"%s\" (Resource ID: %d, Category: \"%s\", Type: %s) to scholar %s <%s> (User ID: %d, Role: %s)%s. Timestamp: %s",
+                    title, id, category, type, uName, uEmail, userId, role, sliceInfo, formattedTimestamp
+            );
+            jdbc.update("""
+                    INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'CONTENT-SERVICE', 'INFO', 'RESOURCE_STREAM_AUTHORIZED', ?, ?, ?, 'SUCCESS')
+                    """, uEmail, logDetail, clientIp);
+        } catch (Exception ignored) {}
+
         if (fileUrl.matches("(?i)^https?://.*")) {
             return downloadExternalFile(fileUrl, title);
         }
@@ -335,6 +354,33 @@ class ResourceController {
             long userId = Long.parseLong(userIdStr);
             Integer duration = body.get("duration") != null ? Integer.parseInt(String.valueOf(body.get("duration"))) : 0;
             logUsageDuration(userId, id, duration);
+
+            // Record granular reading progress audit
+            if (duration != null && duration > 0) {
+                try {
+                    Map<String, Object> uProf = fetchUserProfile(userId);
+                    String uEmail = SqlSupport.str(uProf.get("email"));
+                    String uName = SqlSupport.str(uProf.get("name"));
+                    String resTitle = "Resource #" + id;
+                    try {
+                        var rList = jdbc.queryForList("SELECT title FROM resources WHERE id = ? LIMIT 1", id);
+                        if (!rList.isEmpty()) resTitle = String.valueOf(rList.get(0).get("title"));
+                    } catch (Exception ignored) {}
+
+                    String formattedTimestamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+                    String clientIp = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For").split(",")[0].trim() : request.getRemoteAddr();
+
+                    String progressDetail = String.format(
+                            "Scholar %s (%s, User ID: %d) recorded %d seconds active academic reading session on \"%s\" (Resource ID: %d). Timestamp: %s",
+                            uName, uEmail, userId, duration, resTitle, id, formattedTimestamp
+                    );
+
+                    jdbc.update("""
+                            INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                            VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'READING_PROGRESS_SAVED', ?, ?, ?, 'SUCCESS')
+                            """, uEmail, progressDetail, clientIp);
+                } catch (Exception ignored) {}
+            }
         }
         return Map.of("message", "Resource reading duration tracked successfully.");
     }
