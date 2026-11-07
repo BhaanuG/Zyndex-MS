@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ Zyndex (ScholarSphere Engine)
+#  Zyndex
 ### *Next-Generation Enterprise Academic Learning & Distributed Digital Resource Governance Platform*
 
 [![Java](https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
