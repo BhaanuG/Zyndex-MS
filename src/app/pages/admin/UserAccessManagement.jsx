@@ -35,7 +35,7 @@ const PLATFORM_PLANS = [
 
 export default function UserAccessManagement() {
   const { user: currentUser, refreshUser, isPrimaryAdmin } = useAuth();
-  const canManageUsers = currentUser?.isPrimaryAdmin === true;
+  const canManageUsers = currentUser?.role === 'admin' || isPrimaryAdmin === true;
   const [showModal, setShowModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -186,7 +186,7 @@ export default function UserAccessManagement() {
   };
 
   useEffect(() => {
-    const interval = window.setInterval(() => loadUsers(searchTerm), 60000);
+    const interval = window.setInterval(() => loadUsers(searchTerm), 10000);
     return () => window.clearInterval(interval);
   }, [searchTerm]);
 
@@ -378,11 +378,10 @@ export default function UserAccessManagement() {
 
             <button
               onClick={exportUsersToCsv}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm"
-              title="Export all users to CSV / Excel format"
+              className="size-10 flex items-center justify-center bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm shrink-0 cursor-pointer"
+              title="Download Users (CSV)"
             >
-              <Download className="size-4 text-gray-500" />
-              Export Users (CSV)
+              <Download className="size-4 text-gray-600" />
             </button>
             {canManageUsers && (
               <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors">
@@ -426,7 +425,6 @@ export default function UserAccessManagement() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Status</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Name</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Email</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Platform Role</th>
@@ -445,23 +443,7 @@ export default function UserAccessManagement() {
                   const platformRole = getPlatformRole(user);
                   return (
                     <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4 px-6">
-                        {user.isOnline ? (
-                          <div className="flex items-center gap-2">
-                            <span className="relative flex h-3 w-3">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                            </span>
-                            <span className="text-xs font-semibold text-emerald-700">Active</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <span className="h-2.5 w-2.5 rounded-full bg-gray-300"></span>
-                            <span className="text-xs text-gray-400">Offline</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-4 px-6 font-medium text-gray-900">{user.name}</td>
+                      <td className={`py-4 px-6 ${user.isOnline ? 'text-emerald-600 font-semibold' : 'text-gray-900 font-medium'}`}>{user.name}</td>
                       <td className="py-4 px-6 text-gray-600">{user.email}</td>
                       <td className="py-4 px-6">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
@@ -516,7 +498,7 @@ export default function UserAccessManagement() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                         {canManageUsers && <>
-                          {user.isOnline && platformRole !== 'Main Admin' && (
+                          {isPrimaryAdmin && user.isOnline && platformRole !== 'Main Admin' && (
                             <button
                               onClick={() => handleForceLogoutUser(user)}
                               disabled={loggingOutUser === user.id}

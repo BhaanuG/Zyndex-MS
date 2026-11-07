@@ -131,7 +131,7 @@ public class AuthSupport {
                 int claimV = Integer.parseInt(String.valueOf(tokenVer));
                 int dbV = user.get("session_token_version") != null ? (int) number(user.get("session_token_version")) : 1;
                 if (claimV < dbV) {
-                    throw new ApiException(HttpStatus.UNAUTHORIZED, "Your session has been terminated by administrator. Please log in again.");
+                    throw new ApiException(HttpStatus.UNAUTHORIZED, "You have been logged out because your account was logged in from another device.");
                 }
             }
             Map<String, Object> sanitized = sanitizeUser(user);

@@ -150,7 +150,10 @@ class UserController {
 
     @PostMapping
     Map<String, Object> create(HttpServletRequest request, @RequestBody Map<String, Object> body) {
-        auth.requirePrimaryAdmin(request);
+        Map<String, Object> currentUser = auth.requireUser(request);
+        auth.requireRole(currentUser, "admin");
+        boolean isPrimary = Boolean.TRUE.equals(currentUser.get("isPrimaryAdmin"));
+
         String name = AuthSupport.str(body.get("name"));
         String email = AuthSupport.str(body.get("email"));
         String password = AuthSupport.str(body.get("password"));
@@ -164,8 +167,14 @@ class UserController {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Name, email, and password are required.");
         }
         auth.validatePasswordStrength(password);
+
+        String desiredRole = "admin".equalsIgnoreCase(String.valueOf(body.get("role"))) ? "ADMIN" : "STUDENT";
+        if ("ADMIN".equals(desiredRole) && !isPrimary) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the main administrator can create admin users.");
+        }
+
         jdbc.update("INSERT INTO users (created_at, email, password, username, role, user_type, profession, college_name, university_name, registration_no, bio) VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            email, auth.passwordEncoder.encode(password), name, "admin".equals(body.get("role")) ? "ADMIN" : "STUDENT", userType.isBlank() ? "Other" : userType, profession.isBlank() ? null : profession, collegeName.isBlank() ? null : collegeName, universityName.isBlank() ? null : universityName, registrationNo.isBlank() ? null : registrationNo, bio.isBlank() ? null : bio);
+            email, auth.passwordEncoder.encode(password), name, desiredRole, userType.isBlank() ? "Other" : userType, profession.isBlank() ? null : profession, collegeName.isBlank() ? null : collegeName, universityName.isBlank() ? null : universityName, registrationNo.isBlank() ? null : registrationNo, bio.isBlank() ? null : bio);
         Long userId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
 
         String subscriptionPlan = AuthSupport.str(body.get("subscriptionPlan"));
@@ -195,7 +204,10 @@ class UserController {
 
     @PutMapping("/{userId}")
     Map<String, Object> update(HttpServletRequest request, @PathVariable("userId") long userId, @RequestBody Map<String, Object> body) {
-        auth.requirePrimaryAdmin(request);
+        Map<String, Object> currentUser = auth.requireUser(request);
+        auth.requireRole(currentUser, "admin");
+        boolean isPrimary = Boolean.TRUE.equals(currentUser.get("isPrimaryAdmin"));
+
         Map<String, Object> existingUser = auth.findUserById(userId);
         if (existingUser == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
@@ -203,9 +215,23 @@ class UserController {
         String oldRole = AuthSupport.str(existingUser.get("role"));
         if (oldRole.isBlank()) oldRole = "STUDENT";
 
+        // Prevent modifying primary admin account if not primary admin
+        if (Boolean.TRUE.equals(existingUser.get("is_primary_admin")) && !isPrimary) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the main administrator can modify the primary admin account.");
+        }
+
         String name = AuthSupport.str(body.get("name"));
         String email = AuthSupport.str(body.get("email"));
-        String role = "admin".equalsIgnoreCase(String.valueOf(body.get("role"))) ? "ADMIN" : "STUDENT";
+        String desiredRole = body.containsKey("role") 
+                ? ("admin".equalsIgnoreCase(String.valueOf(body.get("role"))) ? "ADMIN" : "STUDENT")
+                : oldRole;
+
+        boolean roleChanged = !oldRole.equalsIgnoreCase(desiredRole);
+        if (roleChanged && !isPrimary) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the main administrator can change platform roles.");
+        }
+        String role = roleChanged ? desiredRole : oldRole;
+
         String password = AuthSupport.str(body.get("password"));
         String userType = AuthSupport.str(body.get("userType"));
         String profession = AuthSupport.str(body.get("profession"));
@@ -213,8 +239,6 @@ class UserController {
         String universityName = AuthSupport.str(body.get("universityName"));
         String registrationNo = AuthSupport.str(body.get("registrationNo"));
         String bio = AuthSupport.str(body.get("bio"));
-
-        boolean roleChanged = !oldRole.equalsIgnoreCase(role);
 
         Boolean planNotificationSent = null;
         if (body.containsKey("subscriptionPlan")) {
@@ -290,10 +314,25 @@ class UserController {
 
     @DeleteMapping("/{userId}")
     Map<String, Object> delete(HttpServletRequest request, @PathVariable("userId") long userId) {
-        Map<String, Object> user = auth.requirePrimaryAdmin(request);
-        if (userId == AuthSupport.number(user.get("id"))) {
+        Map<String, Object> caller = auth.requireUser(request);
+        auth.requireRole(caller, "admin");
+        boolean isPrimary = Boolean.TRUE.equals(caller.get("isPrimaryAdmin"));
+
+        if (userId == AuthSupport.number(caller.get("id"))) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "You cannot delete the account you are currently logged in with.");
         }
+
+        Map<String, Object> target = auth.findUserById(userId);
+        if (target == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
+        }
+
+        // Only Primary Admin can delete Admin accounts
+        boolean targetIsAdmin = "ADMIN".equalsIgnoreCase(AuthSupport.str(target.get("role"))) || Boolean.TRUE.equals(target.get("is_primary_admin"));
+        if (targetIsAdmin && !isPrimary) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the main administrator can delete admin accounts.");
+        }
+
         jdbc.update("DELETE FROM users WHERE id = ?", userId);
         return Map.of("message", "User deleted successfully.");
     }

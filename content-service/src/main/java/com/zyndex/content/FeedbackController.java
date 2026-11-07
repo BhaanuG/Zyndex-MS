@@ -185,7 +185,7 @@ class FeedbackController {
         // 1. Direct cross-database lookup from zyndex_auth.users (instant, 100% reliable)
         try {
             var directUser = jdbc.queryForList("""
-                    SELECT COALESCE(NULLIF(username, ''), NULLIF(name, ''), email) AS name, email
+                    SELECT username AS name, email
                     FROM zyndex_auth.users WHERE id = ? LIMIT 1
                     """, userId);
             if (!directUser.isEmpty() && directUser.get(0).get("email") != null) {
@@ -196,7 +196,7 @@ class FeedbackController {
         // 2. Direct local users table lookup (if shared schema / local mirror)
         try {
             var localUser = jdbc.queryForList("""
-                    SELECT COALESCE(NULLIF(username, ''), NULLIF(name, ''), email) AS name, email
+                    SELECT username AS name, email
                     FROM users WHERE id = ? LIMIT 1
                     """, userId);
             if (!localUser.isEmpty() && localUser.get(0).get("email") != null) {

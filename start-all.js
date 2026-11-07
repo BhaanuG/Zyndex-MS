@@ -273,6 +273,7 @@ async function start() {
 
     // 3. Start the gateway before exposing the frontend so initial auth and preview requests have a backend.
     console.log('[SYSTEM] Starting API Gateway...');
+    await waitForPortClosed(8080);
     await runProcess('API-GATEWAY', mvn, ['spring-boot:run', '-pl', 'api-gateway'], __dirname);
     console.log('[SYSTEM] Waiting for API Gateway (port 8080) to become ready...');
     if (!await waitForPort(8080, 'localhost', 60000)) {
@@ -281,6 +282,7 @@ async function start() {
     console.log('[SYSTEM] API Gateway is ONLINE on port 8080!');
 
     console.log('[SYSTEM] Starting Vite Frontend...');
+    await waitForPortClosed(5173);
     await runProcess('FRONTEND', npm, ['run', 'dev'], __dirname);
 }
 

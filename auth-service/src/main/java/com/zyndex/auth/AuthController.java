@@ -115,7 +115,13 @@ class AuthController {
             return Map.of("message", "Credentials verified.", "user", user);
         }
         try {
-            jdbc.update("UPDATE users SET last_active_at = NOW() WHERE id = ?", user.get("id"));
+            // Increment session_token_version to invalidate any previous active sessions on other devices
+            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NOW() WHERE id = ?", user.get("id"));
+            // Fetch updated version to stamp on new JWT
+            Map<String, Object> updatedUser = auth.findUserById(AuthSupport.number(user.get("id")));
+            if (updatedUser != null) {
+                user = auth.sanitizeUser(updatedUser);
+            }
             jdbc.update(
                 "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
                 "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'USER_LOGIN', ?, 'User successfully logged in and session token issued.', '127.0.0.1', 'SUCCESS')",
