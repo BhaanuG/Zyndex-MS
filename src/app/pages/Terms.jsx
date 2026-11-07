@@ -322,7 +322,7 @@ export default function Terms() {
             </p>
             <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
               <FileText className="size-4" />
-              Last Updated: January 28, 2026
+              Last Updated: November 7, 2026
             </div>
           </motion.div>
 

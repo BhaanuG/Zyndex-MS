@@ -19,6 +19,8 @@ export default function Login() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState('Student');
   const [otherDescription, setOtherDescription] = useState('');
   const [institutionName, setInstitutionName] = useState('');
@@ -188,6 +190,12 @@ export default function Login() {
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
         if (!passwordRegex.test(password)) {
           setError('Password must be at least 8 characters long, contain at least one uppercase letter, one digit, and one special character.');
+          setSubmitting(false);
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          setError('Passwords do not match. Please ensure both passwords match identically.');
           setSubmitting(false);
           return;
         }
@@ -496,6 +504,40 @@ export default function Login() {
                 </div>
 
                 {isSignUpMode && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Re-enter Password</label>
+                    <div className="relative flex items-center">
+                      <Lock className="absolute left-4 size-5 text-slate-400 z-10" />
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          setError('');
+                          setSuccessMessage('');
+                        }}
+                        placeholder="Re-enter your password to confirm"
+                        className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 p-1 text-slate-400 hover:text-orange-600 transition-colors z-10"
+                      >
+                        {showConfirmPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                      </button>
+                    </div>
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-xs text-red-500 font-medium mt-1">Passwords do not match.</p>
+                    )}
+                    {confirmPassword && password === confirmPassword && (
+                      <p className="text-xs text-emerald-600 font-medium mt-1">✓ Passwords match perfectly.</p>
+                    )}
+                  </div>
+                )}
+
+                {isSignUpMode && (
                   <div className="flex items-start gap-3 p-3 bg-orange-50/60 border border-orange-100 rounded-xl">
                     <input
                       type="checkbox"
@@ -552,42 +594,13 @@ export default function Login() {
                 )}
 
                 {isSignUpMode && (
-                  <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
-                    <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                      <span>Verification Steps to Enable Account Creation:</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                        otpVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {otpVerified ? '✓ Verified' : 'Action Required'}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className={`p-2 rounded-xl flex items-center gap-2 border ${
-                        otpSent ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700 font-medium' : 'bg-white border-slate-200 text-slate-500'
-                      }`}>
-                        <span className={`size-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                          otpSent ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
-                        }`}>
-                          {otpSent ? '✓' : '1'}
-                        </span>
-                        <span>Send OTP to Email</span>
-                      </div>
-                      <div className={`p-2 rounded-xl flex items-center gap-2 border ${
-                        otpVerified ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700 font-medium' : 'bg-white border-slate-200 text-slate-500'
-                      }`}>
-                        <span className={`size-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                          otpVerified ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
-                        }`}>
-                          {otpVerified ? '✓' : '2'}
-                        </span>
-                        <span>Verify 4-Digit Code</span>
-                      </div>
-                    </div>
-                    {!otpVerified && (
-                      <p className="text-[11px] text-amber-700 font-medium pt-1">
-                        👉 Click <b>"Send OTP"</b> next to your email, enter the 4 digits, and click <b>"Verify OTP"</b> to unlock the Create Account button.
-                      </p>
-                    )}
+                  <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                    <span className="text-slate-600 font-medium">Email verification:</span>
+                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                      otpVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {otpVerified ? '✓ Verified' : 'OTP verification required'}
+                    </span>
                   </div>
                 )}
 
@@ -604,7 +617,7 @@ export default function Login() {
                       {submitting ? (
                         isSignUpMode ? 'Creating account...' : 'Checking...'
                       ) : isSignUpMode ? (
-                        otpVerified ? 'Create Account' : 'Verify Email OTP to Create Account'
+                        'Create Account'
                       ) : (
                         'Sign In'
                       )}
@@ -613,7 +626,7 @@ export default function Login() {
                   </button>
                   {isSignUpMode && !otpVerified && (
                     <p className="text-center text-xs text-slate-500 mt-2 font-medium">
-                      🔒 Button is locked until email is verified via 4-digit OTP above.
+                      Please verify email OTP to enable account creation.
                     </p>
                   )}
                 </div>

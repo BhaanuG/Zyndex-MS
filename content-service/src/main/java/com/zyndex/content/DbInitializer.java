@@ -54,10 +54,18 @@ class DbInitializer implements CommandLineRunner {
                   resource_id BIGINT NOT NULL,
                   user_id BIGINT NOT NULL,
                   comment TEXT NULL,
+                  admin_response TEXT NULL,
+                  responded_at DATETIME(6) NULL,
                   PRIMARY KEY (id),
                   CONSTRAINT fk_feedback_resource FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
                 )
                 """);
+        try {
+            jdbc.execute("ALTER TABLE feedback ADD COLUMN admin_response TEXT NULL");
+        } catch (Exception ignored) {}
+        try {
+            jdbc.execute("ALTER TABLE feedback ADD COLUMN responded_at DATETIME(6) NULL");
+        } catch (Exception ignored) {}
         jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS contacts (
                   id BIGINT NOT NULL AUTO_INCREMENT,

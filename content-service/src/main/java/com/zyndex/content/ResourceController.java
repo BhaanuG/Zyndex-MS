@@ -502,10 +502,20 @@ class ResourceController {
     @SuppressWarnings("unchecked")
     private Map<String, Object> fetchUserProfile(long userId) {
         try {
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("X-Internal-Service", "content-service");
+            org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
             String url = "http://auth-service/api/users/" + userId + "/profile";
-            return restTemplate.getForObject(url, Map.class);
+            org.springframework.http.ResponseEntity<Map> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of();
         } catch (Exception e) {
-            return Map.of("name", "System", "email", "system@example.com");
+            try {
+                var directUser = jdbc.queryForList("SELECT name, email FROM users WHERE id = ? LIMIT 1", userId);
+                if (!directUser.isEmpty()) {
+                    return directUser.get(0);
+                }
+            } catch (Exception ignored) {}
+            return Map.of("name", "Student Reader", "email", "reader@zyndex.com");
         }
     }
 

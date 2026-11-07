@@ -171,6 +171,41 @@ class ContactEmailService {
         }
     }
 
+    boolean sendFeedbackResponseEmail(String toEmail, String userName, String resourceTitle, String userComment, int rating, String feedbackDate, String adminComment, String adminName) {
+        String subject = "Zyndex | Response to Your Review on \"" + resourceTitle + "\"";
+        String text = """
+                Dear %s,
+
+                Thank you for reviewing "%s" on Zyndex.
+
+                Our administrative team has reviewed your feedback and shared a response:
+
+                === YOUR FEEDBACK ===
+                - Resource: %s
+                - Rating: %d / 5 Stars
+                - Submitted On: %s
+                - Your Comments:
+                "%s"
+
+                === ADMINISTRATOR RESPONSE ===
+                %s
+
+                Response By: %s (Zyndex Team)
+                Response Time: %s
+
+                Thank you for helping us improve the academic learning experience on Zyndex!
+
+                Best regards,
+                Zyndex Team
+                %s
+                """.formatted(
+                userName, resourceTitle, resourceTitle, rating, feedbackDate, userComment,
+                adminComment, adminName, LocalDateTime.now().toString().replace('T', ' '), properties.otpMailFrom()
+        );
+
+        return sendSafely(toEmail, subject, text);
+    }
+
     private String escapeHtml(String value) {
         if (value == null) return "";
         return value.replace("&", "&amp;")

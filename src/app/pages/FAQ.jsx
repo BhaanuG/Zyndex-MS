@@ -49,27 +49,27 @@ export default function FAQ() {
     },
     {
       question: 'How do I submit reviews, ratings, or report content issues?',
-      answer: 'Every academic resource features a feedback module where authenticated readers can submit 1-to-5 star ratings and detailed reviews. You can also contact our 24/7 scholar support team via the Contact Us page.',
+      answer: 'Every academic resource features a feedback module where authenticated readers can submit 1-to-5 star ratings and detailed reviews. When Zyndex administrators review or reply to your feedback, an automatic email notification is dispatched to you containing your original rating, your review notes, and the administrator\'s response.',
     },
     {
       question: 'Can I use Zyndex on multiple devices simultaneously?',
-      answer: 'Yes. You can access Zyndex on your laptop, desktop, tablet, and mobile smartphone. Every login is safeguarded by 2-step email verification to ensure that only you can authorize new browser sessions.',
+      answer: 'Yes. You can access Zyndex on your laptop, desktop, tablet, and mobile smartphone. Every login is safeguarded by 2-step email verification with an optional 24-hour trusted device cookie so you do not need to re-verify constantly on your primary study device.',
     },
     {
       question: 'What happens if my payment UTR is pending review?',
-      answer: 'UPI UTR verification typically clears within 15 to 30 minutes during standard processing cycles. If there is a bank delay or reference discrepancy, you can monitor the status directly under your Account Billing tab or ping support with your payment receipt.',
+      answer: 'UPI payments with a valid 12-digit bank UTR undergo automated reconciliation and swift administrator verification (usually within 15 to 30 minutes). During initial submission, a 2-minute status hold modal allows rapid automated confirmation before routing to your billing dashboard.',
     },
     {
-      question: 'How is intellectual property and author attribution protected on Zyndex?',
-      answer: 'All educational works uploaded to Zyndex undergo administrative review. Authors, faculty, and publishers retain full moral and academic rights. Materials are distributed under fair-use educational licenses or open-access agreements with transparent citation guides.',
+      question: 'What academic subject categories are available on Zyndex?',
+      answer: 'Zyndex curates resources across core academic and professional disciplines: Artificial Intelligence, Machine Learning, Computer Science, Physics, Chemistry, Mathematics, Economics, History, Literature, and Biology. Each category features dedicated sub-domains, syllabus filters, and reading milestones.',
     },
     {
       question: 'What should I do if I forget my password or change my email?',
       answer: 'Visit the Forgot Password page from the Login portal. Enter your registered email address to receive an instant, single-use password reset link and verification code. For email migrations, reach out to our support desk with your current identity credentials.',
     },
     {
-      question: 'Are there any restrictions on printing or exporting materials?',
-      answer: 'Access permissions depend on publisher copyright agreements and your active plan. Readers can highlight, bookmark, and study resources in our browser reader, while offline PDF downloads are enabled on supported tiers for personal study.',
+      question: 'How does Zyndex stream PDF previews efficiently without lag?',
+      answer: 'Zyndex utilizes an enterprise backend powered by Spring Boot and Apache PDFBox with in-memory page slicing. Rather than downloading heavy 100MB+ documents to your browser, preview pages are rendered and streamed dynamically on-demand, ensuring ultra-fast load times even on mobile connections.',
     },
     {
       question: 'How does Zyndex handle academic integrity and citations?',
@@ -78,6 +78,10 @@ export default function FAQ() {
     {
       question: 'What happens to my account data if my subscription ends?',
       answer: 'Nothing is lost. Your account automatically defaults to our Free Academic Reader tier. Your bookmarks, custom reading lists, notes, and profile history remain completely preserved and accessible indefinitely.',
+    },
+    {
+      question: 'How can I contact support and what is the typical turnaround time?',
+      answer: 'You can submit an inquiry via our Contact Us portal or email support directly at support@zyndex.com. Our administrative and support desk operates with average response times under 24 hours for all learner inquiries and under 2 hours for payment assistance.',
     },
   ];
 

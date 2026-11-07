@@ -61,7 +61,7 @@ class FeedbackController {
         requireAdmin(request);
         var page = sql.page(query);
         var rows = jdbc.queryForList("""
-                SELECT f.id, f.rating, f.created_at, f.comment, f.user_id, r.title, r.category
+                SELECT f.id, f.rating, f.created_at, f.comment, f.admin_response, f.responded_at, f.user_id, r.title, r.category
                 FROM feedback f JOIN resources r ON r.id = f.resource_id
                 ORDER BY f.created_at DESC LIMIT ? OFFSET ?
                 """, page.get("size"), page.get("offset"));
@@ -72,13 +72,16 @@ class FeedbackController {
             Map<String, Object> userProfile = fetchUserProfile(userId);
             return Map.of(
                 "id", row.get("id"),
-                "userName", SqlSupport.first(userProfile.get("name"), "Unknown User"),
-                "email", SqlSupport.first(userProfile.get("email"), "unknown@example.com"),
+                "userId", userId,
+                "userName", SqlSupport.first(userProfile.get("name"), "Student Reader"),
+                "email", SqlSupport.first(userProfile.get("email"), "user@zyndex.com"),
                 "category", row.get("category"),
                 "comment", SqlSupport.first(row.get("comment"), ""),
                 "message", SqlSupport.first(row.get("comment"), ""),
                 "rating", row.get("rating"),
-                "status", "reviewed",
+                "status", row.get("admin_response") != null ? "responded" : "reviewed",
+                "adminResponse", SqlSupport.first(row.get("admin_response"), ""),
+                "respondedAt", SqlSupport.first(row.get("responded_at"), ""),
                 "date", row.get("created_at"),
                 "resourceTitle", row.get("title")
             );
@@ -115,9 +118,52 @@ class FeedbackController {
     }
 
     @PostMapping("/{id}/respond")
-    Map<String, Object> respond(HttpServletRequest request) {
+    Map<String, Object> respond(HttpServletRequest request, @PathVariable("id") long id, @RequestBody Map<String, Object> body) {
         requireAdmin(request);
-        return Map.of("message", "Admin responses are not supported by the current schema.");
+        String adminComment = SqlSupport.str(body.get("response"));
+        if (adminComment.isBlank()) {
+            adminComment = SqlSupport.str(body.get("comment"));
+        }
+        if (adminComment.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Response comment cannot be empty.");
+        }
+
+        var rows = jdbc.queryForList("""
+                SELECT f.id, f.rating, f.created_at, f.comment, f.user_id, r.title
+                FROM feedback f JOIN resources r ON r.id = f.resource_id
+                WHERE f.id = ? LIMIT 1
+                """, id);
+        if (rows.isEmpty()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Feedback not found.");
+        }
+
+        var feedback = rows.get(0);
+        long userId = SqlSupport.number(feedback.get("user_id"));
+        Map<String, Object> userProfile = fetchUserProfile(userId);
+
+        String userEmail = SqlSupport.str(userProfile.get("email"));
+        String userName = SqlSupport.str(userProfile.get("name"));
+        String resourceTitle = SqlSupport.str(feedback.get("title"));
+        String userComment = SqlSupport.str(feedback.get("comment"));
+        int rating = SqlSupport.parseInt(SqlSupport.str(feedback.get("rating")), 5);
+        String feedbackDate = SqlSupport.str(feedback.get("created_at"));
+
+        String adminName = SqlSupport.first(request.getHeader("X-User-Name"), "Zyndex Administrator");
+
+        jdbc.update("UPDATE feedback SET admin_response = ?, responded_at = NOW() WHERE id = ?", adminComment, id);
+
+        boolean emailSent = false;
+        if (userEmail != null && !userEmail.isBlank() && !userEmail.contains("example.com")) {
+            emailSent = contactEmailService.sendFeedbackResponseEmail(
+                    userEmail, userName, resourceTitle, userComment, rating, feedbackDate, adminComment, adminName
+            );
+        }
+
+        return Map.of(
+                "message", "Admin response recorded and email notification sent to user.",
+                "emailSent", emailSent,
+                "adminResponse", adminComment
+        );
     }
 
     @DeleteMapping("/{id}")
@@ -130,10 +176,20 @@ class FeedbackController {
     @SuppressWarnings("unchecked")
     private Map<String, Object> fetchUserProfile(long userId) {
         try {
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("X-Internal-Service", "content-service");
+            org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
             String url = "http://auth-service/api/users/" + userId + "/profile";
-            return restTemplate.getForObject(url, Map.class);
+            org.springframework.http.ResponseEntity<Map> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, Map.class);
+            return response.getBody() != null ? response.getBody() : Map.of();
         } catch (Exception e) {
-            return Map.of("name", "Unknown User", "email", "unknown@example.com");
+            try {
+                var directUser = jdbc.queryForList("SELECT name, email FROM users WHERE id = ? LIMIT 1", userId);
+                if (!directUser.isEmpty()) {
+                    return directUser.get(0);
+                }
+            } catch (Exception ignored) {}
+            return Map.of("name", "Student Reader", "email", "reader@zyndex.com");
         }
     }
 

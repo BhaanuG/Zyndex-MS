@@ -26,7 +26,8 @@ class UserController {
 
     @GetMapping("/{userId}/profile")
     Map<String, Object> profile(HttpServletRequest request, @PathVariable("userId") String userId) {
-        if ("subscription-service".equalsIgnoreCase(request.getHeader("X-Internal-Service"))) {
+        String internalHeader = request.getHeader("X-Internal-Service");
+        if ("subscription-service".equalsIgnoreCase(internalHeader) || "content-service".equalsIgnoreCase(internalHeader)) {
             Map<String, Object> internalUser = auth.findUserById(Long.parseLong(userId));
             if (internalUser == null) {
                 throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
