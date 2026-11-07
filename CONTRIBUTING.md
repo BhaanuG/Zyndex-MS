@@ -10,9 +10,8 @@ We welcome peer review, security audits, academic feature proposals, documentati
 
 > [!IMPORTANT]
 > **Sole Creator, Lead Architect & Platform Maintainer**: **Bhaanu G (Bhaanu Gali)**  
-> **Institutional Affiliation**: KL University  
 > **Primary Contact**: `Bhaanugali@gmail.com`  
-> **Institutional Contact**: `2400030952@kluniversity.in`  
+> **Direct Engineering Contact**: `2400030952@kluniversity.in`  
 > **Legal License**: MIT License (Copyright © 2026 Bhaanu Gali. All Rights Reserved.)  
 > *All rights, architecture definitions, database schemas, and intellectual property remain with Bhaanu G. All pull requests and community contributions become part of the canonical Zyndex engine under the direct stewardship and sole ownership of Bhaanu G.*
 
@@ -202,4 +201,4 @@ For inquiries, architecture consultations, or security notifications:
 
 - **Sole Creator & Lead Architect**: **Bhaanu G (Bhaanu Gali)**
 - **Primary Administrative Email**: `Bhaanugali@gmail.com`
-- **Campus & Institutional Office**: `2400030952@kluniversity.in`, KL University
+- **Direct Engineering Office**: `2400030952@kluniversity.in`

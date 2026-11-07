@@ -8,8 +8,8 @@
 
 **Enterprise Distributed Academic Resource Platform & Digital Rights Governance Engine**
 
-*Engineered and Maintained by **Bhaanu G (Bhaanu Gali)***  
-KL University • `Bhaanugali@gmail.com` • `2400030952@kluniversity.in`
+*Conceived, Architected & Engineered Solely by **Bhaanu G (Bhaanu Gali)***  
+`Bhaanugali@gmail.com` • `2400030952@kluniversity.in` • [GitHub Repository](https://github.com/BhaanuG/Zyndex-MS)
 
 [![Build Status](https://img.shields.io/badge/Build-Passing%20(0%20Errors)-2ea44f?style=flat-square)](https://github.com/BhaanuG/Zyndex-MS)
 [![Java 21 LTS](https://img.shields.io/badge/Java-21%20LTS-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)

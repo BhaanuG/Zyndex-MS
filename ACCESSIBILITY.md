@@ -11,7 +11,7 @@ Our mission is to provide an open, accessible, barrier-free digital reading and 
 > [!IMPORTANT]
 > **Sole Creator, Lead Architect & Design Authority**: **Bhaanu G (Bhaanu Gali)**  
 > **Direct Administrative Contact**: `Bhaanugali@gmail.com`  
-> **Institutional Office**: `2400030952@kluniversity.in`, Zyndex Platform, KL University  
+> **Engineering Inquiries**: `2400030952@kluniversity.in`  
 > **Compliance Target**: **WCAG 2.1 Level AA & Section 508 Standards**  
 > *All platform accessibility standards, design patterns, and keyboard interaction models are maintained under the direct stewardship of Bhaanu G.*
 
@@ -77,5 +77,5 @@ We continuously test and audit Zyndex against assistive technology devices. If y
 - **Primary Contact**: **Bhaanu G (Bhaanu Gali)**
 - **Role**: Sole Creator, Lead Architect & Platform Maintainer
 - **Administrative Email**: `Bhaanugali@gmail.com`
-- **Campus Office**: `2400030952@kluniversity.in`, KL University
+- **Engineering Office**: `2400030952@kluniversity.in`
 - **Response Commitment**: We acknowledge all accessibility inquiries within **24 hours** and triage technical remediation within **3 to 5 business days**.
