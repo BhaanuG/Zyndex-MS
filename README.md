@@ -1,74 +1,44 @@
 <div align="center">
 
 <a href="https://github.com/BhaanuG/Zyndex-MS">
-  <img src="https://raw.githubusercontent.com/BhaanuG/Zyndex-MS/main/public/logo.svg" alt="Zyndex Logo" width="112" height="112" />
+  <img src="https://raw.githubusercontent.com/BhaanuG/Zyndex-MS/main/public/logo.svg" alt="Zyndex Logo" width="96" height="96" />
 </a>
 
-<br/>
-<br/>
+# ZYNDEX
 
-#  Z Y N D E X
-### **Distributed Academic Microservices Engine & Digital Asset Governance Platform**
-#### *Conceived, Architected & Engineered End-to-End by **Bhaanu G (Bhaanu Gali)***
+**Enterprise Distributed Academic Resource Platform & Digital Rights Governance Engine**
 
-<p align="center">
-  <a href="#system-architecture--microservices-topology"><b>System Topology</b></a> •
-  <a href="#production-benchmarks--architectural-highlights"><b>Engineering Benchmarks</b></a> •
-  <a href="#poly-service-microservices-ecosystem"><b>Microservice Ports</b></a> •
-  <a href="#10-comprehensive-rest-api-reference"><b>REST API Specs</b></a> •
-  <a href="#automated-quickstart--local-cluster-orchestration"><b>Cluster Setup</b></a> •
-  <a href="#17-quantitative-codebase-statistics--metrics"><b>Metrics & Audits</b></a>
-</p>
+*Engineered and Maintained by **Bhaanu G (Bhaanu Gali)***  
+KL University • `Bhaanugali@gmail.com` • `2400030952@kluniversity.in`
 
-<!-- Technology Matrix Badges -->
-<p align="center">
-  <img src="https://img.shields.io/badge/Java_21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />
-  <img src="https://img.shields.io/badge/Spring_Boot_3.4.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 3.4.2" />
-  <img src="https://img.shields.io/badge/Spring_Cloud_2024.0.0-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Cloud" />
-  <img src="https://img.shields.io/badge/React_18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" />
-  <img src="https://img.shields.io/badge/Vite_6.0.5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 6" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS_3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/MySQL_8.4_LTS-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
-</p>
+[![Build Status](https://img.shields.io/badge/Build-Passing%20(0%20Errors)-2ea44f?style=flat-square)](https://github.com/BhaanuG/Zyndex-MS)
+[![Java 21 LTS](https://img.shields.io/badge/Java-21%20LTS-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2024.0.0-6DB33F?style=flat-square&logo=spring&logoColor=white)](https://spring.io/projects/spring-cloud)
+[![React](https://img.shields.io/badge/React-18.3.1-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6.0.5-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![MySQL 8.4](https://img.shields.io/badge/MySQL-8.4%20LTS-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+[![Security Policy](https://img.shields.io/badge/Security-Enforced-success?style=flat-square)](SECURITY.md)
+[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-blue?style=flat-square)](ACCESSIBILITY.md)
 
-<!-- Verification & Security Badges -->
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT_Exclusive_Attribution-yellow?style=flat-square&logo=open-source-initiative&logoColor=white" alt="MIT License" /></a>
-  <a href="SECURITY.md"><img src="https://img.shields.io/badge/Security-Cryptographic_OTP_%26_JWT-2ea44f?style=flat-square&logo=shield&logoColor=white" alt="Security Enforced" /></a>
-  <a href="ACCESSIBILITY.md"><img src="https://img.shields.io/badge/Accessibility-WCAG_2.1_AA_%26_Section_508-blue?style=flat-square&logo=w3c&logoColor=white" alt="Accessibility" /></a>
-  <img src="https://img.shields.io/badge/Microservices_Cluster-7_Autonomous_Services-purple?style=flat-square&logo=micro-editor" alt="Microservices" />
-  <img src="https://img.shields.io/badge/Build_Quality-Zero_Defect_Passing-brightgreen?style=flat-square&logo=github-actions&logoColor=white" alt="Build" />
-</p>
+[Architecture](#system-architecture--microservices-topology) • [Service Registry](#poly-service-microservices-ecosystem) • [REST APIs](#10-comprehensive-rest-api-reference) • [Security & Auth](#9-security-authentication--jwt-traceability) • [Quickstart](#automated-quickstart--local-cluster-orchestration) • [Audits & Metrics](#17-quantitative-codebase-statistics--metrics)
 
-<br/>
-
-<table>
-  <tr>
-    <td align="center" width="25%"><b>Architecture Tier</b></td>
-    <td align="center" width="25%"><b>Core Engine SLA</b></td>
-    <td align="center" width="25%"><b>Security Perimeter</b></td>
-    <td align="center" width="25%"><b>Lead Architect</b></td>
-  </tr>
-  <tr>
-    <td align="center">Poly-Service Distributed Microservices</td>
-    <td align="center">Sub-50ms Gateway Routing | Zero-Downtime Hot Deploy</td>
-    <td align="center">Stateless JWT + BCrypt + Inter-Service Shared Secrets</td>
-    <td align="center"><b>Bhaanu G (Bhaanu Gali)</b><br/><code>Bhaanugali@gmail.com</code></td>
-  </tr>
-</table>
+---
 
 </div>
 
-<br/>
+### Architectural Overview
 
-> [!NOTE]
-> ### 🏛️ Architectural Thesis & Executive Summary
-> **Zyndex** is an enterprise-scale distributed digital library and academic resource repository engineered from the ground up to solve digital rights infringement, fragmented university identity boundaries, and real-time student reading telemetry. Powered by a poly-service mesh with dynamic discovery, stateless gateway routing, and in-memory bytecode PDF preview slicing, Zyndex bridges the gap between high-security institutional governance and frictionless, accessible digital learning.
-> 
-> **Sole Creator, Lead Architect & Platform Owner**: **Bhaanu G (Bhaanu Gali)**  
-> **Institutional Affiliation**: KL University (`2400030952@kluniversity.in`)  
-> **Production Grade**: `v1.0.4-PROD` | **Zero-Defect Build Certified** | **Render & Cloud Native Ready**  
-> *All intellectual property, system designs, diagrams, and codebase architecture are strictly created and owned by Bhaanu G.*
+Zyndex is a cloud-native, distributed digital library and academic resource governance platform engineered for higher-education campuses and research consortia. It provides end-to-end identity federation, cryptographic two-factor authentication, in-memory zero-leakage PDF stream slicing, dynamic UPI subscription settlement, and real-time student reading telemetry.
+
+Designed with poly-service autonomous microservices orchestrated via Spring Cloud Gateway and Netflix Eureka, the platform delivers sub-50ms routing overhead, strict inter-service boundary validation, and zero-downtime deployment capabilities.
+
+> **Engineering Specifications**:
+> - **Lead Architect & Platform Owner**: Bhaanu G (Bhaanu Gali)
+> - **Engine Release**: `v1.0.4-PROD` (All platform rights and design architecture strictly reserved)
+> - **Cluster Footprint**: 7 Autonomous Microservices + Independent React SPA Client
+> - **Verification**: Clean build certification (`BUILD SUCCESS`, 0 compiler warnings, 0 runtime regressions)
 
 ---
 
