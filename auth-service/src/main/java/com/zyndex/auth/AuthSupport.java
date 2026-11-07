@@ -1,5 +1,6 @@
 package com.zyndex.auth;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
@@ -100,50 +101,54 @@ public class AuthSupport {
     }
 
     public Map<String, Object> requireUser(HttpServletRequest request) {
-        // First check headers injected by the API Gateway
+        String header = request.getHeader("Authorization");
         String headerId = request.getHeader("X-User-Id");
-        if (headerId != null && !headerId.isBlank()) {
-            Map<String, Object> user = findUserById(Long.parseLong(headerId));
-            if (user == null || !Boolean.TRUE.equals(bool(user.get("active")))) {
-                throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid or inactive account.");
-            }
-            Map<String, Object> sanitized = sanitizeUser(user);
-            if (isMaintenanceMode() && !Boolean.TRUE.equals(sanitized.get("isPrimaryAdmin"))) {
-                throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.");
-            }
-            return sanitized;
+
+        // Resolve token claims if Bearer header exists to check session token version
+        Claims tokenClaims = null;
+        if (header != null && header.startsWith("Bearer ")) {
+            try {
+                tokenClaims = Jwts.parser().verifyWith(secretKey()).build().parseSignedClaims(header.substring(7)).getPayload();
+            } catch (Exception ignored) {}
         }
 
-        // Direct fallback: check token in header (e.g. for internal requests or testing)
-        String header = request.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
+        long userId = -1;
+        if (headerId != null && !headerId.isBlank()) {
+            try {
+                userId = Long.parseLong(headerId);
+            } catch (Exception ignored) {}
+        } else if (tokenClaims != null && tokenClaims.getSubject() != null) {
+            try {
+                userId = Long.parseLong(String.valueOf(tokenClaims.getSubject()));
+            } catch (Exception ignored) {}
+        }
+
+        if (userId <= 0) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
         }
-        try {
-            var claims = Jwts.parser().verifyWith(secretKey()).build().parseSignedClaims(header.substring(7)).getPayload();
-            Map<String, Object> user = findUserById(Long.parseLong(String.valueOf(claims.getSubject())));
-            if (user == null || !Boolean.TRUE.equals(bool(user.get("active")))) {
-                throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid or inactive account.");
-            }
-            // Check session token version if present in claims
-            Object tokenVer = claims.get("v");
+
+        Map<String, Object> user = findUserById(userId);
+        if (user == null || !Boolean.TRUE.equals(bool(user.get("active")))) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid or inactive account.");
+        }
+
+        // Validate session token version against DB version to terminate superseded / force-logged-out sessions
+        if (tokenClaims != null) {
+            Object tokenVer = tokenClaims.get("v");
             if (tokenVer != null) {
                 int claimV = Integer.parseInt(String.valueOf(tokenVer));
                 int dbV = user.get("session_token_version") != null ? (int) number(user.get("session_token_version")) : 1;
                 if (claimV < dbV) {
-                    throw new ApiException(HttpStatus.UNAUTHORIZED, "You have been logged out because your account was logged in from another device.");
+                    throw new ApiException(HttpStatus.UNAUTHORIZED, "Your session was terminated by an administrator or superseded by another device login.");
                 }
             }
-            Map<String, Object> sanitized = sanitizeUser(user);
-            if (isMaintenanceMode() && !Boolean.TRUE.equals(sanitized.get("isPrimaryAdmin"))) {
-                throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.");
-            }
-            return sanitized;
-        } catch (ApiException error) {
-            throw error;
-        } catch (Exception error) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid authentication token.");
         }
+
+        Map<String, Object> sanitized = sanitizeUser(user);
+        if (isMaintenanceMode() && !Boolean.TRUE.equals(sanitized.get("isPrimaryAdmin"))) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.");
+        }
+        return sanitized;
     }
 
     public void requireRole(Map<String, Object> user, String role) {

@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user || !localStorage.getItem('auth_token')) return undefined;
-    // Periodic check every 15 seconds: refresh user and check maintenance mode
+    // Periodic check every 4 seconds: refresh user and check maintenance mode / session termination
     const interval = window.setInterval(async () => {
       refreshUser();
       // If not primary admin, check if maintenance mode has been activated
@@ -75,12 +75,15 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await userService.getMaintenanceMode();
           if (res?.maintenanceMode) {
+            const currentRole = user.role || 'user';
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user_data');
+            setUser(null);
+            setRole(null);
             window.dispatchEvent(
               new CustomEvent('zyndex:session-expired', {
                 detail: {
-                  role: user.role || 'user',
+                  role: currentRole,
                   reason: 'The platform is currently in maintenance mode. We are sorry for the inconvenience, please check back shortly.'
                 }
               })
@@ -88,7 +91,7 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (ignored) {}
       }
-    }, 15000);
+    }, 4000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -101,7 +104,7 @@ export const AuthProvider = ({ children }) => {
       window.clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [user?.id]);
+  }, [user?.id, user?.isPrimaryAdmin, user?.role]);
 
   const refreshUser = async () => {
     try {
@@ -110,7 +113,22 @@ export const AuthProvider = ({ children }) => {
       setRole(currentUser.role);
       return currentUser;
     } catch (err) {
-      console.error('Failed to refresh user context:', err);
+      // If getCurrentUser failed with 401/403 or inactive account, apiClient already handles or we clear here
+      if (err?.status === 401 || err?.status === 403 || err?.message?.toLowerCase().includes('logged out') || err?.message?.toLowerCase().includes('session')) {
+        const savedRole = role || user?.role || 'user';
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+        setUser(null);
+        setRole(null);
+        window.dispatchEvent(
+          new CustomEvent('zyndex:session-expired', {
+            detail: {
+              role: savedRole,
+              reason: err.message || 'Your session was terminated by an administrator. Please log in again.'
+            }
+          })
+        );
+      }
     }
   };
 

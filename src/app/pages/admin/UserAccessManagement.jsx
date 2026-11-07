@@ -558,11 +558,11 @@ export default function UserAccessManagement() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                         {canManageUsers && <>
-                          {isPrimaryAdmin && user.isOnline && platformRole !== 'Main Admin' && (
+                          {isPrimaryAdmin && platformRole !== 'Main Admin' && (
                             <button
                               onClick={() => handleForceLogoutUser(user)}
                               disabled={loggingOutUser === user.id}
-                              className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors"
+                              className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors cursor-pointer"
                               title="Terminate active user session"
                             >
                               <LogOut className="size-4" />
