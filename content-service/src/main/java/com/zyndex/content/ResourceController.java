@@ -644,10 +644,6 @@ class ResourceController {
         if (!"admin".equalsIgnoreCase(role)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Admin access required.");
         }
-        String email = request.getHeader("X-User-Email");
-        if (properties.mainAdminEmail() == null || !properties.mainAdminEmail().equalsIgnoreCase(email)) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Only the primary administrator can modify content.");
-        }
     }
 
     private static Object[] concat(Object[] base, Object... suffix) {
