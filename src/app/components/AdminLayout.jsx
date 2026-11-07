@@ -74,6 +74,55 @@ export default function AdminLayout({ children }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname, user]);
 
+  // Wire click and action tracking in Admin Portal
+  const lastClickTimeRef = useRef(0);
+  useEffect(() => {
+    if (!user || user.role !== 'admin') return;
+
+    const handleClick = (e) => {
+      const now = Date.now();
+      // Throttle rapid clicks to at most one per 4 seconds
+      if (now - lastClickTimeRef.current < 4000) return;
+
+      const target = e.target;
+      const button = target.closest('button');
+      const link = target.closest('a');
+      const input = target.closest('input, select');
+
+      let actionDesc = null;
+      if (button) {
+        const text = button.innerText?.trim() || button.getAttribute('title') || button.getAttribute('aria-label');
+        if (text) {
+          actionDesc = `Administrator clicked button: "${text.slice(0, 50)}"`;
+        }
+      } else if (link) {
+        const text = link.innerText?.trim() || link.getAttribute('title') || link.getAttribute('href');
+        if (text) {
+          actionDesc = `Administrator clicked navigation link: "${text.slice(0, 50)}"`;
+        }
+      } else if (input) {
+        const placeholder = input.getAttribute('placeholder') || input.getAttribute('name') || input.tagName;
+        actionDesc = `Administrator focused/interacted with input element: [${placeholder}]`;
+      }
+
+      if (actionDesc) {
+        lastClickTimeRef.current = now;
+        const pageName = location.pathname.split('/').filter(Boolean).pop() || 'Admin-Portal';
+        logService.createLog({
+          service: 'ADMIN-PORTAL',
+          level: 'INFO',
+          action: 'ADMIN_UI_INTERACTION',
+          actorEmail: user.email || 'admin@zyndex.com',
+          details: `${actionDesc} on page ${pageName}`,
+          status: 'SUCCESS'
+        }).catch(() => {});
+      }
+    };
+
+    window.addEventListener('click', handleClick, { passive: true, capture: true });
+    return () => window.removeEventListener('click', handleClick, { capture: true });
+  }, [location.pathname, user]);
+
   const handleLogout = () => {
     if (user?.email) {
       logService.createLog({

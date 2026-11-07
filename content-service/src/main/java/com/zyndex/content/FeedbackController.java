@@ -39,7 +39,28 @@ class FeedbackController {
         boolean isAnonymous = Boolean.TRUE.equals(body.get("isAnonymous")) || "true".equalsIgnoreCase(SqlSupport.str(body.get("isAnonymous")));
         jdbc.update("INSERT INTO feedback (rating, created_at, resource_id, user_id, comment, is_anonymous) VALUES (?, NOW(), ?, ?, ?, ?)",
                 SqlSupport.parseInt(SqlSupport.str(body.get("rating")), 0), resourceId, userId, SqlSupport.str(body.get("message")), isAnonymous);
-        return Map.of("message", "Feedback submitted successfully.", "feedbackId", jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class));
+        long feedbackId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+
+        // Record granular audit log
+        try {
+            Map<String, Object> uProf = fetchUserProfile(userId);
+            String uEmail = isAnonymous ? "Anonymous User" : SqlSupport.str(uProf.get("email"));
+            String uName = isAnonymous ? "Anonymous" : SqlSupport.str(uProf.get("name"));
+            String resTitle = "Resource #" + resourceId;
+            try {
+                var rList = jdbc.queryForList("SELECT title FROM resources WHERE id = ? LIMIT 1", resourceId);
+                if (!rList.isEmpty()) resTitle = String.valueOf(rList.get(0).get("title"));
+            } catch (Exception ignored) {}
+
+            jdbc.update("""
+                    INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'CONTENT-SERVICE', 'INFO', 'FEEDBACK_SUBMITTED', ?, ?, ?, 'SUCCESS')
+                    """, isAnonymous ? "anonymous@reader.zyndex" : uEmail,
+                    "User " + uName + " (" + uEmail + ") submitted " + body.get("rating") + "-star feedback on " + resTitle + " (Feedback ID: " + feedbackId + ", Anonymous: " + isAnonymous + "): \"" + SqlSupport.str(body.get("message")) + "\"",
+                    request.getRemoteAddr());
+        } catch (Exception ignored) {}
+
+        return Map.of("message", "Feedback submitted successfully.", "feedbackId", feedbackId);
     }
 
     @PostMapping("/contact")
@@ -166,6 +187,24 @@ class FeedbackController {
                     userEmail, userName, resourceTitle, userComment, rating, feedbackDate, adminComment, adminName
             );
         }
+
+        // Record rich audit logs in both Admin Action Logs and Microservice Audit Logs
+        String adminEmail = String.valueOf(SqlSupport.first(request.getHeader("X-User-Email"), "admin@zyndex.com"));
+        try {
+            jdbc.update("""
+                    INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'ADMIN-PORTAL', 'INFO', 'ADMIN_RESPONDED_FEEDBACK', ?, ?, ?, 'SUCCESS')
+                    """, adminEmail,
+                    "Administrator " + adminName + " (" + adminEmail + ") replied to feedback #" + id + " on resource \"" + resourceTitle + "\" for user " + userName + " (" + userEmail + "): \"" + adminComment + "\"",
+                    request.getRemoteAddr());
+
+            jdbc.update("""
+                    INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'CONTENT-SERVICE', 'INFO', 'FEEDBACK_RESPONSE_DISPATCHED', ?, ?, ?, 'SUCCESS')
+                    """, adminEmail,
+                    "Content service dispatched response email to " + userEmail + " for feedback #" + id + " on \"" + resourceTitle + "\". Delivery Status: " + (emailSent ? "SENT_VIA_SMTP" : "QUEUED/SKIPPED"),
+                    request.getRemoteAddr());
+        } catch (Exception ignored) {}
 
         return Map.of(
                 "message", "Admin response recorded and email notification sent to user.",

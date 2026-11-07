@@ -31,6 +31,23 @@ public class UsageController {
 
         if ("DOWNLOAD".equals(eventType)) {
             jdbc.update("INSERT INTO downloads (resource_id, user_id, downloaded_at) VALUES (?, ?, NOW())", resourceId, userId);
+            // Write rich detailed audit log
+            try {
+                String resourceTitle = "Resource #" + resourceId;
+                try {
+                    var rList = jdbc.queryForList("SELECT title FROM zyndex_content.resources WHERE id = ? LIMIT 1", resourceId);
+                    if (!rList.isEmpty() && rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
+                } catch (Exception ignored) {}
+                String userEmail = "User #" + userId;
+                try {
+                    var uList = jdbc.queryForList("SELECT email, username FROM zyndex_auth.users WHERE id = ? LIMIT 1", userId);
+                    if (!uList.isEmpty() && uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
+                } catch (Exception ignored) {}
+                jdbc.update("""
+                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                        VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'RESOURCE_DOWNLOADED', ?, ?, '127.0.0.1', 'SUCCESS')
+                        """, userEmail, "Student (" + userEmail + ", ID: " + userId + ") initiated and downloaded resource: " + resourceTitle + " (ID: " + resourceId + ")");
+            } catch (Exception ignored) {}
         } else {
             jdbc.update("INSERT INTO resource_views (resource_id, user_id, viewed_at) VALUES (?, ?, NOW())", resourceId, userId);
             // Deduplicate usages: only insert an initial 1-minute tracking row if user doesn't already have an active usage record for this resource in the last 30 minutes
@@ -40,6 +57,23 @@ public class UsageController {
             if (countRecent == null || countRecent == 0) {
                 jdbc.update("INSERT INTO usages (user_id, content_id, duration) VALUES (?, ?, 1)", userId, resourceId);
             }
+            // Write rich detailed view audit log
+            try {
+                String resourceTitle = "Resource #" + resourceId;
+                try {
+                    var rList = jdbc.queryForList("SELECT title FROM zyndex_content.resources WHERE id = ? LIMIT 1", resourceId);
+                    if (!rList.isEmpty() && rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
+                } catch (Exception ignored) {}
+                String userEmail = "User #" + userId;
+                try {
+                    var uList = jdbc.queryForList("SELECT email, username FROM zyndex_auth.users WHERE id = ? LIMIT 1", userId);
+                    if (!uList.isEmpty() && uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
+                } catch (Exception ignored) {}
+                jdbc.update("""
+                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                        VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'RESOURCE_LOADED', ?, ?, '127.0.0.1', 'SUCCESS')
+                        """, userEmail, "Usage engine loaded and opened academic resource: " + resourceTitle + " (ID: " + resourceId + ") for user: " + userEmail + " (ID: " + userId + ")");
+            } catch (Exception ignored) {}
         }
 
         return Map.of("message", "Usage event logged successfully.");
@@ -151,6 +185,24 @@ public class UsageController {
         } else {
             jdbc.update("INSERT INTO usages (user_id, content_id, duration) VALUES (?, ?, ?)", userId, contentId, duration);
         }
+
+        // Granular reading heartbeat audit log
+        try {
+            String resourceTitle = "Resource #" + contentId;
+            try {
+                var rList = jdbc.queryForList("SELECT title FROM zyndex_content.resources WHERE id = ? LIMIT 1", contentId);
+                if (!rList.isEmpty() && rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
+            } catch (Exception ignored) {}
+            String userEmail = "User #" + userId;
+            try {
+                var uList = jdbc.queryForList("SELECT email FROM zyndex_auth.users WHERE id = ? LIMIT 1", userId);
+                if (!uList.isEmpty() && uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
+            } catch (Exception ignored) {}
+            jdbc.update("""
+                    INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'READING_PROGRESS_SAVED', ?, ?, '127.0.0.1', 'SUCCESS')
+                    """, userEmail, "Reading heartbeat progress accumulated (" + duration + " min) on " + resourceTitle + " (ID: " + contentId + ") by reader: " + userEmail);
+        } catch (Exception ignored) {}
 
         return Map.of("message", "Reading duration logged successfully.");
     }
