@@ -1,0 +1,10 @@
+# syntax=docker/dockerfile:1
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+ARG JAR_FILE
+COPY ${JAR_FILE} app.jar
+
+ENV JAVA_OPTS="-XX:+UseSerialGC -Xms128m -Xmx384m -Djava.security.egd=file:/dev/./urandom"
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
