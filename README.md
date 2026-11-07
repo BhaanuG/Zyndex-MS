@@ -2,7 +2,7 @@
 
 <img src="./public/logo.svg" alt="Zyndex Logo" width="104" height="104" style="border-radius: 22px; box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);" />
 
-# ⚡ ZYNDEX
+#  ZYNDEX
 ### *Enterprise Academic Learning & Distributed Digital Resource Governance Platform*
 #### **ScholarSphere Engine | Designed, Engineered & Maintained by Bhaanu G**
 
