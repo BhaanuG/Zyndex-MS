@@ -551,19 +551,72 @@ export default function Login() {
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={submitting || (isSignUpMode && !otpVerified)}
-                  className={`w-full relative group ${
-                    isSignUpMode && !otpVerified ? 'opacity-50 cursor-not-allowed' : 'disabled:opacity-70'
-                  }`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
-                  <div className="relative flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-600/30">
-                    {submitting ? (isSignUpMode ? 'Creating account...' : 'Checking...') : (isSignUpMode ? 'Create Account' : 'Sign In')}
-                    <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform" />
+                {isSignUpMode && (
+                  <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                      <span>Verification Steps to Enable Account Creation:</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                        otpVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {otpVerified ? '✓ Verified' : 'Action Required'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className={`p-2 rounded-xl flex items-center gap-2 border ${
+                        otpSent ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700 font-medium' : 'bg-white border-slate-200 text-slate-500'
+                      }`}>
+                        <span className={`size-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          otpSent ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                          {otpSent ? '✓' : '1'}
+                        </span>
+                        <span>Send OTP to Email</span>
+                      </div>
+                      <div className={`p-2 rounded-xl flex items-center gap-2 border ${
+                        otpVerified ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700 font-medium' : 'bg-white border-slate-200 text-slate-500'
+                      }`}>
+                        <span className={`size-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          otpVerified ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                          {otpVerified ? '✓' : '2'}
+                        </span>
+                        <span>Verify 4-Digit Code</span>
+                      </div>
+                    </div>
+                    {!otpVerified && (
+                      <p className="text-[11px] text-amber-700 font-medium pt-1">
+                        👉 Click <b>"Send OTP"</b> next to your email, enter the 4 digits, and click <b>"Verify OTP"</b> to unlock the Create Account button.
+                      </p>
+                    )}
                   </div>
-                </button>
+                )}
+
+                <div className="relative group">
+                  <button
+                    type="submit"
+                    disabled={submitting || (isSignUpMode && !otpVerified)}
+                    className={`w-full relative group transition-all ${
+                      isSignUpMode && !otpVerified ? 'opacity-60 cursor-not-allowed' : 'disabled:opacity-70'
+                    }`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+                    <div className="relative flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-600/30">
+                      {submitting ? (
+                        isSignUpMode ? 'Creating account...' : 'Checking...'
+                      ) : isSignUpMode ? (
+                        otpVerified ? 'Create Account' : 'Verify Email OTP to Create Account'
+                      ) : (
+                        'Sign In'
+                      )}
+                      <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </button>
+                  {isSignUpMode && !otpVerified && (
+                    <p className="text-center text-xs text-slate-500 mt-2 font-medium">
+                      🔒 Button is locked until email is verified via 4-digit OTP above.
+                    </p>
+                  )}
+                </div>
 
                 <div className="text-center pt-4">
                   {isSignUpMode ? (
