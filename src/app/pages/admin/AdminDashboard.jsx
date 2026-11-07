@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { FolderOpen, Users, MessageSquare, BarChart3 } from 'lucide-react';
+import { FolderOpen, Users, MessageSquare, BarChart3, Activity } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
