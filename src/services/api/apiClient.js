@@ -103,11 +103,12 @@ apiClient.interceptors.response.use(
 
             // Dispatch global event so SessionTimeoutModal pops up gracefully
             if (typeof window !== 'undefined') {
+              const reasonMsg = parsedError.message || 'Your session has expired or was terminated by administrator. Please log in again to continue.';
               window.dispatchEvent(
                 new CustomEvent('zyndex:session-expired', {
                   detail: {
                     role,
-                    reason: 'Your session has expired due to 2 hours and 30 minutes of inactivity. Please log in again to continue.'
+                    reason: reasonMsg
                   }
                 })
               );

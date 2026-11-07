@@ -114,6 +114,18 @@ class DbInitializer implements CommandLineRunner {
                   INDEX idx_trusted_expiry (expires_at)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                 """);
+        jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS system_settings (
+                  setting_key VARCHAR(80) NOT NULL,
+                  setting_value TEXT NULL,
+                  updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+                  updated_by VARCHAR(190) NULL,
+                  PRIMARY KEY (setting_key)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                """);
+        try {
+            jdbc.execute("ALTER TABLE users ADD COLUMN session_token_version INT NOT NULL DEFAULT 1");
+        } catch (Exception ignored) {}
         seedInitialLogsIfEmpty();
         ensureMainAdmin();
     }

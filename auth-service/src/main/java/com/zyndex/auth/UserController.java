@@ -87,7 +87,7 @@ class UserController {
 
     @GetMapping
     Map<String, Object> all(HttpServletRequest request, @RequestParam Map<String, String> query) {
-        auth.requirePrimaryAdmin(request);
+        auth.requireRole(auth.requireUser(request), "admin");
         var page = sql.page(query);
         String search = "%" + AuthSupport.str(query.get("search")) + "%";
         var rows = jdbc.queryForList("SELECT * FROM users WHERE username LIKE ? OR email LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
@@ -95,6 +95,24 @@ class UserController {
         long total = jdbc.queryForObject("SELECT COUNT(*) FROM users WHERE username LIKE ? OR email LIKE ?", Long.class, search, search);
         return sql.pageResult("users", rows.stream().map(row -> {
             Map<String, Object> sanitized = auth.sanitizeUser(row);
+            Object lastActiveObj = row.get("last_active_at");
+            boolean isOnline = false;
+            if (lastActiveObj != null) {
+                try {
+                    java.time.Instant lastActiveInstant = null;
+                    if (lastActiveObj instanceof java.sql.Timestamp) {
+                        lastActiveInstant = ((java.sql.Timestamp) lastActiveObj).toInstant();
+                    } else if (lastActiveObj instanceof java.time.LocalDateTime) {
+                        lastActiveInstant = ((java.time.LocalDateTime) lastActiveObj).toInstant(java.time.ZoneOffset.UTC);
+                    } else if (lastActiveObj instanceof java.time.Instant) {
+                        lastActiveInstant = (java.time.Instant) lastActiveObj;
+                    }
+                    if (lastActiveInstant != null) {
+                        // Considered actively online if seen within last 15 minutes
+                        isOnline = java.time.Duration.between(lastActiveInstant, java.time.Instant.now()).toMinutes() <= 15;
+                    }
+                } catch (Exception ignored) {}
+            }
             return Map.ofEntries(
                 Map.entry("id", sanitized.get("id")),
                 Map.entry("name", sanitized.get("name")),
@@ -107,6 +125,8 @@ class UserController {
                 Map.entry("universityName", sanitized.get("universityName")),
                 Map.entry("bio", sanitized.get("bio")),
                 Map.entry("active", sanitized.get("active")),
+                Map.entry("isOnline", isOnline),
+                Map.entry("lastActiveAt", lastActiveObj != null ? String.valueOf(lastActiveObj) : ""),
                 Map.entry("dateJoined", sanitized.get("createdAt")),
                 Map.entry("subscriptionPlan", sanitized.get("subscriptionPlan") != null ? sanitized.get("subscriptionPlan") : "FREE"),
                 Map.entry("subscriptionExpiresAt", sanitized.get("subscriptionExpiresAt") != null ? sanitized.get("subscriptionExpiresAt") : "")
@@ -276,6 +296,51 @@ class UserController {
         }
         jdbc.update("DELETE FROM users WHERE id = ?", userId);
         return Map.of("message", "User deleted successfully.");
+    }
+
+    @PostMapping("/{userId}/force-logout")
+    Map<String, Object> forceLogout(HttpServletRequest request, @PathVariable("userId") long userId) {
+        auth.requirePrimaryAdmin(request);
+        Map<String, Object> target = auth.findUserById(userId);
+        if (target == null) throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
+        // Increment token version and clear last_active_at
+        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+        return Map.of("message", "User session terminated by administrator.", "userId", userId);
+    }
+
+    @PostMapping("/force-logout-all")
+    Map<String, Object> forceLogoutAll(HttpServletRequest request) {
+        Map<String, Object> admin = auth.requirePrimaryAdmin(request);
+        long adminId = AuthSupport.number(admin.get("id"));
+        // Terminate all sessions except the primary admin's own session
+        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?", adminId);
+        return Map.of("message", "All active user sessions have been terminated by the administrator.");
+    }
+
+    @GetMapping("/maintenance-mode")
+    Map<String, Object> getMaintenanceStatus() {
+        var rows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_MODE' LIMIT 1");
+        boolean enabled = !rows.isEmpty() && "true".equalsIgnoreCase(String.valueOf(rows.get(0).get("setting_value")));
+        return Map.of("maintenanceMode", enabled);
+    }
+
+    @PostMapping("/maintenance-mode")
+    Map<String, Object> toggleMaintenanceMode(HttpServletRequest request, @RequestBody Map<String, Object> body) {
+        Map<String, Object> admin = auth.requirePrimaryAdmin(request);
+        long adminId = AuthSupport.number(admin.get("id"));
+        boolean enable = AuthSupport.bool(body.get("enabled"));
+        jdbc.update("""
+                INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
+                VALUES ('MAINTENANCE_MODE', ?, NOW(), ?)
+                ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW(), updated_by = VALUES(updated_by)
+                """, enable ? "true" : "false", admin.get("email"));
+
+        if (enable) {
+            // Immediately revoke all other active sessions when maintenance starts
+            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?", adminId);
+        }
+
+        return Map.of("maintenanceMode", enable, "message", enable ? "Maintenance mode activated. All active sessions have been logged out." : "Maintenance mode deactivated.");
     }
 
     @PostMapping("/send-subscription-email")

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff, Download } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff, Download, LogOut, Wrench } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
@@ -48,6 +48,69 @@ export default function UserAccessManagement() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
   const [adminRequests, setAdminRequests] = useState([]);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [loadingMaintenance, setLoadingMaintenance] = useState(false);
+  const [loggingOutUser, setLoggingOutUser] = useState(null);
+  const [loggingOutAll, setLoggingOutAll] = useState(false);
+
+  useEffect(() => {
+    if (isPrimaryAdmin) {
+      userService.getMaintenanceMode().then(res => setMaintenanceMode(Boolean(res?.maintenanceMode))).catch(() => {});
+    }
+  }, [isPrimaryAdmin]);
+
+  const handleToggleMaintenance = async () => {
+    if (!isPrimaryAdmin) return;
+    const nextState = !maintenanceMode;
+    const confirmMsg = nextState
+      ? 'Are you sure you want to activate Platform Maintenance Mode?\n\nAll active users will be logged out immediately with a maintenance notice.'
+      : 'Are you sure you want to deactivate Maintenance Mode and restore normal access?';
+    if (!window.confirm(confirmMsg)) return;
+
+    setLoadingMaintenance(true);
+    try {
+      const res = await userService.setMaintenanceMode(nextState);
+      setMaintenanceMode(Boolean(res?.maintenanceMode));
+      alert(res?.message || 'Maintenance mode updated.');
+      await loadUsers(searchTerm);
+    } catch (err) {
+      alert(err.message || 'Failed to update maintenance mode.');
+    } finally {
+      setLoadingMaintenance(false);
+    }
+  };
+
+  const handleForceLogoutUser = async (u) => {
+    if (!isPrimaryAdmin) return;
+    if (!window.confirm(`Terminate active session for ${u.name || u.email}?\n\nThe user will receive a session termination popup.`)) return;
+
+    setLoggingOutUser(u.id);
+    try {
+      await userService.forceLogoutUser(u.id);
+      alert(`Session for ${u.name || u.email} has been terminated.`);
+      await loadUsers(searchTerm);
+    } catch (err) {
+      alert(err.message || 'Failed to terminate user session.');
+    } finally {
+      setLoggingOutUser(null);
+    }
+  };
+
+  const handleForceLogoutAll = async () => {
+    if (!isPrimaryAdmin) return;
+    if (!window.confirm('Are you sure you want to terminate ALL active user sessions?\n\nAll active users will receive an administrative logout notification.')) return;
+
+    setLoggingOutAll(true);
+    try {
+      const res = await userService.forceLogoutAllUsers();
+      alert(res?.message || 'All active user sessions have been terminated.');
+      await loadUsers(searchTerm);
+    } catch (err) {
+      alert(err.message || 'Failed to logout all active users.');
+    } finally {
+      setLoggingOutAll(false);
+    }
+  };
 
   const getTimeLeft = (expiryDate, plan) => {
     if (!plan || plan === 'FREE') return 'Lifetime';
@@ -134,12 +197,11 @@ export default function UserAccessManagement() {
   };
 
   useEffect(() => {
-    if (!isPrimaryAdmin) return;
     loadUsers();
     if (canManageUsers) {
       authService.getAdminRequests().then((response) => setAdminRequests(response.requests || [])).catch((error) => console.error('Failed to load admin requests:', error));
     }
-  }, [canManageUsers, isPrimaryAdmin]);
+  }, [canManageUsers]);
 
   const decideAdminRequest = async (request, decision) => {
     const reason = decision === 'decline' ? window.prompt('Reason for declining this request:') || '' : '';
@@ -331,6 +393,36 @@ export default function UserAccessManagement() {
             <p className="text-gray-600 mt-1">Create, read, update, and delete users. Showing {users.length} users.</p>
           </div>
           <div className="flex items-center gap-3">
+            {isPrimaryAdmin && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleToggleMaintenance}
+                  disabled={loadingMaintenance}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all shadow-sm ${
+                    maintenanceMode
+                      ? 'bg-amber-600 text-white hover:bg-amber-700 animate-pulse'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
+                  }`}
+                  title="Toggle Platform Maintenance Mode (Main Admin Only)"
+                >
+                  <Wrench className="size-4" />
+                  <span>{maintenanceMode ? 'Maintenance Mode ON' : 'Maintenance Mode OFF'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleForceLogoutAll}
+                  disabled={loggingOutAll}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors shadow-sm"
+                  title="Log out all active user sessions simultaneously"
+                >
+                  <LogOut className="size-4" />
+                  <span>Logout All Users</span>
+                </button>
+              </>
+            )}
+
             <button
               onClick={exportUsersToCsv}
               className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm"
@@ -381,6 +473,7 @@ export default function UserAccessManagement() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Status</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Name</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Email</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Platform Role</th>
@@ -399,6 +492,22 @@ export default function UserAccessManagement() {
                   const platformRole = getPlatformRole(user);
                   return (
                     <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
+                      <td className="py-4 px-6">
+                        {user.isOnline ? (
+                          <div className="flex items-center gap-2">
+                            <span className="relative flex h-3 w-3">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            </span>
+                            <span className="text-xs font-semibold text-emerald-700">Active</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full bg-gray-300"></span>
+                            <span className="text-xs text-gray-400">Offline</span>
+                          </div>
+                        )}
+                      </td>
                       <td className="py-4 px-6 font-medium text-gray-900">{user.name}</td>
                       <td className="py-4 px-6 text-gray-600">{user.email}</td>
                       <td className="py-4 px-6">
@@ -454,6 +563,16 @@ export default function UserAccessManagement() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                         {canManageUsers && <>
+                          {user.isOnline && platformRole !== 'Main Admin' && (
+                            <button
+                              onClick={() => handleForceLogoutUser(user)}
+                              disabled={loggingOutUser === user.id}
+                              className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors"
+                              title="Terminate active user session"
+                            >
+                              <LogOut className="size-4" />
+                            </button>
+                          )}
                           <button onClick={() => openEditModal(user)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors" title="Edit User & Plan"><Edit className="size-4" /></button>
                           <button onClick={() => openResetModal(user)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors" title="Reset Password"><KeyRound className="size-4" /></button>
                           <button onClick={() => handleDeleteUser(user.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors" title="Delete User"><Trash2 className="size-4" /></button>

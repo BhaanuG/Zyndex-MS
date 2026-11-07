@@ -67,9 +67,28 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user || !localStorage.getItem('auth_token')) return undefined;
-    const interval = window.setInterval(() => {
+    // Periodic check every 15 seconds: refresh user and check maintenance mode
+    const interval = window.setInterval(async () => {
       refreshUser();
-    }, 60000);
+      // If not primary admin, check if maintenance mode has been activated
+      if (!user.isPrimaryAdmin) {
+        try {
+          const res = await userService.getMaintenanceMode();
+          if (res?.maintenanceMode) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.dispatchEvent(
+              new CustomEvent('zyndex:session-expired', {
+                detail: {
+                  role: user.role || 'user',
+                  reason: 'The platform is currently in maintenance mode. We are sorry for the inconvenience, please check back shortly.'
+                }
+              })
+            );
+          }
+        } catch (ignored) {}
+      }
+    }, 15000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {

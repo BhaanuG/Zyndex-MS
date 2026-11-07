@@ -221,11 +221,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "Zyndex/Admin/:name/:email/User-Access",
-        element: <ProtectedRoute role="admin" primaryOnly><PageTransitionWrapper duration={5000}><UserAccessManagement /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><UserAccessManagement /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/User-Management",
-        element: <ProtectedRoute role="admin" primaryOnly><PageTransitionWrapper duration={5000}><UserAccessManagement /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><UserAccessManagement /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/Feedback-Review",

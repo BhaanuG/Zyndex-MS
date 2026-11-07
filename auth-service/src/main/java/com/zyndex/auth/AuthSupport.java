@@ -112,6 +112,15 @@ public class AuthSupport {
             if (user == null || !Boolean.TRUE.equals(bool(user.get("active")))) {
                 throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid or inactive account.");
             }
+            // Check session token version if present in claims
+            Object tokenVer = claims.get("v");
+            if (tokenVer != null) {
+                int claimV = Integer.parseInt(String.valueOf(tokenVer));
+                int dbV = user.get("session_token_version") != null ? number(user.get("session_token_version")).intValue() : 1;
+                if (claimV < dbV) {
+                    throw new ApiException(HttpStatus.UNAUTHORIZED, "Your session has been terminated by administrator. Please log in again.");
+                }
+            }
             return sanitizeUser(user);
         } catch (ApiException error) {
             throw error;
@@ -138,11 +147,13 @@ public class AuthSupport {
     public String signToken(Map<String, Object> user) {
         Instant now = Instant.now();
         String role = "ADMIN".equalsIgnoreCase(str(user.get("role"))) ? "admin" : "user";
+        int version = user.get("session_token_version") != null ? number(user.get("session_token_version")).intValue() : 1;
         return Jwts.builder()
                 .subject(String.valueOf(user.get("id")))
                 .claim("role", role)
                 .claim("email", user.get("email"))
                 .claim("name", first(user.get("name"), user.get("username")))
+                .claim("v", version)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(150 * 60))) // 2 hours 30 minutes (150 mins) JWT lifetime per policy
                 .signWith(secretKey())

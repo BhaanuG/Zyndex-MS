@@ -204,6 +204,22 @@ const userService = {
     }
   },
 
+  forceLogoutUser: async (userId) => {
+    return await apiClient.post(`/users/${userId}/force-logout`);
+  },
+
+  forceLogoutAllUsers: async () => {
+    return await apiClient.post('/users/force-logout-all');
+  },
+
+  getMaintenanceMode: async () => {
+    return await apiClient.get('/users/maintenance-mode');
+  },
+
+  setMaintenanceMode: async (enabled) => {
+    return await apiClient.post('/users/maintenance-mode', { enabled });
+  },
+
   /**
    * Get user statistics
    * @returns {Promise<Object>} - { downloads, favorites, uploads }

@@ -38,6 +38,8 @@ export default function SessionTimeoutModal() {
     window.location.href = loginPath;
   };
 
+  const isMaintenance = modalData.reason && modalData.reason.toLowerCase().includes('maintenance');
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
@@ -52,28 +54,30 @@ export default function SessionTimeoutModal() {
             <div className="size-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-3.5 shadow-inner ring-4 ring-white/10">
               <ShieldAlert className="size-8 text-white" />
             </div>
-            <h3 className="text-2xl font-extrabold tracking-tight text-white">Session Time-Out</h3>
+            <h3 className="text-2xl font-extrabold tracking-tight text-white">
+              {isMaintenance ? 'Platform Under Maintenance' : 'Session Terminated'}
+            </h3>
             <p className="text-xs text-orange-100 font-semibold mt-1">
-              2 hr 30 min Inactivity Protection Triggered
+              {isMaintenance ? 'Scheduled System Maintenance in Progress' : 'Administrator / Inactivity Action'}
             </p>
           </div>
 
           {/* Body Content */}
           <div className="p-6 pt-5 space-y-4">
-            {/* Why was I logged out callout box */}
+            {/* Callout box */}
             <div className="p-4 bg-[#fffbeb] border border-[#fef3c7] rounded-2xl text-left flex items-start gap-3 shadow-xs">
               <AlertCircle className="size-5 text-[#d97706] shrink-0 mt-0.5" />
               <div className="text-xs text-[#92400e] leading-relaxed">
-                <p className="font-bold text-sm text-[#78350f] mb-1">Why was I logged out?</p>
-                <p>
-                  To secure your academic account and data, sessions automatically terminate after{' '}
-                  <span className="font-bold underline text-[#78350f]">2 hours and 30 minutes</span> without active interactions or upon token expiration.
+                <p className="font-bold text-sm text-[#78350f] mb-1">
+                  {isMaintenance ? 'Maintenance Notice' : 'Session Notification'}
                 </p>
+                <p>{modalData.reason}</p>
+                <p className="mt-1 text-slate-500 font-medium">We apologize for the inconvenience.</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-500 leading-normal px-1 text-center font-normal">
-              Your session has expired due to 2 hours and 30 minutes of inactivity. Please log in again to continue.
+              {isMaintenance ? 'The platform is currently undergoing maintenance. Please check back shortly.' : 'Your session was terminated. Please authenticate again when ready.'}
             </p>
 
             <div className="pt-2">
