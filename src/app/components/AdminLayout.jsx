@@ -1,19 +1,73 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { BookOpen, LayoutDashboard, FolderOpen, Users, MessageSquare, LogOut, Menu, X, UserCircle, ArrowLeft, Home, ScrollText, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import logService from '@/services/api/logService';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/app/components/ui/resizable';
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, getUrlSafeName, getUrlSafeEmail, isPrimaryAdmin } = useAuth();
+  const { user, logout, getUrlSafeName, getUrlSafeEmail, isPrimaryAdmin } = useAuth();
+  const lastLoggedPathRef = useRef('');
+  const lastScrollTimeRef = useRef(0);
+
+  // Automatically wire and log every admin navigation and significant action with seconds-accurate timestamps
+  useEffect(() => {
+    if (!user || user.role !== 'admin') return;
+    const currentPath = location.pathname;
+    if (lastLoggedPathRef.current === currentPath) return;
+    lastLoggedPathRef.current = currentPath;
+
+    const pageName = currentPath.split('/').filter(Boolean).pop() || 'Admin-Portal';
+    logService.createLog({
+      service: 'ADMIN-PORTAL',
+      level: 'INFO',
+      action: 'ADMIN_NAVIGATE',
+      actorEmail: user.email || 'admin@zyndex.com',
+      details: `Administrator navigated to page: ${pageName} (${currentPath})`,
+      status: 'SUCCESS'
+    }).catch(() => {});
+  }, [location.pathname, user]);
+
+  // Wire scroll tracking in Admin Portal (throttled to avoid log flooding)
+  useEffect(() => {
+    if (!user || user.role !== 'admin') return;
+    const handleScroll = () => {
+      const now = Date.now();
+      // Record at most once every 30 seconds per page scroll
+      if (now - lastScrollTimeRef.current > 30000) {
+        lastScrollTimeRef.current = now;
+        const pageName = location.pathname.split('/').filter(Boolean).pop() || 'Admin-Portal';
+        logService.createLog({
+          service: 'ADMIN-PORTAL',
+          level: 'INFO',
+          action: 'ADMIN_SCROLL_INSPECT',
+          actorEmail: user.email || 'admin@zyndex.com',
+          details: `Administrator active inspection and scrolling on: ${pageName}`,
+          status: 'SUCCESS'
+        }).catch(() => {});
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location.pathname, user]);
 
   const handleLogout = () => {
+    if (user?.email) {
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'INFO',
+        action: 'ADMIN_LOGOUT',
+        actorEmail: user.email,
+        details: `Administrator logged out from admin portal`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+    }
     logout();
-    // The logout function in AuthContext will handle the redirect after 10 seconds
   };
 
   const handleBack = () => {
@@ -84,11 +138,11 @@ export default function AdminLayout({ children }) {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">Admin User</p>
+                <p className="text-sm font-medium text-gray-900">{user?.name || user?.username || 'Administrator'}</p>
                 <p className="text-xs text-gray-500">Administrator</p>
               </div>
               <div className="size-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-semibold">
-                A
+                {(user?.name || user?.username || 'A').charAt(0).toUpperCase()}
               </div>
             </div>
           </div>
@@ -202,11 +256,11 @@ export default function AdminLayout({ children }) {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">Admin User</p>
+                    <p className="text-sm font-medium text-gray-900">{user?.name || user?.username || 'Administrator'}</p>
                     <p className="text-xs text-gray-500">Administrator</p>
                   </div>
                   <div className="size-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    A
+                    {(user?.name || user?.username || 'A').charAt(0).toUpperCase()}
                   </div>
                 </div>
               </div>

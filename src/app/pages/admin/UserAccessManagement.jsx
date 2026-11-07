@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff, Download, LogOut, Wrench } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff, Download, LogOut, Wrench, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
@@ -50,6 +50,7 @@ export default function UserAccessManagement() {
   const [adminRequests, setAdminRequests] = useState([]);
   const [loggingOutUser, setLoggingOutUser] = useState(null);
   const [loggingOutAll, setLoggingOutAll] = useState(false);
+  const [sortBy, setSortBy] = useState('dateJoined_desc'); // 'name_asc', 'name_desc', 'plan', 'expiry', 'dateJoined_desc', 'dateJoined_asc', 'role', 'status'
 
   const handleForceLogoutUser = async (u) => {
     if (!isPrimaryAdmin) return;
@@ -166,6 +167,45 @@ export default function UserAccessManagement() {
       console.error('Failed to load users:', error);
     }
   };
+
+  const sortedUsers = useMemo(() => {
+    if (!users || users.length === 0) return [];
+    const list = [...users];
+
+    list.sort((a, b) => {
+      if (sortBy === 'name_asc') {
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      if (sortBy === 'name_desc') {
+        return (b.name || '').localeCompare(a.name || '');
+      }
+      if (sortBy === 'plan') {
+        return (a.subscriptionPlan || 'FREE').localeCompare(b.subscriptionPlan || 'FREE');
+      }
+      if (sortBy === 'expiry_asc') {
+        const timeA = a.subscriptionExpiresAt ? new Date(a.subscriptionExpiresAt).getTime() : 0;
+        const timeB = b.subscriptionExpiresAt ? new Date(b.subscriptionExpiresAt).getTime() : 0;
+        return timeA - timeB;
+      }
+      if (sortBy === 'expiry_desc') {
+        const timeA = a.subscriptionExpiresAt ? new Date(a.subscriptionExpiresAt).getTime() : 0;
+        const timeB = b.subscriptionExpiresAt ? new Date(b.subscriptionExpiresAt).getTime() : 0;
+        return timeB - timeA;
+      }
+      if (sortBy === 'dateJoined_asc') {
+        return new Date(a.dateJoined || 0).getTime() - new Date(b.dateJoined || 0).getTime();
+      }
+      if (sortBy === 'dateJoined_desc') {
+        return new Date(b.dateJoined || 0).getTime() - new Date(a.dateJoined || 0).getTime();
+      }
+      if (sortBy === 'active') {
+        return (b.isOnline ? 1 : 0) - (a.isOnline ? 1 : 0);
+      }
+      return 0;
+    });
+
+    return list;
+  }, [users, sortBy]);
 
   useEffect(() => {
     loadUsers();
@@ -392,12 +432,34 @@ export default function UserAccessManagement() {
           </div>
         </motion.div>
 
-        <form onSubmit={(e) => { e.preventDefault(); loadUsers(searchTerm); }} className="bg-white rounded-xl shadow-md p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
-            <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users by name or email..." className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg" />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <form onSubmit={(e) => { e.preventDefault(); loadUsers(searchTerm); }} className="bg-white rounded-xl shadow-md p-3 flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+              <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users by name or email..." className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm" />
+            </div>
+          </form>
+
+          {/* Sorting Feature Bar */}
+          <div className="bg-white rounded-xl shadow-md p-3 flex items-center gap-2">
+            <ArrowUpDown className="size-4 text-orange-600 shrink-0" />
+            <span className="text-xs font-semibold text-gray-600 shrink-0">Sort By:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-xs font-medium bg-gray-50 text-gray-800 focus:bg-white focus:outline-none"
+            >
+              <option value="dateJoined_desc">Date Joined (Newest First)</option>
+              <option value="dateJoined_asc">Date Joined (Oldest First)</option>
+              <option value="name_asc">Name (A → Z)</option>
+              <option value="name_desc">Name (Z → A)</option>
+              <option value="plan">Subscription Plan</option>
+              <option value="expiry_asc">Expiry Date (Expiring Soonest)</option>
+              <option value="expiry_desc">Expiry Date (Expiring Latest)</option>
+              <option value="active">Active Users First</option>
+            </select>
           </div>
-        </form>
+        </div>
 
         {canManageUsers && adminRequests.length > 0 && (
           <section className="bg-white rounded-xl shadow-md p-5">
@@ -429,7 +491,6 @@ export default function UserAccessManagement() {
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Email</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Platform Role</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">User Type</th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Institution</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Subscription Plan</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Time Left</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Joined</th>
@@ -437,9 +498,9 @@ export default function UserAccessManagement() {
                 </tr>
               </thead>
               <tbody>
-                {users.length === 0 ? (
-                  <tr><td colSpan="9" className="text-center py-16 text-gray-400">No users found.</td></tr>
-                ) : users.map((user) => {
+                {sortedUsers.length === 0 ? (
+                  <tr><td colSpan="8" className="text-center py-16 text-gray-400">No users found.</td></tr>
+                ) : sortedUsers.map((user) => {
                   const platformRole = getPlatformRole(user);
                   return (
                     <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
@@ -457,7 +518,6 @@ export default function UserAccessManagement() {
                         </span>
                       </td>
                       <td className="py-4 px-6 text-gray-700 text-sm">{user.userType === 'Other' && user.profession ? `Other (${user.profession})` : (user.userType || 'Other')}</td>
-                      <td className="py-4 px-6 text-gray-700 text-sm">{user.collegeName || user.universityName || '-'}</td>
                       <td className="py-4 px-6">
                         {platformRole === 'Main Admin' ? (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-sm">

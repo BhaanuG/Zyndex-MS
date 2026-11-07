@@ -62,7 +62,7 @@ const LEVELS = ['ALL', 'INFO', 'WARN', 'ERROR', 'SUCCESS'];
 const SESSION_GAP_MS = 30 * 60 * 1000;
 
 export default function AdminLogs() {
-  const [activeTab, setActiveTab] = useState('reading'); // 'reading' | 'system'
+  const [activeTab, setActiveTab] = useState('admin'); // 'admin' | 'reading' | 'system'
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
 
@@ -82,9 +82,15 @@ export default function AdminLogs() {
   const [readingTotal, setReadingTotal] = useState(0);
   const [readingPage, setReadingPage] = useState(0);
 
-  // 2. System Audit Logs States
+  // 2. Admin Action Audit Logs States
+  const [adminLogs, setAdminLogs] = useState([]);
+  const [adminLogsTotal, setAdminLogsTotal] = useState(0);
+  const [adminLogsPage, setAdminLogsPage] = useState(0);
+  const [adminSearchTerm, setAdminSearchTerm] = useState('');
+
+  // 3. System Audit Logs States
   const [systemLogs, setSystemLogs] = useState([]);
-  const [systemStats, setSystemStats] = useState({ totalLogs: 0, errorCount: 0, warnCount: 0, infoCount: 0 });
+  const [systemStats, setSystemStats] = useState({ totalLogs: 0, adminLogsCount: 0, errorCount: 0, warnCount: 0, infoCount: 0 });
   const [systemTotal, setSystemTotal] = useState(0);
   const [systemPage, setSystemPage] = useState(0);
   const systemPageSize = 20;
@@ -307,11 +313,31 @@ export default function AdminLogs() {
     }
   };
 
+  const fetchAdminLogs = async (page = 0) => {
+    try {
+      const response = await logService.getLogs({
+        page,
+        size: systemPageSize,
+        category: 'admin',
+        search: adminSearchTerm,
+      });
+
+      startTransition(() => {
+        setAdminLogs(response.logs || []);
+        setAdminLogsTotal(response.total || 0);
+        setAdminLogsPage(response.page || 0);
+      });
+    } catch (error) {
+      console.error('Failed to load admin logs:', error);
+    }
+  };
+
   const fetchSystemLogs = async (page = 0) => {
     try {
       const response = await logService.getLogs({
         page,
         size: systemPageSize,
+        category: 'system',
         service: serviceFilter === 'ALL' ? '' : serviceFilter,
         level: levelFilter === 'ALL' ? '' : levelFilter,
         search: searchTerm,
@@ -333,6 +359,7 @@ export default function AdminLogs() {
   const reloadAll = async () => {
     setLoading(true);
     await Promise.allSettled([
+      fetchAdminLogs(adminLogsPage),
       fetchReadingData(readingPage),
       fetchSystemLogs(systemPage)
     ]);
@@ -347,14 +374,16 @@ export default function AdminLogs() {
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
-      if (activeTab === 'reading') {
+      if (activeTab === 'admin') {
+        fetchAdminLogs(adminLogsPage);
+      } else if (activeTab === 'reading') {
         fetchReadingData(readingPage);
       } else {
         fetchSystemLogs(systemPage);
       }
     }, 10000);
     return () => clearInterval(interval);
-  }, [autoRefresh, activeTab, readingPage, systemPage]);
+  }, [autoRefresh, activeTab, readingPage, systemPage, adminLogsPage, adminSearchTerm]);
 
   // COMPLETE EXPORT: Downloads all Session data, Summary Metrics, and all detailed Resource items viewed inside the Eye Action
   const exportCompleteDataToExcel = () => {
@@ -455,6 +484,7 @@ export default function AdminLogs() {
   };
 
   const totalSystemPages = Math.ceil(systemTotal / systemPageSize) || 1;
+  const totalAdminPages = Math.ceil(adminLogsTotal / systemPageSize) || 1;
 
   return (
     <AdminLayout>
@@ -511,15 +541,15 @@ export default function AdminLogs() {
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('reading')}
+            onClick={() => setActiveTab('admin')}
             className={`flex items-center gap-2 py-3 px-6 font-semibold text-sm border-b-2 transition-all cursor-pointer ${
-              activeTab === 'reading'
+              activeTab === 'admin'
                 ? 'border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-xl'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            <BarChart3 className="size-4" />
-            Reading History & Engagement Analytics
+            <ShieldCheck className="size-4" />
+            Admin Action Logs
           </button>
           <button
             onClick={() => setActiveTab('system')}
@@ -532,7 +562,160 @@ export default function AdminLogs() {
             <ScrollText className="size-4" />
             Microservice & Audit Logs
           </button>
+          <button
+            onClick={() => setActiveTab('reading')}
+            className={`flex items-center gap-2 py-3 px-6 font-semibold text-sm border-b-2 transition-all cursor-pointer ${
+              activeTab === 'reading'
+                ? 'border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-xl'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <BarChart3 className="size-4" />
+            Reading History & Engagement Analytics
+          </button>
         </div>
+
+        {/* TAB 0: ADMIN ACTION LOGS (SEPARATE DEDICATED ADMIN LOG AUDITING) */}
+        {activeTab === 'admin' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs text-orange-600 font-bold uppercase tracking-wider">Dedicated Admin Audit</span>
+                <h3 className="text-xl font-bold text-gray-900 mt-0.5">Administrator Action & Navigation Trail</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Records every page navigated, scrolled/inspected, user creation/deletion, session termination, and setting modification with exact seconds-accurate timestamps.
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-xs font-semibold text-gray-500">Total Admin Operations</span>
+                <p className="text-2xl font-extrabold text-orange-600">{adminLogsTotal}</p>
+              </div>
+            </div>
+
+            {/* Filter and Search Bar for Admin Logs */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={adminSearchTerm}
+                  onChange={(e) => setAdminSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && fetchAdminLogs(0)}
+                  placeholder="Search admin actions, administrator email, or details..."
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => fetchAdminLogs(adminLogsPage)}
+                  className="flex items-center gap-2 px-3 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="size-3.5" />
+                  Reload Admin Trail
+                </button>
+              </div>
+            </div>
+
+            {/* Admin Logs Table */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-600">
+                  <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-500 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-3.5">Log ID</th>
+                      <th className="px-6 py-3.5">Exact Timestamp (Seconds)</th>
+                      <th className="px-6 py-3.5">Administrator</th>
+                      <th className="px-6 py-3.5">Action Executed</th>
+                      <th className="px-6 py-3.5">Details & Inspection Trail</th>
+                      <th className="px-6 py-3.5">Status</th>
+                      <th className="px-6 py-3.5 text-right">View</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {adminLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-12 text-gray-400">
+                          <ShieldCheck className="size-8 mx-auto mb-2 opacity-30 text-orange-500" />
+                          <p className="text-sm font-medium">No admin logs recorded yet</p>
+                          <p className="text-xs text-gray-400 mt-1">Actions performed by Main Admin or Regular Admins appear here in real-time.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      adminLogs.map((log) => (
+                        <tr
+                          key={log.id}
+                          onClick={() => setSelectedLog(log)}
+                          className="hover:bg-orange-50/40 transition-colors cursor-pointer group"
+                        >
+                          <td className="px-6 py-3.5 font-mono text-xs text-gray-400">#{log.id}</td>
+                          <td className="px-6 py-3.5 whitespace-nowrap font-mono text-xs text-gray-700 font-semibold">
+                            {log.timestamp}
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap">
+                            <span className="font-semibold text-xs text-slate-800">
+                              {log.actorEmail || 'Admin'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap">
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-100 text-orange-800 border border-orange-200">
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3.5">
+                            <p className="text-xs text-gray-800 max-w-md">{log.details}</p>
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <CheckCircle2 className="size-3" />
+                              {log.status || 'SUCCESS'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedLog(log);
+                              }}
+                              className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                            >
+                              <Eye className="size-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Admin Logs Pagination */}
+              {totalAdminPages > 1 && (
+                <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                  <span>
+                    Showing page {adminLogsPage + 1} of {totalAdminPages} ({adminLogsTotal} records)
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => fetchAdminLogs(Math.max(0, adminLogsPage - 1))}
+                      disabled={adminLogsPage === 0}
+                      className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <ChevronLeft className="size-4" />
+                    </button>
+                    <button
+                      onClick={() => fetchAdminLogs(Math.min(totalAdminPages - 1, adminLogsPage + 1))}
+                      disabled={adminLogsPage >= totalAdminPages - 1}
+                      className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: READING HISTORY & LIVE ENGAGEMENT ANALYTICS */}
         {activeTab === 'reading' && (

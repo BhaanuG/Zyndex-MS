@@ -34,9 +34,16 @@ public class LogController {
         String service = query.getOrDefault("service", "").trim();
         String level = query.getOrDefault("level", "").trim();
         String search = query.getOrDefault("search", "").trim();
+        String category = query.getOrDefault("category", "").trim(); // "admin" | "system" | ""
 
         StringBuilder whereSql = new StringBuilder(" WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
+
+        if ("admin".equalsIgnoreCase(category)) {
+            whereSql.append(" AND service = 'ADMIN-PORTAL' ");
+        } else if ("system".equalsIgnoreCase(category)) {
+            whereSql.append(" AND service != 'ADMIN-PORTAL' ");
+        }
 
         if (!service.isBlank() && !"ALL".equalsIgnoreCase(service)) {
             whereSql.append(" AND service = ? ");
@@ -59,7 +66,7 @@ public class LogController {
         String countQuery = "SELECT COUNT(*) FROM system_logs " + whereSql;
         Long total = jdbc.queryForObject(countQuery, Long.class, params.toArray());
 
-        String dataQuery = "SELECT id, timestamp, service, level, action, actor_email, details, ip_address, status " +
+        String dataQuery = "SELECT id, DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') AS formatted_time, timestamp, service, level, action, actor_email, details, ip_address, status " +
                 " FROM system_logs " + whereSql + " ORDER BY id DESC LIMIT ? OFFSET ?";
         
         List<Object> dataParams = new ArrayList<>(params);
@@ -70,6 +77,7 @@ public class LogController {
 
         // Compute summary counts
         Long totalAll = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs", Long.class);
+        Long totalAdmin = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs WHERE service = 'ADMIN-PORTAL'", Long.class);
         Long errors = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs WHERE level = 'ERROR'", Long.class);
         Long warnings = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs WHERE level = 'WARN'", Long.class);
         Long info = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs WHERE level = 'INFO'", Long.class);
@@ -77,7 +85,7 @@ public class LogController {
         return Map.of(
                 "logs", rows.stream().map(row -> Map.of(
                         "id", row.get("id"),
-                        "timestamp", row.get("timestamp") != null ? row.get("timestamp").toString() : "",
+                        "timestamp", row.get("formatted_time") != null ? row.get("formatted_time").toString() : (row.get("timestamp") != null ? row.get("timestamp").toString() : ""),
                         "service", row.get("service") != null ? row.get("service") : "",
                         "level", row.get("level") != null ? row.get("level") : "INFO",
                         "action", row.get("action") != null ? row.get("action") : "",
@@ -91,6 +99,7 @@ public class LogController {
                 "size", page.get("size"),
                 "stats", Map.of(
                         "totalLogs", totalAll != null ? totalAll : 0L,
+                        "adminLogsCount", totalAdmin != null ? totalAdmin : 0L,
                         "errorCount", errors != null ? errors : 0L,
                         "warnCount", warnings != null ? warnings : 0L,
                         "infoCount", info != null ? info : 0L

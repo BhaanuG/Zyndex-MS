@@ -18,3 +18,15 @@ input[type="button"]:disabled,
 input[type="submit"]:disabled {
   cursor: not-allowed;
 }
+
+/* Global scrollbar suppression */
+html, body, * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
