@@ -500,7 +500,6 @@ class ResourceController {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> fetchUserProfile(long userId) {
         try {
             var directUser = jdbc.queryForList("""

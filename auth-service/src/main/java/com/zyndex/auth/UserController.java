@@ -7,6 +7,7 @@ import org.springframework.mail.MailException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -179,7 +180,7 @@ class UserController {
         if (existingUser == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
         }
-        String oldRole = SqlSupport.str(existingUser.get("role"));
+        String oldRole = AuthSupport.str(existingUser.get("role"));
         if (oldRole.isBlank()) oldRole = "STUDENT";
 
         String name = AuthSupport.str(body.get("name"));
@@ -213,7 +214,8 @@ class UserController {
 
         boolean roleEmailSent = false;
         if (roleChanged) {
-            String adminName = SqlSupport.first(request.getHeader("X-User-Name"), "Main Administrator");
+            String adminName = request.getHeader("X-User-Name");
+            if (adminName == null || adminName.isBlank()) adminName = "Main Administrator";
             String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             roleEmailSent = accountEmailService.sendRoleChangedEmail(name, email, oldRole, role, adminName, timestamp);
         }
@@ -239,7 +241,7 @@ class UserController {
         if (existingUser == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
         }
-        String oldRole = SqlSupport.str(existingUser.get("role"));
+        String oldRole = AuthSupport.str(existingUser.get("role"));
         if (oldRole.isBlank()) oldRole = "STUDENT";
         String newRole = "admin".equalsIgnoreCase(String.valueOf(body.get("role"))) ? "ADMIN" : "STUDENT";
 
@@ -247,9 +249,10 @@ class UserController {
 
         boolean roleEmailSent = false;
         if (!oldRole.equalsIgnoreCase(newRole)) {
-            String name = SqlSupport.first(existingUser.get("username"), existingUser.get("name"), "User");
-            String email = SqlSupport.str(existingUser.get("email"));
-            String adminName = SqlSupport.first(request.getHeader("X-User-Name"), "Main Administrator");
+            String name = String.valueOf(AuthSupport.first(existingUser.get("username"), AuthSupport.first(existingUser.get("name"), "User")));
+            String email = AuthSupport.str(existingUser.get("email"));
+            String adminName = request.getHeader("X-User-Name");
+            if (adminName == null || adminName.isBlank()) adminName = "Main Administrator";
             String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             roleEmailSent = accountEmailService.sendRoleChangedEmail(name, email, oldRole, newRole, adminName, timestamp);
         }

@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,8 +74,8 @@ class FeedbackController {
             boolean isAnon = Boolean.TRUE.equals(row.get("is_anonymous")) || "1".equals(String.valueOf(row.get("is_anonymous")));
             Map<String, Object> userProfile = fetchUserProfile(userId);
 
-            String userName = isAnon ? "Anonymous Reader" : SqlSupport.first(userProfile.get("name"), "Student Reader");
-            String userEmail = isAnon ? "anonymous@reader.zyndex" : SqlSupport.first(userProfile.get("email"), "reader@zyndex.com");
+            String userName = isAnon ? "Anonymous Reader" : String.valueOf(SqlSupport.first(userProfile.get("name"), "Student Reader"));
+            String userEmail = isAnon ? "anonymous@reader.zyndex" : String.valueOf(SqlSupport.first(userProfile.get("email"), "reader@zyndex.com"));
 
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", row.get("id"));
@@ -155,7 +156,7 @@ class FeedbackController {
         int rating = SqlSupport.parseInt(SqlSupport.str(feedback.get("rating")), 5);
         String feedbackDate = SqlSupport.str(feedback.get("created_at"));
 
-        String adminName = SqlSupport.first(request.getHeader("X-User-Name"), "Zyndex Administrator");
+        String adminName = String.valueOf(SqlSupport.first(request.getHeader("X-User-Name"), "Zyndex Administrator"));
 
         jdbc.update("UPDATE feedback SET admin_response = ?, responded_at = NOW() WHERE id = ?", adminComment, id);
 
