@@ -178,36 +178,36 @@ export default function AdminLogs() {
 
   // Accurate Live Metrics from verified Database Sessions
   const metrics = useMemo(() => {
-    // Unique readers count
+    // Unique readers count: prioritize true live engagement from backend or reading history
     const uniqueUserSet = new Set(readingHistory.map((r) => (r.userEmail || '').trim().toLowerCase()));
-    const totalReaders = uniqueUserSet.size || engagement.totalReaders || 0;
+    const totalReaders = engagement?.totalReaders !== undefined && engagement.totalReaders !== null
+      ? engagement.totalReaders
+      : uniqueUserSet.size;
 
-    // Cumulative reading minutes
-    const totalMinutes = readingHistory.reduce((acc, r) => acc + (r.durationMinutes || 0), 0) || engagement.totalReadingMinutes || 0;
+    // Cumulative reading minutes: prioritize database total from backend or reading history sum
+    const totalMinutes = engagement?.totalReadingMinutes !== undefined && engagement.totalReadingMinutes !== null
+      ? engagement.totalReadingMinutes
+      : readingHistory.reduce((acc, r) => acc + (r.durationMinutes || 0), 0);
 
     // Distinct sessions count
-    const totalSessions = readingSessions.length || (readingHistory.length > 0 ? 1 : 0);
+    const totalSessions = engagement?.totalSessions !== undefined && engagement.totalSessions !== null
+      ? engagement.totalSessions
+      : (readingSessions.length || (readingHistory.length > 0 ? 1 : 0));
 
-    // Average session length
-    const avgMinutes = totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0;
+    // Average session length computed accurately as totalMinutes / totalSessions
+    const avgMinutes = totalSessions > 0
+      ? Math.round(totalMinutes / totalSessions)
+      : (engagement?.avgSessionMinutes || 0);
 
-    // Active users today (from live backend engagement telemetry or reading history)
-    const todayStr = new Date().toDateString();
-    const todayReadersSet = new Set(
-      readingHistory
-        .filter((r) => r.timestamp && new Date(r.timestamp).toDateString() === todayStr)
-        .map((r) => (r.userEmail || '').trim().toLowerCase())
-    );
-    const activeReadersToday = Math.max(todayReadersSet.size, engagement.activeReadersToday || 0);
+    // Active users today: true count from engagement telemetry or calculated
+    const activeReadersToday = engagement?.activeReadersToday !== undefined && engagement.activeReadersToday !== null
+      ? engagement.activeReadersToday
+      : (engagement?.activeUsersList?.length || 0);
 
-    // Live active users online now (including admins and readers active in the last 15 mins)
-    const fifteenMinsAgo = Date.now() - 15 * 60 * 1000;
-    const onlineNowSet = new Set(
-      readingHistory
-        .filter((r) => r.timestamp && new Date(r.timestamp).getTime() >= fifteenMinsAgo)
-        .map((r) => (r.userEmail || '').trim().toLowerCase())
-    );
-    const onlineNow = Math.max(onlineNowSet.size, engagement.activeSessionsNow || 0);
+    // Live active users online now (active within the last 15 mins)
+    const onlineNow = engagement?.activeSessionsNow !== undefined && engagement.activeSessionsNow !== null
+      ? engagement.activeSessionsNow
+      : 0;
 
     return {
       totalReaders,

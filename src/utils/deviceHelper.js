@@ -43,3 +43,4 @@ export function getDeviceInfo() {
 
   return { browser, os, deviceName };
 }
+

@@ -11,21 +11,14 @@ import { getOrCreateDeviceToken, getDeviceInfo } from '@/utils/deviceHelper';
 const OTP_EXPIRY_SECONDS = 120;
 const OTP_REQUEST_SESSION_KEY = 'mail_otp_request_state';
 
-// 6 Available geometric shapes that digits dynamically assemble into:
-// 1. CIRCLE: smooth circular radial formation
-// 2. SQUARE: 4 corners aligned
-// 3. DIAMOND: rotated diamond vertex coordinates
-// 4. TRIANGLE: 3 outer vertices with 4th digit positioned directly in the center
-// 5. HEXAGON: wide honeycomb layout
-// 6. LINEAR WAVE: dynamic fluid waveform
-const AVAILABLE_SHAPE_SEQUENCES = [
-  ['circle', 'square', 'diamond', 'triangle', 'hexagon'],
-  ['square', 'circle', 'diamond', 'triangle', 'hexagon'],
-  ['diamond', 'circle', 'triangle', 'square', 'hexagon'],
-  ['triangle', 'circle', 'diamond', 'square', 'hexagon'],
-  ['circle', 'diamond', 'triangle', 'square', 'hexagon'],
-  ['hexagon', 'circle', 'triangle', 'diamond', 'square']
-];
+// 6 Distinct geometric shapes for verification formation:
+const BASE_SHAPES = ['circle', 'triangle', 'square', 'rectangle', 'diamond', 'hexagon'];
+
+function generateJumbledSequence() {
+  const shuffled = [...BASE_SHAPES].sort(() => Math.random() - 0.5);
+  // Guarantee at least 3 distinct shapes in jumbled order
+  return shuffled.slice(0, 3);
+}
 
 export default function MailOtpVerification() {
   const navigate = useNavigate();
@@ -38,7 +31,7 @@ export default function MailOtpVerification() {
   const [submitting, setSubmitting] = useState(false);
   const [sending, setSending] = useState(false);
 
-  // Animation phase: false until user clicks "Verify OTP" (or presses Enter)
+  // Animation phase: false until user clicks "Verify OTP" (or auto-triggers after 4th digit)
   const [isAnimatingShapes, setIsAnimatingShapes] = useState(false);
 
   // Verification state: null | 'success' | 'error'
@@ -46,12 +39,8 @@ export default function MailOtpVerification() {
   const [trustDevice, setTrustDevice] = useState(true);
   const [showTrustInfo, setShowTrustInfo] = useState(false);
 
-  // Randomize senior-level UI shape sequence dynamically on each mount/session
-  const shapeSequence = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * AVAILABLE_SHAPE_SEQUENCES.length);
-    return AVAILABLE_SHAPE_SEQUENCES[randomIndex];
-  }, []);
-
+  // Dynamic jumbled sequence of 3 unique shapes generated fresh on each verification attempt
+  const [shapeSequence, setShapeSequence] = useState(() => generateJumbledSequence());
   const [currentShapeIndex, setCurrentShapeIndex] = useState(0);
   const inputRefs = useRef([]);
   const isAdminOtp = location.pathname.includes('/Admin/');
@@ -60,7 +49,7 @@ export default function MailOtpVerification() {
   const filledCount = digits.filter((d) => d !== '').length;
   const isAllFilled = filledCount === 4;
 
-  // Step through shapes every 800ms while animating
+  // Step through shapes: fast move to shape, hold for 1.5s (1500ms), then move to next shape
   useEffect(() => {
     if (!isAnimatingShapes) {
       setCurrentShapeIndex(0);
@@ -69,7 +58,7 @@ export default function MailOtpVerification() {
 
     const interval = setInterval(() => {
       setCurrentShapeIndex((prev) => (prev + 1) % shapeSequence.length);
-    }, 800);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, [isAnimatingShapes, shapeSequence.length]);
@@ -274,7 +263,7 @@ export default function MailOtpVerification() {
     } else if (index === 3) {
       // All 4 digits entered: automatically trigger senior UI shape morphing constellation
       setTimeout(() => {
-        executeVerification();
+        executeVerification(nextDigits);
       }, 150);
     }
   };
@@ -302,6 +291,12 @@ export default function MailOtpVerification() {
     }
     setDigits(nextDigits);
     setIsAnimatingShapes(false);
+    if (pasted.length === 4) {
+      setTimeout(() => {
+        executeVerification(nextDigits);
+      }, 150);
+      return;
+    }
     const targetIdx = Math.min(3, pasted.length);
     setTimeout(() => {
       if (inputRefs.current[targetIdx]) {
@@ -310,13 +305,19 @@ export default function MailOtpVerification() {
     }, 20);
   };
 
-  const executeVerification = async () => {
-    const fullOtp = digits.join('');
+  const executeVerification = async (explicitDigits = null) => {
+    const targetDigits = explicitDigits || digits;
+    const fullOtp = targetDigits.join('');
     if (fullOtp.length !== 4) {
       setError('Please enter all 4 digits of the OTP before verifying.');
       setVerifyState('error');
       return;
     }
+
+    // Refresh dynamic jumbled sequence of 3 unique shapes for this verification run
+    const newSeq = generateJumbledSequence();
+    setShapeSequence(newSeq);
+    setCurrentShapeIndex(0);
 
     // Trigger dynamic geometric shape constellation animation
     setIsAnimatingShapes(true);
@@ -325,8 +326,8 @@ export default function MailOtpVerification() {
     setVerifyState(null);
 
     const startTime = Date.now();
-    // Guarantee that at least 3 distinct shape formations finish displaying (approx 2600ms)
-    const MINIMUM_SHAPE_CYCLES_MS = 2600;
+    // Guarantee that at least 3 distinct shape formations finish displaying with 1.5s per shape (~4500ms)
+    const MINIMUM_SHAPE_CYCLES_MS = 4600;
 
     try {
       const pendingAuth = JSON.parse(sessionStorage.getItem('pending_auth') || 'null');
@@ -343,7 +344,7 @@ export default function MailOtpVerification() {
       // Await network verification while the shapes continue morphing
       await verifyPromise;
 
-      // Ensure minimum 3 full shape transformations occur before transitioning
+      // Ensure minimum 3 full shape transformations occur before transitioning (1.5s hold per shape)
       const elapsed = Date.now() - startTime;
       if (elapsed < MINIMUM_SHAPE_CYCLES_MS) {
         await new Promise((resolve) => setTimeout(resolve, MINIMUM_SHAPE_CYCLES_MS - elapsed));
@@ -410,7 +411,7 @@ export default function MailOtpVerification() {
           const deviceToken = getOrCreateDeviceToken();
           const info = getDeviceInfo();
           await authService.trustDevice({
-            email: pendingAuth.email,
+            email: (pendingAuth.email || '').trim().toLowerCase(),
             deviceToken,
             deviceName: info.deviceName,
             browser: info.browser,
@@ -458,6 +459,12 @@ export default function MailOtpVerification() {
         if (index === 2) return { x: 38, y: 38 };
         return { x: -38, y: 38 };
 
+      case 'rectangle':
+        if (index === 0) return { x: -48, y: -24 };
+        if (index === 1) return { x: 48, y: -24 };
+        if (index === 2) return { x: 48, y: 24 };
+        return { x: -48, y: 24 };
+
       case 'circle': {
         const angle = (index * 90) * (Math.PI / 180);
         return { x: Math.round(48 * Math.cos(angle)), y: Math.round(48 * Math.sin(angle)) };
@@ -476,10 +483,10 @@ export default function MailOtpVerification() {
         return { x: 0, y: 0 }; // 4th digit centered in the triangle
 
       case 'hexagon':
-        if (index === 0) return { x: -42, y: -26 };
-        if (index === 1) return { x: 42, y: -26 };
-        if (index === 2) return { x: 42, y: 26 };
-        return { x: -42, y: 26 };
+        if (index === 0) return { x: -44, y: -26 };
+        if (index === 1) return { x: 44, y: -26 };
+        if (index === 2) return { x: 44, y: 26 };
+        return { x: -44, y: 26 };
 
       default:
         return { x: (index - 1.5) * 54, y: 0 };
@@ -546,12 +553,12 @@ export default function MailOtpVerification() {
                         animate={{
                           x: coords.x,
                           y: coords.y,
-                          scale: [1, 1.08, 1],
+                          scale: [1, 1.12, 1],
                         }}
                         transition={{
-                          x: { duration: 0.65, ease: [0.34, 1.56, 0.64, 1] },
-                          y: { duration: 0.65, ease: [0.34, 1.56, 0.64, 1] },
-                          scale: { duration: 0.4 }
+                          x: { duration: 0.35, ease: [0.25, 1, 0.5, 1] },
+                          y: { duration: 0.35, ease: [0.25, 1, 0.5, 1] },
+                          scale: { duration: 0.3 }
                         }}
                         className="absolute size-12 sm:size-14 flex items-center justify-center"
                       >
@@ -709,7 +716,7 @@ export default function MailOtpVerification() {
             {/* SUBMIT BUTTON: Only enabled when all 4 digits are completed */}
             <button
               type="button"
-              onClick={executeVerification}
+              onClick={() => executeVerification()}
               disabled={!isAllFilled || submitting || sending || remainingSeconds === 0 || verifyState === 'success'}
               className="w-full py-3.5 sm:py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold rounded-xl shadow-lg shadow-orange-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-[0.98] text-sm sm:text-base"
             >

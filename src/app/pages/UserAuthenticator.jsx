@@ -34,11 +34,12 @@ export default function UserAuthenticator() {
       setCheckingDevice(true);
       try {
         const deviceToken = getOrCreateDeviceToken();
-        const checkRes = await authService.checkTrustedDevice(pendingAuth.email, deviceToken);
+        const normalizedEmail = (pendingAuth.email || '').trim().toLowerCase();
+        const checkRes = await authService.checkTrustedDevice(normalizedEmail, deviceToken);
 
         if (checkRes?.trusted) {
           // Device is trusted! Bypass Mail OTP, perform direct authenticated login
-          const userData = await login(pendingAuth.email, pendingAuth.password, pendingAuth.role || 'user');
+          const userData = await login(normalizedEmail, pendingAuth.password, pendingAuth.role || 'user');
           sessionStorage.removeItem('pending_auth');
           sessionStorage.removeItem('human_verification_passed');
           sessionStorage.removeItem('mail_otp_request_state');

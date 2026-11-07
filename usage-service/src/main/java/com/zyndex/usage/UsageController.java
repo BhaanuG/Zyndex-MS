@@ -166,13 +166,13 @@ public class UsageController {
         Long totalSessions = jdbc.queryForObject("SELECT COUNT(*) FROM usages", Long.class);
         Long uniqueReaders = jdbc.queryForObject("SELECT COUNT(DISTINCT user_id) FROM usages", Long.class);
         
-        // Active users today: includes all active users and administrators active today
+        // Active users today: includes all active users and administrators active today (last 24 hours or calendar day)
         Long todayReaders = jdbc.queryForObject("""
                 SELECT COUNT(DISTINCT user_id) FROM (
-                    SELECT user_id FROM usages WHERE created_at >= CURRENT_DATE()
+                    SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 24 HOUR
                     UNION
                     SELECT id AS user_id FROM zyndex_auth.users 
-                    WHERE last_active_at >= CURRENT_DATE()
+                    WHERE last_active_at >= NOW() - INTERVAL 24 HOUR
                 ) active_users
                 """, Long.class);
 
@@ -273,12 +273,12 @@ public class UsageController {
                         COALESCE(usr.role, 'STUDENT') AS role,
                         COALESCE((
                             SELECT SUM(duration) FROM zyndex_usage.usages 
-                            WHERE user_id = usr.id AND created_at >= CURRENT_DATE()
+                            WHERE user_id = usr.id AND created_at >= NOW() - INTERVAL 24 HOUR
                         ), 0) AS totalDuration,
                         COALESCE(usr.last_active_at, NOW()) AS lastActiveAt
                     FROM zyndex_auth.users usr
-                    WHERE usr.last_active_at >= CURRENT_DATE() 
-                       OR usr.id IN (SELECT user_id FROM zyndex_usage.usages WHERE created_at >= CURRENT_DATE())
+                    WHERE usr.last_active_at >= NOW() - INTERVAL 24 HOUR 
+                       OR usr.id IN (SELECT user_id FROM zyndex_usage.usages WHERE created_at >= NOW() - INTERVAL 24 HOUR)
                     ORDER BY lastActiveAt DESC
                     """);
         } catch (Exception e) {

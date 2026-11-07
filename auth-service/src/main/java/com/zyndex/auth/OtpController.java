@@ -206,25 +206,20 @@ class OtpController {
 
     private String otpDisplayBoxHtml(String label, String otp, String borderHex, String bgHex, String textHex, String subtextHex) {
         return """
-                <div style="background-color: %s; border: 2px dashed %s; border-radius: 12px; padding: 22px 18px 16px 18px; text-align: center; margin: 20px 0; position: relative;">
+                <div style="background-color: %s; border: 2px dashed %s; border-radius: 12px; padding: 22px 18px 16px 18px; text-align: center; margin: 20px 0;">
                     <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: %s; display: block; margin-bottom: 8px;">%s</span>
-                    <div style="text-align: center; margin: 8px 0 10px 0;">
-                        <span style="font-size: 34px; font-weight: 900; letter-spacing: 7px; color: %s; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; display: inline-block; user-select: all; -webkit-user-select: all; -moz-user-select: all; cursor: text;">%s</span>
-                    </div>
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="margin-top: 8px; border-collapse: collapse;">
+                    <table border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 6px auto 10px auto;">
                         <tr>
-                            <td align="left" style="font-size: 11px; color: %s; line-height: 1.4; vertical-align: middle;">
-                                Valid for 2 minutes · Single-use code
-                            </td>
-                            <td align="right" style="vertical-align: middle; white-space: nowrap; width: 48px;">
-                                <span title="Select or double-click to copy OTP" style="display: inline-block; font-size: 18px; line-height: 1; color: %s; padding: 4px; user-select: all; -webkit-user-select: all;">
-                                    &#128203;
-                                </span>
+                            <td align="center" style="background-color: #ffffff; border: 1px solid #fed7aa; border-radius: 8px; padding: 8px 18px;">
+                                <span style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: %s; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace, sans-serif; display: inline-block; -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all; user-select: all; cursor: text;">%s</span>
                             </td>
                         </tr>
                     </table>
+                    <p style="font-size: 11px; color: %s; margin: 6px 0 0 0; line-height: 1.4;">
+                        Select or double-click to copy · Valid for 2 minutes · Single-use code
+                    </p>
                 </div>
-                """.formatted(bgHex, borderHex, subtextHex, label, textHex, otp, subtextHex, textHex);
+                """.formatted(bgHex, borderHex, subtextHex, label, textHex, otp, subtextHex);
     }
 
     private String accountCreationOtpHtml(String username, String email, String role, String otp) {
