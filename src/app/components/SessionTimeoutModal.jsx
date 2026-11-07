@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AlertCircle, Clock, LogIn, ShieldAlert } from 'lucide-react';
+import { AlertCircle, Clock, LogIn, ShieldAlert, ArrowRight } from 'lucide-react';
 
 /**
  * Global Session Timeout & Inactivity Modal
