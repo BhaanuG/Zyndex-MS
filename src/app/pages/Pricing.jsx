@@ -18,7 +18,8 @@ import {
   Lock,
   ArrowRight,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Clock
 } from 'lucide-react';
 import PublicLayout from '@/app/components/PublicLayout';
 import UserLayout from '@/app/components/UserLayout';
