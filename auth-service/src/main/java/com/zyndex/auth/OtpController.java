@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 class OtpController {
-    private static final long OTP_TTL_SECONDS = 300; // 5 minutes validity
+    private static final long OTP_TTL_SECONDS = 120; // 120 seconds (2 minutes) validity
     private static final SecureRandom RANDOM = new SecureRandom();
     private final Map<String, OtpRecord> otps = new ConcurrentHashMap<>();
     private final Map<String, Instant> verifiedOtps = new ConcurrentHashMap<>();
@@ -161,23 +161,24 @@ class OtpController {
         String recordKey = role.isBlank() ? findKey(email) : key(email, role);
         OtpRecord record = recordKey == null ? null : otps.get(recordKey);
         if (record == null) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "OTP not found. Please request a new OTP.");
+            throw new ApiException(HttpStatus.NOT_FOUND, "Verification code not found or already used. Please request a new OTP.");
         }
         if (Instant.now().isAfter(record.expiresAt)) {
             otps.remove(recordKey);
-            throw new ApiException(HttpStatus.BAD_REQUEST, "OTP has expired. Please request a new OTP.");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Verification code has expired (validity is 120 seconds). Please request a new OTP.");
         }
         if (record.attempts >= 5) {
             otps.remove(recordKey);
-            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many incorrect attempts. Please request a new OTP.");
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many incorrect attempts. For security reasons, this OTP has been invalidated. Please request a new OTP.");
         }
         if (!record.otp.equals(otp)) {
             record.attempts += 1;
+            int remainingAttempts = 5 - record.attempts;
             if (record.attempts >= 5) {
                 otps.remove(recordKey);
-                throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many incorrect attempts. Please request a new OTP.");
+                throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many incorrect attempts. For security reasons, this OTP has been invalidated. Please request a new OTP.");
             }
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid OTP.");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid 4-digit OTP. " + remainingAttempts + " attempt" + (remainingAttempts == 1 ? "" : "s") + " remaining.");
         }
         otps.remove(recordKey);
         verifiedOtps.put(recordKey, Instant.now().plusSeconds(OTP_TTL_SECONDS));

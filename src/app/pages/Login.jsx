@@ -173,8 +173,8 @@ export default function Login() {
         force: true,
       });
       setOtpSent(true);
-      setOtpCountdown(60);
-      setOtpSuccessMessage(`Security OTP has been sent to ${trimmedEmail}. Please enter the 4-digit code.`);
+      setOtpCountdown(120);
+      setOtpSuccessMessage(`Security OTP has been sent to ${trimmedEmail}. It will expire in 120 seconds. Please enter the 4-digit code.`);
     } catch (err) {
       setError(err.message || 'Failed to send verification OTP.');
     } finally {

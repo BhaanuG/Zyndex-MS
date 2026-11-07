@@ -224,7 +224,7 @@ journey
       Visit Landing Page: 5: Student
       Explore Catalog & Categories: 4: Student
       Register Account: 3: Student
-      Receive 6-digit OTP Email: 4: Student
+      Receive 4-digit OTP Email: 4: Student
       Verify OTP & Log In: 5: Student
     section Subscription & Payment
       Select Student Plus Plan: 4: Student
@@ -604,6 +604,9 @@ Across the Zyndex microservices architecture, all transactional emails are rende
 | **17** | **Admin Workflow** | **Admin Access Request Declined** | `auth-service` / `AccountEmailService.java` | When the super admin declines an admin request (includes custom reason note). | Declined applicant | `Zyndex \| Admin Access Request Update` |
 | **18** | **Security Alerts** | **Password Changed Confirmation** | `auth-service` / `AccountEmailService.java` | Dispatched immediately after the account password has been successfully updated. | Account owner | `Zyndex \| Password Changed Successfully` |
 | **19** | **Feedback & Reviews** | **Feedback Admin Response Email** | `content-service` / `ContactEmailService.java` | Dispatched automatically when an administrator reviews, reacts, or replies to user resource feedback from the Feedback Review admin console. Contains the resource title, star rating, submission date, user review comments, and the administrator's direct response. | User who submitted feedback | `Zyndex \| Response to Your Review on "[Resource Title]"` |
+| **20** | **Maintenance Alerts** | **Scheduled Maintenance 15-Minute Warning** | `auth-service` / `AccountEmailService.java` | Broadcast to all users and regular admins the moment the Primary Admin initiates maintenance mode, warning that services will go offline in 15 minutes. | All platform users & admins | `Zyndex System Notice | Scheduled Maintenance in 15 Minutes` |
+| **21** | **Maintenance Alerts** | **Maintenance Mode Active Notification** | `auth-service` / `AccountEmailService.java` | Broadcast once the 15-minute countdown finishes and all sessions are terminated, notifying users that Zyndex is officially offline for maintenance. | All platform users & admins | `Zyndex System Notice | Platform Maintenance in Progress` |
+| **22** | **Maintenance Alerts** | **Maintenance Completed / Back Online** | `auth-service` / `AccountEmailService.java` | Broadcast when the Primary Admin turns maintenance mode off, notifying all users and admins that services are fully restored. | All platform users & admins | `Zyndex System Notice | Platform Maintenance Complete - We're Back Online!` |
 
 **Detailed Step Traceability**:
 1. **User Action**: Student enters name, email, and password on `src/app/pages/Login.jsx`.
@@ -824,7 +827,7 @@ d:\Zyndex\
 │       ├── java/com/zyndex/auth/
 │       │   ├── AuthApplication.java           # Auth microservice bootstrap class
 │       │   ├── AuthController.java            # Endpoints: /api/auth/register, /login, /check-login, /account-details
-│       │   ├── OtpController.java             # Endpoints: /api/send-otp, /api/verify-otp (6-digit numeric OTPs)
+│       │   ├── OtpController.java             # Endpoints: /api/send-otp, /api/verify-otp (4-digit numeric OTPs with 120s TTL)
 │       │   ├── UserController.java            # Endpoints: /api/users (user profiles, password reset, account updates)
 │       │   ├── LogController.java             # Endpoints: /api/logs (telemetry log queries and system event creation)
 │       │   ├── AccountEmailService.java       # SMTP email sender (signup confirmation, upgrade alerts, invoices)
@@ -946,7 +949,8 @@ d:\Zyndex\
     │   └── pages/                             # Application View Pages
     │       ├── Login.jsx                      # Unified sign-in and registration portal with role selection
     │       ├── ForgotPassword.jsx             # Password reset flow via OTP email verification
-    │       ├── MailOtpVerification.jsx        # 6-digit email OTP verification screen
+    │       ├── MailOtpVerification.jsx        # 4-digit email OTP verification screen with geometric formation animation
+    │       ├── MaintenanceCountdownBar.jsx    # Real-time sticky 15-minute maintenance countdown timer bar
     │       ├── AdminRequest.jsx               # Faculty and staff administrative access request application
     │       ├── UserAuthenticator.jsx          # Student multi-factor verification intermediate screen
     │       ├── AdminAuthenticator.jsx         # Administrator multi-factor verification intermediate screen
@@ -1035,7 +1039,7 @@ Zyndex implements a hardened, poly-service microservices architecture. Communica
 
 #### 3. Auth Service (`auth-service`)
 - **Port**: `8081` | **Database**: `zyndex_auth`
-- **Responsibility**: User registration, credential verification, BCrypt password hashing, 6-digit email OTP generation and validation, account profile management, system log tracking, and JWT issuance (7-day validity).
+- **Responsibility**: User registration, credential verification, BCrypt password hashing, 4-digit email OTP generation and validation (120-second TTL), account profile management, system log tracking, and JWT issuance (7-day validity).
 - **Key Classes**:
   - `AuthController.java`: Core login, registration, and credential verification endpoints.
   - `OtpController.java`: Endpoints `/api/send-otp` and `/api/verify-otp`.
@@ -1122,7 +1126,7 @@ graph TD
 ---
  | :--- | :--- | :--- |
 | **`Login.jsx`** | `/Zyndex/User/Log-In`<br>`/Zyndex/Admin/Log-In` | Public | Dual-tab login & registration portal with role selector (`STUDENT` or `ADMIN`), password reveal, and error handling. |
-| **`MailOtpVerification.jsx`** | `/Zyndex/User/Mail-OTP-Verification` | Public | Accepts and verifies the 6-digit numeric OTP dispatched via SMTP before creating the user account. |
+| **`MailOtpVerification.jsx`** | `/Zyndex/User/Mail-OTP-Verification` | Public | Accepts and verifies the 4-digit numeric OTP dispatched via SMTP (strict 120s expiry) before creating the user account. |
 | **`ForgotPassword.jsx`** | `/Zyndex/Auth/Forgot-Password` | Public | Password reset workflow: verifies email, dispatches password reset OTP, and allows setting a new secure password. |
 | **`AdminRequest.jsx`** | `/Zyndex/Admin/Sign-Up` | Public | Faculty application portal for requesting institutional administrator privileges. |
 | **`Pricing.jsx`** | `/Zyndex/About/Pricing`<br>`/Zyndex/User/:name/:email/Profile/Billing/Pricing` | Public / Student | Full pricing comparison table (Free, Basic, Plus, Pro, University, Enterprise), UPI QR checkout modal, countdown timer, and 12-digit UTR input form. |
@@ -1157,7 +1161,7 @@ sequenceDiagram
 
     User->>Auth: POST /api/send-otp {"email": "student@univ.edu"}
     Auth->>DB: INSERT into otps (email, code, expires_at)
-    Auth->>Mail: Send 6-digit numeric OTP via SMTP
+    Auth->>Mail: Send 4-digit numeric OTP via SMTP (120-second validity)
     User->>Auth: POST /api/verify-otp {"email": "...", "otp": "123456"}
     Auth->>DB: Validate code & mark verified
     User->>Auth: POST /api/auth/register (name, email, password, userType)
@@ -1203,8 +1207,8 @@ All client-facing requests route through the **API Gateway** on port `8080`.
 
 | HTTP Method | Endpoint (via Gateway) | Auth Required | Request Body / Params | Response Payload | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/api/send-otp` | Public | `{"email": "student@univ.edu"}` | `{"message": "Verification code sent."}` | Dispatches a 6-digit numeric OTP via SMTP. |
-| `POST` | `/api/verify-otp` | Public | `{"email": "...", "otp": "123456"}` | `{"message": "Code verified successfully."}` | Validates OTP prior to account registration. |
+| `POST` | `/api/send-otp` | Public | `{"email": "student@univ.edu"}` | `{"message": "Verification code sent.", "expiresInSeconds": 120}` | Dispatches a 4-digit numeric OTP via SMTP with 120s TTL. |
+| `POST` | `/api/verify-otp` | Public | `{"email": "...", "otp": "1234"}` | `{"message": "OTP verified successfully."}` | Validates 4-digit OTP prior to account registration or login. |
 | `POST` | `/api/auth/register` | Public | `{"name": "...", "email": "...", "password": "...", "userType": "Student"}` | `{"message": "...", "user": {...}}` | Creates a new student account and sends welcome email. |
 | `POST` | `/api/auth/login` | Public | `{"email": "...", "password": "...", "role": "user"}` | `{"token": "ey...", "user": {...}}` | Authenticates credentials and returns 7-day JWT token. |
 | `POST` | `/api/auth/check-login` | Public | `{"email": "...", "password": "...", "role": "user"}` | `{"message": "Credentials verified.", "user": {...}}` | Pre-validates credentials without issuing session token. |
@@ -1429,7 +1433,7 @@ erDiagram
 - **`otps`**:
   - `id` (BIGINT, PK, AUTO_INCREMENT)
   - `email` (VARCHAR(255), Not Null)
-  - `code` (VARCHAR(10), Not Null) - 6-digit numeric OTP
+  - `code` (VARCHAR(10), Not Null) - 4-digit numeric OTP (120-second TTL)
   - `expires_at` (DATETIME, Not Null) - 10-minute expiry
   - `verified` (BOOLEAN, Default `FALSE`)
 - **`system_logs`**:
