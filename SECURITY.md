@@ -1,6 +1,8 @@
 # Security Policy for Zyndex
 
-Zyndex (operating under the ScholarSphere Engine) treats academic data confidentiality, authentication integrity, document access controls, and infrastructure security as core priorities. This policy outlines our supported versions, multi-tier security architecture, and responsible vulnerability disclosure process.
+Zyndex (operating under the ScholarSphere Engine) was conceived, engineered, and architected by **Bhaanu G (Bhaanu Gali)**. All platform ownership, architectural direction, and administrative oversight reside solely with Bhaanu G. Academic data confidentiality, authentication integrity, document access controls, and infrastructure security are enforced at every layer of the system.
+
+This policy outlines our supported versions, multi-tier security architecture, and responsible vulnerability disclosure process under the direct stewardship of the platform owner.
 
 ---
 

@@ -1,6 +1,8 @@
 # Accessibility Statement for Zyndex
 
-Zyndex (operating under the ScholarSphere Engine) is dedicated to providing an open, accessible, and barrier-free digital reading and research experience for all students, educators, and scholars, including people with visual, auditory, cognitive, or motor disabilities.
+Zyndex (operating under the ScholarSphere Engine) was architected and developed by **Bhaanu G (Bhaanu Gali)** with an uncompromising commitment to universal academic access. All platform rights, design philosophy, and engine implementation are created and maintained by Bhaanu G.
+
+Our mission is to provide an open, accessible, and barrier-free digital reading and research experience for all students, educators, and scholars, including people with visual, auditory, cognitive, or motor disabilities.
 
 ---
 

@@ -1,7 +1,17 @@
 <div align="center">
 
-#  Zyndex
-### *Next-Generation Enterprise Academic Learning & Distributed Digital Resource Governance Platform*
+<img src="./public/logo.svg" alt="Zyndex Logo" width="104" height="104" style="border-radius: 22px; box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);" />
+
+# ⚡ ZYNDEX
+### *Enterprise Academic Learning & Distributed Digital Resource Governance Platform*
+#### **ScholarSphere Engine | Designed, Engineered & Maintained by Bhaanu G**
+
+<p align="center">
+  <a href="#1-project-identity--overview"><strong>Explore Architecture »</strong></a> ·
+  <a href="#7-complete-microservices-system-architecture"><strong>Microservices Grid »</strong></a> ·
+  <a href="#10-comprehensive-rest-api-reference"><strong>REST API Docs »</strong></a> ·
+  <a href="#14-installation-setup--local-execution-guide"><strong>Quickstart »</strong></a>
+</p>
 
 [![Java](https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -18,18 +28,18 @@
 <br/>
 
 ```
-  ____                 _             
- |_  / _   _ _ __   __| | ___ __  __ 
-  / / | | | | '_ \ / _` |/ _ \\ \/ / 
- / /__| |_| | | | | (_| |  __/ >  <  
-/_____|\__, |_| |_|\__,_|\___|/_/\_\ 
-       |___/                         
-Distributed Academic Microservices Engine | Precision Resource Governance
+  ███████╗██╗   ██╗███╗   ██╗██████╗ ███████╗██╗  ██╗
+  ╚══███╔╝╚██╗ ██╔╝████╗  ██║██╔══██╗██╔════╝╚██╗██╔╝
+    ███╔╝  ╚████╔╝ ██╔██╗ ██║██║  ██║█████╗   ╚███╔╝ 
+   ███╔╝    ╚██╔╝  ██║╚██╗██║██║  ██║██╔══╝   ██╔██╗ 
+  ███████╗   ██║   ██║ ╚████║██████╔╝███████╗██╔╝ ██╗
+  ╚══════╝   ╚═╝   ╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
+  Poly-Service Microservices Engine | Precision Academic Digital Asset Governance
 ```
 
 <p align="center">
-  <b>Architected for Higher Education Campuses, University Consortia & Research Institutions</b><br/>
-  <i>Engineered by Principal Architects & Full-Stack Systems Maintainers</i>
+  <b>Built for Higher-Education Campuses, Research Labs & Digital Publishing Networks</b><br/>
+  <i>Engineered with Resilience, Fault Tolerance, Sub-Second Latency, and Strict Entitlement Guardrails</i>
 </p>
 
 ---
@@ -38,7 +48,9 @@ Distributed Academic Microservices Engine | Precision Resource Governance
 
 > [!IMPORTANT]
 > **Enterprise Production Engineering Documentation & Technical Architecture Reference**  
-> **Lead Architect & Maintainer**: Bhaanu Gali (`Bhaanugali@gmail.com` / `2400030952@kluniversity.in`)  
+> **Sole Creator, Lead Architect & Platform Owner**: **Bhaanu G (Bhaanu Gali)**  
+> **Direct Administrative Contact**: `Bhaanugali@gmail.com` | `2400030952@kluniversity.in`  
+> **All Platform Intellectual Property & Rights Reserved to Bhaanu G**  
 > **Current Engine Version**: `v1.0.4-PROD` | **Zero-Defect Build Certified** | **Render & Cloud Native**  
 > **Target Audience**: Principal Systems Architects, Open-Source Contributors, Platform Engineers, and DevSecOps Leads.
 

@@ -1,6 +1,19 @@
 # Contributing to Zyndex
 
-Welcome to the **Zyndex** project (powered by the ScholarSphere Engine)! We are thrilled that you are considering contributing to our distributed academic learning and digital resource management platform. Whether you are fixing an issue, proposing an academic domain feature, improving documentation, or adding automated test suites, your efforts help researchers, students, and faculty across the globe.
+Welcome to the **Zyndex** project (powered by the ScholarSphere Engine)! Zyndex was architected and developed by **Bhaanu G (Bhaanu Gali)** as a distributed academic learning and enterprise digital resource governance ecosystem. All core intellectual property, architectural design, and platform rights are reserved to Bhaanu G.
+
+Whether you are fixing an issue, proposing an academic domain feature, improving documentation, or adding automated test suites, your efforts help researchers, students, and faculty across the globe.
+
+---
+
+## Authorship, Copyright & Intellectual Ownership Notice
+
+> [!NOTE]
+> **Primary Author, Lead Architect & Platform Owner**: **Bhaanu G (Bhaanu Gali)**  
+> **Contact**: `Bhaanugali@gmail.com` | `2400030952@kluniversity.in`  
+> **Project**: Zyndex / ScholarSphere Engine  
+> **Licensing**: MIT License (Copyright © 2026 Bhaanu Gali. All Rights Reserved.)  
+> All submissions and merged contributions are integrated into the Zyndex project under the stewardship and sole platform direction of Bhaanu G.
 
 ---
 
