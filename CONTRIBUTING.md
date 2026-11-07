@@ -1,202 +1,205 @@
 # Contributing to Zyndex
 
-Welcome to the **Zyndex** project! Zyndex was architected and developed by **Bhaanu G (Bhaanu Gali)** as a distributed academic learning and enterprise digital resource governance ecosystem. All core intellectual property, architectural design, and platform rights are reserved to Bhaanu G.
+Welcome to the **Zyndex** project. Zyndex is an enterprise-scale distributed digital library, academic resource repository, and digital asset governance platform conceived, designed, architected, and engineered solely by **Bhaanu G (Bhaanu Gali)**. All platform intellectual property, architecture designs, copyright, and engine entitlements belong exclusively to Bhaanu G.
 
-Whether you are fixing an issue, proposing an academic domain feature, improving documentation, or adding automated test suites, your efforts help researchers, students, and faculty across the globe.
+We welcome peer review, security audits, academic feature proposals, documentation enrichments, and automated testing contributions from the open-source engineering community under the guidelines outlined in this document.
 
 ---
 
-## Authorship, Copyright & Intellectual Ownership Notice
+## Authorship, Copyright & Sole Platform Ownership
 
-> [!NOTE]
-> **Primary Author, Lead Architect & Platform Owner**: **Bhaanu G (Bhaanu Gali)**  
-> **Contact**: `Bhaanugali@gmail.com` | `2400030952@kluniversity.in`  
-> **Project**: Zyndex  
-> **Licensing**: MIT License (Copyright © 2026 Bhaanu Gali. All Rights Reserved.)  
-> All submissions and merged contributions are integrated into the Zyndex project under the stewardship and sole platform direction of Bhaanu G.
+> [!IMPORTANT]
+> **Sole Creator, Lead Architect & Platform Maintainer**: **Bhaanu G (Bhaanu Gali)**  
+> **Institutional Affiliation**: KL University  
+> **Primary Contact**: `Bhaanugali@gmail.com`  
+> **Institutional Contact**: `2400030952@kluniversity.in`  
+> **Legal License**: MIT License (Copyright © 2026 Bhaanu Gali. All Rights Reserved.)  
+> *All rights, architecture definitions, database schemas, and intellectual property remain with Bhaanu G. All pull requests and community contributions become part of the canonical Zyndex engine under the direct stewardship and sole ownership of Bhaanu G.*
 
 ---
 
 ## Table of Contents
 
-1. [Code of Conduct](#code-of-conduct)
-2. [What We Expect From Contributors](#what-we-expect-from-contributors)
-3. [Architecture & Technical Principles](#architecture--technical-principles)
-4. [Getting Started Locally](#getting-started-locally)
-5. [Development Workflow & Branching Strategy](#development-workflow--branching-strategy)
-6. [Commit Guidelines & Standards](#commit-guidelines--standards)
-7. [Submitting Issues & Feature Requests](#submitting-issues--feature-requests)
-8. [Pull Request (PR) Submission & Review Criteria](#pull-request-pr-submission--review-criteria)
-9. [Continuous Integration & Pre-Deployment Verification](#continuous-integration--pre-deployment-verification)
-10. [Community & Contact Channels](#community--contact-channels)
+1. [Code of Conduct](#1-code-of-conduct)
+2. [Engineering Principles & Senior Development Standards](#2-engineering-principles--senior-development-standards)
+3. [Microservices Cluster Architecture Reference](#3-microservices-cluster-architecture-reference)
+4. [Local Workstation Setup & Toolchain](#4-local-workstation-setup--toolchain)
+5. [Git Workflow, Branching & Conventional Commits](#5-git-workflow-branching--conventional-commits)
+6. [Compilation, Build Verification & Quality Assurance](#6-compilation-build-verification--quality-assurance)
+7. [Submitting Issues & Feature RFCs](#7-submitting-issues--feature-rfcs)
+8. [Pull Request (PR) Lifecycle & Strict Review Checklist](#8-pull-request-pr-lifecycle--strict-review-checklist)
+9. [Deployment Readiness & Production Hosting](#9-deployment-readiness--production-hosting)
+10. [Security Disclosure & Contact Channels](#10-security-disclosure--contact-channels)
 
 ---
 
 ## 1. Code of Conduct
 
-All contributors, maintainers, and community participants are required to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). We are committed to fostering an open, inclusive, harassment-free environment for everyone. Please report violations to **`Bhaanugali@gmail.com`** and **`2400030952@kluniversity.in`**.
+All contributors, reviewers, and maintainers participating in the Zyndex project are required to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). We maintain a strictly professional, welcoming, and harassment-free development ecosystem. Any behavior violating community trust or ethical development standards will result in immediate exclusion from the project repository. Violations may be reported directly to **`Bhaanugali@gmail.com`**.
 
 ---
 
-## 2. What We Expect From Contributors
+## 2. Engineering Principles & Senior Development Standards
 
-- **Quality Over Speed**: Write clean, self-documenting code with clear architectural separation.
-- **Documentation Integrity**: Keep comments, docstrings, schema tables, and API references accurate and up-to-date with your code changes.
-- **Strict Verification**: Ensure zero compilation errors and warnings before submitting your work.
-- **Security Awareness**: Never commit credentials, database passwords, SMTP secrets, JWT secret keys, or customer PII.
+The Zyndex codebase adheres to senior production software engineering standards:
 
----
-
-## 3. Architecture & Technical Principles
-
-Zyndex is structured as a distributed poly-service microservices architecture with a modern reactive frontend:
-
-### 3.1 Backend Microservices (Java 21 LTS + Spring Boot 3.4.2)
-- **`eureka-server`** (Port 8761): Service registry enabling dynamic service discovery.
-- **`api-gateway`** (Port 8080): Spring Cloud Gateway acting as the single reverse-proxy entry point, handling CORS, rate limiting, and stateless JWT verification.
-- **`auth-service`** (Port 8081): User identity, multi-factor OTP via SMTP relay, 24-hour trusted device management, BCrypt password hashing, and role-based access control.
-- **`content-service`** (Port 8082): Catalog management, categorized academic metadata, document upload processing, and in-memory Apache PDFBox preview slicing.
-- **`access-service`** (Port 8083): Tier entitlement gating, page limit ceilings, and single-use download token issuance.
-- **`usage-service`** (Port 8084): Real-time reading telemetry ingestion, 15-second heartbeat aggregation, and active session calculation.
-- **`subscription-service`** (Port 8085): Multi-tier plan subscriptions, dynamic UPI QR generation, 12-digit bank UTR reconciliation, and 2-minute verification hold processing.
-
-### 3.2 Frontend Client (React 18.3.1 + Vite 6 + Tailwind CSS)
-- **Pure JavaScript & JSX**: Zero TypeScript transpilation overhead.
-- **Styling**: Tailwind CSS utility classes adhering to our orange-and-slate design language.
-- **Routing**: React Router with protected route wrappers and seamless redirect intent preservation.
+- **Zero-Warning Compilation**: Every Java microservice must compile cleanly without raw types, unused imports, or suppressed compiler warnings.
+- **Strict Separation of Concerns**: Controllers handle HTTP ingress only; domain logic is strictly isolated in dedicated `@Service` classes; persistence interactions are confined to `@Repository` classes or explicit Spring JDBC mappers.
+- **Stateless Microservice Boundaries**: Microservices communicate over HTTP with inter-service authentication enforced by a shared gateway secret (`X-Gateway-Secret`). No service shares thread pools, internal caches, or session memory with another.
+- **Fail-Safe Defensive Programming**: Validate every payload boundary. Null checks, boundary conditions, and cryptographic seeds must be deterministic and robust against edge-case anomalies.
+- **Documentation Parity**: Whenever modifying a database table, service endpoint, or frontend component, you must update the corresponding section in [README.md](README.md), [SECURITY.md](SECURITY.md), or [ACCESSIBILITY.md](ACCESSIBILITY.md).
 
 ---
 
-## 4. Getting Started Locally
+## 3. Microservices Cluster Architecture Reference
 
-### 4.1 Prerequisites
-- **Java**: OpenJDK 21 LTS installed and on `PATH` (`java -version`).
-- **Node.js**: Node v18+ and npm v9+ installed (`node -v`, `npm -v`).
-- **Database**: MySQL 8.0+ server running locally on port 3306.
+Zyndex operates as an orchestration of 7 autonomous backend services coordinated by an API Gateway and Eureka Registry, with an independent single-page web client:
 
-### 4.2 Initial Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/BhaanuG/Zyndex-MS.git
-   cd Zyndex
-   ```
-2. Configure environment variables in `.env`:
-   ```properties
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_USER=root
-   DB_PASS=root
-   JWT_SECRET=YourSecure256BitHmacKeyMustBeAtLeast32BytesLong!
-   OTP_SMTP_HOST=smtp.gmail.com
-   OTP_SMTP_PORT=587
-   OTP_SMTP_USER=your-email@gmail.com
-   OTP_SMTP_PASS=your-app-password
-   OTP_MAIL_FROM=your-email@gmail.com
-   MAIN_ADMIN_EMAIL=Bhaanugali@gmail.com
-   ```
-3. Install frontend dependencies:
-   ```bash
-   npm install
-   ```
+| Subsystem | Service Name | Port | Framework / Tech Stack | Primary Responsibilities |
+| :--- | :--- | :---: | :--- | :--- |
+| **Discovery** | `eureka-server` | `8761` | Spring Cloud Netflix Eureka | Dynamic service registration, instance heartbeats, and cluster health discovery. |
+| **Edge Gateway** | `api-gateway` | `8080` | Spring Cloud Gateway (Netty) | Reverse proxy routing, global CORS filtering, rate limiting, and stateless HMAC-SHA256 JWT validation. |
+| **Identity & Auth** | `auth-service` | `8081` | Spring Boot 3.4.2, Spring Security 6, JJWT | User registration, 4-digit TLS email OTP, 24-hour trusted device management, BCrypt hashing, and role claims. |
+| **Content Repository** | `content-service` | `8082` | Spring Boot 3.4.2, Apache PDFBox | Resource cataloging, multi-category indexing, file upload processing, and zero-leakage in-memory 10-page preview slicing. |
+| **Access Governance** | `access-service` | `8083` | Spring Boot 3.4.2, Spring Data JPA | Tiered entitlement enforcement, reading quotas, download allowance tracking, and single-use download token issuance. |
+| **Usage Telemetry** | `usage-service` | `8084` | Spring Boot 3.4.2, Spring JDBC | 15-second heartbeat ingestion, reading session calculation, live reader telemetry aggregation, and administrative log streams. |
+| **Subscription Billing** | `subscription-service` | `8085` | Spring Boot 3.4.2, JavaMail | Multi-tier plan definitions, dynamic UPI intent URI generation, 12-digit bank UTR reconciliation, and 2-minute verification hold workflows. |
+| **Web Presentation** | `zyndex-frontend` | `5173` | React 18.3.1, Vite 6, Tailwind CSS | High-contrast academic UI, embedded PDF reader, interactive telemetry dashboards, and multi-step verification flows. |
 
-### 4.3 Running All Services
-Run the concurrent orchestrator script to start Eureka, the API Gateway, all 5 business microservices, and the Vite frontend:
+---
+
+## 4. Local Workstation Setup & Toolchain
+
+### Prerequisites
+- **Java Development Kit**: OpenJDK 21 LTS (`java -version`).
+- **Node.js**: v18.x or v20.x LTS (`node -v`).
+- **Package Manager**: npm v9+ or v10+ (`npm -v`).
+- **Database Server**: MySQL 8.0 or MySQL 8.4 LTS running on port `3306`.
+- **Git**: v2.40+ (`git --version`).
+
+### Step-by-Step Repository Cloning & Dependency Initialization
 ```bash
-npm run dev:all
+# 1. Clone the repository
+git clone https://github.com/BhaanuG/Zyndex-MS.git
+cd Zyndex-MS
+
+# 2. Install frontend dependencies
+npm install
+
+# 3. Compile all backend microservices
+.\mvnw.cmd clean test-compile
 ```
-Once initialized, access the frontend at `http://localhost:5173` and the Eureka dashboard at `http://localhost:8761`.
 
----
-
-## 5. Development Workflow & Branching Strategy
-
-1. Ensure your local `main` branch is fully synchronized:
-   ```bash
-   git checkout main
-   git pull origin main
-   ```
-2. Create a feature or bugfix branch following our naming convention:
-   - `feat/feature-name` (e.g., `feat/citation-exporter`)
-   - `fix/issue-description` (e.g., `fix/utr-retry-validation`)
-   - `docs/topic-name` (e.g., `docs/render-deployment`)
-   ```bash
-   git checkout -b feat/your-feature-name
-   ```
-3. Keep changes cohesive and focused. Do not mix unrelated refactors with bug fixes.
-
----
-
-## 6. Commit Guidelines & Standards
-
-We enforce clear Conventional Commits:
-
-| Type | Purpose | Example |
-| :--- | :--- | :--- |
-| `feat:` | New capability or user-facing feature | `feat(auth): add 24-hour trusted device support` |
-| `fix:` | Bug fix or error resolution | `fix(gateway): whitelist check-login in JwtValidationFilter` |
-| `docs:` | Documentation update or expansion | `docs(readme): add granular character and word metrics` |
-| `refactor:`| Code cleanup without functional change | `refactor(payment): use ParameterizedTypeReference in REST call` |
-| `test:` | Adding or improving automated tests | `test(usage): verify telemetry session aggregation` |
-
-Always ensure your git author signature is correctly configured:
-```bash
-git config user.name "Your Name"
-git config user.email "your.email@domain.com"
+### Environment Configuration
+Create a local `.env` file in the root directory (never commit secrets to version control):
+```env
+SPRING_PROFILES_ACTIVE=dev
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=your_local_password
+JWT_SECRET=your_32_byte_minimum_secure_hmac_sha256_secret_key_here
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=your_app_password
+GATEWAY_SECRET=your_inter_service_shared_secret_string
 ```
 
 ---
 
-## 7. Submitting Issues & Feature Requests
+## 5. Git Workflow, Branching & Conventional Commits
 
-### Reporting Bugs
-Before filing a bug report, check existing [GitHub Issues](https://github.com/BhaanuG/Zyndex-MS/issues) to avoid duplicates.
-Use our **Bug Report** template and include:
-- Clear, descriptive title.
-- Affected microservice or UI component.
-- Reproduction steps (1, 2, 3...).
-- Expected vs actual behavior.
-- Environment details (OS, browser, Java and Node versions).
+### Branching Strategy
+- `main`: Production-ready, zero-defect release branch. Directly deployed to Render.
+- `feat/feature-name`: For new features and capabilities (e.g., `feat/pdf-bookmark-export`).
+- `fix/bug-description`: For defect fixes (e.g., `fix/utr-retry-validation`).
+- `docs/topic-name`: For technical documentation refinements (e.g., `docs/architecture-expansion`).
 
-### Proposing Feature Enhancements
-Use our **Feature Request** template to outline:
-- The academic problem or user need being addressed.
-- The proposed solution, API endpoints, or UI layouts.
-- Alternative workflows considered.
+### Conventional Commit Conventions
+All commit messages must follow the standard Angular/Conventional Commits specification:
+```
+<type>(<scope>): <concise imperative description>
 
----
+[optional body explaining technical motivation and architecture impact]
+```
 
-## 8. Pull Request (PR) Submission & Review Criteria
-
-Before submitting your PR:
-1. **Frontend Build Verification**:
-   ```bash
-   npm run build
-   ```
-   Must output clean bundles into `dist/` with zero errors.
-2. **Backend Compilation Verification**:
-   ```bash
-   .\mvnw.cmd test-compile
-   ```
-   Must exit with `BUILD SUCCESS` across all 8 reactor modules (`zyndex-parent`, `eureka-server`, `api-gateway`, `auth-service`, `content-service`, `access-service`, `usage-service`, `subscription-service`).
-3. **No Unused Imports or Raw Types**: Check the IDE Problems tab to verify zero warnings.
-4. **Fill Out the PR Template**: Reference the related issue number and provide verification logs or screenshots.
+**Permitted Types**:
+- `feat`: New user-facing or API capability.
+- `fix`: Patch resolving a bug or defect.
+- `docs`: Documentation updates or additions.
+- `refactor`: Structural code cleanup without changing functional behavior.
+- `test`: Addition or refactoring of unit or integration test suites.
+- `chore`: Build scripts, dependencies, or configuration adjustments.
 
 ---
 
-## 9. Continuous Integration & Pre-Deployment Verification
+## 6. Compilation, Build Verification & Quality Assurance
 
-All contributions must pass automated build criteria before being merged into `main`. Our deployment targets (including Render and Netlify) rely on:
-- Single-page application rewriting via `public/_redirects` and `render.yaml`.
-- Stateless API Gateway proxying preserving CORS and security headers.
-- Automatic database table initialization handled via `DbInitializer.java` across every microservice.
+Before opening any Pull Request or committing changes, execute the full local verification pipeline:
+
+### 1. Frontend Build Verification
+```bash
+npm run build
+```
+*Expected Result*: Vite builds all 2,750+ modules in under 30 seconds into `dist/` with `dist/_redirects` intact and zero runtime errors.
+
+### 2. Backend Compilation Verification
+```bash
+.\mvnw.cmd clean test-compile
+```
+*Expected Result*: Maven reactor builds all 8 modules (`zyndex-parent`, `eureka-server`, `api-gateway`, `auth-service`, `content-service`, `access-service`, `usage-service`, `subscription-service`) with `BUILD SUCCESS` and zero compilation errors.
+
+### 3. Static Code Analysis & Warning Check
+Ensure the IDE Problems view is completely clear of:
+- Raw types (e.g., unparameterized `Map` or `List`).
+- Unused imports or fields.
+- Dead code paths.
 
 ---
 
-## 10. Community & Contact Channels
+## 7. Submitting Issues & Feature RFCs
 
-If you have questions regarding the platform roadmap or need technical guidance:
-- **Lead Maintainer**: Bhaanu Gali (`Bhaanugali@gmail.com`)
-- **Institutional Inquiries**: `2400030952@kluniversity.in`
-- **Issue Tracker**: [https://github.com/BhaanuG/Zyndex-MS/issues](https://github.com/BhaanuG/Zyndex-MS/issues)
+### Bug Reports
+Before submitting an issue, search closed issues to verify it hasn't been resolved. Include:
+1. Exact component or microservice affected.
+2. Step-by-step reproduction sequence.
+3. Expected system state vs. actual observed output.
+4. Error logs, stack traces, and browser console output.
 
-Thank you for contributing to the future of academic learning with **Zyndex**!
+### Feature RFCs
+Feature proposals should clearly articulate the academic or architectural value:
+1. **Academic Problem**: What institutional or research workflow does this enhance?
+2. **Proposed Solution**: API signature, database schema change, and UI interaction model.
+3. **Security Implications**: Entitlement impacts, data leakage considerations, and audit logging.
+
+---
+
+## 8. Pull Request (PR) Lifecycle & Strict Review Checklist
+
+All PRs undergo review by Lead Architect **Bhaanu G** against the following criteria:
+
+- [ ] **Authorship Verification**: Confirms that intellectual property remains assigned to Bhaanu G.
+- [ ] **Dual Build Pass**: Both `npm run build` and `.\mvnw.cmd test-compile` pass with 0 errors.
+- [ ] **No Secrets**: No database passwords, JWT tokens, SMTP keys, or private URIs committed.
+- [ ] **Documentation Updated**: All relevant sections in [README.md](README.md), [SECURITY.md](SECURITY.md), and [ACCESSIBILITY.md](ACCESSIBILITY.md) reflect the changes.
+- [ ] **Zero Regressions**: Existing authentication flows, payment verification states, and reader access limits remain intact.
+
+---
+
+## 9. Deployment Readiness & Production Hosting
+
+Zyndex is architected for seamless cloud-native containerization and static hosting:
+
+- **Frontend Deployment**: Configured via `render.yaml` as a static site service built with `npm run build` from the `dist/` root, utilizing `public/_redirects` (`/*  /index.html  200`) for seamless client-side single-page routing.
+- **Backend Microservices**: Packaged as executable Spring Boot JARs deployable as Docker containers across Kubernetes or cloud application platforms.
+
+---
+
+## 10. Security Disclosure & Contact Channels
+
+For inquiries, architecture consultations, or security notifications:
+
+- **Sole Creator & Lead Architect**: **Bhaanu G (Bhaanu Gali)**
+- **Primary Administrative Email**: `Bhaanugali@gmail.com`
+- **Campus & Institutional Office**: `2400030952@kluniversity.in`, KL University

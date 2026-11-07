@@ -12,11 +12,11 @@
 #### *Conceived, Architected & Engineered End-to-End by **Bhaanu G (Bhaanu Gali)***
 
 <p align="center">
-  <a href="#-system-architecture--microservices-topology"><b>System Topology</b></a> •
-  <a href="#-production-benchmarks--architectural-highlights"><b>Engineering Benchmarks</b></a> •
-  <a href="#-poly-service-microservices-ecosystem"><b>Microservice Ports</b></a> •
+  <a href="#system-architecture--microservices-topology"><b>System Topology</b></a> •
+  <a href="#production-benchmarks--architectural-highlights"><b>Engineering Benchmarks</b></a> •
+  <a href="#poly-service-microservices-ecosystem"><b>Microservice Ports</b></a> •
   <a href="#10-comprehensive-rest-api-reference"><b>REST API Specs</b></a> •
-  <a href="#-automated-quickstart--local-cluster-orchestration"><b>Cluster Setup</b></a> •
+  <a href="#automated-quickstart--local-cluster-orchestration"><b>Cluster Setup</b></a> •
   <a href="#17-quantitative-codebase-statistics--metrics"><b>Metrics & Audits</b></a>
 </p>
 
@@ -72,7 +72,7 @@
 
 ---
 
-## ⚡ System Architecture & Microservices Topology
+## System Architecture & Microservices Topology
 
 ```mermaid
 flowchart TD

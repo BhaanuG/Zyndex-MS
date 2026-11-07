@@ -1,25 +1,63 @@
 # Security Policy for Zyndex
 
-Zyndex was conceived, engineered, and architected by **Bhaanu G (Bhaanu Gali)**. All platform ownership, architectural direction, and administrative oversight reside solely with Bhaanu G. Academic data confidentiality, authentication integrity, document access controls, and infrastructure security are enforced at every layer of the system.
+Zyndex was designed, engineered, and architected from first principles by **Bhaanu G (Bhaanu Gali)**. All platform ownership, architectural direction, intellectual property, and administrative oversight reside solely with Bhaanu G. Academic data confidentiality, authentication integrity, document access controls, and infrastructure perimeter protection are rigorously enforced at every layer of the distributed system.
 
-This policy outlines our supported versions, multi-tier security architecture, and responsible vulnerability disclosure process under the direct stewardship of the platform owner.
+This policy outlines our supported release versions, multi-tier security architecture, perimeter defenses, and responsible vulnerability disclosure protocol.
 
 ---
 
-## 1. Supported Versions
+## Authorship & Platform Security Governance
+
+> [!IMPORTANT]
+> **Sole Creator, Lead Architect & Security Lead**: **Bhaanu G (Bhaanu Gali)**  
+> **Direct Administrative Contact**: `Bhaanugali@gmail.com`  
+> **Institutional Security Contact**: `2400030952@kluniversity.in`  
+> **All Platform Intellectual Property & Security Rights Reserved to Bhaanu G**  
+> **Production Status**: `v1.0.4-PROD` | **Enterprise Security Hardened**
+
+---
+
+## 1. Supported Releases & Maintenance Windows
 
 Security maintenance, dependency patches, and critical hotfixes are actively provided for the following releases:
 
-| Version | Status | Supported | Notes |
-| :--- | :--- | :---: | :--- |
-| **1.0.x** | **Active Production** | :white_check_mark: | Full security coverage across all microservices and web client |
-| **< 1.0** | **Deprecated** | :x: | Legacy evaluation builds, no active security patches |
+| Version | Status | Supported | SLA for Critical Hotfixes | Deployment Target |
+| :--- | :--- | :---: | :---: | :--- |
+| **1.0.x** | **Active Production** | :white_check_mark: | **< 24 Hours** | Cloud Native / Render / On-Premise Microservices |
+| **< 1.0** | **Deprecated** | :x: | Not Maintained | Evaluation builds superseded by v1.0.x |
 
 ---
 
-## 2. Platform Security Architecture & Controls
+## 2. Multi-Tier Security Architecture & Defense-in-Depth
 
-Zyndex incorporates enterprise security controls enforced end-to-end:
+Zyndex incorporates defense-in-depth principles across the presentation, network, application, and persistence tiers:
+
+```
+┌────────────────────────────────────────────────────────┐
+│               PRESENTATION & CLIENT TIER               │
+│  - WCAG 2.1 AA Contrast   - Secure Token Memory Storage│
+│  - Canvas CAPTCHA Check   - Inactivity Session Trapping│
+└───────────────────────────┬────────────────────────────┘
+                            │ HTTPS / TLS 1.3
+┌───────────────────────────▼────────────────────────────┐
+│              EDGE PERIMETER (PORT 8080)                │
+│  - Spring Cloud Gateway   - Stateless JWT Verification │
+│  - Netty Non-Blocking IO  - Strict Path Whitelisting   │
+└───────────────────────────┬────────────────────────────┘
+                            │ Internal Network + X-Gateway-Secret
+┌───────────────────────────▼────────────────────────────┐
+│             MICROSERVICES INTER-SERVICE MESH           │
+│  - auth-service (8081)    - content-service (8082)     │
+│  - access-service (8083)  - usage-service (8084)       │
+│  - subscription-service (8085)                         │
+└───────────────────────────┬────────────────────────────┘
+                            │ Encrypted SQL over JDBC
+┌───────────────────────────▼────────────────────────────┐
+│                PERSISTENCE TIER (PORT 3306)            │
+│  - MySQL 8.4 LTS          - BCrypt Password Salt       │
+│  - Isolated Schemas       - ACID Transaction Boundaries│
+└────────────────────────────────────────────────────────┘
+```
 
 ### 2.1 Multi-Factor & Dynamic Authentication
 - **Dynamic 4-Digit Numeric OTP**: Generated via cryptographically secure random number generator (`java.security.SecureRandom`) and dispatched via TLS-encrypted SMTP relay with 2-minute expiration and maximum 5-attempt brute-force protection.
@@ -60,5 +98,5 @@ To help us triage and resolve the issue quickly, please include:
 
 - **Initial Acknowledgment**: Within **24 hours** of submission.
 - **Vulnerability Assessment & Triaging**: Within **48 to 72 hours**.
-- **Remediation & Patch Deployment**: Critical severity vulnerabilities are prioritized for hotfix deployment within **3 to 7 business days**.
-- **Coordinated Disclosure**: We ask researchers and contributors to maintain confidentiality until security updates are pushed to `origin/main` and verified. Full credit will be attributed in release notes.
+- **Fix Development & Hotfix Release**: Target resolution within **5 to 10 business days** depending on severity.
+- **Public Disclosure**: Coordinated following patch deployment and stakeholder notification.
