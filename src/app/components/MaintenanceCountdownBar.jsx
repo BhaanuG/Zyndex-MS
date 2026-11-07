@@ -4,9 +4,9 @@ import userService from '@/services/api/userService';
 
 /**
  * MaintenanceCountdownBar
- * Renders a sticky top timer on user & regular admin portals when platform maintenance is scheduled in 15 minutes.
+ * Renders a timer beside the Zyndex logo on user & admin portals when platform maintenance is scheduled in 15 minutes.
  */
-export default function MaintenanceCountdownBar({ isPrimaryAdmin }) {
+export default function MaintenanceCountdownBar({ isPrimaryAdmin, inline = false }) {
   const [scheduledAt, setScheduledAt] = useState(null);
   const [secondsRemaining, setSecondsRemaining] = useState(null);
 
@@ -67,6 +67,18 @@ export default function MaintenanceCountdownBar({ isPrimaryAdmin }) {
   const minutes = Math.floor(secondsRemaining / 60);
   const seconds = secondsRemaining % 60;
   const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  if (inline) {
+    return (
+      <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-full text-xs font-semibold shadow-xs animate-pulse border border-amber-400/40 select-none">
+        <Clock className="size-3.5 text-amber-100" />
+        <span className="font-medium text-amber-50">Maintenance in:</span>
+        <span className="font-mono font-bold tracking-wider text-white bg-black/25 px-1.5 py-0.5 rounded text-[11px]">
+          {formattedTime}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white px-4 py-2 text-xs font-semibold shadow-md flex items-center justify-between z-[9990] sticky top-0">

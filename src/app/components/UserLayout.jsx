@@ -64,7 +64,6 @@ export default function UserLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <MaintenanceCountdownBar isPrimaryAdmin={false} />
       {/* Header */}
       <header className="py-4 px-6 bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -81,6 +80,8 @@ export default function UserLayout({ children }) {
               <BookOpen className="size-6 text-orange-600" />
               <span className="text-xl font-semibold text-gray-900">Zyndex</span>
             </Link>
+
+            <MaintenanceCountdownBar isPrimaryAdmin={false} inline />
             {user?.subscriptionPlan && user.subscriptionPlan !== 'FREE' && (() => {
               const plan = String(user.subscriptionPlan).toUpperCase();
               let badgeStyle = "bg-orange-50 text-orange-700 border-orange-200/80";

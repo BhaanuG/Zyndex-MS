@@ -36,6 +36,7 @@ public class SecurityConfig {
                     "/api/send-otp",
                     "/api/verify-otp",
                     "/api/users/maintenance-mode",
+                    "/api/users/maintenance-officially-active",
                     "/api/auth/check-status",
                     "/api/auth/check-trusted-device",
                     "/api/auth/trust-device",

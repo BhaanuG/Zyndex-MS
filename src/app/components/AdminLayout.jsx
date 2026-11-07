@@ -181,7 +181,6 @@ export default function AdminLayout({ children }) {
     // Content when sidebar is closed - no resizable panels
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <MaintenanceCountdownBar isPrimaryAdmin={isPrimaryAdmin} />
         {/* Top Bar */}
         <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
@@ -207,6 +206,8 @@ export default function AdminLayout({ children }) {
                   Dashboard
                 </motion.button>
               )}
+
+              <MaintenanceCountdownBar isPrimaryAdmin={false} inline />
               
               {showBackButton && !isProfilePage && (
                 <motion.button
@@ -300,7 +301,6 @@ export default function AdminLayout({ children }) {
         {/* Main Content Panel */}
         <ResizablePanel defaultSize={80} minSize={50}>
           <div className="flex flex-col h-screen">
-            <MaintenanceCountdownBar isPrimaryAdmin={isPrimaryAdmin} />
             {/* Top Bar */}
             <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
               <div className="flex items-center justify-between">
@@ -338,6 +338,8 @@ export default function AdminLayout({ children }) {
                       Back
                     </motion.button>
                   )}
+
+                  <MaintenanceCountdownBar isPrimaryAdmin={false} inline />
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">

@@ -47,7 +47,24 @@ public class AuthSupport {
     public boolean isMaintenanceMode() {
         try {
             var rows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_MODE' LIMIT 1");
-            return !rows.isEmpty() && "true".equalsIgnoreCase(String.valueOf(rows.get(0).get("setting_value")));
+            if (rows.isEmpty() || !"true".equalsIgnoreCase(String.valueOf(rows.get(0).get("setting_value")))) {
+                return false;
+            }
+
+            // Check if 15-minute countdown is active
+            var timeRows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_SCHEDULED_AT' LIMIT 1");
+            if (!timeRows.isEmpty() && timeRows.get(0).get("setting_value") != null) {
+                String schedStr = String.valueOf(timeRows.get(0).get("setting_value"));
+                try {
+                    java.time.Instant scheduledInstant = java.time.Instant.parse(schedStr);
+                    long elapsedSeconds = java.time.Duration.between(scheduledInstant, java.time.Instant.now()).getSeconds();
+                    // If still within 15-minute window, maintenance is NOT officially blocking logins yet
+                    if (elapsedSeconds < 15 * 60) {
+                        return false;
+                    }
+                } catch (Exception ignored) {}
+            }
+            return true;
         } catch (Exception e) {
             return false;
         }

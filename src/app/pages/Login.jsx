@@ -50,8 +50,11 @@ export default function Login() {
     // Check maintenance status
     apiClient.get('/users/maintenance-mode')
       .then(res => {
-        if (res?.maintenanceMode) {
+        // Only consider maintenance active if officially active (after 15-min timer)
+        if (res?.isOfficiallyActive || (res?.maintenanceMode && !res?.scheduledAt)) {
           setIsMaintenanceActive(true);
+        } else {
+          setIsMaintenanceActive(false);
         }
       })
       .catch(() => {});
@@ -323,6 +326,32 @@ export default function Login() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Dedicated Full-Width Maintenance Banner (Positioned separately above the content) */}
+      {isMaintenanceActive && (
+        <motion.div
+          initial={{ y: -40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="relative z-50 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white px-6 py-3.5 shadow-lg border-b border-white/20"
+        >
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-xs shrink-0">
+                <AlertCircle className="size-5 text-white animate-pulse" />
+              </div>
+              <div>
+                <p className="text-sm font-bold tracking-wide">Platform Maintenance Mode Active</p>
+                <p className="text-xs text-amber-100">
+                  The Zyndex platform is currently undergoing scheduled maintenance. Sign in and account registration are temporarily suspended.
+                </p>
+              </div>
+            </div>
+            <div className="px-3 py-1 bg-black/25 rounded-full border border-white/20 text-xs font-mono font-semibold text-amber-200 shrink-0">
+              Service Offline
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-amber-50">
         <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[size:32px_32px]" />
       </div>
@@ -670,18 +699,6 @@ export default function Login() {
                       <p className="font-bold text-rose-900">Account Terminated</p>
                       <p className="mt-0.5 text-xs text-rose-800 leading-relaxed">
                         {terminatedMessage || 'The given email ID has been terminated by an administrator. Please contact administrator.'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {isMaintenanceActive && (
-                  <div className="flex items-start gap-2.5 p-4 bg-amber-50 border border-amber-300 rounded-xl text-amber-800 text-sm font-medium shadow-xs">
-                    <AlertCircle className="size-5 shrink-0 text-amber-600 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-amber-950">System Under Maintenance</p>
-                      <p className="mt-0.5 text-xs text-amber-800 leading-relaxed">
-                        The platform is currently under scheduled maintenance. Sign in and account registration are temporarily disabled.
                       </p>
                     </div>
                   </div>

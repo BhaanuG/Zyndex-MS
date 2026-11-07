@@ -480,8 +480,26 @@ class UserController {
         var timeRows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_SCHEDULED_AT' LIMIT 1");
         String scheduledAt = !timeRows.isEmpty() && timeRows.get(0).get("setting_value") != null ? String.valueOf(timeRows.get(0).get("setting_value")) : null;
 
+        boolean isOfficiallyActive = false;
+        if (enabled) {
+            if (scheduledAt != null && !scheduledAt.isBlank()) {
+                try {
+                    java.time.Instant scheduledInstant = java.time.Instant.parse(scheduledAt);
+                    long elapsedSeconds = java.time.Duration.between(scheduledInstant, java.time.Instant.now()).getSeconds();
+                    if (elapsedSeconds >= 15 * 60) {
+                        isOfficiallyActive = true;
+                    }
+                } catch (Exception ignored) {
+                    isOfficiallyActive = true;
+                }
+            } else {
+                isOfficiallyActive = true;
+            }
+        }
+
         return Map.of(
             "maintenanceMode", enabled,
+            "isOfficiallyActive", isOfficiallyActive,
             "scheduledAt", scheduledAt != null ? scheduledAt : ""
         );
     }
@@ -511,9 +529,9 @@ class UserController {
             // Broadcast emails asynchronously to all active platform users and regular admins
             new Thread(() -> {
                 try {
-                    var users = jdbc.queryForList("SELECT id, name, username, email FROM users WHERE id != ?", adminId);
+                    var users = jdbc.queryForList("SELECT id, username, email FROM users WHERE id != ?", adminId);
                     for (var u : users) {
-                        String name = String.valueOf(AuthSupport.first(u.get("name"), u.get("username")));
+                        String name = String.valueOf(AuthSupport.first(u.get("username"), "Scholar"));
                         String email = String.valueOf(u.get("email"));
                         accountEmailService.sendMaintenanceScheduledEmail(name, email);
                     }
@@ -549,9 +567,9 @@ class UserController {
             // Broadcast email: either "Maintenance Postponed / Cancelled" (if turned off before timer ended) or "Maintenance Concluded" (if after completion)
             new Thread(() -> {
                 try {
-                    var users = jdbc.queryForList("SELECT id, name, username, email FROM users WHERE id != ?", adminId);
+                    var users = jdbc.queryForList("SELECT id, username, email FROM users WHERE id != ?", adminId);
                     for (var u : users) {
-                        String name = String.valueOf(AuthSupport.first(u.get("name"), u.get("username")));
+                        String name = String.valueOf(AuthSupport.first(u.get("username"), "Scholar"));
                         String email = String.valueOf(u.get("email"));
                         if (cancelledBeforeTimer) {
                             accountEmailService.sendMaintenanceCancelledEmail(name, email);
@@ -599,9 +617,9 @@ class UserController {
         // Broadcast email: Zyndex is now officially in maintenance
         new Thread(() -> {
             try {
-                var users = jdbc.queryForList("SELECT id, name, username, email FROM users WHERE id != ?", adminId);
+                var users = jdbc.queryForList("SELECT id, username, email FROM users WHERE id != ?", adminId);
                 for (var u : users) {
-                    String name = String.valueOf(AuthSupport.first(u.get("name"), u.get("username")));
+                    String name = String.valueOf(AuthSupport.first(u.get("username"), "Scholar"));
                     String email = String.valueOf(u.get("email"));
                     accountEmailService.sendMaintenanceActiveEmail(name, email);
                 }
