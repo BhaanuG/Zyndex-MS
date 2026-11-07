@@ -755,6 +755,103 @@ sequenceDiagram
 
 ---
 
+### 4.6 Flow 6: Platform Maintenance Mode Lifecycle (15-Minute Countdown, Automated Termination & Early Cancellation)
+
+#### Why Maintenance Mode Exists & System Rationale
+Platform Maintenance Mode is an enterprise safeguard engineered exclusively for the **Primary Platform Administrator** (`Bhaanugali@gmail.com`). Critical infrastructure operations — such as database schema migrations, cross-microservice dependency upgrades, bulk asset indexing, server relocations, and security audits — cannot safely proceed while thousands of students and faculty members are actively submitting form writes, completing UPI checkouts, and streaming PDF files. 
+
+Without maintenance controls, concurrent traffic during upgrades causes data corruption, race conditions in payment state machines, and partial record commits. Maintenance Mode guarantees a controlled, zero-data-loss transition window.
+
+#### What Happens When Maintenance Mode Is Triggered
+1. **Initiation by Primary Admin**: The Primary Admin toggles Maintenance Mode ON from `/Zyndex/Admin/.../Dashboard`.
+2. **Instant Timestamp Stamping**: `auth-service` stamps `MAINTENANCE_MODE = 'true'` and records the exact start timestamp `MAINTENANCE_SCHEDULED_AT = <ISO_TIMESTAMP>` in `zyndex_auth.system_settings`.
+3. **Advance Warning Email Broadcast (Email #20)**: An asynchronous background thread retrieves all registered student, faculty, and regular admin email addresses (excluding the Primary Admin) and dispatches individual advance warning emails:
+   - **Subject**: `Zyndex System Notice | Scheduled Maintenance in 15 Minutes`
+   - **Body**: Explains that maintenance will begin in 15 minutes, outlines affected services, and advises users to save active research work and download necessary notes.
+4. **Active Session Preservation (Zero Immediate Logout)**:
+   - Crucially, **no sessions are terminated immediately**.
+   - `AuthSupport.isMaintenanceMode()` evaluates `MAINTENANCE_SCHEDULED_AT`; because `elapsedSeconds < 15 * 60`, user authorization tokens remain completely valid. Scholars continue reading and browsing freely during the entire 15-minute preparation period.
+5. **Real-Time Visual Countdown Timers**:
+   - **For Scholars / Regular Users (`UserLayout.jsx`)**:
+     - An animated, high-priority notification popup immediately appears at the **top right corner**: *"Scheduled system maintenance is starting soon. The platform will go to maintenance mode in 15 minutes."*
+     - The popup features a 10-second linear progress bar and **automatically closes after 10 seconds** without requiring user clicks.
+     - A persistent, pulsing timer badge remains permanently anchored at the **top right corner** beside user navigation controls displaying the live seconds countdown: `Maintenance in: mm:ss`.
+   - **For Administrators (`AdminLayout.jsx`)**:
+     - A dedicated maintenance card is anchored at the **bottom of the profile navigation sidebar** (directly above Logout).
+     - Displays the warning banner, operational impact explanation, and live countdown timer readout: `Time Left: mm:ss`.
+6. **Grace Period Expiration & Official Lockout**:
+   - When the 15-minute countdown timer reaches `00:00`, client browsers invoke `/api/users/maintenance-officially-active`.
+   - `auth-service` increments `session_token_version` globally for all users except the Primary Admin and clears `last_active_at`, immediately invalidating all outstanding JWT sessions across devices.
+   - All scholar and regular admin sessions are terminated. An involuntary logout modal is displayed with the explanation: *"The platform is currently in maintenance mode. We are sorry for the inconvenience, please check back shortly."*
+   - **Maintenance Active Email Broadcast (Email #21)** is dispatched to all platform members informing them that maintenance is officially in progress.
+   - On the public Login page (`Login.jsx`), a dedicated full-width top notification banner is mounted: *"Platform Maintenance Mode Active — Sign in and account registration are temporarily suspended."* Form submission buttons are disabled for non-primary accounts. Only the Primary Admin can sign in.
+7. **Early Cancellation & Postponement Workflow (If Turned Off Before 15 Minutes)**:
+   - If the Primary Admin toggles maintenance OFF *before* the 15-minute countdown finishes:
+     - `auth-service` detects `elapsedSeconds < 15 * 60` and identifies the action as an early cancellation.
+     - Removes `MAINTENANCE_SCHEDULED_AT` and sets `MAINTENANCE_MODE = 'false'`.
+     - **Maintenance Cancelled / Postponed Email Broadcast (Email #23)** is dispatched to all platform users:
+       - **Subject**: `Notice: Scheduled Maintenance Postponed / Cancelled - Normal Access Restored`
+       - **Body**: Informs users that maintenance was cancelled/postponed due to technical scheduling adjustments, confirms that systems remain 100% online, and notes that active sessions will not be terminated.
+     - The client countdown bar polling (every 3s) detects the cancellation and **immediately dismantles the countdown timer** from user and admin screens in real time without requiring a page refresh.
+8. **Maintenance Conclusion & Website Restoration (If Turned Off After Completion)**:
+   - When the Primary Admin concludes work and toggles maintenance OFF after maintenance was officially active:
+     - Normal authentication, login, and registration gates are reopened immediately.
+     - **Maintenance Concluded / Back Online Email Broadcast (Email #22)** is dispatched to all platform members:
+       - **Subject**: `Zyndex System Notice | Platform Maintenance Complete - We're Back Online!`
+       - **Body**: Congratulates users on system restoration and invites them to log back in to resume academic research.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor SuperAdmin as Primary Administrator
+    participant Dashboard as AdminDashboard.jsx
+    participant GW as API Gateway (8080)
+    participant Auth as auth-service (8081)
+    participant DB as zyndex_auth (MySQL)
+    participant Mail as SMTP Relay (JavaMail)
+    actor Scholar as Scholar Browser
+    actor RegAdmin as Regular Admin Browser
+
+    Note over SuperAdmin,Dashboard: Primary Admin Initiates Maintenance Window
+    SuperAdmin->>Dashboard: Clicks "Maintenance Mode OFF" -> Confirms prompt
+    Dashboard->>GW: POST /api/users/maintenance-mode {enabled: true}
+    GW->>Auth: Forward with X-Gateway-Secret & Admin JWT
+    Auth->>Auth: Validates Primary Admin credentials
+    Auth->>DB: INSERT system_settings (MAINTENANCE_MODE='true', MAINTENANCE_SCHEDULED_AT=NOW())
+    Auth->>Mail: Starts async thread: Broadcasts 15-Min Warning Email (#20) to all users
+    Mail-->>Scholar: Delivers 15-min warning email notice
+    Mail-->>RegAdmin: Delivers 15-min warning email notice
+    Auth-->>Dashboard: 200 OK {"maintenanceMode": true, "message": "15-minute countdown started"}
+    
+    Note over Scholar,RegAdmin: 15-Minute Preparation Period (Sessions Remain Active)
+    Scholar->>Scholar: Detects scheduledAt -> Surfaces 10s auto-closing popup & top-right countdown timer
+    RegAdmin->>RegAdmin: Detects scheduledAt -> Surfaces sidebar bottom maintenance countdown card
+    Note over Scholar,RegAdmin: Users continue reading, note-taking, and browsing without interruption
+
+    alt Case A: Primary Admin Cancels Maintenance Early (Before 15 mins)
+        SuperAdmin->>Dashboard: Toggles Maintenance Mode OFF before timer hits 0
+        Dashboard->>GW: POST /api/users/maintenance-mode {enabled: false}
+        GW->>Auth: Forward request
+        Auth->>Auth: Detects elapsedSeconds < 900 -> Flags isCancelledBeforeTimer=true
+        Auth->>DB: DELETE system_settings WHERE key='MAINTENANCE_SCHEDULED_AT'
+        Auth->>DB: UPDATE system_settings SET MAINTENANCE_MODE='false'
+        Auth->>Mail: Broadcasts Maintenance Cancelled / Postponed Email (#23)
+        Mail-->>Scholar: Delivers postponement notice ("Normal Access Restored")
+        Scholar->>Scholar: Polls /api/users/maintenance-mode -> Immediately hides top-right timer
+        RegAdmin->>RegAdmin: Polls /api/users/maintenance-mode -> Immediately hides sidebar timer card
+    else Case B: 15-Minute Countdown Expires
+        Scholar->>GW: POST /api/users/maintenance-officially-active (timer reaches 00:00)
+        GW->>Auth: Forward request
+        Auth->>DB: UPDATE users SET session_token_version = session_token_version + 1 WHERE role != 'ADMIN' OR email != mainAdmin
+        Auth->>Mail: Broadcasts Maintenance Active Email (#21)
+        Scholar->>Scholar: AuthContext receives 401/Session Invalidation -> Shows Maintenance Logout Modal
+        RegAdmin->>RegAdmin: AuthContext receives 401 -> Shows Maintenance Logout Modal
+        Note over SuperAdmin,Auth: Maintenance Offline: Only Primary Admin can log in to perform upgrades
+    end
+```
+
+---
+
 ## 5. Business Logic & Rules Knowledge Base
 
 This section compiles all operational constraints, entitlement gates, pricing tables, rate limits, and business decision matrices implemented across the Zyndex codebase.
@@ -783,6 +880,7 @@ This section compiles all operational constraints, entitlement gates, pricing ta
 | **Client Header Stripping**| Gateway purges client `X-User-*` headers | `api-gateway/.../JwtValidationFilter.java` | `filter` | None | Prevents identity spoofing; claims populated exclusively from verified JWT. |
 | **Feedback Email Audit Loop**| Admin response or reaction to user feedback in admin console | `content-service/.../FeedbackController.java` & `ContactEmailService.java` | `respond` / `sendFeedbackResponseEmail` | Updates `feedback.admin_response`, `feedback.responded_at` | Automatically emails user their review details, rating, time, and the administrator's response comment. |
 | **Self-Service Account Deletion**| Explicit multi-step reason capture + 120s OTP verification + `CONFIRM` challenge phrase | `auth-service/.../UserController.java`, `DeleteAccountModal.jsx` | `deleteAccount` | Deletes user from `users`, cascades to related profile records | Deletes user, sends farewell email, and alerts platform maintainer (`Bhaanugali@gmail.com`). |
+| **Platform Maintenance Mode** | Primary Admin triggers 15-minute preparation window | `auth-service/.../UserController.java`, `MaintenanceCountdownBar.jsx` | `toggleMaintenanceMode`, `finalizeMaintenanceActive` | `system_settings.MAINTENANCE_MODE`, `MAINTENANCE_SCHEDULED_AT` | Broadcasts 15-min warning email; displays 10s auto-closing popup & top-right countdown for scholars; displays sidebar bottom countdown for admins; revokes active sessions upon expiry; handles early cancellation notices. |
 | **Cross-Schema Production Audit Persistence**| External microservice audit logging in multi-schema MySQL environments | `access-service`, `content-service`, `subscription-service`, `usage-service` | `*AuditLoggingFilter.java`, `application.yml` | Inserts into `${AUTH_DB_NAME:zyndex_auth}.system_logs` | Ensures audit logs survive server restarts and production cloud deployments. |
 | **Granular UI Interaction Audit Logging**| Captures micro-interactions (tab navigations, modal views, searches, data downloads) | `src/app/layouts/AdminLayout.jsx` | `recordInteraction` | Writes to `system_logs` with level `INFO` | Provides complete behavioral trace for administrative compliance. |
 | **Clean Export UI Standards**| Data table CSV exports use minimal `<Download />` icon controls with millisecond timestamps | `UserAccessManagement.jsx`, `ResourceManagement.jsx`, `AdminPayments.jsx` | `handleExportCsv` | Client-side file generation | Eliminates visual button clutter while maintaining ISO 8601 UTC/IST timestamped export artifacts. |
@@ -1797,12 +1895,12 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.java`** | Spring Boot Microservices Backend | **63 Files** | **9,733 Lines** | **39,651 Words** | **489,967 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,567 Lines** | **14,274 Words** | **153,477 Chars** |
 | **`.json`** | Package & Dependency Manifests | **3 Files** | **6,005 Lines** | **11,441 Words** | **170,276 Chars** |
-| **`.md`** | Technical Architecture Documentation | **5 Files** | **2,368 Lines** | **19,279 Words** | **170,365 Chars** |
+| **`.md`** | Technical Architecture Documentation | **5 Files** | **2,466 Lines** | **20,382 Words** | **179,782 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **801 Lines** | **1,834 Words** | **17,992 Chars** |
 | **`.yml`** | Spring Cloud & Gateway Configurations| **9 Files** | **549 Lines** | **881 Words** | **16,193 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **523 Lines** | **552 Words** | **18,789 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
-| **Overall Total** | **Full Stack Application** | **205 Files** | **50,182 Lines** | **177,680 Words** | **2,176,600 Chars** |
+| **Overall Total** | **Full Stack Application** | **205 Files** | **50,280 Lines** | **178,783 Words** | **2,186,017 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
