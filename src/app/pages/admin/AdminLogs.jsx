@@ -93,12 +93,15 @@ export default function AdminLogs() {
   const [adminLogsTotal, setAdminLogsTotal] = useState(0);
   const [adminLogsPage, setAdminLogsPage] = useState(0);
   const [adminSearchTerm, setAdminSearchTerm] = useState('');
+  const [adminLevelFilter, setAdminLevelFilter] = useState('ALL');
+  const [adminStats, setAdminStats] = useState({ totalLogs: 0, overallLogs: 0, errorCount: 0, warnCount: 0, infoCount: 0, successCount: 0 });
 
   // 3. System Audit Logs States
   const [systemLogs, setSystemLogs] = useState([]);
-  const [systemStats, setSystemStats] = useState({ totalLogs: 0, adminLogsCount: 0, errorCount: 0, warnCount: 0, infoCount: 0 });
+  const [systemStats, setSystemStats] = useState({ totalLogs: 0, overallLogs: 0, errorCount: 0, warnCount: 0, infoCount: 0, successCount: 0 });
   const [systemTotal, setSystemTotal] = useState(0);
   const [systemPage, setSystemPage] = useState(0);
+  const [availableServices, setAvailableServices] = useState(SERVICES);
   const systemPageSize = 20;
 
   // Filters & Search
@@ -319,12 +322,14 @@ export default function AdminLogs() {
     }
   };
 
-  const fetchAdminLogs = async (page = 0) => {
+  const fetchAdminLogs = async (page = 0, overrideLevel = null) => {
     try {
+      const activeLevel = overrideLevel !== null ? overrideLevel : adminLevelFilter;
       const response = await logService.getLogs({
         page,
         size: systemPageSize,
         category: 'admin',
+        level: activeLevel === 'ALL' ? '' : activeLevel,
         search: adminSearchTerm,
       });
 
@@ -332,20 +337,25 @@ export default function AdminLogs() {
         setAdminLogs(response.logs || []);
         setAdminLogsTotal(response.total || 0);
         setAdminLogsPage(response.page || 0);
+        if (response.stats) {
+          setAdminStats(response.stats);
+        }
       });
     } catch (error) {
       console.error('Failed to load admin logs:', error);
     }
   };
 
-  const fetchSystemLogs = async (page = 0) => {
+  const fetchSystemLogs = async (page = 0, overrideLevel = null, overrideService = null) => {
     try {
+      const activeLevel = overrideLevel !== null ? overrideLevel : levelFilter;
+      const activeService = overrideService !== null ? overrideService : serviceFilter;
       const response = await logService.getLogs({
         page,
         size: systemPageSize,
         category: 'system',
-        service: serviceFilter === 'ALL' ? '' : serviceFilter,
-        level: levelFilter === 'ALL' ? '' : levelFilter,
+        service: activeService === 'ALL' ? '' : activeService,
+        level: activeLevel === 'ALL' ? '' : activeLevel,
         search: searchTerm,
       });
 
@@ -353,6 +363,10 @@ export default function AdminLogs() {
         setSystemLogs(response.logs || []);
         setSystemTotal(response.total || 0);
         setSystemPage(response.page || 0);
+        if (response.availableServices && response.availableServices.length > 0) {
+          const merged = ['ALL', ...response.availableServices.filter(s => s !== 'ADMIN-PORTAL')];
+          setAvailableServices(Array.from(new Set(merged)));
+        }
         if (response.stats) {
           setSystemStats(response.stats);
         }
@@ -373,8 +387,12 @@ export default function AdminLogs() {
   };
 
   useEffect(() => {
-    reloadAll();
+    fetchSystemLogs(0);
   }, [serviceFilter, levelFilter]);
+
+  useEffect(() => {
+    fetchAdminLogs(0);
+  }, [adminLevelFilter]);
 
   // Live auto-refresh polling every 10 seconds for real-time responsiveness
   useEffect(() => {
@@ -796,17 +814,89 @@ export default function AdminLogs() {
         {/* TAB 0: ADMIN ACTION LOGS (SEPARATE DEDICATED ADMIN LOG AUDITING) */}
         {activeTab === 'admin' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <span className="text-xs text-orange-600 font-bold uppercase tracking-wider">Dedicated Admin Audit</span>
-                <h3 className="text-xl font-bold text-gray-900 mt-0.5">Administrator Action & Navigation Trail</h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Records every page navigated, scrolled/inspected, user creation/deletion, session termination, and setting modification with exact seconds-accurate timestamps.
-                </p>
+            {/* 4 Interactive Filter & Sort KPI Boxes for Admin Logs */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div
+                onClick={() => {
+                  setAdminLevelFilter('ALL');
+                  fetchAdminLogs(0, 'ALL');
+                }}
+                className={`rounded-2xl border shadow-sm p-4 transition-all cursor-pointer select-none ${
+                  adminLevelFilter === 'ALL'
+                    ? 'bg-orange-50/80 border-orange-500 ring-2 ring-orange-500/20'
+                    : 'bg-white border-gray-100 hover:border-gray-300'
+                }`}
+                title="Click to view all admin operations"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600 font-bold uppercase tracking-wider">Overall Service</span>
+                  <Layers className={`size-4 ${adminLevelFilter === 'ALL' ? 'text-orange-600' : 'text-gray-400'}`} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mt-1">{adminStats.totalLogs || adminLogsTotal}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">All administrative actions</p>
               </div>
-              <div className="text-right shrink-0">
-                <span className="text-xs font-semibold text-gray-500">Total Admin Operations</span>
-                <p className="text-2xl font-extrabold text-orange-600">{adminLogsTotal}</p>
+
+              <div
+                onClick={() => {
+                  const next = adminLevelFilter === 'ERROR' ? 'ALL' : 'ERROR';
+                  setAdminLevelFilter(next);
+                  fetchAdminLogs(0, next);
+                }}
+                className={`rounded-2xl border shadow-sm p-4 transition-all cursor-pointer select-none ${
+                  adminLevelFilter === 'ERROR'
+                    ? 'bg-red-50 border-red-500 ring-2 ring-red-500/20'
+                    : 'bg-white border-red-100 hover:border-red-300'
+                }`}
+                title="Click to filter by Admin Errors"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-red-600 font-bold uppercase tracking-wider">Admin Errors</span>
+                  <AlertCircle className={`size-4 ${adminLevelFilter === 'ERROR' ? 'text-red-600' : 'text-red-400'}`} />
+                </div>
+                <h3 className="text-2xl font-bold text-red-600 mt-1">{adminStats.errorCount || 0}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">Failed admin operations</p>
+              </div>
+
+              <div
+                onClick={() => {
+                  const next = adminLevelFilter === 'WARN' ? 'ALL' : 'WARN';
+                  setAdminLevelFilter(next);
+                  fetchAdminLogs(0, next);
+                }}
+                className={`rounded-2xl border shadow-sm p-4 transition-all cursor-pointer select-none ${
+                  adminLevelFilter === 'WARN'
+                    ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-500/20'
+                    : 'bg-white border-amber-100 hover:border-amber-300'
+                }`}
+                title="Click to filter by Admin Warnings (e.g. maintenance toggles, force logouts)"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-amber-600 font-bold uppercase tracking-wider">Admin Warnings</span>
+                  <AlertTriangle className={`size-4 ${adminLevelFilter === 'WARN' ? 'text-amber-600' : 'text-amber-400'}`} />
+                </div>
+                <h3 className="text-2xl font-bold text-amber-600 mt-1">{adminStats.warnCount || 0}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">Sensitive & security warnings</p>
+              </div>
+
+              <div
+                onClick={() => {
+                  const next = adminLevelFilter === 'INFO' ? 'ALL' : 'INFO';
+                  setAdminLevelFilter(next);
+                  fetchAdminLogs(0, next);
+                }}
+                className={`rounded-2xl border shadow-sm p-4 transition-all cursor-pointer select-none ${
+                  adminLevelFilter === 'INFO'
+                    ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20'
+                    : 'bg-white border-blue-100 hover:border-blue-300'
+                }`}
+                title="Click to filter by Admin Info Operations"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-blue-600 font-bold uppercase tracking-wider">Info Operations</span>
+                  <Info className={`size-4 ${adminLevelFilter === 'INFO' ? 'text-blue-600' : 'text-blue-400'}`} />
+                </div>
+                <h3 className="text-2xl font-bold text-blue-600 mt-1">{adminStats.infoCount || 0}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">Standard administrative logs</p>
               </div>
             </div>
 
@@ -824,7 +914,20 @@ export default function AdminLogs() {
                 />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <select
+                  value={adminLevelFilter}
+                  onChange={(e) => {
+                    setAdminLevelFilter(e.target.value);
+                    fetchAdminLogs(0, e.target.value);
+                  }}
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 outline-none cursor-pointer"
+                >
+                  {LEVELS.map((l) => (
+                    <option key={l} value={l}>Level: {l}</option>
+                  ))}
+                </select>
+
                 <button
                   onClick={() => fetchAdminLogs(adminLogsPage)}
                   className="flex items-center gap-2 px-3 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
@@ -1232,22 +1335,89 @@ export default function AdminLogs() {
         {/* TAB 2: MICROSERVICE AUDIT LOGS */}
         {activeTab === 'system' && (
           <div className="space-y-6">
+            {/* 4 Interactive Filter & Sort KPI Boxes for Microservice Logs */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                <span className="text-xs text-gray-500 font-semibold uppercase">Total Stored Logs</span>
+              <div
+                onClick={() => {
+                  setLevelFilter('ALL');
+                  fetchSystemLogs(0, 'ALL');
+                }}
+                className={`rounded-2xl border shadow-sm p-4 transition-all cursor-pointer select-none ${
+                  levelFilter === 'ALL'
+                    ? 'bg-orange-50/80 border-orange-500 ring-2 ring-orange-500/20'
+                    : 'bg-white border-gray-100 hover:border-gray-300'
+                }`}
+                title="Click to view Overall Microservice Logs"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600 font-bold uppercase tracking-wider">Overall Service</span>
+                  <Server className={`size-4 ${levelFilter === 'ALL' ? 'text-orange-600' : 'text-gray-400'}`} />
+                </div>
                 <h3 className="text-2xl font-bold text-gray-900 mt-1">{systemStats.totalLogs}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">All microservice events</p>
               </div>
-              <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-4">
-                <span className="text-xs text-red-500 font-semibold uppercase">System Errors</span>
+
+              <div
+                onClick={() => {
+                  const next = levelFilter === 'ERROR' ? 'ALL' : 'ERROR';
+                  setLevelFilter(next);
+                  fetchSystemLogs(0, next);
+                }}
+                className={`rounded-2xl border shadow-sm p-4 transition-all cursor-pointer select-none ${
+                  levelFilter === 'ERROR'
+                    ? 'bg-red-50 border-red-500 ring-2 ring-red-500/20'
+                    : 'bg-white border-red-100 hover:border-red-300'
+                }`}
+                title="Click to filter by System Errors"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-red-600 font-bold uppercase tracking-wider">System Errors</span>
+                  <AlertCircle className={`size-4 ${levelFilter === 'ERROR' ? 'text-red-600' : 'text-red-400'}`} />
+                </div>
                 <h3 className="text-2xl font-bold text-red-600 mt-1">{systemStats.errorCount}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">Application exception events</p>
               </div>
-              <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-4">
-                <span className="text-xs text-amber-500 font-semibold uppercase">System Warnings</span>
+
+              <div
+                onClick={() => {
+                  const next = levelFilter === 'WARN' ? 'ALL' : 'WARN';
+                  setLevelFilter(next);
+                  fetchSystemLogs(0, next);
+                }}
+                className={`rounded-2xl border shadow-sm p-4 transition-all cursor-pointer select-none ${
+                  levelFilter === 'WARN'
+                    ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-500/20'
+                    : 'bg-white border-amber-100 hover:border-amber-300'
+                }`}
+                title="Click to filter by System Warnings"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-amber-600 font-bold uppercase tracking-wider">System Warnings</span>
+                  <AlertTriangle className={`size-4 ${levelFilter === 'WARN' ? 'text-amber-600' : 'text-amber-400'}`} />
+                </div>
                 <h3 className="text-2xl font-bold text-amber-600 mt-1">{systemStats.warnCount}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">Warnings & session revocations</p>
               </div>
-              <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-4">
-                <span className="text-xs text-blue-500 font-semibold uppercase">Info Operations</span>
+
+              <div
+                onClick={() => {
+                  const next = levelFilter === 'INFO' ? 'ALL' : 'INFO';
+                  setLevelFilter(next);
+                  fetchSystemLogs(0, next);
+                }}
+                className={`rounded-2xl border shadow-sm p-4 transition-all cursor-pointer select-none ${
+                  levelFilter === 'INFO'
+                    ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20'
+                    : 'bg-white border-blue-100 hover:border-blue-300'
+                }`}
+                title="Click to filter by Info Operations"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-blue-600 font-bold uppercase tracking-wider">Info Operations</span>
+                  <Info className={`size-4 ${levelFilter === 'INFO' ? 'text-blue-600' : 'text-blue-400'}`} />
+                </div>
                 <h3 className="text-2xl font-bold text-blue-600 mt-1">{systemStats.infoCount}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5">Stream, usage & feedback events</p>
               </div>
             </div>
 
@@ -1267,21 +1437,27 @@ export default function AdminLogs() {
               <div className="flex items-center gap-3 w-full md:w-auto">
                 <select
                   value={serviceFilter}
-                  onChange={(e) => setServiceFilter(e.target.value)}
+                  onChange={(e) => {
+                    setServiceFilter(e.target.value);
+                    fetchSystemLogs(0, null, e.target.value);
+                  }}
                   className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 outline-none cursor-pointer"
                 >
-                  {SERVICES.map((s) => (
+                  {availableServices.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
 
                 <select
                   value={levelFilter}
-                  onChange={(e) => setLevelFilter(e.target.value)}
+                  onChange={(e) => {
+                    setLevelFilter(e.target.value);
+                    fetchSystemLogs(0, e.target.value);
+                  }}
                   className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 outline-none cursor-pointer"
                 >
                   {LEVELS.map((l) => (
-                    <option key={l} value={l}>{l}</option>
+                    <option key={l} value={l}>Level: {l}</option>
                   ))}
                 </select>
               </div>

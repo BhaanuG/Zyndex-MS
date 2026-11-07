@@ -75,12 +75,34 @@ public class LogController {
 
         var rows = jdbc.queryForList(dataQuery, dataParams.toArray());
 
-        // Compute summary counts
-        Long totalAll = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs", Long.class);
+        // Compute summary counts scoped strictly to current category or query
+        String scopeCondition = "";
+        if ("admin".equalsIgnoreCase(category)) {
+            scopeCondition = " WHERE service = 'ADMIN-PORTAL' ";
+        } else if ("system".equalsIgnoreCase(category)) {
+            scopeCondition = " WHERE service != 'ADMIN-PORTAL' ";
+        }
+
+        String totalQuery = "SELECT COUNT(*) FROM system_logs " + scopeCondition;
+        Long totalCategoryLogs = jdbc.queryForObject(totalQuery, Long.class);
+
+        String errQuery = "SELECT COUNT(*) FROM system_logs " + (scopeCondition.isEmpty() ? " WHERE level = 'ERROR' " : scopeCondition + " AND level = 'ERROR' ");
+        Long errors = jdbc.queryForObject(errQuery, Long.class);
+
+        String warnQuery = "SELECT COUNT(*) FROM system_logs " + (scopeCondition.isEmpty() ? " WHERE level = 'WARN' " : scopeCondition + " AND level = 'WARN' ");
+        Long warnings = jdbc.queryForObject(warnQuery, Long.class);
+
+        String infoQuery = "SELECT COUNT(*) FROM system_logs " + (scopeCondition.isEmpty() ? " WHERE level = 'INFO' " : scopeCondition + " AND level = 'INFO' ");
+        Long info = jdbc.queryForObject(infoQuery, Long.class);
+
+        String successQuery = "SELECT COUNT(*) FROM system_logs " + (scopeCondition.isEmpty() ? " WHERE level = 'SUCCESS' " : scopeCondition + " AND level = 'SUCCESS' ");
+        Long success = jdbc.queryForObject(successQuery, Long.class);
+
         Long totalAdmin = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs WHERE service = 'ADMIN-PORTAL'", Long.class);
-        Long errors = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs WHERE level = 'ERROR'", Long.class);
-        Long warnings = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs WHERE level = 'WARN'", Long.class);
-        Long info = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs WHERE level = 'INFO'", Long.class);
+        Long totalOverall = jdbc.queryForObject("SELECT COUNT(*) FROM system_logs", Long.class);
+
+        // Fetch distinct services present in database for dynamic dropdown listing
+        List<String> distinctServices = jdbc.queryForList("SELECT DISTINCT service FROM system_logs WHERE service IS NOT NULL AND service != '' ORDER BY service ASC", String.class);
 
         return Map.of(
                 "logs", rows.stream().map(row -> Map.of(
@@ -97,12 +119,15 @@ public class LogController {
                 "total", total != null ? total : 0L,
                 "page", page.get("page"),
                 "size", page.get("size"),
+                "availableServices", distinctServices,
                 "stats", Map.of(
-                        "totalLogs", totalAll != null ? totalAll : 0L,
+                        "totalLogs", totalCategoryLogs != null ? totalCategoryLogs : 0L,
+                        "overallLogs", totalOverall != null ? totalOverall : 0L,
                         "adminLogsCount", totalAdmin != null ? totalAdmin : 0L,
                         "errorCount", errors != null ? errors : 0L,
                         "warnCount", warnings != null ? warnings : 0L,
-                        "infoCount", info != null ? info : 0L
+                        "infoCount", info != null ? info : 0L,
+                        "successCount", success != null ? success : 0L
                 )
         );
     }
