@@ -385,7 +385,7 @@ export default function AdminLogs() {
     const rows = readingSessions.map((s, idx) => {
       const resourceTitles = s.resources.map((r) => r.title).join(' | ');
       const resourceTypes = s.resources.map((r) => r.type || 'TEXTBOOK').join(' | ');
-      const resourceAuthors = s.resources.map((r) => r.author || 'Zyndex Faculty').join(' | ');
+      const resourceAuthors = s.resources.map((r) => r.author || 'Zyndex Contributor').join(' | ');
       const resourceCategories = s.resources.map((r) => r.category || 'General Academics').join(' | ');
 
       return [
@@ -783,7 +783,7 @@ export default function AdminLogs() {
                                 {firstRes.title || 'Academic Resource'}
                                 {additionalCount > 0 ? ` +${additionalCount}` : ''}
                               </span>
-                              <p className="text-[11px] text-gray-500 mt-0.5">{firstRes.author || 'Zyndex Faculty'}</p>
+                              <p className="text-[11px] text-gray-500 mt-0.5">{firstRes.author || 'Zyndex Contributor'}</p>
                             </td>
 
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -1087,7 +1087,7 @@ export default function AdminLogs() {
                         <thead>
                           <tr className="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
                             <th className="py-2.5 px-3">Resource Title</th>
-                            <th className="py-2.5 px-3">Author / Faculty</th>
+                            <th className="py-2.5 px-3">Author</th>
                             <th className="py-2.5 px-3">Resource Type</th>
                             <th className="py-2.5 px-3">Category / Subject</th>
                             <th className="py-2.5 px-3 text-right">Duration</th>
@@ -1099,7 +1099,7 @@ export default function AdminLogs() {
                               <td className="py-2.5 px-3 font-semibold text-slate-900">
                                 {res.title || 'Academic Resource'}
                               </td>
-                              <td className="py-2.5 px-3 text-slate-600">{res.author || 'Zyndex Faculty'}</td>
+                              <td className="py-2.5 px-3 text-slate-600">{res.author || 'Zyndex Contributor'}</td>
                               <td className="py-2.5 px-3">
                                 <span className="px-2 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-800 text-[10px]">
                                   {res.type || 'TEXTBOOK'}

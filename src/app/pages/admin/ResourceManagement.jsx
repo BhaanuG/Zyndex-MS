@@ -791,7 +791,7 @@ export default function ResourceManagement() {
                     <div>
                       <h3 className="font-bold text-gray-900 text-base line-clamp-1">{previewResource.title}</h3>
                       <p className="text-xs text-gray-500">
-                        {previewResource.category} • Author: {previewResource.subject || previewResource.author || 'Zyndex Faculty'}
+                        {previewResource.category} • Author: {previewResource.subject || previewResource.author || 'Zyndex Contributor'}
                       </p>
                     </div>
                   </div>
