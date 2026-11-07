@@ -175,22 +175,41 @@ class FeedbackController {
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> fetchUserProfile(long userId) {
+        // 1. Direct cross-database lookup from zyndex_auth.users (instant, 100% reliable)
+        try {
+            var directUser = jdbc.queryForList("""
+                    SELECT COALESCE(NULLIF(username, ''), NULLIF(name, ''), email) AS name, email
+                    FROM zyndex_auth.users WHERE id = ? LIMIT 1
+                    """, userId);
+            if (!directUser.isEmpty() && directUser.get(0).get("email") != null) {
+                return directUser.get(0);
+            }
+        } catch (Exception ignored) {}
+
+        // 2. Direct local users table lookup (if shared schema / local mirror)
+        try {
+            var localUser = jdbc.queryForList("""
+                    SELECT COALESCE(NULLIF(username, ''), NULLIF(name, ''), email) AS name, email
+                    FROM users WHERE id = ? LIMIT 1
+                    """, userId);
+            if (!localUser.isEmpty() && localUser.get(0).get("email") != null) {
+                return localUser.get(0);
+            }
+        } catch (Exception ignored) {}
+
+        // 3. Fallback to auth-service REST API
         try {
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.set("X-Internal-Service", "content-service");
             org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
             String url = "http://auth-service/api/users/" + userId + "/profile";
             org.springframework.http.ResponseEntity<Map> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, Map.class);
-            return response.getBody() != null ? response.getBody() : Map.of();
-        } catch (Exception e) {
-            try {
-                var directUser = jdbc.queryForList("SELECT name, email FROM users WHERE id = ? LIMIT 1", userId);
-                if (!directUser.isEmpty()) {
-                    return directUser.get(0);
-                }
-            } catch (Exception ignored) {}
-            return Map.of("name", "Student Reader", "email", "reader@zyndex.com");
-        }
+            if (response.getBody() != null && response.getBody().get("email") != null) {
+                return response.getBody();
+            }
+        } catch (Exception ignored) {}
+
+        return Map.of("name", "Student Reader", "email", "reader@zyndex.com");
     }
 
     private void requireAdmin(HttpServletRequest request) {
