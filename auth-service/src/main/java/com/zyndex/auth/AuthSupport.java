@@ -202,8 +202,9 @@ public class AuthSupport {
         user.put("profession", first(row.get("profession"), ""));
         user.put("collegeName", first(row.get("college_name"), ""));
         user.put("universityName", first(row.get("university_name"), ""));
-        user.put("active", bool(row.get("active")));
-        user.put("terminated", bool(row.get("terminated")));
+        user.put("active", row.get("active") == null ? true : bool(row.get("active")));
+        user.put("terminated", bool(row.get("is_terminated")));
+        user.put("session_token_version", row.get("session_token_version") != null ? number(row.get("session_token_version")) : 1);
         user.put("createdAt", row.get("created_at"));
         user.put("updatedAt", row.get("updated_at"));
 
@@ -289,7 +290,7 @@ public class AuthSupport {
 
     public static Boolean bool(Object value) {
         if (value == null) {
-            return true;
+            return false;
         }
         if (value instanceof Boolean b) {
             return b;

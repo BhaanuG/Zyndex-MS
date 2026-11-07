@@ -152,7 +152,7 @@ class AuthController {
         if (dbUser == null) {
             return Map.of("exists", false, "terminated", false);
         }
-        boolean isTerminated = AuthSupport.bool(dbUser.get("terminated"));
+        boolean isTerminated = AuthSupport.bool(dbUser.get("is_terminated"));
         return Map.of(
             "exists", true,
             "terminated", isTerminated,

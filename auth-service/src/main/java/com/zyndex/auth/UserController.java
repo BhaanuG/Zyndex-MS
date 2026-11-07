@@ -406,7 +406,7 @@ class UserController {
         if (target == null) throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
 
         // Mark user as terminated, increment session token version and clear last_active_at
-        jdbc.update("UPDATE users SET terminated = true, session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+        jdbc.update("UPDATE users SET is_terminated = true, session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
 
         String targetName = String.valueOf(AuthSupport.first(target.get("name"), target.get("username")));
         String targetEmail = String.valueOf(target.get("email"));
@@ -433,7 +433,7 @@ class UserController {
         Map<String, Object> target = auth.findUserById(userId);
         if (target == null) throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
 
-        jdbc.update("UPDATE users SET terminated = false, active = true WHERE id = ?", userId);
+        jdbc.update("UPDATE users SET is_terminated = false, active = true WHERE id = ?", userId);
 
         String targetName = String.valueOf(AuthSupport.first(target.get("name"), target.get("username")));
         String targetEmail = String.valueOf(target.get("email"));

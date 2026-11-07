@@ -127,7 +127,7 @@ class DbInitializer implements CommandLineRunner {
             jdbc.execute("ALTER TABLE users ADD COLUMN session_token_version INT NOT NULL DEFAULT 1");
         } catch (Exception ignored) {}
         try {
-            jdbc.execute("ALTER TABLE users ADD COLUMN terminated BOOLEAN NOT NULL DEFAULT FALSE");
+            jdbc.execute("ALTER TABLE users ADD COLUMN is_terminated BOOLEAN NOT NULL DEFAULT FALSE");
         } catch (Exception ignored) {}
         seedInitialLogsIfEmpty();
         ensureMainAdmin();
