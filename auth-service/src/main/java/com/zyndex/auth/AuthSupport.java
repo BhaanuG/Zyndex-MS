@@ -43,6 +43,15 @@ public class AuthSupport {
         return rows.isEmpty() ? null : rows.get(0);
     }
 
+    public boolean isMaintenanceMode() {
+        try {
+            var rows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_MODE' LIMIT 1");
+            return !rows.isEmpty() && "true".equalsIgnoreCase(String.valueOf(rows.get(0).get("setting_value")));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public void logSystemEvent(String service, String level, String action, String actorEmail, String details, String ipAddress, String status) {
         try {
             jdbc.update(
@@ -98,7 +107,11 @@ public class AuthSupport {
             if (user == null || !Boolean.TRUE.equals(bool(user.get("active")))) {
                 throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid or inactive account.");
             }
-            return sanitizeUser(user);
+            Map<String, Object> sanitized = sanitizeUser(user);
+            if (isMaintenanceMode() && !Boolean.TRUE.equals(sanitized.get("isPrimaryAdmin"))) {
+                throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.");
+            }
+            return sanitized;
         }
 
         // Direct fallback: check token in header (e.g. for internal requests or testing)
@@ -121,7 +134,11 @@ public class AuthSupport {
                     throw new ApiException(HttpStatus.UNAUTHORIZED, "Your session has been terminated by administrator. Please log in again.");
                 }
             }
-            return sanitizeUser(user);
+            Map<String, Object> sanitized = sanitizeUser(user);
+            if (isMaintenanceMode() && !Boolean.TRUE.equals(sanitized.get("isPrimaryAdmin"))) {
+                throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.");
+            }
+            return sanitized;
         } catch (ApiException error) {
             throw error;
         } catch (Exception error) {

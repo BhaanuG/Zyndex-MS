@@ -100,6 +100,13 @@ class AuthController {
             throw new ApiException(HttpStatus.UNAUTHORIZED, preview ? "Entered wrong password." : "Invalid email or password.");
         }
         Map<String, Object> user = auth.sanitizeUser(dbUser);
+
+        // Check maintenance mode: only Main Admin can log in during maintenance mode
+        if (auth.isMaintenanceMode() && !Boolean.TRUE.equals(user.get("isPrimaryAdmin"))) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator. We apologize for the inconvenience.");
+        }
+
         if (!role.isBlank() && !role.equals(user.get("role"))) {
             throw new ApiException(HttpStatus.FORBIDDEN,
                     "admin".equals(role) ? "Entered wrong email for admin access." : "Entered wrong email for user access.");
