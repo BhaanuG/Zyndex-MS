@@ -71,3 +71,4 @@ We follow clean, conventional commit messages:
 ---
 
 Thank you for helping make Zyndex a world-class academic resource ecosystem!
+

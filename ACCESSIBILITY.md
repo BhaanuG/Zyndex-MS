@@ -24,3 +24,4 @@ We welcome your feedback on the accessibility of Zyndex. If you encounter access
 - **Email**: `Bhaanugali@gmail.com` / `2400030952@kluniversity.in`
 - **Postal / Campus**: ScholarSphere Engine, KL University
 - **Response Time**: We aim to respond to accessibility feedback within 2 business days.
+

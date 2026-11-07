@@ -21,8 +21,8 @@ export default function Features() {
     },
     {
       icon: Filter,
-      title: 'Multi-Discipline Categories',
-      description: 'Curated archives spanning AI, Machine Learning, Computer Science, Engineering, Mathematics, Physics, and Humanities.',
+      title: 'Academic Discipline Categories',
+      description: 'Curated archives spanning AI, ML, Computer Science, Physics, Chemistry, Mathematics, Economics, History, Literature, and Biology.',
       gradient: 'from-amber-500 to-orange-600'
     },
     {

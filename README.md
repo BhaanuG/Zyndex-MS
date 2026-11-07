@@ -1647,19 +1647,17 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **Overall Total** | **Full Stack Application** | **185 Files** | **43,730 Lines** | **121,511 Words** | **1,841,960 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
-Zyndex organizes learning resources across dedicated subject categories accessible publicly and within the authenticated scholar portal:
-- **Artificial Intelligence (AI)**: Foundational neural networks, generative LLMs, prompt engineering, and autonomous agents.
-- **Machine Learning (ML)**: Predictive algorithms, deep learning architectures, statistical learning theory, and classification.
-- **Computer Science**: Computational theory, data structures, algorithms, operating systems, and distributed systems.
-- **Engineering & Data**: Software engineering practices, database engines, big data pipelines, and cloud computing.
-- **Mathematics**: Discrete mathematics, linear algebra, multivariable calculus, probability, and modern cryptography.
-- **Physics & Electronics**: Quantum mechanics, electromagnetic theory, semiconductor devices, and circuit analysis.
-- **Chemistry & Materials**: Chemical thermodynamics, organic reactions, spectroscopy, and materials science.
-- **Cybersecurity & Networks**: Network protocols, vulnerability assessment, defense in depth, and penetration testing.
-- **Web & Mobile Systems**: High-concurrency client architectures, responsive design, REST/GraphQL APIs, and mobile apps.
-- **Literature & Humanities**: Academic writing, philosophy of science, linguistic research, and historical perspectives.
-- **Social Sciences & Management**: Economic modeling, research methodology, business ethics, and institutional governance.
-- **General Academics**: Cross-disciplinary curriculum modules, examination guides, and syllabus notes.
+Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
+- **AI (Artificial Intelligence)**: Foundational neural networks, autonomous agents, prompt engineering, and intelligent systems.
+- **ML (Machine Learning)**: Predictive algorithms, deep learning architectures, statistical learning models, and classification.
+- **Computer Science**: Computational theory, data structures, algorithms, operating systems, and distributed system architectures.
+- **Physics**: Classical mechanics, quantum physics, thermodynamics, electromagnetism, and modern optics.
+- **Chemistry**: Organic synthesis, inorganic reactions, physical chemistry, chemical kinetics, and spectroscopy.
+- **Mathematics**: Linear algebra, multivariable calculus, discrete mathematics, probability, statistics, and differential equations.
+- **Economics**: Microeconomics, macroeconomics, fiscal policy, financial markets, econometrics, and behavioral economics.
+- **History**: World history, ancient civilizations, political revolutions, historiography, and modern global developments.
+- **Literature**: Classical texts, literary analysis, world poetry, comparative linguistics, and critical prose.
+- **Biology**: Cellular biology, molecular genetics, evolutionary biology, physiology, biochemistry, and microbiology.
 
 ---
 

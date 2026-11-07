@@ -30,3 +30,4 @@ If you believe you have found a security vulnerability in Zyndex (including auth
 - **Initial Response**: Within 24-48 hours with acknowledgment.
 - **Triage & Fix**: We will investigate and provide regular status updates.
 - **Responsible Disclosure**: We request that you maintain confidentiality until a patch has been merged and deployed.
+

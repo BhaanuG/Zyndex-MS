@@ -59,3 +59,4 @@ body:
       placeholder: "Windows 11, Chrome 130, Java 21 LTS, Node 22"
     validations:
       required: false
+
