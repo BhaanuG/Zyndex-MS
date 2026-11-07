@@ -48,6 +48,7 @@ razorpay:
 
 zyndex:
   otp-mail-from: ${OTP_MAIL_FROM:${OTP_SMTP_USER:}}
+  auth-db-name: ${AUTH_DB_NAME:zyndex_auth}
   receiver-upi-id: ${RECEIVER_UPI_ID:918897337687@waaxis}
 
 payment:

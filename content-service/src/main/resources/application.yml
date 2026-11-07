@@ -32,6 +32,7 @@ zyndex:
   upload-dir: ${UPLOAD_DIR:backend/uploads}
   main-admin-email: ${MAIN_ADMIN_EMAIL:Bhaanugali@gmail.com}
   otp-mail-from: ${OTP_MAIL_FROM:${OTP_SMTP_USER:}}
+  auth-db-name: ${AUTH_DB_NAME:zyndex_auth}
 
 spring.mail:
   host: ${OTP_SMTP_HOST:}

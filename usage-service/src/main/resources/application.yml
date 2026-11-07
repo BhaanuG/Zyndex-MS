@@ -19,3 +19,6 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+zyndex:
+  auth-db-name: ${AUTH_DB_NAME:zyndex_auth}
