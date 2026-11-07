@@ -160,6 +160,12 @@ public class AuthSupport {
         }
     }
 
+    public Map<String, Object> requireAdmin(HttpServletRequest request) {
+        Map<String, Object> user = requireUser(request);
+        requireRole(user, "admin");
+        return user;
+    }
+
     public Map<String, Object> requirePrimaryAdmin(HttpServletRequest request) {
         Map<String, Object> user = requireUser(request);
         requireRole(user, "admin");

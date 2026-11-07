@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router';
 import { motion } from 'motion/react';
-import { User, Mail, Settings, Save, Heart, Edit, X, GraduationCap, Building, CreditCard, Hash, FileText, Download, Receipt, Printer, Trash2 } from 'lucide-react';
+import { User, Mail, Settings, Save, Heart, Edit, X, GraduationCap, Building, CreditCard, Hash, FileText, Download, Receipt, Printer, Trash2, Clock, CheckCircle2, Flame, Bookmark, Shield, Laptop, Smartphone, Globe, LogOut, Sliders, Sun, Moon, BookOpen, Bell, Check } from 'lucide-react';
 import UserLayout from '@/app/components/UserLayout';
 import InvoiceModal from '@/app/components/InvoiceModal';
 import StatementModal from '@/app/components/StatementModal';
@@ -29,6 +29,29 @@ export default function UserProfile() {
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [statementModalOpen, setStatementModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  // Academic Reading Telemetry & Session State
+  const [telemetry, setTelemetry] = useState({
+    totalReadingMinutes: 0,
+    totalReadingHours: 0,
+    articlesCompleted: 0,
+    currentStreakDays: 1,
+    favoriteDomain: 'General Academics',
+    totalExplored: 0
+  });
+  const [sessionsData, setSessionsData] = useState({ currentIp: '127.0.0.1', devices: [] });
+  const [preferences, setPreferences] = useState({
+    citationStyle: 'APA 7th',
+    readerTheme: 'light',
+    readerFontScale: 100,
+    notifyNewReleases: true,
+    notifyExpiryReminders: true,
+    notifySecurityAlerts: true
+  });
+  const [revokingSessions, setRevokingSessions] = useState(false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [prefsSuccess, setPrefsSuccess] = useState(false);
+
   const [profileData, setProfileData] = useState({ 
     name: '', 
     email: '', 
@@ -63,6 +86,68 @@ export default function UserProfile() {
 
     loadFavorites();
   }, []);
+
+  useEffect(() => {
+    async function loadAcademicAndSessionData() {
+      if (!user?.id) return;
+      try {
+        const [telRes, sessRes, prefRes] = await Promise.allSettled([
+          userService.getScholarTelemetry(user.id),
+          userService.getActiveSessions(),
+          userService.getUserPreferences()
+        ]);
+        if (telRes.status === 'fulfilled' && telRes.value) {
+          setTelemetry(telRes.value);
+        }
+        if (sessRes.status === 'fulfilled' && sessRes.value) {
+          setSessionsData(sessRes.value);
+        }
+        if (prefRes.status === 'fulfilled' && prefRes.value) {
+          setPreferences(prefRes.value);
+        }
+      } catch (e) {
+        console.error('Failed to load telemetry or sessions:', e);
+      }
+    }
+    loadAcademicAndSessionData();
+  }, [user?.id]);
+
+  const handleRevokeOtherSessions = async () => {
+    if (!window.confirm('Are you sure you want to log out from all other devices?\n\nAll other active sessions and remembered browser logins will be immediately terminated.')) {
+      return;
+    }
+    setRevokingSessions(true);
+    try {
+      const currentToken = localStorage.getItem('device_token') || '';
+      const res = await userService.revokeOtherSessions(currentToken);
+      if (res?.token) {
+        localStorage.setItem('auth_token', res.token);
+      }
+      const refreshedSess = await userService.getActiveSessions();
+      setSessionsData(refreshedSess);
+      alert(res?.message || 'All other devices have been logged out.');
+    } catch (err) {
+      alert(err.message || 'Failed to revoke other sessions.');
+    } finally {
+      setRevokingSessions(false);
+    }
+  };
+
+  const handleSavePreferences = async (e) => {
+    e?.preventDefault();
+    setSavingPrefs(true);
+    setPrefsSuccess(false);
+    try {
+      const updated = await userService.updateUserPreferences(preferences);
+      setPreferences(updated);
+      setPrefsSuccess(true);
+      setTimeout(() => setPrefsSuccess(false), 3000);
+    } catch (err) {
+      alert(err.message || 'Failed to save reading preferences.');
+    } finally {
+      setSavingPrefs(false);
+    }
+  };
 
   const loadBillingData = async () => {
     setLoadingBilling(true);
@@ -120,6 +205,8 @@ export default function UserProfile() {
   const getActiveTabFromPath = () => {
     if (location.pathname.endsWith('/My-Favorites')) return 'favourites';
     if (location.pathname.endsWith('/Account-Settings')) return 'settings';
+    if (location.pathname.endsWith('/Preferences')) return 'preferences';
+    if (location.pathname.endsWith('/Sessions')) return 'sessions';
     if (location.pathname.endsWith('/Billing')) return 'billing';
     return 'favourites'; // fallback/default
   };
@@ -128,6 +215,8 @@ export default function UserProfile() {
   const handleTabChange = (val) => {
     if (val === 'favourites') navigate(`${profileBaseUrl}/My-Favorites`);
     else if (val === 'settings') navigate(`${profileBaseUrl}/Account-Settings`);
+    else if (val === 'preferences') navigate(`${profileBaseUrl}/Preferences`);
+    else if (val === 'sessions') navigate(`${profileBaseUrl}/Sessions`);
     else if (val === 'billing') navigate(`${profileBaseUrl}/Billing`);
   };
 
@@ -159,7 +248,46 @@ export default function UserProfile() {
       <div className="py-8 px-6">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-2xl font-semibold text-gray-900 mb-8">My Profile</h1>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-6">Scholar Profile & Telemetry</h1>
+
+            {/* Academic Reading & Research Telemetry Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+              <div className="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs hover:border-orange-300 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Research Reading</span>
+                  <div className="p-2 bg-orange-50 text-orange-600 rounded-xl"><Clock className="size-4" /></div>
+                </div>
+                <div className="text-2xl font-black text-gray-900">{telemetry.totalReadingHours} <span className="text-xs font-semibold text-gray-500">hrs</span></div>
+                <p className="text-[11px] text-gray-500 mt-1">{telemetry.totalReadingMinutes} minutes cumulative read</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-300 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Papers Read</span>
+                  <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><CheckCircle2 className="size-4" /></div>
+                </div>
+                <div className="text-2xl font-black text-gray-900">{telemetry.articlesCompleted}</div>
+                <p className="text-[11px] text-emerald-600 font-medium mt-1">Read start-to-finish</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs hover:border-rose-300 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Learning Streak</span>
+                  <div className="p-2 bg-rose-50 text-rose-600 rounded-xl"><Flame className="size-4" /></div>
+                </div>
+                <div className="text-2xl font-black text-gray-900">{telemetry.currentStreakDays} <span className="text-xs font-semibold text-gray-500">days</span></div>
+                <p className="text-[11px] text-rose-600 font-medium mt-1">Daily academic consistency</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-indigo-100 shadow-xs hover:border-indigo-300 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Top Subject Domain</span>
+                  <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><Bookmark className="size-4" /></div>
+                </div>
+                <div className="text-base font-black text-indigo-900 truncate" title={telemetry.favoriteDomain}>{telemetry.favoriteDomain}</div>
+                <p className="text-[11px] text-indigo-600 font-medium mt-1">{telemetry.totalExplored} resources explored</p>
+              </div>
+            </div>
           </motion.div>
 
           <div className="grid lg:grid-cols-4 gap-6">
@@ -193,6 +321,20 @@ export default function UserProfile() {
                     >
                       <Settings className="size-4 mr-1.5" />
                       Account Settings
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="preferences"
+                      className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all"
+                    >
+                      <Sliders className="size-4 mr-1.5" />
+                      Workflow & Preferences
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="sessions"
+                      className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm transition-all"
+                    >
+                      <Shield className="size-4 mr-1.5" />
+                      Security & Devices
                     </TabsTrigger>
                     <TabsTrigger
                       value="billing"
@@ -294,6 +436,216 @@ export default function UserProfile() {
                         <Trash2 className="size-3.5" />
                         Delete Account
                       </button>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Workflow & Reading Preferences Tab */}
+                <TabsContent value="preferences" className="p-6 space-y-6">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Academic Workflow & Reading Preferences</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">Personalize default citation export formats, reading viewer theme modes, and notification alerts</p>
+                  </div>
+
+                  <form onSubmit={handleSavePreferences} className="space-y-6">
+                    {/* Default Citation Style */}
+                    <div className="p-5 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
+                      <label className="block text-sm font-bold text-gray-900">
+                        Default Academic Citation Style
+                      </label>
+                      <p className="text-xs text-gray-500">
+                        When you click "Cite" across the Zyndex digital catalog, resources will automatically generate and copy citations formatted in this style.
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1">
+                        {['APA 7th', 'MLA 9th', 'IEEE', 'Chicago', 'Harvard'].map((style) => (
+                          <button
+                            key={style}
+                            type="button"
+                            onClick={() => setPreferences({ ...preferences, citationStyle: style })}
+                            className={`p-3 rounded-xl border text-xs font-bold transition-all text-center ${
+                              preferences.citationStyle === style
+                                ? 'bg-orange-600 text-white border-orange-600 shadow-sm shadow-orange-600/30'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                            }`}
+                          >
+                            {style}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Default Reader View Mode */}
+                    <div className="p-5 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
+                      <label className="block text-sm font-bold text-gray-900">
+                        Default Reader Viewer Theme Mode
+                      </label>
+                      <p className="text-xs text-gray-500">
+                        Pre-select your preferred contrast and brightness when reading research papers and textbooks.
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                        {[
+                          { id: 'light', label: 'Light Theme', icon: Sun, desc: 'Clean white background' },
+                          { id: 'dark', label: 'Dark Mode', icon: Moon, desc: 'Eye-friendly for night reading' },
+                          { id: 'sepia', label: 'Sepia Mode', icon: BookOpen, desc: 'Warm paper texture' },
+                          { id: 'contrast', label: 'High Contrast', icon: Shield, desc: 'Maximum legibility' },
+                        ].map((item) => {
+                          const IconComp = item.icon;
+                          const active = preferences.readerTheme === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => setPreferences({ ...preferences, readerTheme: item.id })}
+                              className={`p-3.5 rounded-xl border text-left transition-all ${
+                                active
+                                  ? 'bg-orange-600 text-white border-orange-600 shadow-sm shadow-orange-600/30'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <IconComp className="size-4 shrink-0" />
+                                <span className="text-xs font-bold">{item.label}</span>
+                              </div>
+                              <p className={`text-[11px] ${active ? 'text-orange-100' : 'text-gray-400'}`}>{item.desc}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Notification Toggles */}
+                    <div className="p-5 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-4">
+                      <label className="block text-sm font-bold text-gray-900">
+                        Scholar Communications & Email Alerts
+                      </label>
+                      <div className="space-y-3">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={preferences.notifyNewReleases}
+                            onChange={(e) => setPreferences({ ...preferences, notifyNewReleases: e.target.checked })}
+                            className="mt-0.5 size-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
+                          />
+                          <div>
+                            <span className="text-xs font-bold text-gray-800">New Academic Releases in My Domain</span>
+                            <p className="text-[11px] text-gray-500">Receive email alerts when newly curated journals or textbooks in your favorite category are published.</p>
+                          </div>
+                        </label>
+
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={preferences.notifyExpiryReminders}
+                            onChange={(e) => setPreferences({ ...preferences, notifyExpiryReminders: e.target.checked })}
+                            className="mt-0.5 size-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
+                          />
+                          <div>
+                            <span className="text-xs font-bold text-gray-800">Subscription Expiration & Renewal Notices</span>
+                            <p className="text-[11px] text-gray-500">Receive advance notification 7 days and 24 hours prior to plan expiration.</p>
+                          </div>
+                        </label>
+
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={preferences.notifySecurityAlerts}
+                            onChange={(e) => setPreferences({ ...preferences, notifySecurityAlerts: e.target.checked })}
+                            className="mt-0.5 size-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
+                          />
+                          <div>
+                            <span className="text-xs font-bold text-gray-800">Security & Maintenance Bulletins</span>
+                            <p className="text-[11px] text-gray-500">Receive critical notices regarding scheduled platform maintenance and security updates.</p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      {prefsSuccess ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                          <Check className="size-4" /> Preferences saved successfully!
+                        </span>
+                      ) : <span />}
+                      <button
+                        type="submit"
+                        disabled={savingPrefs}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-orange-600/20 disabled:opacity-50 cursor-pointer"
+                      >
+                        <Save className="size-4" />
+                        {savingPrefs ? 'Saving...' : 'Save Preferences'}
+                      </button>
+                    </div>
+                  </form>
+                </TabsContent>
+
+                {/* Security & Trusted Devices Tab */}
+                <TabsContent value="sessions" className="p-6 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">Security & Trusted Device Management</h2>
+                      <p className="text-xs text-gray-500 mt-0.5">Active browser sessions, device fingerprints, and instant session revocation</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRevokeOtherSessions}
+                      disabled={revokingSessions}
+                      className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+                    >
+                      <LogOut className="size-4 text-rose-600" />
+                      {revokingSessions ? 'Revoking...' : 'Log out from all other devices'}
+                    </button>
+                  </div>
+
+                  {/* Current Active Session Callout */}
+                  <div className="p-4 bg-orange-50/70 border border-orange-200 rounded-2xl flex items-center gap-3">
+                    <div className="p-2.5 bg-orange-100 text-orange-600 rounded-xl shrink-0"><Laptop className="size-5" /></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-900">Current Device Session (Active Now)</span>
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">This Device</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5 font-mono">
+                        IP: {sessionsData.currentIp} &bull; Security Version: v{sessionsData.sessionTokenVersion || 1} &bull; Session Authenticated via JWT
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Registered Devices List */}
+                  <div>
+                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Recognized & Trusted Devices</h3>
+                    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-2xs divide-y divide-gray-100">
+                      {sessionsData.devices && sessionsData.devices.length > 0 ? (
+                        sessionsData.devices.map((d) => (
+                          <div key={d.id} className="p-4 flex items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-slate-100 text-slate-600 rounded-xl">
+                                {String(d.operating_system || '').toLowerCase().includes('phone') || String(d.device_name || '').toLowerCase().includes('mobile') ? (
+                                  <Smartphone className="size-4" />
+                                ) : (
+                                  <Laptop className="size-4" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-gray-900">{d.device_name || 'Personal Computer'}</p>
+                                <p className="text-[11px] text-gray-500 font-mono">
+                                  {d.browser || 'Browser'} on {d.operating_system || 'OS'} &bull; IP: {d.ip_address || '127.0.0.1'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                Trusted until {new Date(d.expires_at).toLocaleDateString()}
+                              </span>
+                              <p className="text-[10px] text-gray-400 mt-0.5">Verified {new Date(d.trusted_at).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-8 text-center text-gray-400">
+                          <Globe className="size-8 mx-auto mb-2 text-gray-300" />
+                          <p className="text-xs font-medium">No additional persistent device tokens registered. All logins require standard 2FA OTP verification.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TabsContent>

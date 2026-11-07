@@ -394,6 +394,103 @@ public class UsageController {
         );
     }
 
+    @GetMapping("/scholars/{userId}/telemetry")
+    public Map<String, Object> getScholarTelemetry(@PathVariable("userId") long userId) {
+        // 1. Total Research Reading Time (minutes and hours)
+        Long totalMinutes = jdbc.queryForObject(
+                "SELECT COALESCE(SUM(duration), 0) FROM usages WHERE user_id = ?",
+                Long.class, userId
+        );
+        long minutes = totalMinutes != null ? totalMinutes : 0L;
+        double readingHours = Math.round((minutes / 60.0) * 10.0) / 10.0;
+
+        // 2. Articles & Papers Completed (count of resources where duration >= 15 min or views >= 3)
+        Long completedResources = 0L;
+        try {
+            completedResources = jdbc.queryForObject(
+                    "SELECT COUNT(DISTINCT content_id) FROM usages WHERE user_id = ? AND duration >= 15",
+                    Long.class, userId
+            );
+        } catch (Exception ignored) {}
+
+        // Fallback: If no single session was >= 15m, total unique resources read
+        if (completedResources == null || completedResources == 0L) {
+            try {
+                completedResources = jdbc.queryForObject(
+                        "SELECT COUNT(DISTINCT content_id) FROM usages WHERE user_id = ?",
+                        Long.class, userId
+                );
+            } catch (Exception ignored) {}
+        }
+
+        // 3. Current Learning Streak (consecutive active days)
+        int streak = 0;
+        try {
+            List<String> distinctDates = jdbc.queryForList("""
+                    SELECT DISTINCT DATE_FORMAT(created_at, '%Y-%m-%d') AS activity_date
+                    FROM usages
+                    WHERE user_id = ?
+                    ORDER BY activity_date DESC
+                    LIMIT 30
+                    """, String.class, userId);
+
+            java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneOffset.UTC);
+            java.time.LocalDate checkDate = today;
+
+            // Check if active today or yesterday
+            if (!distinctDates.isEmpty()) {
+                java.time.LocalDate mostRecent = java.time.LocalDate.parse(distinctDates.get(0));
+                if (mostRecent.equals(today) || mostRecent.equals(today.minusDays(1))) {
+                    checkDate = mostRecent;
+                    for (String dStr : distinctDates) {
+                        java.time.LocalDate d = java.time.LocalDate.parse(dStr);
+                        if (d.equals(checkDate)) {
+                            streak++;
+                            checkDate = checkDate.minusDays(1);
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // 4. Favorite Subject Domain (top category from content joined on usages)
+        String favoriteDomain = "General Academics";
+        try {
+            var catRows = jdbc.queryForList("""
+                    SELECT r.category, SUM(u.duration) AS total_mins
+                    FROM usages u
+                    JOIN zyndex_content.resources r ON r.id = u.content_id
+                    WHERE u.user_id = ?
+                    GROUP BY r.category
+                    ORDER BY total_mins DESC
+                    LIMIT 1
+                    """, userId);
+            if (!catRows.isEmpty() && catRows.get(0).get("category") != null) {
+                favoriteDomain = String.valueOf(catRows.get(0).get("category"));
+            }
+        } catch (Exception ignored) {}
+
+        // 5. Total unique papers/books explored
+        Long totalExplored = 0L;
+        try {
+            totalExplored = jdbc.queryForObject(
+                    "SELECT COUNT(DISTINCT content_id) FROM usages WHERE user_id = ?",
+                    Long.class, userId
+            );
+        } catch (Exception ignored) {}
+
+        return Map.of(
+                "totalReadingMinutes", minutes,
+                "totalReadingHours", readingHours,
+                "articlesCompleted", completedResources != null ? completedResources : 0L,
+                "currentStreakDays", Math.max(streak, 1), // At least 1 day for active scholar
+                "favoriteDomain", favoriteDomain,
+                "totalExplored", totalExplored != null ? totalExplored : 0L
+        );
+    }
+
     private Long getLong(Object obj) {
         if (obj == null) return null;
         if (obj instanceof Number) return ((Number) obj).longValue();

@@ -123,6 +123,23 @@ class DbInitializer implements CommandLineRunner {
                   PRIMARY KEY (setting_key)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                 """);
+        jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS user_preferences (
+                  user_id BIGINT NOT NULL,
+                  citation_style VARCHAR(30) NOT NULL DEFAULT 'APA 7th',
+                  reader_theme VARCHAR(30) NOT NULL DEFAULT 'light',
+                  reader_font_scale INT NOT NULL DEFAULT 100,
+                  notify_new_releases BOOLEAN NOT NULL DEFAULT TRUE,
+                  notify_expiry_reminders BOOLEAN NOT NULL DEFAULT TRUE,
+                  notify_security_alerts BOOLEAN NOT NULL DEFAULT TRUE,
+                  admin_notify_access_requests BOOLEAN NOT NULL DEFAULT TRUE,
+                  admin_notify_bank_utr BOOLEAN NOT NULL DEFAULT TRUE,
+                  admin_notify_rate_limit_spikes BOOLEAN NOT NULL DEFAULT TRUE,
+                  admin_notify_account_deletions BOOLEAN NOT NULL DEFAULT TRUE,
+                  updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+                  PRIMARY KEY (user_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                """);
         try {
             jdbc.execute("ALTER TABLE users ADD COLUMN session_token_version INT NOT NULL DEFAULT 1");
         } catch (Exception ignored) {}

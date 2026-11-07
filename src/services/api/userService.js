@@ -244,6 +244,30 @@ const userService = {
       throw error;
     }
   },
+
+  getUserPreferences: async () => {
+    return await apiClient.get('/users/preferences');
+  },
+
+  updateUserPreferences: async (preferences) => {
+    return await apiClient.put('/users/preferences', preferences);
+  },
+
+  getActiveSessions: async () => {
+    return await apiClient.get('/users/sessions');
+  },
+
+  revokeOtherSessions: async (currentDeviceToken = '') => {
+    return await apiClient.post('/users/sessions/revoke-others', { currentDeviceToken });
+  },
+
+  getScholarTelemetry: async (userId) => {
+    return await apiClient.get(`/usage/scholars/${userId}/telemetry`);
+  },
+
+  getAdminActivityMetrics: async () => {
+    return await apiClient.get('/users/admin-activity-metrics');
+  },
 };
 
 export default userService;

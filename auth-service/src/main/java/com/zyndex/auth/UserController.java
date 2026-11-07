@@ -629,6 +629,189 @@ class UserController {
         return Map.of("notificationEmailSent", true);
     }
 
+    @GetMapping("/preferences")
+    Map<String, Object> getPreferences(HttpServletRequest request) {
+        Map<String, Object> user = auth.requireUser(request);
+        long userId = AuthSupport.number(user.get("id"));
+
+        var rows = jdbc.queryForList("SELECT * FROM user_preferences WHERE user_id = ? LIMIT 1", userId);
+        if (rows.isEmpty()) {
+            return Map.of(
+                "citationStyle", "APA 7th",
+                "readerTheme", "light",
+                "readerFontScale", 100,
+                "notifyNewReleases", true,
+                "notifyExpiryReminders", true,
+                "notifySecurityAlerts", true,
+                "adminNotifyAccessRequests", true,
+                "adminNotifyBankUtr", true,
+                "adminNotifyRateLimitSpikes", true,
+                "adminNotifyAccountDeletions", true
+            );
+        }
+        var p = rows.get(0);
+        return Map.of(
+            "citationStyle", AuthSupport.first(p.get("citation_style"), "APA 7th"),
+            "readerTheme", AuthSupport.first(p.get("reader_theme"), "light"),
+            "readerFontScale", p.get("reader_font_scale") != null ? AuthSupport.number(p.get("reader_font_scale")) : 100,
+            "notifyNewReleases", p.get("notify_new_releases") == null || AuthSupport.bool(p.get("notify_new_releases")),
+            "notifyExpiryReminders", p.get("notify_expiry_reminders") == null || AuthSupport.bool(p.get("notify_expiry_reminders")),
+            "notifySecurityAlerts", p.get("notify_security_alerts") == null || AuthSupport.bool(p.get("notify_security_alerts")),
+            "adminNotifyAccessRequests", p.get("admin_notify_access_requests") == null || AuthSupport.bool(p.get("admin_notify_access_requests")),
+            "adminNotifyBankUtr", p.get("admin_notify_bank_utr") == null || AuthSupport.bool(p.get("admin_notify_bank_utr")),
+            "adminNotifyRateLimitSpikes", p.get("admin_notify_rate_limit_spikes") == null || AuthSupport.bool(p.get("admin_notify_rate_limit_spikes")),
+            "adminNotifyAccountDeletions", p.get("admin_notify_account_deletions") == null || AuthSupport.bool(p.get("admin_notify_account_deletions"))
+        );
+    }
+
+    @PutMapping("/preferences")
+    Map<String, Object> updatePreferences(HttpServletRequest request, @RequestBody Map<String, Object> body) {
+        Map<String, Object> user = auth.requireUser(request);
+        long userId = AuthSupport.number(user.get("id"));
+
+        String citationStyle = AuthSupport.str(body.getOrDefault("citationStyle", "APA 7th"));
+        String readerTheme = AuthSupport.str(body.getOrDefault("readerTheme", "light"));
+        long readerFontScale = body.get("readerFontScale") != null ? AuthSupport.number(body.get("readerFontScale")) : 100;
+        boolean notifyNewReleases = body.get("notifyNewReleases") == null || AuthSupport.bool(body.get("notifyNewReleases"));
+        boolean notifyExpiryReminders = body.get("notifyExpiryReminders") == null || AuthSupport.bool(body.get("notifyExpiryReminders"));
+        boolean notifySecurityAlerts = body.get("notifySecurityAlerts") == null || AuthSupport.bool(body.get("notifySecurityAlerts"));
+        boolean adminNotifyAccessRequests = body.get("adminNotifyAccessRequests") == null || AuthSupport.bool(body.get("adminNotifyAccessRequests"));
+        boolean adminNotifyBankUtr = body.get("adminNotifyBankUtr") == null || AuthSupport.bool(body.get("adminNotifyBankUtr"));
+        boolean adminNotifyRateLimitSpikes = body.get("adminNotifyRateLimitSpikes") == null || AuthSupport.bool(body.get("adminNotifyRateLimitSpikes"));
+        boolean adminNotifyAccountDeletions = body.get("adminNotifyAccountDeletions") == null || AuthSupport.bool(body.get("adminNotifyAccountDeletions"));
+
+        jdbc.update("""
+                INSERT INTO user_preferences (
+                    user_id, citation_style, reader_theme, reader_font_scale,
+                    notify_new_releases, notify_expiry_reminders, notify_security_alerts,
+                    admin_notify_access_requests, admin_notify_bank_utr, admin_notify_rate_limit_spikes, admin_notify_account_deletions,
+                    updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE
+                    citation_style = VALUES(citation_style),
+                    reader_theme = VALUES(reader_theme),
+                    reader_font_scale = VALUES(reader_font_scale),
+                    notify_new_releases = VALUES(notify_new_releases),
+                    notify_expiry_reminders = VALUES(notify_expiry_reminders),
+                    notify_security_alerts = VALUES(notify_security_alerts),
+                    admin_notify_access_requests = VALUES(admin_notify_access_requests),
+                    admin_notify_bank_utr = VALUES(admin_notify_bank_utr),
+                    admin_notify_rate_limit_spikes = VALUES(admin_notify_rate_limit_spikes),
+                    admin_notify_account_deletions = VALUES(admin_notify_account_deletions),
+                    updated_at = NOW()
+                """,
+                userId, citationStyle, readerTheme, readerFontScale,
+                notifyNewReleases, notifyExpiryReminders, notifySecurityAlerts,
+                adminNotifyAccessRequests, adminNotifyBankUtr, adminNotifyRateLimitSpikes, adminNotifyAccountDeletions
+        );
+
+        return getPreferences(request);
+    }
+
+    @GetMapping("/sessions")
+    Map<String, Object> getActiveSessions(HttpServletRequest request) {
+        Map<String, Object> user = auth.requireUser(request);
+        long userId = AuthSupport.number(user.get("id"));
+        String email = AuthSupport.str(user.get("email"));
+
+        // Clean expired
+        try {
+            jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= NOW()");
+        } catch (Exception ignored) {}
+
+        var devices = jdbc.queryForList("""
+                SELECT id, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at
+                FROM trusted_devices
+                WHERE user_id = ? OR LOWER(email) = LOWER(?)
+                ORDER BY trusted_at DESC
+                """, userId, email);
+
+        String currentIp = request.getRemoteAddr();
+        return Map.of(
+            "currentIp", currentIp != null ? currentIp : "127.0.0.1",
+            "sessionTokenVersion", user.get("session_token_version") != null ? user.get("session_token_version") : 1,
+            "devices", devices
+        );
+    }
+
+    @PostMapping("/sessions/revoke-others")
+    Map<String, Object> revokeOtherSessions(HttpServletRequest request, @RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> user = auth.requireUser(request);
+        long userId = AuthSupport.number(user.get("id"));
+        String email = AuthSupport.str(user.get("email"));
+        String currentToken = body != null ? AuthSupport.str(body.get("currentDeviceToken")) : "";
+
+        // Increment version to invalidate all other JWTs
+        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1 WHERE id = ?", userId);
+
+        // Delete all devices except current if provided
+        if (!currentToken.isBlank()) {
+            jdbc.update("DELETE FROM trusted_devices WHERE (user_id = ? OR LOWER(email) = LOWER(?)) AND device_token != ?", userId, email, currentToken);
+        } else {
+            jdbc.update("DELETE FROM trusted_devices WHERE user_id = ? OR LOWER(email) = LOWER(?)", userId, email);
+        }
+
+        // Fetch refreshed user and issue fresh token for current session
+        Map<String, Object> refreshed = auth.sanitizeUser(auth.findUserById(userId));
+        String newToken = auth.signToken(refreshed);
+
+        // Audit log
+        try {
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'SESSIONS_REVOKED', ?, 'User revoked all other active sessions and trusted devices.', ?, 'SUCCESS')
+                    """, email, request.getRemoteAddr());
+        } catch (Exception ignored) {}
+
+        return Map.of(
+            "message", "All other active sessions and trusted devices have been revoked.",
+            "token", newToken,
+            "user", refreshed
+        );
+    }
+
+    @GetMapping("/admin-activity-metrics")
+    Map<String, Object> getAdminActivityMetrics(HttpServletRequest request) {
+        Map<String, Object> admin = auth.requireAdmin(request);
+        String adminEmail = AuthSupport.str(admin.get("email"));
+
+        // 1. Actions Executed This Month (queries system_logs for this admin email or general admin actions this month)
+        Long actionsThisMonth = 0L;
+        try {
+            actionsThisMonth = jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM system_logs
+                    WHERE (actor_email = ? OR service = 'ADMIN-PORTAL')
+                      AND timestamp >= DATE_FORMAT(NOW(), '%Y-%m-01 00:00:00')
+                    """, Long.class, adminEmail);
+        } catch (Exception ignored) {}
+
+        // 2. Feedback Resolution Count (feedback with admin_response NOT NULL in zyndex_content.feedback)
+        Long resolvedFeedbackCount = 0L;
+        Long totalFeedbackCount = 0L;
+        try {
+            resolvedFeedbackCount = jdbc.queryForObject("SELECT COUNT(*) FROM zyndex_content.feedback WHERE admin_response IS NOT NULL AND TRIM(admin_response) != ''", Long.class);
+            totalFeedbackCount = jdbc.queryForObject("SELECT COUNT(*) FROM zyndex_content.feedback", Long.class);
+        } catch (Exception ignored) {}
+
+        double resolutionRate = (totalFeedbackCount != null && totalFeedbackCount > 0)
+                ? Math.round(((double) (resolvedFeedbackCount != null ? resolvedFeedbackCount : 0) / totalFeedbackCount) * 100.0)
+                : 100.0;
+
+        // 3. Content Curated (count of resources in zyndex_content.resources)
+        Long contentCurated = 0L;
+        try {
+            contentCurated = jdbc.queryForObject("SELECT COUNT(*) FROM zyndex_content.resources", Long.class);
+        } catch (Exception ignored) {}
+
+        return Map.of(
+            "actionsThisMonth", actionsThisMonth != null ? actionsThisMonth : 0,
+            "resolvedFeedbackCount", resolvedFeedbackCount != null ? resolvedFeedbackCount : 0,
+            "totalFeedbackCount", totalFeedbackCount != null ? totalFeedbackCount : 0,
+            "resolutionRate", resolutionRate,
+            "contentCurated", contentCurated != null ? contentCurated : 0
+        );
+    }
+
     static class AvatarForm {
         public MultipartFile avatar;
     }
