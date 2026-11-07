@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 class OtpController {
-    private static final long OTP_TTL_SECONDS = 120;
+    private static final long OTP_TTL_SECONDS = 300; // 5 minutes validity
     private static final SecureRandom RANDOM = new SecureRandom();
     private final Map<String, OtpRecord> otps = new ConcurrentHashMap<>();
     private final Map<String, Instant> verifiedOtps = new ConcurrentHashMap<>();

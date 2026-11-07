@@ -650,7 +650,7 @@ export default function MailOtpVerification() {
                   className="mb-5 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-center flex items-center justify-center gap-2 text-rose-700 text-xs font-semibold"
                 >
                   <XCircle className="size-4 shrink-0 text-rose-600" />
-                  <span>Invalid security code. Please check your email and try again.</span>
+                  <span>{error || 'Invalid security code. Please check your email and try again.'}</span>
                 </motion.div>
               )}
             </AnimatePresence>
