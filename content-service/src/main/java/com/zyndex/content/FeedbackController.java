@@ -181,7 +181,6 @@ class FeedbackController {
         return Map.of("message", "Feedback deleted successfully.");
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> fetchUserProfile(long userId) {
         // 1. Direct cross-database lookup from zyndex_auth.users (instant, 100% reliable)
         try {
