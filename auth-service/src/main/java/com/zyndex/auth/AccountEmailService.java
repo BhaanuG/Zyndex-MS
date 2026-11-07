@@ -119,13 +119,16 @@ class AccountEmailService {
                 - Multi-Tier Membership: Tailored tiers from Free Evaluator to Researcher Pro with elevated quota.
 
                 === ACADEMIC DISCIPLINES & CATEGORIES ===
-                - Computer Science & Distributed Systems
-                - Artificial Intelligence & Neural Architectures
-                - Machine Learning & Deep Learning
-                - Data Science, Databases & Cloud Computing
-                - Software Engineering & Applied Algorithms
-                - Mathematics, Physics, Chemistry & Natural Sciences
-                - Literature, Social Sciences & General Academics
+                - AI (Artificial Intelligence)
+                - ML (Machine Learning)
+                - Computer Science
+                - Physics
+                - Chemistry
+                - Mathematics
+                - Economics
+                - History
+                - Literature
+                - Biology
 
                 You can sign in to your Zyndex account anytime using:
                 Login URL: /Zyndex/User/Log-In
@@ -170,14 +173,18 @@ class AccountEmailService {
                     </div>
 
                     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 20px 0;">
-                        <h3 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a;">Available Academic Categories</h3>
-                        <div style="font-size: 12px; color: #475569; margin-top: 6px; line-height: 2;">
-                            <span style="background-color: #ffedd5; color: #c2410c; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Artificial Intelligence</span>
-                            <span style="background-color: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Machine Learning</span>
+                        <h3 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a;">Available Academic Categories (10 Disciplines)</h3>
+                        <div style="font-size: 12px; color: #475569; margin-top: 6px; line-height: 2.2;">
+                            <span style="background-color: #ffedd5; color: #c2410c; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">AI</span>
+                            <span style="background-color: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">ML</span>
                             <span style="background-color: #dbeafe; color: #1d4ed8; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Computer Science</span>
-                            <span style="background-color: #d1fae5; color: #047857; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Engineering &amp; Data</span>
+                            <span style="background-color: #cffafe; color: #0369a1; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Physics</span>
+                            <span style="background-color: #ffe4e6; color: #be123c; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Chemistry</span>
                             <span style="background-color: #f3e8ff; color: #7e22ce; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Mathematics</span>
-                            <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Natural Sciences</span>
+                            <span style="background-color: #fef3c7; color: #b45309; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Economics</span>
+                            <span style="background-color: #fef08a; color: #854d0e; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">History</span>
+                            <span style="background-color: #ede9fe; color: #6d28d9; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Literature</span>
+                            <span style="background-color: #d1fae5; color: #047857; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Biology</span>
                         </div>
                     </div>
 
