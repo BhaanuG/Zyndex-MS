@@ -48,37 +48,8 @@ export default function UserAccessManagement() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
   const [adminRequests, setAdminRequests] = useState([]);
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [loadingMaintenance, setLoadingMaintenance] = useState(false);
   const [loggingOutUser, setLoggingOutUser] = useState(null);
   const [loggingOutAll, setLoggingOutAll] = useState(false);
-
-  useEffect(() => {
-    if (isPrimaryAdmin) {
-      userService.getMaintenanceMode().then(res => setMaintenanceMode(Boolean(res?.maintenanceMode))).catch(() => {});
-    }
-  }, [isPrimaryAdmin]);
-
-  const handleToggleMaintenance = async () => {
-    if (!isPrimaryAdmin) return;
-    const nextState = !maintenanceMode;
-    const confirmMsg = nextState
-      ? 'Are you sure you want to activate Platform Maintenance Mode?\n\nAll active users will be logged out immediately with a maintenance notice.'
-      : 'Are you sure you want to deactivate Maintenance Mode and restore normal access?';
-    if (!window.confirm(confirmMsg)) return;
-
-    setLoadingMaintenance(true);
-    try {
-      const res = await userService.setMaintenanceMode(nextState);
-      setMaintenanceMode(Boolean(res?.maintenanceMode));
-      alert(res?.message || 'Maintenance mode updated.');
-      await loadUsers(searchTerm);
-    } catch (err) {
-      alert(err.message || 'Failed to update maintenance mode.');
-    } finally {
-      setLoadingMaintenance(false);
-    }
-  };
 
   const handleForceLogoutUser = async (u) => {
     if (!isPrimaryAdmin) return;
@@ -394,33 +365,15 @@ export default function UserAccessManagement() {
           </div>
           <div className="flex items-center gap-3">
             {isPrimaryAdmin && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleToggleMaintenance}
-                  disabled={loadingMaintenance}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all shadow-sm ${
-                    maintenanceMode
-                      ? 'bg-amber-600 text-white hover:bg-amber-700 animate-pulse'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
-                  }`}
-                  title="Toggle Platform Maintenance Mode (Main Admin Only)"
-                >
-                  <Wrench className="size-4" />
-                  <span>{maintenanceMode ? 'Maintenance Mode ON' : 'Maintenance Mode OFF'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleForceLogoutAll}
-                  disabled={loggingOutAll}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors shadow-sm"
-                  title="Log out all active user sessions simultaneously"
-                >
-                  <LogOut className="size-4" />
-                  <span>Logout All Users</span>
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={handleForceLogoutAll}
+                disabled={loggingOutAll}
+                className="size-10 flex items-center justify-center bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors shadow-sm shrink-0 cursor-pointer disabled:opacity-60"
+                title="Logout All Active Users"
+              >
+                <LogOut className="size-4" />
+              </button>
             )}
 
             <button
