@@ -1,0 +1,61 @@
+name: Bug Report
+description: File a bug report to help us improve Zyndex
+title: "[BUG] <Brief summary of the issue>"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue in **Zyndex**! Please provide as much context as possible.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Subsystem / Microservice
+      description: Which part of Zyndex does this issue affect?
+      options:
+        - "Frontend Web Client (React/Vite)"
+        - "API Gateway (api-gateway)"
+        - "Auth Service (auth-service)"
+        - "Content Service (content-service)"
+        - "Access Service (access-service)"
+        - "Usage Service (usage-service)"
+        - "Subscription Service (subscription-service)"
+        - "Eureka Discovery Server"
+        - "Database / SQL Schemas"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: "e.g., When submitting a UTR on the pricing checkout page..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the behavior.
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs Actual Behavior
+      description: What did you expect to happen, and what actually occurred?
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment & Versions
+      description: OS, browser version, Java version, Node version.
+      placeholder: "Windows 11, Chrome 130, Java 21 LTS, Node 22"
+    validations:
+      required: false

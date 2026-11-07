@@ -1,0 +1,32 @@
+name: Feature Request
+description: Suggest an idea or new capability for Zyndex
+title: "[FEAT] <Brief title of feature request>"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest an enhancement or new feature to improve the Zyndex academic learning platform!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear description of what the problem is.
+      placeholder: "e.g., I'm frustrated when academic researchers cannot..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution / Desired Feature
+      description: Describe the solution you'd like to see implemented.
+      placeholder: "e.g., Introduce an automated batch export for reading logs..."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds considered.
+    validations:
+      required: false

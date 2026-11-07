@@ -60,8 +60,9 @@ Academic institutions and independent publishers face severe digital content dis
 | **Backend Stack** | Java 21 LTS, Spring Boot 3.4.2, Spring Cloud 2024.0.0, Spring Security 6, JJWT 0.11.5, Spring JDBC |
 | **Frontend Stack** | Pure React 18.3.1 (JavaScript + JSX), Vite 6.0.5, Tailwind CSS 3.4.17, Recharts 2.15.0, Lucide Icons |
 | **Database Architecture** | MySQL 8.x with 5 isolated schemas (`zyndex_auth`, `zyndex_content`, `zyndex_access`, `zyndex_usage`, `zyndex_subscription`) |
-| **Authentication & Tokens**| JWT (HMAC-SHA256, 7-day validity), 6-digit numeric OTPs via SMTP, BCrypt password hashing, RBAC |
-| **Payment Verification** | Direct UPI QR code generation, 180s/300s session timers, 12-digit UTR submission, Admin Review Hold |
+| **Authentication & Tokens**| JWT (HMAC-SHA256, 2h 30m session timeout, prompt at 2h), 4-digit numeric OTPs via SMTP, 24h trusted device bypass, BCrypt password hashing, RBAC |
+| **Payment Verification** | Direct UPI QR code generation, 180s/300s session timers, 12-digit UTR submission, 2-minute Verification Hold Processing modal, Admin Review Hold |
+| **Community & Compliance**| MIT License, Code of Conduct, Contributing Guide, Security Policy, Accessibility Statement, GitHub Issue & PR Templates |
 | **Inter-Service Security**| `X-Gateway-Secret` header validation via `GatewaySecretFilter` across all downstream services |
 | **Local Startup** | `npm run dev:all` (orchestrates all 7 Java microservices and the Vite frontend concurrently) |
 | **Compilation Status** | **0 Errors, 0 Warnings** across all Maven projects and Vite production bundles |
@@ -579,7 +580,7 @@ sequenceDiagram
     Sub->>DB: INSERT INTO payment_audit_logs (event='UTR_SUBMITTED_HOLD')
     Sub->>Mail: Dispatches Hold Notification email to Bhaanugali@gmail.com
     Sub-->>UI: Returns {status: "REVIEW_REQUIRED", message: "Subscription on hold pending review"}
-    UI->>User: Displays "Payment In Hold (Reviewing UTR)" badge
+    UI->>User: Displays "Payment Verification on Hold / Processing" modal (2-minute auto-close or manual close)
     
     Note over AdminUI,Sub: Administrator Verifies Bank Credit
     AdminUI->>GW: GET /api/subscriptions/admin/payments
