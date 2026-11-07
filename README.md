@@ -523,7 +523,22 @@ This section traces the full execution path across frontend components, gateway 
 
 ### 4.1 Flow 1: User Registration & OTP Verification
 
+#### Why OTP Verification Is Mandatory Across Zyndex (Security & Integrity Rationale)
+Zyndex mandates 4-digit TLS-relayed One-Time Passwords (OTPs) with a strict 120-second TTL and brute-force attempt limits across critical user workflows. The system rationale includes:
+1. **Preventing Spam & Phantom Account Enumeration**: Blocks automated bots and scripts from registering disposable or non-existent email addresses, preserving database health and ensuring only authentic students, researchers, and faculty join the platform.
+2. **Eliminating Account Takeovers (2FA on Sensitive Operations)**: Every login session, password reset request, and password change authorization requires out-of-band email verification, defeating credential stuffing attacks and leaked-password exploitation.
+3. **Institutional & Legal Compliance**: Protects copyrighted academic textbooks, research papers, and proprietary study resources by binding access strictly to verified email owners.
+4. **Seamless User Experience**: 4-digit codes minimize typing errors, allow rapid input, and trigger interactive geometric visual feedback upon entry, ensuring security without creating unnecessary user friction.
+
+#### Core OTP Use Cases in Zyndex:
+- **Use Case 1: Account Registration & Email Proof**: Pre-verifies the student/educator email inbox before committing user records to `zyndex_auth.users`.
+- **Use Case 2: Login 2-Step Authentication (2FA)**: Dispatches a dynamic code when authenticating a new session (bypassable only via an optional 24-hour trusted device token).
+- **Use Case 3: Self-Service Password Reset (Forgot Password)**: Validates proof-of-inbox possession before allowing a user to overwrite their BCrypt password hash.
+- **Use Case 4: In-Session Password Change Authorization**: Requires step-up OTP verification when a logged-in user changes credentials from profile settings.
+- **Use Case 5: Real-Time Invalidation & Resend (Anti-Replay)**: Requesting a replacement code immediately destroys the previous OTP in memory to prevent replay vulnerabilities.
+
 ```mermaid
+sequenceDiagram
 sequenceDiagram
     autonumber
     actor Student as Student Browser
@@ -588,6 +603,7 @@ Across the Zyndex microservices architecture, all transactional emails are rende
 | **16** | **Admin Workflow** | **Admin Access Request Approved** | `auth-service` / `AccountEmailService.java` | When the super admin clicks "Approve" in the admin management dashboard. | Approved admin | `Zyndex \| Admin Access Request Approved` |
 | **17** | **Admin Workflow** | **Admin Access Request Declined** | `auth-service` / `AccountEmailService.java` | When the super admin declines an admin request (includes custom reason note). | Declined applicant | `Zyndex \| Admin Access Request Update` |
 | **18** | **Security Alerts** | **Password Changed Confirmation** | `auth-service` / `AccountEmailService.java` | Dispatched immediately after the account password has been successfully updated. | Account owner | `Zyndex \| Password Changed Successfully` |
+| **19** | **Feedback & Reviews** | **Feedback Admin Response Email** | `content-service` / `ContactEmailService.java` | Dispatched automatically when an administrator reviews, reacts, or replies to user resource feedback from the Feedback Review admin console. Contains the resource title, star rating, submission date, user review comments, and the administrator's direct response. | User who submitted feedback | `Zyndex \| Response to Your Review on "[Resource Title]"` |
 
 **Detailed Step Traceability**:
 1. **User Action**: Student enters name, email, and password on `src/app/pages/Login.jsx`.
@@ -758,6 +774,7 @@ This section compiles all operational constraints, entitlement gates, pricing ta
 | **Admin Payment Confirmation**| Admin manual approval in dashboard | `subscription-service/.../PaymentService.java` | `verifyAdminPayment` (`action=CONFIRM`) | `payments.status = 'SUCCESS'`, updates `subscriptions` | Activates membership, updates access service, sends upgrade email and invoice. |
 | **Inter-Service Isolation**| Direct service calls must provide `X-Gateway-Secret` | `*/.../GatewaySecretFilter.java` | `doFilter` | None | Blocks direct unauthorized port calls with HTTP 403 Forbidden. |
 | **Client Header Stripping**| Gateway purges client `X-User-*` headers | `api-gateway/.../JwtValidationFilter.java` | `filter` | None | Prevents identity spoofing; claims populated exclusively from verified JWT. |
+| **Feedback Email Audit Loop**| Admin response or reaction to user feedback in admin console | `content-service/.../FeedbackController.java` & `ContactEmailService.java` | `respond` / `sendFeedbackResponseEmail` | Updates `feedback.admin_response`, `feedback.responded_at` | Automatically emails user their review details, rating, time, and the administrator's response comment. |
 
 ---
 
@@ -1452,6 +1469,8 @@ erDiagram
   - `user_id` (BIGINT, Not Null)
   - `rating` (INT, Not Null) - 1 to 5 scale
   - `comment` (TEXT, Nullable)
+  - `admin_response` (TEXT, Nullable) - Reaction / comment provided by administrator
+  - `responded_at` (DATETIME(6), Nullable) - Timestamp when admin response was recorded and emailed
   - `created_at` (DATETIME, Default `CURRENT_TIMESTAMP`)
 
 #### 3. Schema: `zyndex_access`
