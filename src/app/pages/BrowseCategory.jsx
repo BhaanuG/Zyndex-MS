@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link } from 'react-router';
-import { Brain, Cpu, Binary, Atom, FlaskConical, Calculator, Landmark, BookOpen, Microscope } from 'lucide-react';
+import { Brain, Cpu, Binary, Atom, FlaskConical, Calculator, Landmark, BookOpen, Microscope, ArrowRight, X, Sparkles } from 'lucide-react';
 import PublicLayout from '@/app/components/PublicLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import { setRedirectIntent } from '@/utils/redirectHelper';
