@@ -361,21 +361,26 @@ class ResourceController {
     Map<String, Object> ratings(@PathVariable("id") long id, @RequestParam Map<String, String> query) {
         var page = sql.page(query);
         var rows = jdbc.queryForList("""
-                SELECT f.id, f.rating, f.comment, f.created_at, f.user_id
+                SELECT f.id, f.rating, f.comment, f.created_at, f.user_id, f.is_anonymous
                 FROM feedback f WHERE f.resource_id = ? ORDER BY f.created_at DESC LIMIT ? OFFSET ?
                 """, id, page.get("size"), page.get("offset"));
         var summary = jdbc.queryForList("SELECT COUNT(*) AS totalRatings, AVG(rating) AS averageRating FROM feedback WHERE resource_id = ?", id).get(0);
 
         List<Map<String, Object>> mappedRatings = rows.stream().map(row -> {
             long userId = SqlSupport.number(row.get("user_id"));
+            boolean isAnon = Boolean.TRUE.equals(row.get("is_anonymous")) || "1".equals(String.valueOf(row.get("is_anonymous")));
             Map<String, Object> profile = fetchUserProfile(userId);
+            String displayName = isAnon ? "Anonymous Reader" : String.valueOf(SqlSupport.first(profile.get("name"), "Student Reader"));
+            String displayEmail = isAnon ? "anonymous@reader.zyndex" : String.valueOf(SqlSupport.first(profile.get("email"), "reader@zyndex.com"));
+
             return Map.of(
                 "id", row.get("id"),
                 "rating", row.get("rating"),
                 "comment", SqlSupport.first(row.get("comment"), ""),
                 "created_at", row.get("created_at"),
-                "name", SqlSupport.first(profile.get("name"), "Student Reader"),
-                "email", SqlSupport.first(profile.get("email"), "reader@zyndex.com")
+                "isAnonymous", isAnon,
+                "name", displayName,
+                "email", displayEmail
             );
         }).toList();
 

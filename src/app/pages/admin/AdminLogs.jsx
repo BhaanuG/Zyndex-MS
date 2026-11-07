@@ -62,7 +62,7 @@ const LEVELS = ['ALL', 'INFO', 'WARN', 'ERROR', 'SUCCESS'];
 const SESSION_GAP_MS = 30 * 60 * 1000;
 
 export default function AdminLogs() {
-  const [activeTab, setActiveTab] = useState('admin'); // 'admin' | 'reading' | 'system'
+  const [activeTab, setActiveTab] = useState('reading'); // 'reading' | 'system' | 'admin'
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
 
@@ -541,15 +541,15 @@ export default function AdminLogs() {
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('admin')}
+            onClick={() => setActiveTab('reading')}
             className={`flex items-center gap-2 py-3 px-6 font-semibold text-sm border-b-2 transition-all cursor-pointer ${
-              activeTab === 'admin'
+              activeTab === 'reading'
                 ? 'border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-xl'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            <ShieldCheck className="size-4" />
-            Admin Action Logs
+            <BarChart3 className="size-4" />
+            Reading History & Engagement Analytics
           </button>
           <button
             onClick={() => setActiveTab('system')}
@@ -563,15 +563,15 @@ export default function AdminLogs() {
             Microservice & Audit Logs
           </button>
           <button
-            onClick={() => setActiveTab('reading')}
+            onClick={() => setActiveTab('admin')}
             className={`flex items-center gap-2 py-3 px-6 font-semibold text-sm border-b-2 transition-all cursor-pointer ${
-              activeTab === 'reading'
+              activeTab === 'admin'
                 ? 'border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-xl'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            <BarChart3 className="size-4" />
-            Reading History & Engagement Analytics
+            <ShieldCheck className="size-4" />
+            Admin Action Logs
           </button>
         </div>
 
@@ -627,7 +627,7 @@ export default function AdminLogs() {
                       <th className="px-6 py-3.5">Exact Timestamp (Seconds)</th>
                       <th className="px-6 py-3.5">Administrator</th>
                       <th className="px-6 py-3.5">Action Executed</th>
-                      <th className="px-6 py-3.5">Details & Inspection Trail</th>
+                      <th className="px-6 py-3.5">Details</th>
                       <th className="px-6 py-3.5">Status</th>
                       <th className="px-6 py-3.5 text-right">View</th>
                     </tr>

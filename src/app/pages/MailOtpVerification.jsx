@@ -5,6 +5,7 @@ import { AlertCircle, ArrowLeft, Mail, RefreshCw, ShieldCheck, CheckCircle2, XCi
 import { useAuth } from '@/app/context/AuthContext';
 import apiClient from '@/services/api/apiClient';
 import authService from '@/services/api/authService';
+import logService from '@/services/api/logService';
 import { resolveAuthRedirectPath } from '@/utils/redirectHelper';
 import { getOrCreateDeviceToken, getDeviceInfo } from '@/utils/deviceHelper';
 
@@ -405,6 +406,17 @@ export default function MailOtpVerification() {
       // Existing login flow
       const userData = await login(pendingAuth.email, pendingAuth.password, pendingAuth.role);
 
+      if (pendingAuth.role === 'admin') {
+        logService.createLog({
+          service: 'AUTH-SERVICE',
+          level: 'INFO',
+          action: 'ADMIN_OTP_VERIFIED',
+          actorEmail: (pendingAuth.email || '').trim().toLowerCase(),
+          details: `Administrator successfully entered and verified security OTP`,
+          status: 'SUCCESS'
+        }).catch(() => {});
+      }
+
       // If user opted to trust this device, register it for 24-hour OTP skip
       if (trustDevice) {
         try {
@@ -417,6 +429,17 @@ export default function MailOtpVerification() {
             browser: info.browser,
             os: info.os,
           });
+
+          if (pendingAuth.role === 'admin') {
+            logService.createLog({
+              service: 'AUTH-SERVICE',
+              level: 'INFO',
+              action: 'ADMIN_DEVICE_TRUSTED',
+              actorEmail: (pendingAuth.email || '').trim().toLowerCase(),
+              details: `Administrator elected to trust device (${info.browser} on ${info.os}) for 24 hours`,
+              status: 'SUCCESS'
+            }).catch(() => {});
+          }
         } catch (e) {
           console.warn('Failed to register trusted device:', e);
         }

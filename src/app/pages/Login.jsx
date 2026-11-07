@@ -5,6 +5,7 @@ import { BookOpen, Mail, Lock, ArrowRight, Menu, X, Eye, EyeOff, Shield, User, A
 import { useAuth } from '@/app/context/AuthContext';
 import authService, { validateLogin as validateLoginRequest } from '@/services/api/authService';
 import apiClient from '@/services/api/apiClient';
+import logService from '@/services/api/logService';
 import { resolveAuthRedirectPath, setRedirectIntent } from '@/utils/redirectHelper';
 
 export default function Login() {
@@ -247,6 +248,17 @@ export default function Login() {
         password,
         role: activeTab,
       });
+
+      if (activeTab === 'admin') {
+        logService.createLog({
+          service: 'AUTH-SERVICE',
+          level: 'INFO',
+          action: 'ADMIN_CREDENTIALS_ENTERED',
+          actorEmail: email.trim(),
+          details: `Administrator entered ID and password on login page`,
+          status: 'SUCCESS'
+        }).catch(() => {});
+      }
 
       sessionStorage.setItem('pending_auth', JSON.stringify({
         name: '',

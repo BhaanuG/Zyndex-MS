@@ -3,6 +3,7 @@ import Authenticator from '@/app/components/Authenticator';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import authService from '@/services/api/authService';
+import logService from '@/services/api/logService';
 import { getOrCreateDeviceToken } from '@/utils/deviceHelper';
 import { resolveAuthRedirectPath } from '@/utils/redirectHelper';
 
@@ -28,6 +29,16 @@ export default function AdminAuthenticator() {
     }
 
     const pendingAuth = JSON.parse(rawPending);
+
+    // Record Captcha Verification Passed
+    logService.createLog({
+      service: 'AUTH-SERVICE',
+      level: 'INFO',
+      action: 'ADMIN_CAPTCHA_VERIFIED',
+      actorEmail: (pendingAuth.email || '').trim().toLowerCase() || 'admin@zyndex.com',
+      details: `Administrator completed human captcha verification challenge`,
+      status: 'SUCCESS'
+    }).catch(() => {});
 
     // If logging in (not signup/admin request), check if this browser device is already trusted for 24 hours
     if (!pendingAuth.isSignUp) {

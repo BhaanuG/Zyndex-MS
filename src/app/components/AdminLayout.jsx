@@ -22,12 +22,29 @@ export default function AdminLayout({ children }) {
     lastLoggedPathRef.current = currentPath;
 
     const pageName = currentPath.split('/').filter(Boolean).pop() || 'Admin-Portal';
+    let humanReadableAction = `Administrator opened page: ${pageName}`;
+    if (pageName.toLowerCase().includes('dashboard')) {
+      humanReadableAction = 'Administrator opened dashboard and reviewed system telemetry';
+    } else if (pageName.toLowerCase().includes('user-management')) {
+      humanReadableAction = 'Administrator navigated to User Management to audit and manage platform users';
+    } else if (pageName.toLowerCase().includes('content-management')) {
+      humanReadableAction = 'Administrator navigated to Content Management to inspect or upload library resources';
+    } else if (pageName.toLowerCase().includes('payments')) {
+      humanReadableAction = 'Administrator opened Payments and Subscription reconciliation portal';
+    } else if (pageName.toLowerCase().includes('feedback-review')) {
+      humanReadableAction = 'Administrator navigated to Feedback Review to examine user reviews';
+    } else if (pageName.toLowerCase().includes('logs')) {
+      humanReadableAction = 'Administrator navigated to Platform Logs & Engagement Analytics';
+    } else if (pageName.toLowerCase().includes('profile')) {
+      humanReadableAction = 'Administrator opened Admin Profile preferences';
+    }
+
     logService.createLog({
       service: 'ADMIN-PORTAL',
       level: 'INFO',
       action: 'ADMIN_NAVIGATE',
       actorEmail: user.email || 'admin@zyndex.com',
-      details: `Administrator navigated to page: ${pageName} (${currentPath})`,
+      details: humanReadableAction,
       status: 'SUCCESS'
     }).catch(() => {});
   }, [location.pathname, user]);
