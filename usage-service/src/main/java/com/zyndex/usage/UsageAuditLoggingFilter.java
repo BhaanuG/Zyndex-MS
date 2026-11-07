@@ -31,14 +31,17 @@ public class UsageAuditLoggingFilter implements Filter {
             String ip = req.getRemoteAddr();
 
             String action = "USAGE_" + method;
-            String details = "Usage metrics interaction on " + uri;
+            String details = "Usage metrics interaction on " + uri + " (" + (req.getQueryString() != null ? req.getQueryString() : "no query params") + ")";
 
             if (uri.contains("/records") && "POST".equalsIgnoreCase(method)) {
                 action = "USAGE_RECORDED";
-                details = "Reading session duration interval recorded";
+                details = "Reading session duration interval recorded and persisted in MySQL [Client IP: " + ip + "]";
             } else if (uri.contains("/analytics")) {
                 action = "USAGE_ANALYTICS_QUERY";
-                details = "Usage analytics metrics queried";
+                details = "Engagement analytics metrics and trends queried by administrator on " + uri;
+            } else if (uri.contains("/history")) {
+                action = "USAGE_HISTORY_QUERY";
+                details = "Student reading history and session activity telemetry records queried on " + uri;
             }
 
             try {

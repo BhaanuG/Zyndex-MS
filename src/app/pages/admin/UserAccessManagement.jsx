@@ -5,6 +5,7 @@ import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
 import authService from '@/services/api/authService';
+import logService from '@/services/api/logService';
 
 const emptyUser = {
   id: null,
@@ -59,6 +60,15 @@ export default function UserAccessManagement() {
     setLoggingOutUser(u.id);
     try {
       await userService.forceLogoutUser(u.id);
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'WARN',
+        action: 'ADMIN_TERMINATE_USER_SESSION',
+        actorEmail: currentUser?.email || 'admin@zyndex.com',
+        details: `Administrator terminated active session for user: ${u.name || 'User'} (${u.email}, ID: ${u.id})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
       alert(`Session for ${u.name || u.email} has been terminated.`);
       await loadUsers(searchTerm);
     } catch (err) {
@@ -75,6 +85,15 @@ export default function UserAccessManagement() {
     setLoggingOutAll(true);
     try {
       const res = await userService.forceLogoutAllUsers();
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'WARN',
+        action: 'ADMIN_TERMINATE_ALL_SESSIONS',
+        actorEmail: currentUser?.email || 'admin@zyndex.com',
+        details: `Administrator executed global termination of all active student and reader sessions`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
       alert(res?.message || 'All active user sessions have been terminated.');
       await loadUsers(searchTerm);
     } catch (err) {
@@ -313,6 +332,16 @@ export default function UserAccessManagement() {
         } else if (updateResponse?.notificationEmailSent === false) {
           feedbackMsg = 'User updated successfully, but the plan-upgrade email could not be sent. Check SMTP configuration and service logs.';
         }
+
+        logService.createLog({
+          service: 'ADMIN-PORTAL',
+          level: 'INFO',
+          action: 'ADMIN_UPDATE_USER',
+          actorEmail: currentUser?.email || 'admin@zyndex.com',
+          details: `Administrator modified user profile: ${formUser.name} (${formUser.email}, ID: ${formUser.id}, Plan: ${formUser.subscriptionPlan}, Role: ${formUser.role})`,
+          status: 'SUCCESS'
+        }).catch(() => {});
+
         alert(feedbackMsg);
         return;
       }
@@ -340,6 +369,15 @@ export default function UserAccessManagement() {
 
       closeModal();
       await loadUsers(searchTerm);
+
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'INFO',
+        action: 'ADMIN_CREATE_USER',
+        actorEmail: currentUser?.email || 'admin@zyndex.com',
+        details: `Administrator created new user: ${createdUser.name} (${createdUser.email}, Role: ${createdUser.role})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
       alert(
         createResponse?.confirmationEmailSent === false
           ? `User created successfully, but the confirmation email could not be sent: ${createResponse.confirmationEmailError || 'SMTP configuration is required.'}`
@@ -353,9 +391,19 @@ export default function UserAccessManagement() {
   };
 
   const handleDeleteUser = async (userId) => {
+    const targetUser = users.find((u) => u.id === userId);
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       await userService.deleteUser(userId);
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'WARN',
+        action: 'ADMIN_DELETE_USER',
+        actorEmail: currentUser?.email || 'admin@zyndex.com',
+        details: `Administrator deleted user: ${targetUser?.name || 'User'} (${targetUser?.email || ''}, ID: ${userId})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
       await loadUsers(searchTerm);
     } catch (error) {
       alert(error.message || 'Failed to delete user.');
@@ -387,6 +435,15 @@ export default function UserAccessManagement() {
         role: currentUser.role,
         password: resetUser.password,
       });
+
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'WARN',
+        action: 'ADMIN_RESET_PASSWORD',
+        actorEmail: currentUser?.email || 'admin@zyndex.com',
+        details: `Administrator performed direct password reset for user: ${currentUser.name} (${currentUser.email}, ID: ${resetUser.id})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
 
       closeResetModal();
       alert(`Password reset successfully for ${currentUser.name}.`);

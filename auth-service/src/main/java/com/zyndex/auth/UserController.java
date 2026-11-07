@@ -339,11 +339,28 @@ class UserController {
 
     @PostMapping("/{userId}/force-logout")
     Map<String, Object> forceLogout(HttpServletRequest request, @PathVariable("userId") long userId) {
-        auth.requirePrimaryAdmin(request);
+        Map<String, Object> admin = auth.requirePrimaryAdmin(request);
         Map<String, Object> target = auth.findUserById(userId);
         if (target == null) throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
         // Increment token version and clear last_active_at
         jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+
+        String targetName = String.valueOf(AuthSupport.first(target.get("name"), target.get("username")));
+        String targetEmail = String.valueOf(target.get("email"));
+        String adminEmail = String.valueOf(admin.get("email"));
+
+        // Record high-priority audit logs in both microservice and admin audit trails
+        try {
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'ADMIN-PORTAL', 'WARN', 'ADMIN_FORCE_LOGOUT_USER', ?, ?, ?, 'SUCCESS')
+                    """, adminEmail, "Administrator terminated active session for user: " + targetName + " (" + targetEmail + ", ID: " + userId + ")", request.getRemoteAddr());
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'USER_SESSION_TERMINATED', ?, ?, ?, 'SUCCESS')
+                    """, targetEmail, "Active session token invalidated. Incremented session_token_version to enforce immediate logout for user ID: " + userId, request.getRemoteAddr());
+        } catch (Exception ignored) {}
+
         return Map.of("message", "User session terminated by administrator.", "userId", userId);
     }
 
@@ -351,8 +368,22 @@ class UserController {
     Map<String, Object> forceLogoutAll(HttpServletRequest request) {
         Map<String, Object> admin = auth.requirePrimaryAdmin(request);
         long adminId = AuthSupport.number(admin.get("id"));
+        String adminEmail = String.valueOf(admin.get("email"));
+
         // Terminate all sessions except the primary admin's own session
         jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?", adminId);
+
+        try {
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'ADMIN-PORTAL', 'WARN', 'ADMIN_FORCE_LOGOUT_ALL', ?, ?, ?, 'SUCCESS')
+                    """, adminEmail, "Administrator terminated all active student and reader sessions across the platform", request.getRemoteAddr());
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'ALL_USER_SESSIONS_TERMINATED', ?, ?, ?, 'SUCCESS')
+                    """, adminEmail, "Global session token versions incremented. Involuntary logout enforced for all active accounts except primary admin", request.getRemoteAddr());
+        } catch (Exception ignored) {}
+
         return Map.of("message", "All active user sessions have been terminated by the administrator.");
     }
 
@@ -378,6 +409,13 @@ class UserController {
             // Immediately revoke all other active sessions when maintenance starts
             jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?", adminId);
         }
+
+        try {
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'ADMIN-PORTAL', 'WARN', 'ADMIN_TOGGLE_MAINTENANCE_MODE', ?, ?, ?, 'SUCCESS')
+                    """, admin.get("email"), "Administrator toggled platform maintenance mode to: " + (enable ? "ACTIVATED" : "DEACTIVATED"), request.getRemoteAddr());
+        } catch (Exception ignored) {}
 
         return Map.of("maintenanceMode", enable, "message", enable ? "Maintenance mode activated. All active sessions have been logged out." : "Maintenance mode deactivated.");
     }

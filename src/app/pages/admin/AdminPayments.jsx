@@ -7,9 +7,12 @@ import {
   Hash, DollarSign, Layers, ExternalLink, HelpCircle
 } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
+import { useAuth } from '@/app/context/AuthContext';
 import subscriptionService from '@/services/api/subscriptionService';
+import logService from '@/services/api/logService';
 
 export default function AdminPayments() {
+  const { user } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -63,6 +66,16 @@ export default function AdminPayments() {
     try {
       const { payment, action } = activeModal;
       const res = await subscriptionService.verifyAdminPayment(payment.id, action, adminUtr, adminNote);
+
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: action === 'CONFIRM' ? 'INFO' : 'WARN',
+        action: `ADMIN_PAYMENT_${action}`,
+        actorEmail: user?.email || 'admin@zyndex.com',
+        details: `Administrator ${action === 'CONFIRM' ? 'approved & confirmed' : 'declined'} payment: ${payment.id} for user ${payment.user_email || payment.user_name} (Plan: ${payment.plan_id}, UTR: ${adminUtr || payment.utr || 'N/A'})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
       setAlert({
         message: res.message || `Payment ${action === 'CONFIRM' ? 'confirmed and activated' : 'declined'} successfully.`,
         type: 'success'

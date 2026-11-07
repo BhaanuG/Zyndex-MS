@@ -32,20 +32,23 @@ public class ContentAuditLoggingFilter implements Filter {
             String ip = req.getRemoteAddr();
 
             String action = method + " " + uri;
-            String details = "Content service processed " + method + " request on " + uri;
+            String details = "Content service processed " + method + " request on " + uri + " (" + req.getContentType() + ", Query: " + (req.getQueryString() != null ? req.getQueryString() : "none") + ")";
 
             if (uri.contains("/feedback")) {
                 action = "FEEDBACK_" + method;
-                details = "User feedback operation executed on " + uri;
+                details = "User feedback operation executed on " + uri + " [Method: " + method + ", Client IP: " + ip + "]";
             } else if (uri.contains("/rate")) {
                 action = "RESOURCE_RATED";
-                details = "Resource rating submitted via Content Service";
+                details = "Resource rating and reader review submitted on " + uri;
             } else if (uri.contains("/download")) {
                 action = "RESOURCE_DOWNLOAD";
-                details = "Resource download token or file streamed";
+                details = "Resource secure download token or document file streamed to reader client (" + uri + ")";
             } else if (uri.contains("/resources") && ("POST".equalsIgnoreCase(method) || "PUT".equalsIgnoreCase(method) || "DELETE".equalsIgnoreCase(method))) {
                 action = "RESOURCE_" + method;
-                details = "Resource content mutation operation performed";
+                details = "Catalog resource mutation operation (" + method + ") performed on " + uri;
+            } else if (uri.contains("/resources") && "GET".equalsIgnoreCase(method)) {
+                action = "CATALOG_SEARCH_QUERY";
+                details = "Catalog queries or textbook details fetched via " + uri + (req.getQueryString() != null ? "?" + req.getQueryString() : "");
             }
 
             try {

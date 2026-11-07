@@ -31,7 +31,12 @@ public class AccessAuditLoggingFilter implements Filter {
             String ip = req.getRemoteAddr();
 
             String action = "ACCESS_CHECK_" + method;
-            String details = "Access authorization check on " + uri;
+            String details = "Access authorization check on " + uri + " [User: " + actorEmail + ", Client IP: " + ip + "]";
+
+            if (uri.contains("/entitlements")) {
+                action = "ACCESS_ENTITLEMENT_CHECK";
+                details = "User resource access entitlement and subscription tier validation queried on " + uri;
+            }
 
             try {
                 jdbc.update("""

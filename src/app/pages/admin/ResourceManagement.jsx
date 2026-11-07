@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
+import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
+import logService from '@/services/api/logService';
 
 const defaultCategories = [
   'AI',
@@ -90,6 +92,7 @@ function ArticleEditor({ value, onChange }) {
 }
 
 export default function ResourceManagement() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [resources, setResources] = useState([]);
   const [modalMessage, setModalMessage] = useState(null);
@@ -338,9 +341,19 @@ export default function ResourceManagement() {
   };
 
   const handleDelete = async (resourceId) => {
+    const target = resources.find((r) => r.id === resourceId);
     if (!window.confirm('Are you sure you want to delete this resource?')) return;
     try {
       await resourceService.deleteResource(resourceId);
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'WARN',
+        action: 'ADMIN_DELETE_RESOURCE',
+        actorEmail: user?.email || 'admin@zyndex.com',
+        details: `Administrator deleted academic resource: ${target?.title || 'Resource'} (ID: ${resourceId}, Category: ${target?.category || 'N/A'})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
       await loadResources(searchTerm);
     } catch (error) {
       console.error('Failed to delete resource:', error);
@@ -382,6 +395,16 @@ export default function ResourceManagement() {
       setCreateStatus('Resource uploaded successfully.');
       await loadResources(searchTerm);
       await loadCategories();
+
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'INFO',
+        action: 'ADMIN_UPLOAD_RESOURCE',
+        actorEmail: user?.email || 'admin@zyndex.com',
+        details: `Administrator uploaded new resource: ${createResource.title} (Category: ${createResource.category}, Type: ${createResource.resourceType}, Plan: ${createResource.requiredPlan || 'FREE'})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
       closeCreateModal();
     } catch (error) {
       setCreateStatus(error.message || 'Upload failed.');
@@ -417,6 +440,15 @@ export default function ResourceManagement() {
       closeEditModal();
       await loadResources(searchTerm);
       await loadCategories();
+
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'INFO',
+        action: 'ADMIN_UPDATE_RESOURCE',
+        actorEmail: user?.email || 'admin@zyndex.com',
+        details: `Administrator updated resource: ${formResource.title} (ID: ${formResource.id}, Plan: ${formResource.requiredPlan || 'FREE'}, Category: ${formResource.category})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
     } catch (error) {
       setModalMessage({
         title: 'Update Failed',

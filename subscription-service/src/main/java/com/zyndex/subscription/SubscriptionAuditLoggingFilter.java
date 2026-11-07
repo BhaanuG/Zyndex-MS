@@ -31,14 +31,20 @@ public class SubscriptionAuditLoggingFilter implements Filter {
             String ip = req.getRemoteAddr();
 
             String action = "SUBSCRIPTION_" + method;
-            String details = "Billing / Subscription event on " + uri;
+            String details = "Billing / Subscription event on " + uri + " (" + (req.getQueryString() != null ? req.getQueryString() : "direct") + ")";
 
-            if (uri.contains("/payments") || uri.contains("/verify")) {
+            if (uri.contains("/verify")) {
+                action = "PAYMENT_ADMIN_VERIFIED";
+                details = "Administrator executed verification or reconciliation action on payment record via " + uri;
+            } else if (uri.contains("/payments")) {
                 action = "PAYMENT_" + method;
-                details = "Payment verification or invoice generation operation";
+                details = "Payment verification or invoice generation operation processed on " + uri;
             } else if (uri.contains("/webhook")) {
                 action = "PAYMENT_WEBHOOK";
-                details = "Automated UPI / Gateway payment webhook callback";
+                details = "Automated UPI / Gateway payment webhook callback received from " + ip;
+            } else if (uri.contains("/plans")) {
+                action = "PLANS_QUERY";
+                details = "Subscription tier catalogue and pricing fetched on " + uri;
             }
 
             try {
