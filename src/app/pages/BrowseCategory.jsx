@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link } from 'react-router';
-import { Brain, Cpu, Database, Binary, ArrowRight, Lock, X, BookOpen } from 'lucide-react';
+import { Brain, Cpu, Database, Binary, ArrowRight, Lock, X, BookOpen, Atom, Calculator, FlaskConical, Layers, ShieldCheck, Globe, BookMarked, Code2 } from 'lucide-react';
 import PublicLayout from '@/app/components/PublicLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import { setRedirectIntent } from '@/utils/redirectHelper';
@@ -15,31 +15,87 @@ export default function BrowseCategory() {
   const categories = [
     {
       title: 'AI',
-      description: 'Artificial intelligence paradigms, foundational neural networks, and prompt engineering',
+      description: 'Artificial intelligence paradigms, foundational neural networks, transformer models, and prompt engineering',
       icon: Brain,
       gradient: 'from-orange-500 to-amber-500',
       bgGradient: 'from-orange-50 to-amber-50',
     },
     {
       title: 'ML',
-      description: 'Machine learning fundamentals, predictive algorithms, statistical models, and deep learning',
+      description: 'Machine learning fundamentals, predictive algorithms, statistical models, and deep learning architectures',
       icon: Cpu,
       gradient: 'from-red-500 to-orange-500',
       bgGradient: 'from-red-50 to-orange-50',
     },
     {
       title: 'Computer Science',
-      description: 'Open data structures, algorithms, computational theory, and distributed systems architecture',
+      description: 'Open data structures, algorithms, computational theory, operating systems, and distributed architecture',
       icon: Binary,
       gradient: 'from-blue-500 to-indigo-500',
       bgGradient: 'from-blue-50 to-indigo-50',
     },
     {
       title: 'Engineering & Data',
-      description: 'Software engineering principles, database systems, cloud architectures, and applied computing',
+      description: 'Software engineering principles, database systems, cloud architectures, pipeline design, and big data',
       icon: Database,
       gradient: 'from-emerald-500 to-teal-500',
       bgGradient: 'from-emerald-50 to-teal-50',
+    },
+    {
+      title: 'Mathematics',
+      description: 'Discrete mathematics, linear algebra, multivariable calculus, probability, statistics, and cryptography',
+      icon: Calculator,
+      gradient: 'from-purple-500 to-indigo-500',
+      bgGradient: 'from-purple-50 to-indigo-50',
+    },
+    {
+      title: 'Physics & Electronics',
+      description: 'Quantum mechanics, electromagnetism, semiconductor physics, signal processing, and circuit analysis',
+      icon: Atom,
+      gradient: 'from-cyan-500 to-blue-600',
+      bgGradient: 'from-cyan-50 to-blue-50',
+    },
+    {
+      title: 'Chemistry & Materials',
+      description: 'Organic, inorganic, physical chemistry, nanomaterials, chemical kinetics, and molecular spectroscopy',
+      icon: FlaskConical,
+      gradient: 'from-rose-500 to-pink-600',
+      bgGradient: 'from-rose-50 to-pink-50',
+    },
+    {
+      title: 'Cybersecurity & Networks',
+      description: 'Network protocols, information security, ethical hacking, cryptography, penetration testing, and defense',
+      icon: ShieldCheck,
+      gradient: 'from-amber-600 to-red-600',
+      bgGradient: 'from-amber-50 to-red-50',
+    },
+    {
+      title: 'Web & Mobile Systems',
+      description: 'Modern frontend frameworks, distributed REST/GraphQL APIs, microservices, and mobile app engineering',
+      icon: Code2,
+      gradient: 'from-teal-500 to-emerald-600',
+      bgGradient: 'from-teal-50 to-emerald-50',
+    },
+    {
+      title: 'Literature & Humanities',
+      description: 'World literature, linguistics, academic writing, philosophy, historical research, and cultural studies',
+      icon: BookMarked,
+      gradient: 'from-violet-500 to-purple-600',
+      bgGradient: 'from-violet-50 to-purple-50',
+    },
+    {
+      title: 'Social Sciences & Management',
+      description: 'Micro/macroeconomics, organizational behavior, business management, research methodology, and ethics',
+      icon: Globe,
+      gradient: 'from-orange-600 to-amber-700',
+      bgGradient: 'from-orange-50 to-amber-50',
+    },
+    {
+      title: 'General Academics',
+      description: 'Cross-disciplinary foundations, syllabus modules, research methodology, and examination guides',
+      icon: Layers,
+      gradient: 'from-slate-600 to-slate-800',
+      bgGradient: 'from-slate-50 to-gray-50',
     },
   ];
 

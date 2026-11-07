@@ -64,6 +64,7 @@ export default function Pricing() {
   const [selectedWallet, setSelectedWallet] = useState('paytm');
   const [utrInput, setUtrInput] = useState('');
   const [submittingUtr, setSubmittingUtr] = useState(false);
+  const [holdAutoCloseSeconds, setHoldAutoCloseSeconds] = useState(120);
   const [processingMessage, setProcessingMessage] = useState('Securing 256-bit encrypted gateway session...');
 
   // Custom alert, login redirect & invoice modal states
@@ -95,6 +96,28 @@ export default function Pricing() {
   useEffect(() => {
     fetchCurrentSub();
   }, [user]);
+
+  // 2-minute auto-close countdown when checkoutStep is 'review_required'
+  useEffect(() => {
+    if (checkoutStep !== 'review_required' || !showCheckout) return;
+
+    if (holdAutoCloseSeconds <= 0) {
+      setShowCheckout(false);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setHoldAutoCloseSeconds((prev) => {
+        if (prev <= 1) {
+          setShowCheckout(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [checkoutStep, showCheckout, holdAutoCloseSeconds]);
 
   const plans = [
     {
@@ -444,6 +467,7 @@ export default function Pricing() {
         reviewReason: 'Your UTR has been submitted and payment is on temporary hold pending admin verification.'
       }));
       setCheckoutStep('review_required');
+      setHoldAutoCloseSeconds(120); // 2 minutes auto-close countdown
       setCustomAlert({
         title: 'Payment On Hold for Verification',
         message: 'Your UTR number was submitted. Administrators have been notified at Bhaanugali@gmail.com and Bhaanugali99sai@gmail.com. Your membership will be activated immediately once verified in the admin portal.',
@@ -1389,14 +1413,18 @@ export default function Pricing() {
                 {checkoutStep === 'review_required' && (
                   <div className="p-8 space-y-6 text-center">
                     <div className="flex justify-center mb-2">
-                      <div className="size-16 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                      <div className="size-16 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 animate-pulse">
                         <AlertTriangle className="size-8" />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <h3 className="text-xl font-bold text-slate-900">Payment Held for Review</h3>
-                      <p className="text-xs text-slate-500">Your UPI credit was observed, but requires manual reconciliation before subscription activation.</p>
+                      <h3 className="text-xl font-bold text-slate-900">Payment Verification on Hold / Processing</h3>
+                      <p className="text-xs text-slate-500">Your UTR reference has been submitted. Our automated clearing desk is verifying transaction credit.</p>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-[11px] font-semibold mt-2">
+                        <Clock className="size-3.5" />
+                        <span>Auto-closing in {Math.floor(holdAutoCloseSeconds / 60)}m {holdAutoCloseSeconds % 60}s</span>
+                      </div>
                     </div>
 
                     <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 text-left text-xs space-y-2 text-amber-950">
@@ -1421,7 +1449,7 @@ export default function Pricing() {
                     </div>
 
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                      If your bank account was debited, our automatic observers and support desk will reconcile your credit. No money will be lost.
+                      If your bank account was debited, our automatic observers and support desk will reconcile your credit. No money will be lost. You can close this window at any time or it will close automatically after 2 minutes.
                     </p>
 
                     <div className="flex gap-3 pt-2">
@@ -1437,7 +1465,7 @@ export default function Pricing() {
                         onClick={() => setShowCheckout(false)}
                         className="flex-1 py-3 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm"
                       >
-                        Close Window
+                        Close Manually ({holdAutoCloseSeconds}s)
                       </button>
                     </div>
                   </div>

@@ -96,56 +96,98 @@ class AccountEmailService {
     }
 
     private String signupConfirmationText(String name, String email, String plan, String validUntil) {
+        String createdTimestamp = LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"));
         return """
                 Hello %s,
 
                 Welcome to Zyndex!
 
-                Your account has been successfully created and is now ready to use. Here are your account details:
+                Your academic account has been created and verified successfully.
 
-                Account Details
+                === ACCOUNT DETAILS ===
+                - Full Name: %s
+                - Registered Email: %s
+                - Account Creation Time: %s
+                - Active Plan: %s
+                - Plan Validity: %s
 
-                - Username: %s
-                - Email Address: %s
-                - Plan: %s
-                - Valid Until: %s
+                === KEY PLATFORM FEATURES ===
+                - Instant Academic Search: Discover textbooks, journals, syllabus notes, and lecture slides.
+                - Real-Time Reading Telemetry: Accurate reading time tracking with active tab detection.
+                - High-Performance PDF Preview: Responsive inline reader with continuous zoom, pagination, and outline.
+                - Secure Multi-Factor Authentication: Dynamic numeric OTP and trusted device security.
+                - Multi-Tier Membership: Tailored tiers from Free Evaluator to Researcher Pro with elevated quota.
 
-                Zyndex Login
+                === ACADEMIC DISCIPLINES & CATEGORIES ===
+                - Computer Science & Distributed Systems
+                - Artificial Intelligence & Neural Architectures
+                - Machine Learning & Deep Learning
+                - Data Science, Databases & Cloud Computing
+                - Software Engineering & Applied Algorithms
+                - Mathematics, Physics, Chemistry & Natural Sciences
+                - Literature, Social Sciences & General Academics
 
-                You can access your Zyndex account using your registered email address:
-
+                You can sign in to your Zyndex account anytime using:
+                Login URL: /Zyndex/User/Log-In
                 Email: %s
 
-                For security, your password is not included in this email. If you haven't set your password yet, use the Reset or Forgot your password? option on the login page.
-
-                If you did not create this account, please contact our support team immediately.
-
-                Thank you for choosing Zyndex.
+                For assistance, reach out to our team via the Help Center or Contact page.
 
                 Best regards,
                 Zyndex Team
                 %s
-                """.formatted(name, name, email, plan, validUntil, email, properties.otpMailFrom());
+                """.formatted(name, name, email, createdTimestamp, plan, validUntil, email, properties.otpMailFrom());
     }
 
-        private String signupConfirmationHtml(String name, String email, String plan, String validUntil) {
-        return """
-                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #172033;">
-                  <p>Dear %s,</p>
-                  <p>Welcome to <strong>Zyndex</strong>!</p>
-                                    <p>Your account has been created successfully.</p>
-                                    <table style="border-collapse: collapse;">
-                                        <tr><td style="padding: 5px 18px 5px 0;"><strong>Username</strong></td><td>%s</td></tr>
-                                        <tr><td style="padding: 5px 18px 5px 0;"><strong>Email</strong></td><td>%s</td></tr>
-                                        <tr><td style="padding: 5px 18px 5px 0;"><strong>Plan</strong></td><td>%s</td></tr>
-                                        <tr><td style="padding: 5px 18px 5px 0;"><strong>Valid until</strong></td><td>%s</td></tr>
-                                    </table>
-                                    <p>You can now sign in to access our <strong>Educational Resource Library</strong>.</p>
-                  <p>If you have any questions or need assistance, please feel free to reach out to our support team through the <strong>Contact Us</strong> page - we're always here to help.</p>
-                  <p>We're excited to have you on board and wish you a rewarding and enriching learning experience with Zyndex!</p>
-                  <p>Best regards,<br/><strong>Team Zyndex</strong></p>
+            private String signupConfirmationHtml(String name, String email, String plan, String validUntil) {
+        String createdTimestamp = LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"));
+        String body = """
+                <div style="font-size: 15px; color: #1e293b; line-height: 1.6;">
+                    <p style="margin-top: 0;">Dear <strong>%s</strong>,</p>
+                    <p>Welcome to <strong>Zyndex</strong> — your premier academic digital library and research discovery platform.</p>
+                    <p>Your student/scholar account has been verified and provisioned successfully. Below are your account and plan credentials:</p>
+                    
+                    <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 18px 20px; margin: 20px 0;">
+                        <h3 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #ea580c;">Account &amp; Plan Summary</h3>
+                        <table style="width: 100%%; border-collapse: collapse; font-size: 13px;">
+                            <tr><td style="padding: 6px 0; color: #64748b; width: 40%%;">Full Name</td><td style="padding: 6px 0; font-weight: 700; color: #0f172a;">%s</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Registered Email</td><td style="padding: 6px 0; font-weight: 700; color: #0f172a;">%s</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Account Created</td><td style="padding: 6px 0; font-weight: 600; color: #334155;">%s</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Subscription Plan</td><td style="padding: 6px 0; font-weight: 800; color: #ea580c;">%s</td></tr>
+                            <tr><td style="padding: 6px 0; color: #64748b;">Plan Validity</td><td style="padding: 6px 0; font-weight: 600; color: #16a34a;">%s</td></tr>
+                        </table>
+                    </div>
+
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 20px 0;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a;">Platform Highlights &amp; Features</h3>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #334155; line-height: 1.65;">
+                            <li><strong>Smart Resource Discovery:</strong> Real-time filtering across thousands of textbooks, lecture slides, and research notes.</li>
+                            <li><strong>Live Reading Telemetry:</strong> Automatic logging of genuine reading minutes with smart tab visibility detection.</li>
+                            <li><strong>High-Performance PDF Viewer:</strong> Smooth in-browser previews with outline navigation and zoom controls.</li>
+                            <li><strong>Personal Library:</strong> Bookmark favorites and resume reading right where you left off.</li>
+                            <li><strong>Enhanced Security:</strong> 256-bit encryption, dynamic OTP authentication, and 24-hour trusted device support.</li>
+                        </ul>
+                    </div>
+
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 20px 0;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a;">Available Academic Categories</h3>
+                        <div style="font-size: 12px; color: #475569; margin-top: 6px; line-height: 2;">
+                            <span style="background-color: #ffedd5; color: #c2410c; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Artificial Intelligence</span>
+                            <span style="background-color: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Machine Learning</span>
+                            <span style="background-color: #dbeafe; color: #1d4ed8; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Computer Science</span>
+                            <span style="background-color: #d1fae5; color: #047857; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Engineering &amp; Data</span>
+                            <span style="background-color: #f3e8ff; color: #7e22ce; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Mathematics</span>
+                            <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-weight: 600; margin-right: 6px; display: inline-block;">Natural Sciences</span>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 24px; font-size: 13px; color: #64748b;">
+                        If you have any questions or require research assistance, please reach out via our Help Center.
+                    </p>
                 </div>
-                """.formatted(escapeHtml(name), escapeHtml(name), escapeHtml(email), escapeHtml(plan), escapeHtml(validUntil));
+                """.formatted(escapeHtml(name), escapeHtml(name), escapeHtml(email), escapeHtml(createdTimestamp), escapeHtml(plan), escapeHtml(validUntil));
+
+        return wrapInZyndexBrandHtml("Welcome to Zyndex - Your Academic Account is Ready", body);
     }
 
     void sendSubscriptionConfirmationEmail(String name, String email, String plan, double amount, int durationDays) {

@@ -1614,43 +1614,51 @@ The codebase includes automated test suites covering inter-service security, cat
 ## 17. Quantitative Codebase Statistics & Metrics
 
 ### 17.1 Measurement Methodology
-Statistics were calculated using a native filesystem audit executed in Windows PowerShell on October 30, 2026.
-- **Inclusion Criteria**: All application-owned source files, configuration manifests, build scripts, stylesheets, and documentation.
-- **Exclusion Criteria**: Compiled outputs (`target/`, `dist/`), external package dependencies (`node_modules/`), version control internals (`.git/`), IDE settings (`.vscode/`), and temporary scripts.
+Statistics were calculated using a native filesystem audit executed across all source files, configuration manifests, stylesheets, templates, and documentation.
+- **Inclusion Criteria**: All application-owned source code (`.jsx`, `.js`, `.java`, `.css`, `.json`, `.yml`, `.html`, `.md`).
+- **Exclusion Criteria**: Compiled outputs (`target/`, `dist/`), external package dependencies (`node_modules/`), version control internals (`.git/`), IDE settings (`.vscode/`), and temporary scratch scripts.
 
-### 17.2 Codebase Metrics Table
+### 17.2 Codebase Granular Character, Word, File & Line Counts
 
-| Metric | Measured Value | Percentage / Context |
+| Metric Category | Measured Quantity | Description & Character Breakdown |
 | :--- | :--- | :--- |
-| **Total Source Files** | **198 Files** | 100% of application-owned codebase |
-| **Total Directories / Folders** | **112 Folders** | All domain packages, components, and pages |
-| **Total Lines of Code (LOC)** | **48,241 Lines** | Newline-delimited UTF-8 source lines |
-| **Total Character Count** | **3,520,730 Chars** | Complete character stream across all files |
-| **React Components & Pages (`.jsx`)** | **91 Files** | 46.0% of total codebase files |
-| **Java Source Files (`.java`)** | **58 Files** | 29.3% of total codebase files |
-| **JavaScript Modules & Services (`.js`)** | **15 Files** | 7.6% of total codebase files |
-| **YAML Configuration Files (`.yml`/`.yaml`)**| **8 Files** | Microservice configuration manifests |
-| **XML Build Files (`pom.xml`)** | **8 Files** | Maven parent and module descriptors |
-| **CSS Stylesheets (`.css`)** | **5 Files** | Design system tokens and styling |
-| **JSON Configuration Files (`.json`)** | **2 Files** | `package.json` and package lock definitions |
-| **HTML Entry Point (`.html`)** | **1 File** | `index.html` root template |
-| **Markdown Documentation (`.md`)** | **1 File** | Root `README.md` |
-| **TypeScript Files (`.ts` / `.tsx`)** | **0 Files** | **0%** (Frontend built strictly in pure React JS/JSX) |
+| **Total Source Files** | **185 Files** | Application-owned source and configuration files |
+| **Total Lines of Code (LOC)** | **43,730 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **121,511 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **1,841,960 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **991,948 Characters** | 53.85% of total character stream |
+| **Digits & Numbers (`0-9`)** | **49,440 Characters** | 2.68% of total character stream |
+| **Symbols, Operators & Punctuation** | **262,410 Characters** | 14.25% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **538,162 Characters** | 29.22% of total character stream (indentation, newlines) |
 
-### 17.3 Per-Component Line & Character Breakdown
+### 17.3 Breakdown by File Extension & Domain
 
-| Microservice / Subsystem | Total Files | Total Lines | Total Characters | Dominant Language |
-| :--- | :--- | :--- | :--- | :--- |
-| **Frontend Web Client (`src/`)** | 109 | 23,220 | 1,019,813 | React JSX & JavaScript |
-| **Auth Service (`auth-service/`)** | 17 | 1,872 | 101,964 | Java 21 |
-| **Content Service (`content-service/`)** | 16 | 1,508 | 76,379 | Java 21 |
-| **Subscription Service (`subscription-service/`)**| 13 | 1,705 | 89,586 | Java 21 |
-| **Access Service (`access-service/`)** | 10 | 546 | 26,287 | Java 21 |
-| **Usage Service (`usage-service/`)** | 10 | 522 | 24,877 | Java 21 |
-| **API Gateway (`api-gateway/`)** | 4 | 272 | 11,004 | Java 21 |
-| **Eureka Server (`eureka-server/`)** | 3 | 68 | 2,356 | Java 21 |
-| **Root Configurations & Build Scripts** | 14 | 7,073 | 218,800 | XML, JSON, Markdown, JS |
-| **Sample Uploads (`backend/uploads/`)** | 2 | 11,455 | 1,949,664 | PDF binary data |
+| Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`.jsx`** | React UI Components & Pages | **93 Files** | **22,496 Lines** | **64,176 Words** | **982,848 Chars** |
+| **`.java`** | Spring Boot Microservices Backend | **59 Files** | **7,999 Lines** | **25,199 Words** | **391,833 Chars** |
+| **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,497 Lines** | **11,525 Words** | **151,027 Chars** |
+| **`.json`** | Package & Dependency Manifests | **2 Files** | **5,994 Lines** | **7,935 Words** | **169,922 Chars** |
+| **`.md`** | Technical Architecture Documentation | **1 File** | **1,693 Lines** | **10,820 Words** | **122,153 Chars** |
+| **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **730 Lines** | **1,421 Words** | **16,515 Chars** |
+| **`.yml`** | Spring Cloud & Gateway Configurations| **8 Files** | **302 Lines** | **399 Words** | **7,079 Chars** |
+| **`.html`** | Single-Page Application Entry Root | **1 File** | **19 Lines** | **36 Words** | **583 Chars** |
+| **Overall Total** | **Full Stack Application** | **185 Files** | **43,730 Lines** | **121,511 Words** | **1,841,960 Chars** |
+
+### 17.4 Academic Catalog Categories & Curated Disciplines
+Zyndex organizes learning resources across dedicated subject categories accessible publicly and within the authenticated scholar portal:
+- **Artificial Intelligence (AI)**: Foundational neural networks, generative LLMs, prompt engineering, and autonomous agents.
+- **Machine Learning (ML)**: Predictive algorithms, deep learning architectures, statistical learning theory, and classification.
+- **Computer Science**: Computational theory, data structures, algorithms, operating systems, and distributed systems.
+- **Engineering & Data**: Software engineering practices, database engines, big data pipelines, and cloud computing.
+- **Mathematics**: Discrete mathematics, linear algebra, multivariable calculus, probability, and modern cryptography.
+- **Physics & Electronics**: Quantum mechanics, electromagnetic theory, semiconductor devices, and circuit analysis.
+- **Chemistry & Materials**: Chemical thermodynamics, organic reactions, spectroscopy, and materials science.
+- **Cybersecurity & Networks**: Network protocols, vulnerability assessment, defense in depth, and penetration testing.
+- **Web & Mobile Systems**: High-concurrency client architectures, responsive design, REST/GraphQL APIs, and mobile apps.
+- **Literature & Humanities**: Academic writing, philosophy of science, linguistic research, and historical perspectives.
+- **Social Sciences & Management**: Economic modeling, research methodology, business ethics, and institutional governance.
+- **General Academics**: Cross-disciplinary curriculum modules, examination guides, and syllabus notes.
 
 ---
 

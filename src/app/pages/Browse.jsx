@@ -1,53 +1,71 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link } from 'react-router';
-import { Search, BookOpen, Lock, X, Filter, Grid3x3, List, Tags, Clock, Star, TrendingUp, FolderOpen, Sparkles } from 'lucide-react';
+import { Search, BookOpen, Lock, X, Filter, Grid3x3, List, Tags, Clock, Star, TrendingUp, FolderOpen, Sparkles, FileText, Shield, Eye, Zap, Layers, RefreshCw } from 'lucide-react';
 import PublicLayout from '@/app/components/PublicLayout';
 import { setRedirectIntent } from '@/utils/redirectHelper';
 
-export default function Browse() {
+export default function Features() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const handleLoginClick = () => {
     setShowLoginPrompt(true);
   };
 
-  const browseFeatures = [
+  const platformFeatures = [
     {
       icon: Search,
-      title: 'Academic Search',
-      description: 'Find digital textbooks, lecture modules, and scholarly papers with real-time title and subject search',
+      title: 'Smart Academic Discovery',
+      description: 'Instant multi-attribute search across textbooks, research journals, lecture notes, and curriculum guides with real-time indexing.',
       gradient: 'from-orange-500 to-orange-600'
     },
     {
       icon: Filter,
-      title: 'Subject Disciplines',
-      description: 'Filter instantly across Computer Science, Artificial Intelligence, Machine Learning, and Engineering',
+      title: 'Multi-Discipline Categories',
+      description: 'Curated archives spanning AI, Machine Learning, Computer Science, Engineering, Mathematics, Physics, and Humanities.',
       gradient: 'from-amber-500 to-orange-600'
     },
     {
-      icon: Grid3x3,
-      title: 'Curated Resource Hub',
-      description: 'Explore verified textbooks with complete author metadata, page counts, and interactive PDF preview',
+      icon: FileText,
+      title: 'Interactive PDF Reader',
+      description: 'High-performance in-browser viewer with dynamic zoom, responsive multi-page rendering, document outline, and jump-to-page navigation.',
       gradient: 'from-red-500 to-orange-600'
     },
     {
-      icon: Tags,
-      title: 'Reading Telemetry',
-      description: 'Track genuine active reading minutes and reading history automatically with smart tab visibility',
+      icon: Clock,
+      title: 'Live Reading Telemetry',
+      description: 'Smart session and active-minute logging with tab visibility awareness to provide authentic academic engagement analytics.',
       gradient: 'from-orange-600 to-red-600'
     },
     {
-      icon: Clock,
-      title: 'Recent Activity',
-      description: 'Resume reading instantly with your top 3 recently explored textbooks and continuous session tracking',
+      icon: Star,
+      title: 'Personalized Scholar Hub',
+      description: 'One-click resource bookmarking, favorite lists, and resume reading shortcuts highlighting your last 3 explored resources.',
       gradient: 'from-orange-500 to-amber-600'
     },
     {
-      icon: Star,
-      title: 'Scholar Favorites',
-      description: 'Bookmark high-impact textbooks and notes to your personalized personal reading favorites collection',
+      icon: Shield,
+      title: 'Enterprise Multi-Factor Security',
+      description: 'Dynamic 4-digit numeric OTP authentication, 24-hour trusted device authorization, and 2h 30m idle session security monitoring.',
       gradient: 'from-amber-500 to-orange-500'
+    },
+    {
+      icon: Layers,
+      title: 'Tiered Access Governance',
+      description: 'Fine-grained role and subscription management catering to Students, Teachers, PhD Researchers, and Academic Admins.',
+      gradient: 'from-orange-600 to-amber-600'
+    },
+    {
+      icon: Zap,
+      title: 'Real-Time Telemetry Logs',
+      description: 'Live admin metrics monitoring total readers, active today/live users, average session lengths, and aggregated reading minutes.',
+      gradient: 'from-red-600 to-orange-600'
+    },
+    {
+      icon: RefreshCw,
+      title: 'Seamless Digital Payments',
+      description: 'UPI QR code checkout with automated UTR confirmation, 2-minute verification hold processing, and automated receipt issuance.',
+      gradient: 'from-amber-600 to-red-600'
     }
   ];
 
@@ -55,17 +73,17 @@ export default function Browse() {
     {
       icon: Grid3x3,
       title: 'Card Explorer',
-      description: 'Visual resource cards with category badges and author attribution'
+      description: 'Visual resource cards with category badges, author attribution, and page counts'
     },
     {
       icon: List,
-      title: 'Live Catalog',
-      description: 'Structured academic directory with instant search and filtering'
+      title: 'Live Academic Catalog',
+      description: 'Structured academic directory with instant keyword search and category filtering'
     },
     {
       icon: FolderOpen,
-      title: 'Discipline Categories',
-      description: 'Subject-specific archives curated for university scholars and faculty'
+      title: 'Subject Disciplines',
+      description: 'Dedicated archives curated specifically for university scholars, educators, and faculty'
     }
   ];
 
@@ -118,14 +136,14 @@ export default function Browse() {
                 boxShadow: '0 4px 24px -8px rgba(249, 115, 22, 0.25), 0 0 0 1px rgba(249, 115, 22, 0.1) inset'
               }}
             >
-              <Search className="size-4 text-orange-600" />
+              <Sparkles className="size-4 text-orange-600" />
               <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Browse Resources
+                Platform Capabilities &amp; Highlights
               </span>
             </motion.div>
 
             <motion.h1 
-              className="text-6xl md:text-7xl font-bold text-gray-900 mb-6"
+              className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
@@ -134,7 +152,7 @@ export default function Browse() {
               }}
             >
               <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">
-                Browse All Resources
+                Zyndex Platform Features
               </span>
             </motion.h1>
             <motion.p 
@@ -143,47 +161,73 @@ export default function Browse() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.8 }}
             >
-              Access our comprehensive collection of educational materials with powerful search and filtering tools
+              Discover all high-impact features, reading telemetry, secure multi-factor access, and curated discipline categories built for the modern academic ecosystem.
             </motion.p>
           </motion.div>
 
-          {/* Browse Features Grid */}
+          {/* Features Grid */}
           <motion.div 
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           >
-            {browseFeatures.map((feature, index) => (
+            {platformFeatures.map((feature, index) => (
               <motion.div
                 key={index}
                 className="group relative bg-white/70 backdrop-blur-xl rounded-3xl p-8 overflow-hidden border border-white/20"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 + index * 0.1, duration: 0.6 }}
-                whileHover={{ y: -8, transition: { duration: 0.3 } }}
                 style={{
-                  boxShadow: '0 20px 60px -15px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5) inset'
+                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(249, 115, 22, 0.05) inset'
                 }}
+                whileHover={{ y: -8, transition: { duration: 0.3 } }}
               >
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full blur-3xl group-hover:opacity-70 opacity-40 transition-opacity duration-500" />
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 rounded-full blur-2xl transition-opacity duration-500`} />
                 
-                <div className="relative">
-                  <motion.div 
-                    className={`size-14 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-5 shadow-2xl shadow-orange-500/40`}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    style={{
-                      boxShadow: '0 10px 40px -10px rgba(249, 115, 22, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset'
-                    }}
-                  >
-                    <feature.icon className="size-7 text-white" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <div className="relative z-10">
+                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.gradient} text-white mb-6 shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform duration-300`}>
+                    <feature.icon className="size-6" />
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
+                    {feature.title}
+                  </h3>
+                  
+                  <p className="text-gray-600 leading-relaxed text-sm">
+                    {feature.description}
+                  </p>
                 </div>
               </motion.div>
             ))}
+          </motion.div>
+
+          {/* Public Explorer Demo Banner */}
+          <motion.div
+            className="relative bg-gradient-to-r from-orange-600 to-red-600 rounded-3xl p-10 md:p-14 text-white text-center overflow-hidden shadow-2xl shadow-orange-500/30 mb-20"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.2),transparent)] pointer-events-none" />
+            <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+              <h2 className="text-3xl md:text-4xl font-bold">Ready to Experience the Full Platform?</h2>
+              <p className="text-orange-100 text-lg">
+                Create your verified user account in seconds, enjoy seamless search, and log your reading progress with real-time academic telemetry.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+                <Link
+                  to="/Zyndex/User/Sign-Up"
+                  className="px-8 py-3.5 bg-white text-orange-600 font-bold rounded-xl shadow-lg hover:bg-orange-50 transition-all text-sm"
+                >
+                  Create Account
+                </Link>
+                <Link
+                  to="/Zyndex/Resources/Categories"
+                  className="px-8 py-3.5 bg-orange-700/60 border border-white/20 text-white font-semibold rounded-xl hover:bg-orange-700 transition-all text-sm"
+                >
+                  Explore Categories
+                </Link>
+              </div>
+            </div>
           </motion.div>
 
           {/* View Modes Section */}
@@ -191,7 +235,7 @@ export default function Browse() {
             className="mb-20"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
           >
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">Flexible Viewing Options</h2>
@@ -205,7 +249,7 @@ export default function Browse() {
                   className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-8 text-center overflow-hidden border border-white/20"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1.3 + index * 0.1, duration: 0.6 }}
+                  transition={{ delay: 0.9 + index * 0.1, duration: 0.6 }}
                   whileHover={{ scale: 1.05, y: -5, transition: { duration: 0.3 } }}
                   style={{
                     boxShadow: '0 20px 60px -15px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5) inset'

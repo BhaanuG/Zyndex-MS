@@ -83,14 +83,14 @@ export default function PublicLayout({ children, showBack = true }) {
               </Link>
               <span className="text-slate-300">|</span>
               <Link
-                to="/Zyndex/Resources/Browse"
+                to="/Zyndex/Features"
                 className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
-                  isActive('/Resources/Browse')
+                  isActive('/Features') || isActive('/Resources/Browse')
                     ? 'text-orange-600 bg-orange-50 font-semibold'
                     : 'text-slate-700 hover:text-orange-600 hover:bg-orange-50'
                 }`}
               >
-                Browse
+                Features
               </Link>
               <Link
                 to="/Zyndex/Resources/Categories"
@@ -204,10 +204,10 @@ export default function PublicLayout({ children, showBack = true }) {
                     Pricing
                   </Link>
                   <Link
-                    to="/Zyndex/Resources/Browse"
+                    to="/Zyndex/Features"
                     className="px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
                   >
-                    Browse Resources
+                    Features
                   </Link>
                   <Link
                     to="/Zyndex/Resources/Categories"

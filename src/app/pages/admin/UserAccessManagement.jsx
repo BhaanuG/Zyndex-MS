@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff, Download } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
@@ -56,6 +56,72 @@ export default function UserAccessManagement() {
     if (ms <= 0) return 'Expired';
     const days = Math.ceil(ms / (1000 * 60 * 60 * 24));
     return `${days} day${days > 1 ? 's' : ''} left`;
+  };
+
+  const getPlatformRole = (u) => {
+    const isMainAdmin = u?.email?.toLowerCase() === 'bhaanugali@gmail.com' || u?.isPrimaryAdmin === true;
+    if (isMainAdmin) return 'Main Admin';
+    if (u?.role?.toLowerCase() === 'admin') return 'Admin';
+    return 'User';
+  };
+
+  const getSubscriptionDisplay = (u) => {
+    const role = getPlatformRole(u);
+    if (role === 'Main Admin') return 'Main Admin';
+    if (role === 'Admin') return 'Admin';
+    return PLATFORM_PLANS.find(p => p.id === u?.subscriptionPlan)?.name || (u?.subscriptionPlan || 'Free / Demo').replace(/_/g, ' ');
+  };
+
+  const exportUsersToCsv = () => {
+    if (!users || users.length === 0) {
+      alert('No user records available to export.');
+      return;
+    }
+
+    const headers = [
+      'Sl No',
+      'Name',
+      'Email',
+      'Platform Role',
+      'User Type',
+      'Institution / College',
+      'Subscription Plan',
+      'Time Left',
+      'Date Joined'
+    ];
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = users.map((u, idx) => [
+      idx + 1,
+      u.name || 'N/A',
+      u.email || 'N/A',
+      getPlatformRole(u),
+      u.userType === 'Other' && u.profession ? `Other (${u.profession})` : (u.userType || 'Other'),
+      u.collegeName || u.universityName || 'N/A',
+      getSubscriptionDisplay(u),
+      getPlatformRole(u) !== 'User' ? 'Lifetime / Unlimited' : getTimeLeft(u.subscriptionExpiresAt, u.subscriptionPlan),
+      u.dateJoined ? new Date(u.dateJoined).toLocaleDateString() : 'N/A'
+    ]);
+
+    const csvContent = '\uFEFF' + [
+      headers.map(escapeCsv).join(','),
+      ...rows.map(r => r.map(escapeCsv).join(','))
+    ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Zyndex_Users_Export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const loadUsers = async (search = '') => {
@@ -257,12 +323,22 @@ export default function UserAccessManagement() {
             <h1 className="text-2xl font-semibold text-gray-900">User Access Management</h1>
             <p className="text-gray-600 mt-1">Create, read, update, and delete users. Showing {users.length} users.</p>
           </div>
-          {canManageUsers && (
-            <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors">
-              <Plus className="size-5" />
-              Add User
+          <div className="flex items-center gap-3">
+            <button
+              onClick={exportUsersToCsv}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm"
+              title="Export all users to CSV / Excel format"
+            >
+              <Download className="size-4 text-gray-500" />
+              Export Users (CSV)
             </button>
-          )}
+            {canManageUsers && (
+              <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors">
+                <Plus className="size-5" />
+                Add User
+              </button>
+            )}
+          </div>
         </motion.div>
 
         <form onSubmit={(e) => { e.preventDefault(); loadUsers(searchTerm); }} className="bg-white rounded-xl shadow-md p-4">
@@ -300,7 +376,7 @@ export default function UserAccessManagement() {
                 <tr>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Name</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Email</th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Role</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Platform Role</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">User Type</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Institution</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Subscription Plan</th>
@@ -312,65 +388,74 @@ export default function UserAccessManagement() {
               <tbody>
                 {users.length === 0 ? (
                   <tr><td colSpan="9" className="text-center py-16 text-gray-400">No users found.</td></tr>
-                ) : users.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
-                    <td className="py-4 px-6 font-medium text-gray-900">{user.name}</td>
-                    <td className="py-4 px-6 text-gray-600">{user.email}</td>
-                    <td className="py-4 px-6">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        user.role?.toLowerCase() === 'admin'
-                          ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-gray-700 text-sm">{user.userType === 'Other' && user.profession ? `Other (${user.profession})` : (user.userType || 'Other')}</td>
-                    <td className="py-4 px-6 text-gray-700 text-sm">{user.collegeName || user.universityName || '-'}</td>
-                    <td className="py-4 px-6">
-                      {user.role?.toLowerCase() === 'admin' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-sm">
-                          👑 Platform Admin (All-Access)
-                        </span>
-                      ) : (
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                          !user.subscriptionPlan || user.subscriptionPlan === 'FREE'
-                            ? 'bg-gray-100 text-gray-700'
-                            : user.subscriptionPlan === 'STUDENT_BASIC'
-                            ? 'bg-blue-100 text-blue-700'
-                            : user.subscriptionPlan === 'STUDENT_PLUS'
-                            ? 'bg-indigo-100 text-indigo-700'
-                            : user.subscriptionPlan === 'RESEARCHER_PRO'
-                            ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                            : user.subscriptionPlan === 'UNIVERSITY'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                ) : users.map((user) => {
+                  const platformRole = getPlatformRole(user);
+                  return (
+                    <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
+                      <td className="py-4 px-6 font-medium text-gray-900">{user.name}</td>
+                      <td className="py-4 px-6 text-gray-600">{user.email}</td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          platformRole === 'Main Admin'
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300 font-bold'
+                            : platformRole === 'Admin'
+                            ? 'bg-purple-100 text-purple-800 border border-purple-200 font-bold'
+                            : 'bg-gray-100 text-gray-700'
                         }`}>
-                          {PLATFORM_PLANS.find(p => p.id === user.subscriptionPlan)?.name || (user.subscriptionPlan || 'FREE').replace('_', ' ')}
+                          {platformRole}
                         </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 font-semibold">
-                      {user.role?.toLowerCase() === 'admin' ? (
-                        <span className="text-emerald-700 text-xs font-semibold">Lifetime / Unlimited</span>
-                      ) : (
-                        <span className={getTimeLeft(user.subscriptionExpiresAt, user.subscriptionPlan) === 'Expired' ? 'text-red-600 text-xs' : 'text-gray-700 text-xs'}>
-                          {getTimeLeft(user.subscriptionExpiresAt, user.subscriptionPlan)}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-gray-600 text-sm">{new Date(user.dateJoined).toLocaleDateString()}</td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
+                      </td>
+                      <td className="py-4 px-6 text-gray-700 text-sm">{user.userType === 'Other' && user.profession ? `Other (${user.profession})` : (user.userType || 'Other')}</td>
+                      <td className="py-4 px-6 text-gray-700 text-sm">{user.collegeName || user.universityName || '-'}</td>
+                      <td className="py-4 px-6">
+                        {platformRole === 'Main Admin' ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-sm">
+                            Main Admin
+                          </span>
+                        ) : platformRole === 'Admin' ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-900 border border-purple-200 shadow-sm">
+                            Admin
+                          </span>
+                        ) : (
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                            !user.subscriptionPlan || user.subscriptionPlan === 'FREE'
+                              ? 'bg-gray-100 text-gray-700'
+                              : user.subscriptionPlan === 'STUDENT_BASIC'
+                              ? 'bg-blue-100 text-blue-700'
+                              : user.subscriptionPlan === 'STUDENT_PLUS'
+                              ? 'bg-indigo-100 text-indigo-700'
+                              : user.subscriptionPlan === 'RESEARCHER_PRO'
+                              ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                              : user.subscriptionPlan === 'UNIVERSITY'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          }`}>
+                            {PLATFORM_PLANS.find(p => p.id === user.subscriptionPlan)?.name || (user.subscriptionPlan || 'FREE').replace('_', ' ')}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 font-semibold">
+                        {platformRole !== 'User' ? (
+                          <span className="text-emerald-700 text-xs font-semibold">Lifetime / Unlimited</span>
+                        ) : (
+                          <span className={getTimeLeft(user.subscriptionExpiresAt, user.subscriptionPlan) === 'Expired' ? 'text-red-600 text-xs' : 'text-gray-700 text-xs'}>
+                            {getTimeLeft(user.subscriptionExpiresAt, user.subscriptionPlan)}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 text-gray-600 text-sm">{new Date(user.dateJoined).toLocaleDateString()}</td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
                         {canManageUsers && <>
                           <button onClick={() => openEditModal(user)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors" title="Edit User & Plan"><Edit className="size-4" /></button>
                           <button onClick={() => openResetModal(user)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors" title="Reset Password"><KeyRound className="size-4" /></button>
                           <button onClick={() => handleDeleteUser(user.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors" title="Delete User"><Trash2 className="size-4" /></button>
                         </>}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -135,6 +135,14 @@ export const router = createBrowserRouter([
         element: <PageTransitionWrapper duration={5000}><Contact /></PageTransitionWrapper>
       },
       {
+        path: "Zyndex/Features",
+        element: <PageTransitionWrapper duration={5000}><Browse /></PageTransitionWrapper>
+      },
+      {
+        path: "Zyndex/Resources/Features",
+        element: <Navigate to="/Zyndex/Features" replace />
+      },
+      {
         path: "Zyndex/Resources/Browse",
         element: <PageTransitionWrapper duration={5000}><Browse /></PageTransitionWrapper>
       },

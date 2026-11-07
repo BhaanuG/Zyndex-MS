@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { motion } from 'motion/react';
-import { BookOpen, Mail, Lock, ArrowRight, Menu, X, Eye, EyeOff, Shield, User, AlertCircle, GraduationCap } from 'lucide-react';
+import { BookOpen, Mail, Lock, ArrowRight, Menu, X, Eye, EyeOff, Shield, User, AlertCircle, GraduationCap, KeyRound, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import authService, { validateLogin as validateLoginRequest } from '@/services/api/authService';
 import apiClient from '@/services/api/apiClient';
@@ -28,6 +28,15 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Inline OTP states for Signup
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpSuccessMessage, setOtpSuccessMessage] = useState('');
+  const [otpCountdown, setOtpCountdown] = useState(0);
 
   // Capture incoming redirect intentions from location state or query params
   useEffect(() => {
@@ -78,6 +87,80 @@ export default function Login() {
     }
   }, [authReady, isAuthenticated, role, user, location.pathname, navigate]);
 
+  // Countdown timer for resend OTP
+  useEffect(() => {
+    if (otpCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
+
+  const handleSendSignupOtp = async () => {
+    setError('');
+    setOtpSuccessMessage('');
+    const trimmedEmail = email.trim();
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setError('Please enter your full name first.');
+      return;
+    }
+    if (!trimmedEmail) {
+      setError('Please enter your email address to receive the verification OTP.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    setSendingOtp(true);
+    try {
+      const effectiveRoleLabel = userType === 'Other' && otherDescription.trim() ? otherDescription.trim() : userType;
+      await apiClient.post('/send-otp', {
+        email: trimmedEmail,
+        role: 'user',
+        purpose: 'SIGNUP',
+        name: trimmedName,
+        userType: effectiveRoleLabel,
+        force: true,
+      });
+      setOtpSent(true);
+      setOtpCountdown(60);
+      setOtpSuccessMessage(`Security OTP has been sent to ${trimmedEmail}. Please enter the 4-digit code.`);
+    } catch (err) {
+      setError(err.message || 'Failed to send verification OTP.');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifySignupOtp = async (codeToVerify) => {
+    const code = (codeToVerify || otpCode).trim();
+    if (code.length !== 4) {
+      setError('Please enter all 4 digits of the OTP.');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setError('');
+    try {
+      await apiClient.post('/verify-otp', {
+        email: email.trim().toLowerCase(),
+        otp: code,
+        role: 'user',
+      });
+      setOtpVerified(true);
+      setOtpSuccessMessage('Email verified successfully! You can now create your account.');
+    } catch (err) {
+      setError(err.message || 'Invalid or expired OTP. Please check and try again.');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -86,6 +169,12 @@ export default function Login() {
 
     try {
       if (isSignUpMode) {
+        if (!otpVerified) {
+          setError('Please verify your email address with the OTP before creating your account.');
+          setSubmitting(false);
+          return;
+        }
+
         if (!agreedToTerms) {
           setError('Please review and agree to the Terms of Service and Privacy Policy to create your account.');
           setSubmitting(false);
@@ -105,18 +194,8 @@ export default function Login() {
 
         const effectiveRoleLabel = userType === 'Other' && otherDescription.trim() ? otherDescription.trim() : userType;
 
-        // Send registration OTP with pre-check that email does not already exist
-        await apiClient.post('/send-otp', {
-          email: trimmedEmail,
-          role: 'user',
-          purpose: 'SIGNUP',
-          name: trimmedName,
-          userType: effectiveRoleLabel,
-          force: true,
-        });
-
-        // Store pending signup payload and route to OTP verification
-        sessionStorage.setItem('pending_auth', JSON.stringify({
+        // Register directly since OTP is verified on page!
+        await authService.register({
           name: trimmedName,
           email: trimmedEmail,
           password,
@@ -124,12 +203,29 @@ export default function Login() {
           userType: effectiveRoleLabel,
           profession: otherDescription.trim(),
           collegeName: institutionName.trim(),
-          isSignUp: true,
-        }));
-        sessionStorage.setItem('human_verification_passed', 'true');
+        });
+
+        sessionStorage.removeItem('pending_auth');
+        sessionStorage.removeItem('human_verification_passed');
         sessionStorage.removeItem('mail_otp_request_state');
 
-        navigate('/Zyndex/User/Mail-OTP-Verification');
+        setSuccessMessage('Your account has been created and verified successfully! Please sign in with your password.');
+        setName('');
+        setEmail('');
+        setPassword('');
+        setOtpCode('');
+        setOtpSent(false);
+        setOtpVerified(false);
+        setSubmitting(false);
+
+        setTimeout(() => {
+          navigate('/Zyndex/User/Log-In', {
+            replace: true,
+            state: {
+              signupSuccess: 'Your account has been created and verified successfully. Please sign in.',
+            },
+          });
+        }, 1200);
         return;
       }
 
@@ -281,11 +377,104 @@ export default function Login() {
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
-                  <div className="relative flex items-center">
-                    <Mail className="absolute left-4 size-5 text-slate-400" />
-                    <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); setSuccessMessage(''); }} placeholder="Enter your email" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input" required />
+                  <div className="flex gap-2">
+                    <div className="relative flex-1 flex items-center">
+                      <Mail className="absolute left-4 size-5 text-slate-400" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setError('');
+                          setSuccessMessage('');
+                          if (isSignUpMode && otpVerified) {
+                            setOtpVerified(false);
+                            setOtpSent(false);
+                            setOtpCode('');
+                            setOtpSuccessMessage('');
+                          }
+                        }}
+                        placeholder="Enter your email"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
+                        required
+                        disabled={isSignUpMode && otpVerified}
+                      />
+                    </div>
+                    {isSignUpMode && (
+                      <button
+                        type="button"
+                        onClick={handleSendSignupOtp}
+                        disabled={sendingOtp || (otpSent && otpCountdown > 0) || otpVerified}
+                        className={`px-4 py-3.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all shadow-sm ${
+                          otpVerified
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default'
+                            : 'bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60'
+                        }`}
+                      >
+                        {sendingOtp
+                          ? 'Sending...'
+                          : otpVerified
+                          ? '✓ Verified'
+                          : otpSent
+                          ? otpCountdown > 0
+                            ? `Resend (${otpCountdown}s)`
+                            : 'Resend OTP'
+                          : 'Send OTP'}
+                      </button>
+                    )}
                   </div>
                 </div>
+
+                {isSignUpMode && otpSent && !otpVerified && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="p-4 bg-orange-50/70 border border-orange-200 rounded-2xl space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-orange-950 uppercase tracking-wider">
+                        Enter 4-Digit Security OTP
+                      </label>
+                      <span className="text-[11px] text-orange-700 font-medium">Sent to {email}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1 flex items-center">
+                        <KeyRound className="absolute left-3.5 size-4 text-orange-500" />
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={4}
+                          value={otpCode}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                            setOtpCode(val);
+                            setError('');
+                            if (val.length === 4) {
+                              handleVerifySignupOtp(val);
+                            }
+                          }}
+                          placeholder="••••"
+                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-orange-300 rounded-xl focus:ring-2 focus:ring-orange-500 font-mono text-center tracking-[0.4em] font-bold text-lg text-slate-800 outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleVerifySignupOtp()}
+                        disabled={verifyingOtp || otpCode.length !== 4}
+                        className="px-5 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 text-white text-xs font-bold rounded-xl hover:from-orange-700 hover:to-red-700 disabled:opacity-50 transition-all shadow-sm"
+                      >
+                        {verifyingOtp ? 'Checking...' : 'Verify OTP'}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {isSignUpMode && otpVerified && (
+                  <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold">
+                    <CheckCircle2 className="size-4 text-emerald-600 flex-shrink-0" />
+                    <span>Email {email} successfully verified with OTP.</span>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
@@ -335,6 +524,12 @@ export default function Login() {
                   </div>
                 )}
 
+                {otpSuccessMessage && (
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-xs font-semibold">
+                    <span>{otpSuccessMessage}</span>
+                  </div>
+                )}
+
                 {error && (
                   <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
                     <AlertCircle className="size-4" />
@@ -348,7 +543,13 @@ export default function Login() {
                   </div>
                 )}
 
-                <button type="submit" disabled={submitting} className="w-full relative group disabled:opacity-70">
+                <button
+                  type="submit"
+                  disabled={submitting || (isSignUpMode && !otpVerified)}
+                  className={`w-full relative group ${
+                    isSignUpMode && !otpVerified ? 'opacity-50 cursor-not-allowed' : 'disabled:opacity-70'
+                  }`}
+                >
                   <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div className="relative flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-600/30">
                     {submitting ? (isSignUpMode ? 'Creating account...' : 'Checking...') : (isSignUpMode ? 'Create Account' : 'Sign In')}
