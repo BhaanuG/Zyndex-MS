@@ -16,6 +16,7 @@ export default function MaintenanceCountdownBar({ isPrimaryAdmin }) {
     const checkMaintenance = async () => {
       try {
         const res = await userService.getMaintenanceMode();
+        // If maintenanceMode is false or scheduledAt was removed (cancelled), immediately clear the timer
         if (res?.maintenanceMode && res?.scheduledAt) {
           const startTime = new Date(res.scheduledAt).getTime();
           const targetTime = startTime + 15 * 60 * 1000; // 15 minutes in ms
@@ -29,6 +30,7 @@ export default function MaintenanceCountdownBar({ isPrimaryAdmin }) {
             userService.finalizeMaintenanceActive().catch(() => {});
           }
         } else {
+          // Immediately disable the timer bar
           setScheduledAt(null);
           setSecondsRemaining(null);
         }
@@ -36,7 +38,8 @@ export default function MaintenanceCountdownBar({ isPrimaryAdmin }) {
     };
 
     checkMaintenance();
-    const pollInterval = setInterval(checkMaintenance, 5000);
+    // Poll every 3 seconds so cancellation reflects immediately on client screens
+    const pollInterval = setInterval(checkMaintenance, 3000);
 
     return () => clearInterval(pollInterval);
   }, [isPrimaryAdmin]);

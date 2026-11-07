@@ -406,6 +406,29 @@ class AccountEmailService {
                 """.formatted(name, properties.otpMailFrom()));
     }
 
+    boolean sendMaintenanceCancelledEmail(String name, String email) {
+        return sendSafely(email, "Notice: Scheduled Maintenance Postponed / Cancelled - Normal Access Restored", """
+                Dear %s,
+
+                Please be advised that the previously scheduled platform maintenance has been postponed and cancelled due to technical scheduling adjustments.
+
+                What this means for you:
+                - The Zyndex digital library and all microservices remain 100%% ONLINE and fully operational.
+                - The scheduled maintenance timer has been disabled immediately.
+                - You can continue your academic reading, research, and platform operations without any interruption or session suspension.
+                - When the maintenance window is rescheduled in the future, advance notice will be provided.
+
+                Platform Portal: https://zyndex.com
+                Support Contact: %s
+
+                We apologize for any confusion caused by the initial notice and thank you for your understanding.
+
+                Warm regards,
+                The Zyndex Systems Team
+                %s
+                """.formatted(name, properties.mainAdminEmail(), properties.otpMailFrom()));
+    }
+
     boolean sendMaintenanceConcludedEmail(String name, String email) {
         return sendSafely(email, "Good News! Zyndex is Back Online - Normal Access Restored", """
                 Dear %s,

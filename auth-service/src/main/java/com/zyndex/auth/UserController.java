@@ -493,6 +493,7 @@ class UserController {
         boolean enable = AuthSupport.bool(body.get("enabled"));
         String actionType = AuthSupport.str(body.get("actionType")); // "SCHEDULE_START" | "FORCE_OFFICIAL_NOW" | "DEACTIVATE"
         
+        boolean isCancelledBeforeTimer = false;
         if (enable) {
             String nowIso = java.time.Instant.now().toString();
             jdbc.update("""
@@ -522,6 +523,19 @@ class UserController {
             }).start();
 
         } else {
+            // Check if maintenance was previously scheduled and whether the 15-minute countdown was still pending
+            var prevScheduleRows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_SCHEDULED_AT' LIMIT 1");
+            if (!prevScheduleRows.isEmpty() && prevScheduleRows.get(0).get("setting_value") != null) {
+                try {
+                    String prevIso = String.valueOf(prevScheduleRows.get(0).get("setting_value"));
+                    java.time.Instant scheduledInstant = java.time.Instant.parse(prevIso);
+                    long elapsedSeconds = java.time.Duration.between(scheduledInstant, java.time.Instant.now()).getSeconds();
+                    if (elapsedSeconds < 15 * 60) {
+                        isCancelledBeforeTimer = true;
+                    }
+                } catch (Exception ignored) {}
+            }
+
             jdbc.update("""
                     INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
                     VALUES ('MAINTENANCE_MODE', 'false', NOW(), ?)
@@ -530,29 +544,47 @@ class UserController {
 
             jdbc.update("DELETE FROM system_settings WHERE setting_key = 'MAINTENANCE_SCHEDULED_AT'");
 
-            // Broadcast maintenance concluded email
+            final boolean cancelledBeforeTimer = isCancelledBeforeTimer;
+
+            // Broadcast email: either "Maintenance Postponed / Cancelled" (if turned off before timer ended) or "Maintenance Concluded" (if after completion)
             new Thread(() -> {
                 try {
                     var users = jdbc.queryForList("SELECT id, name, username, email FROM users WHERE id != ?", adminId);
                     for (var u : users) {
                         String name = String.valueOf(AuthSupport.first(u.get("name"), u.get("username")));
                         String email = String.valueOf(u.get("email"));
-                        accountEmailService.sendMaintenanceConcludedEmail(name, email);
+                        if (cancelledBeforeTimer) {
+                            accountEmailService.sendMaintenanceCancelledEmail(name, email);
+                        } else {
+                            accountEmailService.sendMaintenanceConcludedEmail(name, email);
+                        }
                     }
                 } catch (Exception err) {
-                    System.err.println("Broadcast maintenance concluded email failed: " + err.getMessage());
+                    System.err.println("Broadcast maintenance cancellation/conclusion email failed: " + err.getMessage());
                 }
             }).start();
         }
+
+        String logDetail = enable
+                ? "Primary administrator " + admin.get("email") + " initiated platform maintenance mode. 15-minute countdown timer started and broadcast warning emails dispatched to all users."
+                : (isCancelledBeforeTimer
+                    ? "Primary administrator " + admin.get("email") + " cancelled/postponed platform maintenance mode before the 15-minute countdown expired. Countdown timer disabled and cancellation notices dispatched to all users."
+                    : "Primary administrator " + admin.get("email") + " concluded platform maintenance mode. Platform marked 100% operational and back-online notices dispatched to all users.");
 
         try {
             jdbc.update("""
                     INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'ADMIN-PORTAL', 'WARN', 'ADMIN_TOGGLE_MAINTENANCE_MODE', ?, ?, ?, 'SUCCESS')
-                    """, admin.get("email"), "Administrator toggled platform maintenance mode to: " + (enable ? "ACTIVATED (15-min countdown triggered & email broadcast dispatched)" : "DEACTIVATED (Back Online email broadcast dispatched)"), request.getRemoteAddr());
+                    """, admin.get("email"), logDetail, request.getRemoteAddr());
         } catch (Exception ignored) {}
 
-        return Map.of("maintenanceMode", enable, "message", enable ? "Maintenance mode activated. Broadcast email sent and 15-minute countdown started." : "Maintenance mode deactivated. Zyndex is back online.");
+        String responseMessage = enable
+                ? "Maintenance mode activated. Broadcast email sent and 15-minute countdown started."
+                : (isCancelledBeforeTimer
+                    ? "Maintenance mode cancelled before countdown expired. Timer disabled and cancellation emails dispatched to users."
+                    : "Maintenance mode deactivated. Zyndex is back online.");
+
+        return Map.of("maintenanceMode", enable, "message", responseMessage);
     }
 
     @PostMapping("/maintenance-officially-active")
