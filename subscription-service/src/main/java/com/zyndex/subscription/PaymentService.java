@@ -1110,7 +1110,6 @@ public class PaymentService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> getUserDetails(Long userId) {
         if (userId == null) {
             return Map.of("name", "N/A", "email", "N/A");
