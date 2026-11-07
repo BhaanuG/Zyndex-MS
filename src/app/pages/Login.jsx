@@ -113,6 +113,13 @@ export default function Login() {
     if (location.state?.signupSuccess) {
       setSuccessMessage(location.state.signupSuccess);
     }
+    if (location.state?.errorMessage) {
+      setError(location.state.errorMessage);
+      if (location.state.errorMessage.includes('terminated')) {
+        setIsTerminatedUser(true);
+        setTerminatedMessage(location.state.errorMessage);
+      }
+    }
   }, [location.state]);
 
   useEffect(() => {

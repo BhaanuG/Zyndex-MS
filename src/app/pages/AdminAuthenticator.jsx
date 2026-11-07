@@ -18,7 +18,24 @@ export default function AdminAuthenticator() {
     if (!pendingAuth) {
       // No pending auth, redirect to login
       navigate('/');
+      return;
     }
+
+    try {
+      const parsed = JSON.parse(pendingAuth);
+      if (parsed.email) {
+        authService.checkUserStatus(parsed.email).then((status) => {
+          if (status?.terminated) {
+            sessionStorage.removeItem('pending_auth');
+            navigate('/Zyndex/Admin/Log-In', {
+              state: {
+                errorMessage: 'The given email ID has been terminated by an administrator. Please contact administrator.'
+              }
+            });
+          }
+        }).catch(() => {});
+      }
+    } catch (e) {}
   }, [navigate]);
 
   const handleAuthSuccess = async () => {
