@@ -50,6 +50,7 @@ export default function UserAccessManagement() {
   const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
   const [adminRequests, setAdminRequests] = useState([]);
   const [restoringUser, setRestoringUser] = useState(null);
+  const [loggingOutUser, setLoggingOutUser] = useState(null);
 
   const handleRestoreUserAccess = async (u) => {
     if (!isPrimaryAdmin) return;

@@ -1780,19 +1780,19 @@ Statistics were calculated using a native filesystem audit executed across all s
 | Metric Category | Measured Quantity | Description & Character Breakdown |
 | :--- | :--- | :--- |
 | **Total Source Files** | **208 Files** | Application-owned source, configuration, template, and schema manifests |
-| **Total Lines of Code (LOC)** | **48,843 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **172,058 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,096,922 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,139,482 Characters** | 54.34% of total character stream |
+| **Total Lines of Code (LOC)** | **48,844 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **172,063 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,096,984 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,139,530 Characters** | 54.34% of total character stream |
 | **Digits & Numbers (`0-9`)** | **52,952 Characters** | 2.53% of total character stream |
-| **Symbols, Operators & Punctuation** | **294,224 Characters** | 14.03% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **610,264 Characters** | 29.10% of total character stream (indentation, newlines) |
+| **Symbols, Operators & Punctuation** | **294,231 Characters** | 14.03% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **610,271 Characters** | 29.10% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
 | Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`.jsx`** | React UI Components & Pages | **95 Files** | **24,682 Lines** | **86,052 Words** | **1,086,142 Chars** |
+| **`.jsx`** | React UI Components & Pages | **95 Files** | **24,683 Lines** | **86,057 Words** | **1,086,204 Chars** |
 | **`.java`** | Spring Boot Microservices Backend | **63 Files** | **9,215 Lines** | **37,263 Words** | **459,832 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,543 Lines** | **14,214 Words** | **152,778 Chars** |
 | **`.json`** | Package & Dependency Manifests | **3 Files** | **6,005 Lines** | **11,441 Words** | **170,276 Chars** |
@@ -1801,7 +1801,7 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.yml`** | Spring Cloud & Gateway Configurations| **11 Files** | **646 Lines** | **1,245 Words** | **19,247 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **523 Lines** | **552 Words** | **18,789 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
-| **Overall Total** | **Full Stack Application** | **208 Files** | **48,843 Lines** | **172,058 Words** | **2,096,922 Chars** |
+| **Overall Total** | **Full Stack Application** | **208 Files** | **48,844 Lines** | **172,063 Words** | **2,096,984 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
