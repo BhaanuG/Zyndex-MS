@@ -124,13 +124,15 @@ const feedbackService = {
    * @param {string} resourceId - Resource ID
    * @param {number} rating - Rating (1-5)
    * @param {string} comment - Optional comment
+   * @param {boolean} [isAnonymous=false] - Whether to submit anonymously
    * @returns {Promise<Object>} - { message }
    */
-  rateResource: async (resourceId, rating, comment = '') => {
+  rateResource: async (resourceId, rating, comment = '', isAnonymous = false) => {
     try {
       const response = await apiClient.post(`/resources/${resourceId}/rate`, { 
         rating, 
-        comment 
+        comment,
+        isAnonymous
       });
       return response;
     } catch (error) {

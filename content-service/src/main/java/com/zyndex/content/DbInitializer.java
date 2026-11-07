@@ -66,6 +66,9 @@ class DbInitializer implements CommandLineRunner {
         try {
             jdbc.execute("ALTER TABLE feedback ADD COLUMN responded_at DATETIME(6) NULL");
         } catch (Exception ignored) {}
+        try {
+            jdbc.execute("ALTER TABLE feedback ADD COLUMN is_anonymous BOOLEAN NOT NULL DEFAULT FALSE");
+        } catch (Exception ignored) {}
         jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS contacts (
                   id BIGINT NOT NULL AUTO_INCREMENT,

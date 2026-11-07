@@ -175,10 +175,16 @@ class UserController {
     @PutMapping("/{userId}")
     Map<String, Object> update(HttpServletRequest request, @PathVariable("userId") long userId, @RequestBody Map<String, Object> body) {
         auth.requirePrimaryAdmin(request);
-        Map<String, Object> subscriptionUpdate = Map.of("notificationEmailSent", false);
+        Map<String, Object> existingUser = auth.findUserById(userId);
+        if (existingUser == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
+        }
+        String oldRole = SqlSupport.str(existingUser.get("role"));
+        if (oldRole.isBlank()) oldRole = "STUDENT";
+
         String name = AuthSupport.str(body.get("name"));
         String email = AuthSupport.str(body.get("email"));
-        String role = "admin".equals(body.get("role")) ? "ADMIN" : "STUDENT";
+        String role = "admin".equalsIgnoreCase(String.valueOf(body.get("role"))) ? "ADMIN" : "STUDENT";
         String password = AuthSupport.str(body.get("password"));
         String userType = AuthSupport.str(body.get("userType"));
         String profession = AuthSupport.str(body.get("profession"));
@@ -187,11 +193,15 @@ class UserController {
         String registrationNo = AuthSupport.str(body.get("registrationNo"));
         String bio = AuthSupport.str(body.get("bio"));
 
+        boolean roleChanged = !oldRole.equalsIgnoreCase(role);
+
+        Boolean planNotificationSent = null;
         if (body.containsKey("subscriptionPlan")) {
             String subscriptionPlan = AuthSupport.str(body.get("subscriptionPlan"));
             int durationDays = body.get("durationDays") != null ? Integer.parseInt(String.valueOf(body.get("durationDays"))) : 30;
             if (!subscriptionPlan.isBlank()) {
-                subscriptionUpdate = auth.updateUserSubscription(userId, subscriptionPlan, durationDays);
+                Map<String, Object> subscriptionUpdate = auth.updateUserSubscription(userId, subscriptionPlan, durationDays);
+                planNotificationSent = Boolean.TRUE.equals(subscriptionUpdate.get("notificationEmailSent"));
             }
         }
 
@@ -201,16 +211,50 @@ class UserController {
             jdbc.update("UPDATE users SET username = ?, email = ?, role = ?, user_type = ?, profession = ?, college_name = ?, university_name = ?, registration_no = ?, bio = ?, password = ? WHERE id = ?", name, email, role, userType.isBlank() ? "Other" : userType, profession.isBlank() ? null : profession, collegeName.isBlank() ? null : collegeName, universityName.isBlank() ? null : universityName, registrationNo.isBlank() ? null : registrationNo, bio.isBlank() ? null : bio, auth.passwordEncoder.encode(password), userId);
         }
 
-        boolean notificationEmailSent = password.isBlank() || accountEmailService.sendPasswordChangedEmail(name, email);
-        return Map.of("message", "User updated successfully.",
-            "notificationEmailSent", subscriptionUpdate.getOrDefault("notificationEmailSent", notificationEmailSent));
+        boolean roleEmailSent = false;
+        if (roleChanged) {
+            String adminName = SqlSupport.first(request.getHeader("X-User-Name"), "Main Administrator");
+            String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            roleEmailSent = accountEmailService.sendRoleChangedEmail(name, email, oldRole, role, adminName, timestamp);
+        }
+
+        if (!password.isBlank()) {
+            accountEmailService.sendPasswordChangedEmail(name, email);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("message", "User updated successfully.");
+        result.put("roleChanged", roleChanged);
+        result.put("roleEmailSent", roleEmailSent);
+        if (planNotificationSent != null) {
+            result.put("notificationEmailSent", planNotificationSent);
+        }
+        return result;
     }
 
     @PutMapping("/{userId}/role")
     Map<String, Object> updateRole(HttpServletRequest request, @PathVariable("userId") long userId, @RequestBody Map<String, Object> body) {
         auth.requirePrimaryAdmin(request);
-        jdbc.update("UPDATE users SET role = ? WHERE id = ?", "admin".equals(body.get("role")) ? "ADMIN" : "STUDENT", userId);
-        return Map.of("message", "User role updated successfully.");
+        Map<String, Object> existingUser = auth.findUserById(userId);
+        if (existingUser == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
+        }
+        String oldRole = SqlSupport.str(existingUser.get("role"));
+        if (oldRole.isBlank()) oldRole = "STUDENT";
+        String newRole = "admin".equalsIgnoreCase(String.valueOf(body.get("role"))) ? "ADMIN" : "STUDENT";
+
+        jdbc.update("UPDATE users SET role = ? WHERE id = ?", newRole, userId);
+
+        boolean roleEmailSent = false;
+        if (!oldRole.equalsIgnoreCase(newRole)) {
+            String name = SqlSupport.first(existingUser.get("username"), existingUser.get("name"), "User");
+            String email = SqlSupport.str(existingUser.get("email"));
+            String adminName = SqlSupport.first(request.getHeader("X-User-Name"), "Main Administrator");
+            String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            roleEmailSent = accountEmailService.sendRoleChangedEmail(name, email, oldRole, newRole, adminName, timestamp);
+        }
+
+        return Map.of("message", "User role updated successfully.", "roleEmailSent", roleEmailSent);
     }
 
     @PutMapping("/{userId}/status")

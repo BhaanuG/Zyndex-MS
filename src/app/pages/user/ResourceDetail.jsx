@@ -38,6 +38,7 @@ export default function ResourceDetail() {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [feedback, setFeedback] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [message, setMessage] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
   const [previewToken, setPreviewToken] = useState('');
@@ -189,7 +190,7 @@ export default function ResourceDetail() {
     e.preventDefault();
 
     try {
-      await feedbackService.rateResource(id, rating, feedback);
+      await feedbackService.rateResource(id, rating, feedback, isAnonymous);
 
       setMessage('Feedback submitted successfully.');
       setRating(0);
@@ -504,6 +505,29 @@ export default function ResourceDetail() {
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
                     />
+                  </div>
+
+                  {/* Anonymous Feedback Toggle */}
+                  <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        Submit as Anonymous Feedback
+                      </span>
+                      <p className="text-[11px] text-slate-500">
+                        {isAnonymous 
+                          ? 'Your name and email address will be hidden from the admin portal.' 
+                          : 'Your name and email address will be visible to administrators.'}
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isAnonymous}
+                        onChange={(e) => setIsAnonymous(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                    </label>
                   </div>
 
                   {message && <p className="text-sm text-orange-600">{message}</p>}

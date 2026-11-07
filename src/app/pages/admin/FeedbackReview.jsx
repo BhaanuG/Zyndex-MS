@@ -112,16 +112,26 @@ export default function FeedbackReview() {
                   <div className="flex-1">
                     {/* User Credentials & Details */}
                     <div className="flex items-start gap-3.5 mb-3">
-                      <div className="size-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-md shadow-orange-600/20 flex-shrink-0">
-                        {feedback.userName?.charAt(0)?.toUpperCase() || 'U'}
+                      <div className={`size-11 rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-md flex-shrink-0 ${
+                        feedback.isAnonymous 
+                          ? 'bg-gradient-to-br from-slate-600 to-slate-800 shadow-slate-600/20' 
+                          : 'bg-gradient-to-br from-orange-500 to-red-600 shadow-orange-600/20'
+                      }`}>
+                        {feedback.isAnonymous ? '?' : (feedback.userName?.charAt(0)?.toUpperCase() || 'U')}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-bold text-slate-900 text-base">{feedback.userName || 'Student Reader'}</p>
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                            <Mail className="size-3 text-slate-500" />
-                            {feedback.email || 'reader@zyndex.com'}
-                          </span>
+                          {feedback.isAnonymous ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                              🔒 Anonymous Feedback
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                              <Mail className="size-3 text-slate-500" />
+                              {feedback.email || 'reader@zyndex.com'}
+                            </span>
+                          )}
                           {feedback.adminResponse && (
                             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
                               ✓ Responded
@@ -207,10 +217,12 @@ export default function FeedbackReview() {
                     >
                       <div className="flex items-center justify-between">
                         <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Compose Response to {feedback.userName} ({feedback.email})
+                          Compose Response to {feedback.isAnonymous ? 'Anonymous Reader' : `${feedback.userName} (${feedback.email})`}
                         </label>
                         <span className="text-[11px] text-slate-500">
-                          This comment will be emailed directly to the user's registered inbox.
+                          {feedback.isAnonymous 
+                            ? 'Response will be saved and visible to reader in review history (no direct email sent for anonymous reviews).' 
+                            : 'This comment will be emailed directly to the user\'s registered inbox.'}
                         </span>
                       </div>
                       <textarea

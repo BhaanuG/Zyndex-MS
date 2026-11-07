@@ -231,9 +231,16 @@ export default function UserAccessManagement() {
 
         closeModal();
         await loadUsers(searchTerm);
-        alert(updateResponse?.notificationEmailSent === false
-          ? 'User updated successfully, but the plan-upgrade email could not be sent. Check SMTP configuration and service logs.'
-          : 'User updated successfully.');
+
+        let feedbackMsg = 'User updated successfully.';
+        if (updateResponse?.roleChanged) {
+          feedbackMsg = updateResponse.roleEmailSent
+            ? `User updated and promoted/updated to ${formUser.role.toUpperCase()}. An official platform role email notification was dispatched to the user.`
+            : `User updated to ${formUser.role.toUpperCase()}. Role changed successfully.`;
+        } else if (updateResponse?.notificationEmailSent === false) {
+          feedbackMsg = 'User updated successfully, but the plan-upgrade email could not be sent. Check SMTP configuration and service logs.';
+        }
+        alert(feedbackMsg);
         return;
       }
 
@@ -492,11 +499,30 @@ export default function UserAccessManagement() {
                     </div>
                   )}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Platform Role</label>
-                    <select value={formUser.role} onChange={(e) => setFormUser({ ...formUser, role: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm">
-                      <option value="user">User (Standard)</option>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-gray-600">Platform Role</label>
+                      {!isPrimaryAdmin && (
+                        <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                          Main Admin Only
+                        </span>
+                      )}
+                    </div>
+                    <select
+                      value={formUser.role}
+                      onChange={(e) => setFormUser({ ...formUser, role: e.target.value })}
+                      disabled={!isPrimaryAdmin}
+                      className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm ${
+                        !isPrimaryAdmin ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <option value="user">User (Standard Reader / Student)</option>
                       <option value="admin">Admin (Full Access)</option>
                     </select>
+                    {!isPrimaryAdmin && (
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        Only the Main Administrator can elevate or demote platform roles between Admin and User.
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">User Type</label>

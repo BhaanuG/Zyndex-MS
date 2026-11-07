@@ -350,8 +350,9 @@ class ResourceController {
         if (rating < 1 || rating > 5) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5.");
         }
-        jdbc.update("INSERT INTO feedback (rating, created_at, resource_id, user_id, comment) VALUES (?, NOW(), ?, ?, ?)",
-                rating, id, userId, SqlSupport.str(body.get("comment")));
+        boolean isAnonymous = Boolean.TRUE.equals(body.get("isAnonymous")) || "true".equalsIgnoreCase(SqlSupport.str(body.get("isAnonymous")));
+        jdbc.update("INSERT INTO feedback (rating, created_at, resource_id, user_id, comment, is_anonymous) VALUES (?, NOW(), ?, ?, ?, ?)",
+                rating, id, userId, SqlSupport.str(body.get("comment")), isAnonymous);
         jdbc.update("UPDATE resources SET rating = (SELECT COALESCE(AVG(rating), 0) FROM feedback WHERE resource_id = ?) WHERE id = ?", id, id);
         return Map.of("message", "Rating submitted successfully.");
     }
@@ -526,7 +527,8 @@ class ResourceController {
             headers.set("X-Internal-Service", "content-service");
             org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
             String url = "http://auth-service/api/users/" + userId + "/profile";
-            org.springframework.http.ResponseEntity<Map> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, Map.class);
+            org.springframework.core.ParameterizedTypeReference<Map<String, Object>> typeRef = new org.springframework.core.ParameterizedTypeReference<>() {};
+            org.springframework.http.ResponseEntity<Map<String, Object>> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, typeRef);
             if (response.getBody() != null && response.getBody().get("email") != null) {
                 return response.getBody();
             }

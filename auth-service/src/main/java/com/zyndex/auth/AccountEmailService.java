@@ -478,6 +478,63 @@ class AccountEmailService {
         }
     }
 
+    boolean sendRoleChangedEmail(String username, String email, String oldRole, String newRole, String changedByAdminName, String changedAt) {
+        String subject = "Zyndex | Platform Role Update: " + newRole;
+        String text = """
+                Dear %s,
+
+                Your platform access role on Zyndex has been updated by the primary platform administration.
+
+                === ROLE UPDATE DETAILS ===
+                - Account Name: %s
+                - Registered Email: %s
+                - Previous Role: %s
+                - New Platform Role: %s
+                - Updated By: %s (Main Administrator)
+                - Timestamp: %s
+
+                === WHAT THIS MEANS & PERMISSIONS ===
+                %s
+
+                If you have questions regarding your updated access permissions or require assistance, please contact the primary administrator at %s.
+
+                Best regards,
+                Zyndex Platform Security & Administration
+                %s
+                """.formatted(
+                username,
+                username,
+                email,
+                oldRole,
+                newRole,
+                changedByAdminName,
+                changedAt,
+                "ADMIN".equalsIgnoreCase(newRole)
+                    ? """
+                      - Full access to the Admin Console, Resource Management, and Telemetry Logs.
+                      - Capability to upload and manage academic resources with unlimited storage.
+                      - Real-time review and response management for learner feedback.
+                      - Note: Elevation to Main Admin privileges and modifying other administrators' roles remains exclusively reserved for the primary administrator.
+                      """.trim()
+                    : """
+                      - Standard learner/reader access to curated academic textbooks, guides, and articles.
+                      - Personalized study dashboard, reading history, bookmarks, and resource rating privileges.
+                      - Administrative console permissions have been gracefully revoked.
+                      """.trim(),
+                properties.mainAdminEmail(),
+                properties.otpMailFrom()
+        );
+
+        try {
+            send(email, subject, text);
+            System.out.println("[ACCOUNT EMAIL] Role change notification delivered to: " + email);
+            return true;
+        } catch (Exception e) {
+            System.err.println("[ACCOUNT EMAIL] Failed to deliver role change notification to " + email + ": " + e.getMessage());
+            return false;
+        }
+    }
+
     private String escapeHtml(String value) {
         return value
                 .replace("&", "&amp;")

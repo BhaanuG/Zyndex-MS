@@ -35,8 +35,9 @@ class FeedbackController {
         if (resourceId == 0) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "A logged-in user and resource are required.");
         }
-        jdbc.update("INSERT INTO feedback (rating, created_at, resource_id, user_id, comment) VALUES (?, NOW(), ?, ?, ?)",
-                SqlSupport.parseInt(SqlSupport.str(body.get("rating")), 0), resourceId, userId, SqlSupport.str(body.get("message")));
+        boolean isAnonymous = Boolean.TRUE.equals(body.get("isAnonymous")) || "true".equalsIgnoreCase(SqlSupport.str(body.get("isAnonymous")));
+        jdbc.update("INSERT INTO feedback (rating, created_at, resource_id, user_id, comment, is_anonymous) VALUES (?, NOW(), ?, ?, ?, ?)",
+                SqlSupport.parseInt(SqlSupport.str(body.get("rating")), 0), resourceId, userId, SqlSupport.str(body.get("message")), isAnonymous);
         return Map.of("message", "Feedback submitted successfully.", "feedbackId", jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class));
     }
 
@@ -61,7 +62,7 @@ class FeedbackController {
         requireAdmin(request);
         var page = sql.page(query);
         var rows = jdbc.queryForList("""
-                SELECT f.id, f.rating, f.created_at, f.comment, f.admin_response, f.responded_at, f.user_id, r.title, r.category
+                SELECT f.id, f.rating, f.created_at, f.comment, f.admin_response, f.responded_at, f.user_id, f.is_anonymous, r.title, r.category
                 FROM feedback f JOIN resources r ON r.id = f.resource_id
                 ORDER BY f.created_at DESC LIMIT ? OFFSET ?
                 """, page.get("size"), page.get("offset"));
@@ -69,22 +70,28 @@ class FeedbackController {
 
         List<Map<String, Object>> mappedFeedback = rows.stream().map(row -> {
             long userId = SqlSupport.number(row.get("user_id"));
+            boolean isAnon = Boolean.TRUE.equals(row.get("is_anonymous")) || "1".equals(String.valueOf(row.get("is_anonymous")));
             Map<String, Object> userProfile = fetchUserProfile(userId);
-            return Map.of(
-                "id", row.get("id"),
-                "userId", userId,
-                "userName", SqlSupport.first(userProfile.get("name"), "Student Reader"),
-                "email", SqlSupport.first(userProfile.get("email"), "user@zyndex.com"),
-                "category", row.get("category"),
-                "comment", SqlSupport.first(row.get("comment"), ""),
-                "message", SqlSupport.first(row.get("comment"), ""),
-                "rating", row.get("rating"),
-                "status", row.get("admin_response") != null ? "responded" : "reviewed",
-                "adminResponse", SqlSupport.first(row.get("admin_response"), ""),
-                "respondedAt", SqlSupport.first(row.get("responded_at"), ""),
-                "date", row.get("created_at"),
-                "resourceTitle", row.get("title")
-            );
+
+            String userName = isAnon ? "Anonymous Reader" : SqlSupport.first(userProfile.get("name"), "Student Reader");
+            String userEmail = isAnon ? "anonymous@reader.zyndex" : SqlSupport.first(userProfile.get("email"), "reader@zyndex.com");
+
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", row.get("id"));
+            item.put("userId", userId);
+            item.put("userName", userName);
+            item.put("email", userEmail);
+            item.put("isAnonymous", isAnon);
+            item.put("category", row.get("category"));
+            item.put("comment", SqlSupport.first(row.get("comment"), ""));
+            item.put("message", SqlSupport.first(row.get("comment"), ""));
+            item.put("rating", row.get("rating"));
+            item.put("status", row.get("admin_response") != null ? "responded" : "reviewed");
+            item.put("adminResponse", SqlSupport.first(row.get("admin_response"), ""));
+            item.put("respondedAt", SqlSupport.first(row.get("responded_at"), ""));
+            item.put("date", row.get("created_at"));
+            item.put("resourceTitle", row.get("title"));
+            return item;
         }).toList();
 
         return sql.pageResult("feedback", mappedFeedback, total, page.get("page"), page.get("size"));
@@ -203,7 +210,8 @@ class FeedbackController {
             headers.set("X-Internal-Service", "content-service");
             org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
             String url = "http://auth-service/api/users/" + userId + "/profile";
-            org.springframework.http.ResponseEntity<Map> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, Map.class);
+            org.springframework.core.ParameterizedTypeReference<Map<String, Object>> typeRef = new org.springframework.core.ParameterizedTypeReference<>() {};
+            org.springframework.http.ResponseEntity<Map<String, Object>> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, typeRef);
             if (response.getBody() != null && response.getBody().get("email") != null) {
                 return response.getBody();
             }
