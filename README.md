@@ -75,6 +75,10 @@
 
 ## System Architecture & Microservices Topology
 
+[![Architecture diagram of bhaanug/zyndex-ms](https://gitdiagram.com/bhaanug/zyndex-ms/diagram.png)](https://gitdiagram.com/bhaanug/zyndex-ms?utm_source=readme&utm_medium=picture)
+
+<br/>
+
 ```mermaid
 flowchart TD
     subgraph ClientLayer["🖥️ Presentation & Edge Tier"]
