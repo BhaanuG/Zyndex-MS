@@ -1,4 +1,7 @@
-# Zyndex — Enterprise Academic Learning & Digital Resource Management Platform
+<div align="center">
+
+# ⚡ Zyndex (ScholarSphere Engine)
+### *Next-Generation Enterprise Academic Learning & Distributed Digital Resource Governance Platform*
 
 [![Java](https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -7,18 +10,43 @@
 [![Vite](https://img.shields.io/badge/Vite-6.0.5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4.17-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2F8.4-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Architecture](https://img.shields.io/badge/Architecture-Poly--Service%20Microservices-blueviolet?style=for-the-badge)]()
-[![Status](https://img.shields.io/badge/Build%20Status-Passing%20(0%20Errors)-success?style=for-the-badge)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![Security Policy](https://img.shields.io/badge/Security-Enforced-success?style=for-the-badge&logo=shield)](SECURITY.md)
+[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-blue?style=for-the-badge)](ACCESSIBILITY.md)
+[![Build Status](https://img.shields.io/badge/Build-Passing%20(0%20Errors)-brightgreen?style=for-the-badge)]()
 
-> **ScholarSphere Engine | Production Technical Documentation & Comprehensive Architecture Reference**  
-> *Last Codebase Re-Audit & Complete Verification: October 30, 2026*  
-> *Target Audience: Principal Engineers, Open-Source Contributors, DevOps Engineers, Full-Stack Developers, Database Architects, and System Maintainers*
+<br/>
+
+```
+  ____                 _             
+ |_  / _   _ _ __   __| | ___ __  __ 
+  / / | | | | '_ \ / _` |/ _ \\ \/ / 
+ / /__| |_| | | | | (_| |  __/ >  <  
+/_____|\__, |_| |_|\__,_|\___|/_/\_\ 
+       |___/                         
+Distributed Academic Microservices Engine | Precision Resource Governance
+```
+
+<p align="center">
+  <b>Architected for Higher Education Campuses, University Consortia & Research Institutions</b><br/>
+  <i>Engineered by Principal Architects & Full-Stack Systems Maintainers</i>
+</p>
 
 ---
 
-## Table of Contents
-1. [Project Identity & Overview](#1-project-identity--overview)
-2. [What is Zyndex? Concept, Domain & User Journeys](#2-what-is-zyndex-concept-domain--user-journeys)
+</div>
+
+> [!IMPORTANT]
+> **Enterprise Production Engineering Documentation & Technical Architecture Reference**  
+> **Lead Architect & Maintainer**: Bhaanu Gali (`Bhaanugali@gmail.com` / `2400030952@kluniversity.in`)  
+> **Current Engine Version**: `v1.0.4-PROD` | **Zero-Defect Build Certified** | **Render & Cloud Native**  
+> **Target Audience**: Principal Systems Architects, Open-Source Contributors, Platform Engineers, and DevSecOps Leads.
+
+---
+
+## 📑 Executive Table of Contents
+1. [Platform Overview & Mission Architecture](#1-project-identity--overview)
+2. [Domain Problem Statement & Solution Matrix](#2-what-is-zyndex-concept-domain--user-journeys)
 3. [Function-by-Function Source Code Inventory](#3-function-by-function-source-code-inventory)
 4. [Exact End-to-End Execution Flow Traces](#4-exact-end-to-end-execution-flow-traces)
 5. [Business Logic & Rules Knowledge Base](#5-business-logic--rules-knowledge-base)
