@@ -108,6 +108,11 @@ export default function ResourceManagement() {
   });
   const [createStatus, setCreateStatus] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStats, setUploadStats] = useState({ loaded: 0, total: 0 });
+  const [updatingResource, setUpdatingResource] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState(0);
+  const [updateStats, setUpdateStats] = useState({ loaded: 0, total: 0 });
   const [previewResource, setPreviewResource] = useState(null);
   const [previewToken, setPreviewToken] = useState('');
   const [previewBlobUrl, setPreviewBlobUrl] = useState('');
@@ -342,9 +347,18 @@ export default function ResourceManagement() {
     }
   };
 
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setUploading(true);
+    setUploadProgress(0);
+    setUploadStats({ loaded: 0, total: createResource.file ? createResource.file.size : 0 });
     setCreateStatus('');
 
     try {
@@ -357,19 +371,31 @@ export default function ResourceManagement() {
       payload.append('description', createResource.description);
       if (createResource.file) payload.append('file', createResource.file);
 
-      await resourceService.uploadResource(payload);
+      await resourceService.uploadResource(payload, (progressEvent) => {
+        const total = progressEvent.total || (createResource.file ? createResource.file.size : 0);
+        const loaded = progressEvent.loaded || 0;
+        const percent = total > 0 ? Math.min(100, Math.round((loaded * 100) / total)) : 0;
+        setUploadProgress(percent);
+        setUploadStats({ loaded, total });
+      });
+
       setCreateStatus('Resource uploaded successfully.');
       await loadResources(searchTerm);
       await loadCategories();
       closeCreateModal();
     } catch (error) {
       setCreateStatus(error.message || 'Upload failed.');
+    } finally {
       setUploading(false);
     }
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    setUpdatingResource(true);
+    setUpdateProgress(0);
+    setUpdateStats({ loaded: 0, total: formResource.file ? formResource.file.size : 0 });
+
     try {
       const payload = new FormData();
       payload.append('title', formResource.title);
@@ -379,7 +405,15 @@ export default function ResourceManagement() {
       payload.append('requiredPlan', formResource.requiredPlan || 'FREE');
       payload.append('description', formResource.description);
       if (formResource.file) payload.append('file', formResource.file);
-      await resourceService.updateResource(formResource.id, payload);
+
+      await resourceService.updateResource(formResource.id, payload, (progressEvent) => {
+        const total = progressEvent.total || (formResource.file ? formResource.file.size : 0);
+        const loaded = progressEvent.loaded || 0;
+        const percent = total > 0 ? Math.min(100, Math.round((loaded * 100) / total)) : 0;
+        setUpdateProgress(percent);
+        setUpdateStats({ loaded, total });
+      });
+
       closeEditModal();
       await loadResources(searchTerm);
       await loadCategories();
@@ -389,6 +423,8 @@ export default function ResourceManagement() {
         text: error.message || 'Failed to update resource.',
         buttonText: 'OK'
       });
+    } finally {
+      setUpdatingResource(false);
     }
   };
 
@@ -523,22 +559,71 @@ export default function ResourceManagement() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">{createResource.resourceType === 'article' ? 'Linked Article' : 'Description'}</label>
                     {createResource.resourceType === 'article' ? <ArticleEditor value={createResource.description} onChange={(e) => setCreateResource((prev) => ({ ...prev, description: e.target.value }))} /> : <textarea name="description" value={createResource.description} onChange={(e) => setCreateResource((prev) => ({ ...prev, description: e.target.value }))} rows={5} className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none" required />}
                   </div>
-                  {createResource.resourceType !== 'article' && <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">File</label>
-                    <label className="flex items-center justify-center gap-3 p-8 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-500 transition-colors">
-                      <UploadIcon className="size-6 text-orange-600" />
-                      <span>{createResource.file ? createResource.file.name : 'Choose a file to upload'}</span>
-                      <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={(e) => setCreateResource((prev) => ({ ...prev, file: e.target.files?.[0] || null }))} className="hidden" required />
-                    </label>
-                  </div>}
+                  {createResource.resourceType !== 'article' && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">File</label>
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                          ∞ Unlimited Storage (No Cap)
+                        </span>
+                      </div>
+                      <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-500 transition-colors bg-slate-50/50 hover:bg-orange-50/20">
+                        <UploadIcon className="size-8 text-orange-600 mb-1" />
+                        <span className="font-medium text-gray-800 text-sm">
+                          {createResource.file ? createResource.file.name : 'Choose a file to upload'}
+                        </span>
+                        {createResource.file && (
+                          <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200">
+                            Exact Size: {formatBytes(createResource.file.size)}
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-400">Supported: PDF, DOC, DOCX, TXT • Any file size permitted</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt"
+                          onChange={(e) => {
+                            const selected = e.target.files?.[0] || null;
+                            setCreateResource((prev) => ({ ...prev, file: selected }));
+                            setUploadProgress(0);
+                            setUploadStats({ loaded: 0, total: selected ? selected.size : 0 });
+                          }}
+                          className="hidden"
+                          required
+                        />
+                      </label>
+                    </div>
+                  )}
 
-                  {createStatus && <p className="text-sm text-orange-600">{createStatus}</p>}
+                  {/* Real-time Upload Progress Indicator */}
+                  {uploading && (
+                    <div className="p-4 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-orange-950">
+                        <span className="flex items-center gap-1.5">
+                          <span className="size-2 rounded-full bg-orange-600 animate-ping inline-block" />
+                          Uploading Resource...
+                        </span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full bg-orange-200/80 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-orange-500 to-red-600 h-2.5 rounded-full transition-all duration-150 ease-out"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-orange-800 font-medium">
+                        <span>Transferred: {formatBytes(uploadStats.loaded)} / {formatBytes(uploadStats.total || (createResource.file?.size || 0))}</span>
+                        <span>{uploadProgress === 100 ? 'Processing & saving on server...' : 'Live upload stream'}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {createStatus && <p className="text-sm text-orange-600 font-medium">{createStatus}</p>}
 
                   <div className="flex items-center gap-3 pt-2">
                     <button type="button" onClick={closeCreateModal} className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">Cancel</button>
                     <button type="submit" disabled={uploading} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors disabled:opacity-60">
                       <File className="size-4" />
-                      {uploading ? 'Uploading...' : 'Add Resource'}
+                      {uploading ? `Uploading (${uploadProgress}%)` : 'Add Resource'}
                     </button>
                   </div>
                 </form>
@@ -613,15 +698,61 @@ export default function ResourceManagement() {
                       </div>
                     </div>
                   )}
-                  {formResource.resourceType !== 'article' && <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={(e) => setFormResource({ ...formResource, file: e.target.files?.[0] || null })} className="w-full px-4 py-3 border border-gray-300 rounded-lg" />}
-                  {formResource.file && (
-                    <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                      Selected file: {formResource.file.name}
-                    </p>
+                  {formResource.resourceType !== 'article' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-semibold text-gray-600">Replace Resource File</label>
+                        <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          ∞ No Storage Limit
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt"
+                        onChange={(e) => {
+                          const selected = e.target.files?.[0] || null;
+                          setFormResource({ ...formResource, file: selected });
+                          setUpdateProgress(0);
+                          setUpdateStats({ loaded: 0, total: selected ? selected.size : 0 });
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-slate-50/50"
+                      />
+                    </div>
                   )}
+                  {formResource.file && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-xs space-y-1">
+                      <p className="text-green-800 font-bold">Selected Replacement File: {formResource.file.name}</p>
+                      <p className="text-green-700">Exact File Size: {formatBytes(formResource.file.size)}</p>
+                    </div>
+                  )}
+
+                  {updatingResource && (
+                    <div className="p-4 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-orange-950">
+                        <span className="flex items-center gap-1.5">
+                          <span className="size-2 rounded-full bg-orange-600 animate-ping inline-block" />
+                          Uploading Replacement...
+                        </span>
+                        <span>{updateProgress}%</span>
+                      </div>
+                      <div className="w-full bg-orange-200/80 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-orange-500 to-red-600 h-2.5 rounded-full transition-all duration-150 ease-out"
+                          style={{ width: `${updateProgress}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-orange-800 font-medium">
+                        <span>Transferred: {formatBytes(updateStats.loaded)} / {formatBytes(updateStats.total || (formResource.file?.size || 0))}</span>
+                        <span>{updateProgress === 100 ? 'Finalizing update on server...' : 'Live upload stream'}</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-3 pt-4">
                     <button type="button" onClick={closeEditModal} className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">Cancel</button>
-                    <button type="submit" className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700">Update</button>
+                    <button type="submit" disabled={updatingResource} className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:opacity-60">
+                      {updatingResource ? `Updating (${updateProgress}%)` : 'Update'}
+                    </button>
                   </div>
                 </form>
               </div>

@@ -854,7 +854,7 @@ d:\Zyndex\
 │       │   ├── GlobalExceptionHandler.java    # Controller advice formatting JSON error responses
 │       │   └── AppProperties.java             # Upload folder path configuration and property bindings
 │       ├── main/resources/
-│       │   └── application.yml                # Database setup, multipart file upload limits (25MB) & Eureka setup
+│       │   └── application.yml                # Database setup, unconstrained multipart uploads (no file size limit) & Eureka setup
 │       └── test/java/com/zyndex/content/
 │           └── ContentIntegrationTest.java    # Integration test suite validating catalog search and resource endpoints
 │
@@ -1628,7 +1628,7 @@ This incident response guide provides actionable instructions for resolving comm
 | **Direct service port call returns 403**| `*/.../GatewaySecretFilter.java` | `GatewaySecretFilter.doFilter` | Service log: `Missing or invalid X-Gateway-Secret` | Calling microservice directly (e.g. `http://localhost:8081/api/...`) without going through Gateway | Route client traffic through API Gateway on port `8080`. When testing via Postman, pass header `X-Gateway-Secret: zyndex-gateway-secret-123`. |
 | **Payment stuck in In Hold (`REVIEW_REQUIRED`)** | `subscription-service/.../PaymentService.java`| `PaymentService.verifyAdminPayment` | `payment_audit_logs: UTR_SUBMITTED_HOLD` | Normal operational workflow: student submitted UTR; awaiting admin verification | Log into `/Zyndex/Admin/.../Payments`, locate the order, verify the 12-digit UTR against bank statement, and click **Confirm & Verify**. |
 | **OTP email not received** | `auth-service/.../AccountEmailService.java` | `AccountEmailService.sendSignupConfirmationEmail` | `MailSendException: Authentication failed` | Invalid Gmail SMTP App Password or missing `OTP_SMTP_PASS` in `.env` | Generate a 16-character App Password under Google Account Security and configure `OTP_SMTP_USER` and `OTP_SMTP_PASS`. |
-| **PDF upload fails** | `content-service/.../ResourceController.java` | `ResourceController.upload` | `MaxUploadSizeExceededException` or `IOException` | File exceeds 25MB ceiling or `backend/uploads/` directory does not exist | Create directory `backend/uploads/` and verify write permissions. Increase `spring.servlet.multipart.max-file-size` if needed. |
+| **PDF upload fails** | `content-service/.../ResourceController.java` | `ResourceController.upload` | `IOException` | `backend/uploads/` directory does not exist or lacks write permissions | Ensure directory `backend/uploads/` exists and has proper filesystem write permissions. Storage limits are configured with no ceiling (`max-file-size: -1`). |
 | **Admin Logs displays 0 reading minutes**| `usage-service/.../UsageController.java` | `UsageController.logDuration` | `usage-service` console log | Student closed reader before 15s interval heartbeat or user not logged in | Ensure the reader window remains open for >15 seconds. Check Network tab for successful `POST /api/usage/records` 200 OK responses. |
 
 ### 13.1 Running a Single Microservice in Debug Mode

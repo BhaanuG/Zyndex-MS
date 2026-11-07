@@ -19,8 +19,9 @@ spring:
     password: ${DB_PASSWORD:}
   servlet:
     multipart:
-      max-file-size: 25MB
-      max-request-size: 30MB
+      max-file-size: -1
+      max-request-size: -1
+      file-size-threshold: 2MB
 
 eureka:
   client:

@@ -19,9 +19,12 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Let the browser set the multipart boundary for FormData uploads.
+    // Let the browser set the multipart boundary for FormData uploads, and disable request timeout for large file uploads.
     if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
       delete config.headers['Content-Type'];
+      if (!config.timeout || config.timeout === 30000) {
+        config.timeout = 0; // No timeout for file uploads
+      }
     }
 
     return config;

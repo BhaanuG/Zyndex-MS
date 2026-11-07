@@ -85,11 +85,15 @@ const resourceService = {
   /**
    * Upload new resource (Admin only)
    * @param {FormData} resourceData - FormData with resource details and file
+   * @param {Function} [onUploadProgress] - Optional axios upload progress callback ({ loaded, total, progress })
    * @returns {Promise<Object>} - { message, resourceId }
    */
-  uploadResource: async (resourceData) => {
+  uploadResource: async (resourceData, onUploadProgress) => {
     try {
-      const response = await apiClient.post('/resources', resourceData);
+      const response = await apiClient.post('/resources', resourceData, {
+        onUploadProgress,
+        timeout: 0, // No timeout for unlimited size uploads
+      });
       return response;
     } catch (error) {
       throw error;
@@ -100,11 +104,15 @@ const resourceService = {
    * Update resource (Admin only)
    * @param {string} resourceId - Resource ID
    * @param {FormData} resourceData - Updated resource data
+   * @param {Function} [onUploadProgress] - Optional axios upload progress callback ({ loaded, total, progress })
    * @returns {Promise<Object>} - { message, resource }
    */
-  updateResource: async (resourceId, resourceData) => {
+  updateResource: async (resourceId, resourceData, onUploadProgress) => {
     try {
-      const response = await apiClient.put(`/resources/${resourceId}`, resourceData);
+      const response = await apiClient.put(`/resources/${resourceId}`, resourceData, {
+        onUploadProgress,
+        timeout: 0,
+      });
       return response;
     } catch (error) {
       throw error;
