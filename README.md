@@ -4,7 +4,7 @@
 
 #  ZYNDEX
 ### *Enterprise Academic Learning & Distributed Digital Resource Governance Platform*
-#### **ScholarSphere Engine | Designed, Engineered & Maintained by Bhaanu G**
+#### **Designed, Engineered & Maintained by Bhaanu G**
 
 <p align="center">
   <a href="#1-project-identity--overview"><strong>Explore Architecture »</strong></a> ·
@@ -81,7 +81,7 @@
 
 ## 1. Project Identity & Overview
 
-**Zyndex** (operating under the ScholarSphere engine) is a production-grade, distributed digital library and academic resource repository. Designed for higher-education institutions, university campuses, and research organizations, Zyndex provides an end-to-end ecosystem connecting students, researchers, faculty, and administrators with textbooks, academic journals, syllabus guides, research papers, and lecture materials under strict digital access governance, multi-tiered subscription memberships, automated email notifications, and real-time telemetry analytics.
+**Zyndex** is a production-grade, distributed digital library and academic resource repository. Designed for higher-education institutions, university campuses, and research organizations, Zyndex provides an end-to-end ecosystem connecting students, researchers, faculty, and administrators with textbooks, academic journals, syllabus guides, research papers, and lecture materials under strict digital access governance, multi-tiered subscription memberships, automated email notifications, and real-time telemetry analytics.
 
 ### 1.1 The Problem Zyndex Solves
 Academic institutions and independent publishers face severe digital content distribution challenges:
@@ -94,7 +94,7 @@ Academic institutions and independent publishers face severe digital content dis
 
 | Attribute | Implementation Details |
 | :--- | :--- |
-| **Project Name** | **Zyndex** (ScholarSphere Engine) |
+| **Project Name** | **Zyndex** |
 | **Primary Domain** | Enterprise Academic Resource Management & Tiered Content Delivery |
 | **Architecture** | Poly-Service Microservices orchestrated via Netflix Eureka and Spring Cloud Gateway |
 | **Backend Stack** | Java 21 LTS, Spring Boot 3.4.2, Spring Cloud 2024.0.0, Spring Security 6, JJWT 0.11.5, Spring JDBC |
@@ -383,7 +383,7 @@ This section provides an exhaustive, class-by-class and method-by-method technic
   1. `createCheckoutSession(Long userId, String requestedPlanId, String requestedPaymentMethod)`
      - Validates plan exists and is active.
      - Inserts record into `payments` with status `PAYMENT_INITIATED`, generates `order_id` (`ORD_...`).
-     - Formats direct UPI URI (`upi://pay?pa=918897337687@waaxis&pn=ScholarSphere%20Digital&am=...`).
+     - Formats direct UPI URI (`upi://pay?pa=918897337687@waaxis&pn=Zyndex%20Digital&am=...`).
      - Constructs QR code URL using `api.qrserver.com`.
   2. `submitUtrForReview(Long userId, String paymentId, String utrNumber)`
      - Validates non-blank UTR string.
@@ -1485,7 +1485,7 @@ stateDiagram-v2
    - Sends `POST /api/payments/checkout`.
    - In [`subscription-service/.../PaymentService.java`](file:///d:/Zyndex/subscription-service/src/main/java/com/zyndex/subscription/PaymentService.java) (`createCheckoutSession`), creates payment record (`status = 'PAYMENT_INITIATED'`) and formats UPI URI:
      ```
-     upi://pay?pa=918897337687@waaxis&pn=ScholarSphere%20Digital&am=199.00&tr=ORD_...&tn=Subscription%20STUDENT_PLUS
+     upi://pay?pa=918897337687@waaxis&pn=Zyndex%20Digital&am=199.00&tr=ORD_...&tn=Subscription%20STUDENT_PLUS
      ```
    - Returns dynamic QR server URL (`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=...`).
 2. **UTR Reference Submission**:
@@ -1736,4 +1736,4 @@ Zyndex organizes learning resources across the 10 authentic academic subject cat
 
 ---
 
-*This document serves as the central technical knowledge base for Zyndex. For infrastructure escalations or credential provisioning, contact the ScholarSphere DevOps team.*
+*This document serves as the central technical knowledge base for Zyndex. For infrastructure escalations or credential provisioning, contact the Zyndex Engineering team.*

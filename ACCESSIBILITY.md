@@ -1,6 +1,6 @@
 # Accessibility Statement for Zyndex
 
-Zyndex (operating under the ScholarSphere Engine) was architected and developed by **Bhaanu G (Bhaanu Gali)** with an uncompromising commitment to universal academic access. All platform rights, design philosophy, and engine implementation are created and maintained by Bhaanu G.
+Zyndex was architected and developed by **Bhaanu G (Bhaanu Gali)** with an uncompromising commitment to universal academic access. All platform rights, design philosophy, and engine implementation are created and maintained by Bhaanu G.
 
 Our mission is to provide an open, accessible, and barrier-free digital reading and research experience for all students, educators, and scholars, including people with visual, auditory, cognitive, or motor disabilities.
 
@@ -49,5 +49,5 @@ We welcome feedback, suggestions, and reports of accessibility barriers encounte
 
 - **Primary Contact**: Bhaanu Gali
 - **Email**: `Bhaanugali@gmail.com`
-- **Campus & Institutional Office**: `2400030952@kluniversity.in`, ScholarSphere Research Engine, KL University
+- **Campus & Institutional Office**: `2400030952@kluniversity.in`, Zyndex Platform, KL University
 - **Response Commitment**: We review all accessibility inquiries promptly and aim to respond within **2 business days** with an actionable remediation timeline.
