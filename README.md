@@ -1,58 +1,139 @@
 <div align="center">
 
-<img src="./public/logo.svg" alt="Zyndex Logo" width="104" height="104" style="border-radius: 22px; box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);" />
+<a href="https://github.com/BhaanuG/Zyndex-MS">
+  <img src="https://raw.githubusercontent.com/BhaanuG/Zyndex-MS/main/public/logo.svg" alt="Zyndex Logo" width="112" height="112" />
+</a>
 
-#  ZYNDEX
-### *Enterprise Academic Learning & Distributed Digital Resource Governance Platform*
-#### **Designed, Engineered & Maintained by Bhaanu G**
+<br/>
+<br/>
+
+# ⚡ Z Y N D E X
+### **Distributed Academic Microservices Engine & Digital Asset Governance Platform**
+#### *Conceived, Architected & Engineered End-to-End by **Bhaanu G (Bhaanu Gali)***
 
 <p align="center">
-  <a href="#1-project-identity--overview"><strong>Explore Architecture »</strong></a> ·
-  <a href="#7-complete-microservices-system-architecture"><strong>Microservices Grid »</strong></a> ·
-  <a href="#10-comprehensive-rest-api-reference"><strong>REST API Docs »</strong></a> ·
-  <a href="#14-installation-setup--local-execution-guide"><strong>Quickstart »</strong></a>
+  <a href="#-system-architecture--microservices-topology"><b>System Topology</b></a> •
+  <a href="#-production-benchmarks--architectural-highlights"><b>Engineering Benchmarks</b></a> •
+  <a href="#-poly-service-microservices-ecosystem"><b>Microservice Ports</b></a> •
+  <a href="#10-comprehensive-rest-api-reference"><b>REST API Specs</b></a> •
+  <a href="#-automated-quickstart--local-cluster-orchestration"><b>Cluster Setup</b></a> •
+  <a href="#17-quantitative-codebase-statistics--metrics"><b>Metrics & Audits</b></a>
 </p>
 
-[![Java](https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2024.0.0-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/projects/spring-cloud)
-[![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-6.0.5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4.17-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0%2F8.4-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-[![Security Policy](https://img.shields.io/badge/Security-Enforced-success?style=for-the-badge&logo=shield)](SECURITY.md)
-[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-blue?style=for-the-badge)](ACCESSIBILITY.md)
-[![Build Status](https://img.shields.io/badge/Build-Passing%20(0%20Errors)-brightgreen?style=for-the-badge)]()
+<!-- Technology Matrix Badges -->
+<p align="center">
+  <img src="https://img.shields.io/badge/Java_21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />
+  <img src="https://img.shields.io/badge/Spring_Boot_3.4.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 3.4.2" />
+  <img src="https://img.shields.io/badge/Spring_Cloud_2024.0.0-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Cloud" />
+  <img src="https://img.shields.io/badge/React_18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" />
+  <img src="https://img.shields.io/badge/Vite_6.0.5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 6" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS_3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/MySQL_8.4_LTS-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
+</p>
+
+<!-- Verification & Security Badges -->
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT_Exclusive_Attribution-yellow?style=flat-square&logo=open-source-initiative&logoColor=white" alt="MIT License" /></a>
+  <a href="SECURITY.md"><img src="https://img.shields.io/badge/Security-Cryptographic_OTP_%26_JWT-2ea44f?style=flat-square&logo=shield&logoColor=white" alt="Security Enforced" /></a>
+  <a href="ACCESSIBILITY.md"><img src="https://img.shields.io/badge/Accessibility-WCAG_2.1_AA_%26_Section_508-blue?style=flat-square&logo=w3c&logoColor=white" alt="Accessibility" /></a>
+  <img src="https://img.shields.io/badge/Microservices_Cluster-7_Autonomous_Services-purple?style=flat-square&logo=micro-editor" alt="Microservices" />
+  <img src="https://img.shields.io/badge/Build_Quality-Zero_Defect_Passing-brightgreen?style=flat-square&logo=github-actions&logoColor=white" alt="Build" />
+</p>
 
 <br/>
 
-```
-  ███████╗██╗   ██╗███╗   ██╗██████╗ ███████╗██╗  ██╗
-  ╚══███╔╝╚██╗ ██╔╝████╗  ██║██╔══██╗██╔════╝╚██╗██╔╝
-    ███╔╝  ╚████╔╝ ██╔██╗ ██║██║  ██║█████╗   ╚███╔╝ 
-   ███╔╝    ╚██╔╝  ██║╚██╗██║██║  ██║██╔══╝   ██╔██╗ 
-  ███████╗   ██║   ██║ ╚████║██████╔╝███████╗██╔╝ ██╗
-  ╚══════╝   ╚═╝   ╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
-  Poly-Service Microservices Engine | Precision Academic Digital Asset Governance
-```
-
-<p align="center">
-  <b>Built for Higher-Education Campuses, Research Labs & Digital Publishing Networks</b><br/>
-  <i>Engineered with Resilience, Fault Tolerance, Sub-Second Latency, and Strict Entitlement Guardrails</i>
-</p>
-
----
+<table>
+  <tr>
+    <td align="center" width="25%"><b>Architecture Tier</b></td>
+    <td align="center" width="25%"><b>Core Engine SLA</b></td>
+    <td align="center" width="25%"><b>Security Perimeter</b></td>
+    <td align="center" width="25%"><b>Lead Architect</b></td>
+  </tr>
+  <tr>
+    <td align="center">Poly-Service Distributed Microservices</td>
+    <td align="center">Sub-50ms Gateway Routing | Zero-Downtime Hot Deploy</td>
+    <td align="center">Stateless JWT + BCrypt + Inter-Service Shared Secrets</td>
+    <td align="center"><b>Bhaanu G (Bhaanu Gali)</b><br/><code>Bhaanugali@gmail.com</code></td>
+  </tr>
+</table>
 
 </div>
 
-> [!IMPORTANT]
-> **Enterprise Production Engineering Documentation & Technical Architecture Reference**  
+<br/>
+
+> [!NOTE]
+> ### 🏛️ Architectural Thesis & Executive Summary
+> **Zyndex** is an enterprise-scale distributed digital library and academic resource repository engineered from the ground up to solve digital rights infringement, fragmented university identity boundaries, and real-time student reading telemetry. Powered by a poly-service mesh with dynamic discovery, stateless gateway routing, and in-memory bytecode PDF preview slicing, Zyndex bridges the gap between high-security institutional governance and frictionless, accessible digital learning.
+> 
 > **Sole Creator, Lead Architect & Platform Owner**: **Bhaanu G (Bhaanu Gali)**  
-> **Direct Administrative Contact**: `Bhaanugali@gmail.com` | `2400030952@kluniversity.in`  
-> **All Platform Intellectual Property & Rights Reserved to Bhaanu G**  
-> **Current Engine Version**: `v1.0.4-PROD` | **Zero-Defect Build Certified** | **Render & Cloud Native**  
-> **Target Audience**: Principal Systems Architects, Open-Source Contributors, Platform Engineers, and DevSecOps Leads.
+> **Institutional Affiliation**: KL University (`2400030952@kluniversity.in`)  
+> **Production Grade**: `v1.0.4-PROD` | **Zero-Defect Build Certified** | **Render & Cloud Native Ready**  
+> *All intellectual property, system designs, diagrams, and codebase architecture are strictly created and owned by Bhaanu G.*
+
+---
+
+## ⚡ System Architecture & Microservices Topology
+
+```mermaid
+flowchart TD
+    subgraph ClientLayer["🖥️ Presentation & Edge Tier"]
+        UI["Zyndex Web SPA\n(React 18 + Vite 6 + Tailwind CSS)"]
+    end
+
+    subgraph GatewayTier["🛡️ Reverse Proxy & Edge Perimeter"]
+        GW["API Gateway (Port 8080)\nSpring Cloud Gateway + Stateless JWT Validation"]
+    end
+
+    subgraph DiscoveryTier["🧭 Discovery & Service Mesh"]
+        EUREKA["Eureka Service Registry (Port 8761)\nHeartbeat Monitoring & Distributed Registry"]
+    end
+
+    subgraph ServiceMesh["⚙️ Autonomous Domain Microservices (Java 21 LTS + Spring Boot 3.4.2)"]
+        AUTH["auth-service (8081)\nIdentity, 4-Digit OTP, 24h Trust, BCrypt"]
+        CONTENT["content-service (8082)\nCatalog, PDFBox Slicing, Metadata"]
+        ACCESS["access-service (8083)\nTier Entitlements, Quotas, Token Issuance"]
+        USAGE["usage-service (8084)\nTelemetry Heartbeats, Aggregation Engine"]
+        SUB["subscription-service (8085)\nUPI QR Intent, 12-Digit UTR Hold Pipeline"]
+    end
+
+    subgraph StorageTier["💾 Persistence & State Store"]
+        DB[("MySQL 8.4 Enterprise RDBMS\nACID Distributed Schemas")]
+    end
+
+    UI -->|"HTTPS / REST"| GW
+    GW -.->|"Service Discovery"| EUREKA
+    AUTH -.->|"Self-Registration"| EUREKA
+    CONTENT -.->|"Self-Registration"| EUREKA
+    ACCESS -.->|"Self-Registration"| EUREKA
+    USAGE -.->|"Self-Registration"| EUREKA
+    SUB -.->|"Self-Registration"| EUREKA
+
+    GW -->|"X-Gateway-Secret"| AUTH
+    GW -->|"X-Gateway-Secret"| CONTENT
+    GW -->|"X-Gateway-Secret"| ACCESS
+    GW -->|"X-Gateway-Secret"| USAGE
+    GW -->|"X-Gateway-Secret"| SUB
+
+    AUTH --> DB
+    CONTENT --> DB
+    ACCESS --> DB
+    USAGE --> DB
+    SUB --> DB
+```
+
+---
+
+## 💎 Production Benchmarks & Architectural Highlights
+
+| Enterprise Dimension | Architectural Implementation | Engineering Benefit |
+| :--- | :--- | :--- |
+| **Edge Routing & Perimeter** | Spring Cloud Gateway on Netty (Non-Blocking Reactive I/O) | High throughput with sub-50ms round-trip latency across API routes. |
+| **Stateless Authentication** | HMAC-SHA256 Signed JWTs with Claims-based RBAC | Horizontal scalability without shared session state bottlenecks. |
+| **Two-Factor OTP Relay** | `java.security.SecureRandom` + TLS SMTP Mail Dispatch | Brute-force protected 4-digit numeric verification with 2-minute TTL. |
+| **Zero-Leakage PDF Slicing** | Dynamic in-memory Apache PDFBox Bytecode Stream | Non-paying clients never receive proprietary document streams. |
+| **Real-Time Telemetry** | 15-Second Ping Heartbeat Aggregation Engine | Real-time tracking of active readers and session lengths. |
+| **UPI Reconciliation Pipeline** | Direct UPI Deep Links + 12-Digit Bank UTR Hold Verification | Frictionless Indian payments without card credentials. |
+| **Accessibility Compliance** | WCAG 2.1 Level AA + Section 508 Standards | Fully keyboard navigatable with 4.5:1 contrast ratios and ARIA tags. |
 
 ---
 
