@@ -196,7 +196,10 @@ export default function UserAccessManagement() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Zyndex_Users_Export_${new Date().toISOString().slice(0, 10)}.csv`);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const timestampStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    link.setAttribute('download', `Zyndex_Users_Export_${timestampStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

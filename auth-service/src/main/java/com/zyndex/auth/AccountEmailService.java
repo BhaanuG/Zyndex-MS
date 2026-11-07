@@ -596,6 +596,101 @@ class AccountEmailService {
         }
     }
 
+    boolean sendAccountDeletionSuccessEmail(String username, String email, String role, String reasons, String comments, String timestamp) {
+        String subject = "Zyndex | Account Successfully Deleted - We're Sorry to See You Go";
+        String reasonsSummary = (reasons == null || reasons.isBlank()) ? "No specific feedback provided" : reasons;
+        String commentsSummary = (comments == null || comments.isBlank()) ? "None provided" : comments;
+
+        // 1. Email to the departing user
+        String userText = """
+                Dear %s,
+
+                Your Zyndex account (%s) has been permanently deleted as requested. We are truly sorry to lose an amazing scholar and member of our academic community.
+
+                === DELETION & FEEDBACK SUMMARY ===
+                - Account Name: %s
+                - Account Email: %s
+                - Role Type: %s
+                - Deletion Timestamp: %s
+                - Reasons Stated: %s
+                - Additional Notes / Feedback: %s
+
+                === WHAT HAS HAPPENED TO YOUR DATA ===
+                In compliance with academic privacy and data protection standards:
+                - Your profile credentials and passwords have been permanently deleted from our active database.
+                - All active authentication sessions across your devices have been permanently invalidated.
+                - Personal reading preferences and bookmarks have been purged.
+
+                We appreciate every moment you spent learning, researching, and contributing to Zyndex. If your academic needs ever change, or if you wish to return in the future, our doors will always remain open for you.
+
+                If this deletion was unintended or unauthorized, please contact our principal administrator immediately at %s.
+
+                Warm regards and best wishes for your academic journey,
+                The Zyndex Team
+                %s
+                """.formatted(
+                username,
+                email,
+                username,
+                email,
+                role,
+                timestamp,
+                reasonsSummary,
+                commentsSummary,
+                properties.mainAdminEmail(),
+                properties.otpMailFrom()
+        );
+
+        // 2. Comprehensive notification email to the Platform Owner (Bhaanugali)
+        String adminText = """
+                Attention: Bhaanu Gali (Zyndex Platform Administrator),
+
+                A user or administrator account has just been permanently deleted by self-service verification on Zyndex.
+
+                === ACCOUNT DELETION AUDIT RECORD ===
+                - Full Name: %s
+                - Email Address: %s
+                - Previous Platform Role: %s
+                - Exact Timestamp: %s
+                - Stated Reason(s) for Deletion: %s
+                - Additional User Comment / Feedback: %s
+
+                === SYSTEM ACTION PERFORMED ===
+                - Verification Method: 4-digit security OTP + explicit 'CONFIRM' text challenge.
+                - Database Action: User row purged from 'users' table.
+                - Session Status: All JWT and device sessions terminated.
+                - Farewell email dispatched to %s.
+
+                This audit notification has been logged automatically by auth-service.
+
+                Zyndex Platform Audit Engine
+                """.formatted(
+                username,
+                email,
+                role,
+                timestamp,
+                reasonsSummary,
+                commentsSummary,
+                email
+        );
+
+        try {
+            send(email, subject, userText);
+            System.out.println("[ACCOUNT EMAIL] Farewell deletion email delivered to user: " + email);
+        } catch (Exception e) {
+            System.err.println("[ACCOUNT EMAIL] Failed to deliver farewell email to user: " + e.getMessage());
+        }
+
+        try {
+            send(properties.mainAdminEmail(), "Zyndex Audit | Account Deleted: " + username + " (" + email + ")", adminText);
+            System.out.println("[ACCOUNT EMAIL] Deletion audit notification sent to main admin: " + properties.mainAdminEmail());
+        } catch (Exception e) {
+            System.err.println("[ACCOUNT EMAIL] Failed to deliver deletion audit to admin: " + e.getMessage());
+        }
+
+        return true;
+    }
+
     private String escapeHtml(String value) {
         return value
                 .replace("&", "&amp;")

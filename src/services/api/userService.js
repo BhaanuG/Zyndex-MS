@@ -208,6 +208,10 @@ const userService = {
     return await apiClient.post(`/users/${userId}/force-logout`);
   },
 
+  deleteOwnAccount: async (data) => {
+    return await apiClient.delete('/users/profile/delete-account', { data });
+  },
+
   restoreUserAccess: async (userId) => {
     return await apiClient.post(`/users/${userId}/restore-access`);
   },

@@ -17,12 +17,14 @@ class UserController {
     private final AuthSupport auth;
     private final SqlSupport sql;
     private final AccountEmailService accountEmailService;
+    private final OtpController otpController;
 
-    UserController(JdbcTemplate jdbc, AuthSupport auth, SqlSupport sql, AccountEmailService accountEmailService) {
+    UserController(JdbcTemplate jdbc, AuthSupport auth, SqlSupport sql, AccountEmailService accountEmailService, OtpController otpController) {
         this.jdbc = jdbc;
         this.auth = auth;
         this.sql = sql;
         this.accountEmailService = accountEmailService;
+        this.otpController = otpController;
     }
 
     @GetMapping("/{userId}/profile")
@@ -311,6 +313,65 @@ class UserController {
         boolean active = AuthSupport.bool(body.get("active"));
         jdbc.update("UPDATE users SET active = ? WHERE id = ?", active, userId);
         return Map.of("message", "User active status updated successfully.");
+    }
+
+    @DeleteMapping("/profile/delete-account")
+    Map<String, Object> deleteOwnAccount(HttpServletRequest request, @RequestBody Map<String, Object> body) {
+        Map<String, Object> caller = auth.requireUser(request);
+        long userId = AuthSupport.number(caller.get("id"));
+        String email = String.valueOf(caller.get("email")).toLowerCase().trim();
+        String role = String.valueOf(caller.get("role")).toLowerCase().trim();
+        boolean isPrimary = Boolean.TRUE.equals(caller.get("isPrimaryAdmin")) || Boolean.TRUE.equals(caller.get("is_primary_admin"));
+
+        if (isPrimary) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "The Primary Administrator account cannot be deleted via self-service.");
+        }
+
+        String confirmText = AuthSupport.str(body.get("confirmText")).trim();
+        if (!"CONFIRM".equals(confirmText)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Please type 'CONFIRM' to verify deletion.");
+        }
+
+        String otp = AuthSupport.str(body.get("otp")).trim();
+        if (otp.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "OTP verification code is required.");
+        }
+
+        // Verify and consume OTP
+        Map<String, Object> verifyBody = Map.of("email", email, "otp", otp, "role", role);
+        try {
+            otpController.verify(verifyBody);
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid or expired OTP: " + e.getMessage());
+        }
+
+        // Gather reasons & feedback
+        String reasons = AuthSupport.str(body.get("reasons"));
+        String comments = AuthSupport.str(body.get("comments"));
+        String name = String.valueOf(AuthSupport.first(caller.get("name"), caller.get("username")));
+        String timestamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm:ss a (z)"));
+
+        // Delete user row and invalidate trusted devices
+        jdbc.update("DELETE FROM trusted_devices WHERE user_id = ? OR email = ?", userId, email);
+        jdbc.update("DELETE FROM users WHERE id = ?", userId);
+
+        // Audit log in microservices
+        try {
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'USER_SELF_DELETED', ?, ?, ?, 'SUCCESS')
+                    """, email, "User or Admin self-deleted account (" + name + ", Role: " + role + "). Reasons: " + reasons + " | Comments: " + comments, request.getRemoteAddr());
+        } catch (Exception ignored) {}
+
+        // Send farewell email to user and comprehensive audit report to Bhaanugali
+        new Thread(() -> {
+            accountEmailService.sendAccountDeletionSuccessEmail(name, email, role.toUpperCase(), reasons, comments, timestamp);
+        }).start();
+
+        return Map.of("message", "Your account has been deleted successfully. We are sorry to lose an amazing user.");
     }
 
     @DeleteMapping("/{userId}")

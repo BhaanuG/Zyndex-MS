@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router';
 import { motion } from 'motion/react';
-import { User, Mail, Settings, Save, Heart, Edit, X, GraduationCap, Building, CreditCard, Hash, FileText, Download, Receipt, Printer } from 'lucide-react';
+import { User, Mail, Settings, Save, Heart, Edit, X, GraduationCap, Building, CreditCard, Hash, FileText, Download, Receipt, Printer, Trash2 } from 'lucide-react';
 import UserLayout from '@/app/components/UserLayout';
 import InvoiceModal from '@/app/components/InvoiceModal';
 import StatementModal from '@/app/components/StatementModal';
+import DeleteAccountModal from '@/app/components/DeleteAccountModal';
 import { generateSingleInvoiceHtml, openPrintableDocument } from '@/utils/invoiceGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { useAuth } from '@/app/context/AuthContext';
@@ -27,6 +28,7 @@ export default function UserProfile() {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [statementModalOpen, setStatementModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [profileData, setProfileData] = useState({ 
     name: '', 
     email: '', 
@@ -274,6 +276,26 @@ export default function UserProfile() {
                     {isEditing && <button type="submit" className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-lg font-medium"><Save className="size-4" />Save Changes</button>}
                   </form>
                   <PasswordChangePanel user={user} />
+
+                  {/* Danger Zone: Self-Delete User Account */}
+                  <div className="mt-8 pt-6 border-t border-red-200">
+                    <div className="p-4 bg-red-50/60 border border-red-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h4 className="text-sm font-bold text-red-900">Delete Account</h4>
+                        <p className="text-xs text-red-700 mt-0.5">
+                          Permanently delete your scholar account, reading history, and saved data with feedback and 4-digit OTP verification.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteModalOpen(true)}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-red-600/20 shrink-0 flex items-center gap-2 cursor-pointer"
+                      >
+                        <Trash2 className="size-3.5" />
+                        Delete Account
+                      </button>
+                    </div>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="billing" className="p-6 space-y-6">
@@ -492,6 +514,12 @@ export default function UserProfile() {
         userData={user}
         payments={payments}
         activeSub={activeSub}
+      />
+
+      <DeleteAccountModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        user={user}
       />
     </UserLayout>
   );

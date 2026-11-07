@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
@@ -460,6 +460,58 @@ export default function ResourceManagement() {
     }
   };
 
+  const exportResourcesToCsv = () => {
+    const headers = [
+      'Serial No',
+      'Resource ID',
+      'Title',
+      'Author / Contributor',
+      'Category / Department',
+      'Resource Type',
+      'Access Plan Tier',
+      'Total Views',
+      'Rating',
+      'Upload Date'
+    ];
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = resources.map((r, idx) => [
+      idx + 1,
+      r.id,
+      r.title || 'Untitled',
+      r.author || r.subject || 'Zyndex Contributor',
+      r.category || 'General',
+      r.resourceType || r.type || 'PDF',
+      r.requiredPlan || 'FREE',
+      r.viewCount || r.views || 0,
+      r.rating || 0,
+      r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A'
+    ]);
+
+    const csvContent = '\uFEFF' + [
+      headers.map(escapeCsv).join(','),
+      ...rows.map(r => r.map(escapeCsv).join(','))
+    ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const timestampStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    link.setAttribute('download', `Zyndex_Resources_Export_${timestampStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -468,10 +520,19 @@ export default function ResourceManagement() {
             <h1 className="text-2xl font-semibold text-gray-900">Resource Management</h1>
             <p className="text-gray-600 mt-1">Create, edit, gate by plan tier, and delete PDFs/articles. Showing {resources.length} resources.</p>
           </div>
-          <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors">
-            <Plus className="size-5" />
-            Add New Resource
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={exportResourcesToCsv}
+              className="size-10 flex items-center justify-center bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm shrink-0 cursor-pointer"
+              title="Download Resources (CSV)"
+            >
+              <Download className="size-4 text-gray-600" />
+            </button>
+            <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors">
+              <Plus className="size-5" />
+              Add New Resource
+            </button>
+          </div>
         </motion.div>
 
         <form onSubmit={(e) => { e.preventDefault(); loadResources(searchTerm); }} className="bg-white rounded-xl shadow-md p-4 flex items-center gap-4">

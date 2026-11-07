@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { User, Mail, Save, Shield, Edit, X } from 'lucide-react';
+import { User, Mail, Save, Shield, Edit, X, Trash2 } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
+import DeleteAccountModal from '@/app/components/DeleteAccountModal';
 
 export default function AdminProfile() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, isPrimaryAdmin } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [profileData, setProfileData] = useState({ name: '', email: '', bio: '', role: 'Administrator' });
 
   useEffect(() => {
@@ -67,9 +69,37 @@ export default function AdminProfile() {
               </div>
             </form>
             <PasswordChangePanel user={user} />
+
+            {/* Danger Zone: Delete Regular Admin Account */}
+            {!isPrimaryAdmin && (
+              <div className="mt-8 pt-6 border-t border-red-200">
+                <div className="p-4 bg-red-50/60 border border-red-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-red-900">Delete Administrator Account</h4>
+                    <p className="text-xs text-red-700 mt-0.5">
+                      Permanently revoke administrative access and delete your account credentials after feedback and OTP verification.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteModalOpen(true)}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-red-600/20 shrink-0 flex items-center gap-2 cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5" />
+                    Delete Account
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      <DeleteAccountModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        user={user}
+      />
     </AdminLayout>
   );
 }

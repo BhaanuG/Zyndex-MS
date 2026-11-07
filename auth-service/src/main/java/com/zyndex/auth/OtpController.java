@@ -51,6 +51,7 @@ class OtpController {
         boolean isPasswordReset = "PASSWORD_RESET".equals(purpose) || "RESET".equals(purpose);
         boolean isResend = "RESEND".equals(purpose) || "RESEND_OTP".equals(purpose) || Boolean.TRUE.equals(body.get("force"));
         boolean isPasswordChange = "PASSWORD_CHANGE".equals(purpose) || "CHANGE_PASSWORD".equals(purpose);
+        boolean isAccountDeletion = "ACCOUNT_DELETION".equals(purpose) || "DELETE_ACCOUNT".equals(purpose);
 
         Map<String, Object> account = auth.findUserByEmail(email);
 
@@ -59,7 +60,7 @@ class OtpController {
             throw new ApiException(HttpStatus.CONFLICT, "An account with this email address already exists. Please sign in instead.");
         }
 
-        // Before sending OTP for login or password reset: ensure account exists!
+        // Before sending OTP for login, password reset, or account deletion: ensure account exists!
         if (!isSignup && account == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "No account was found with this email address.");
         }
@@ -95,6 +96,9 @@ class OtpController {
                 if (isSignup) {
                     helper.setSubject("Zyndex | Welcome! Verification Code for Creating Your Account");
                     helper.setText(accountCreationOtpHtml(username, email, userRoleLabel, otp), true);
+                } else if (isAccountDeletion) {
+                    helper.setSubject("Zyndex | Security Verification Code for Account Deletion");
+                    helper.setText(accountDeletionOtpHtml(username, email, otp), true);
                 } else if (isPasswordReset) {
                     helper.setSubject("Zyndex | Password Reset Verification Code");
                     helper.setText(passwordResetOtpHtml(username, otp), true);
@@ -464,6 +468,61 @@ class OtpController {
                 </body>
                 </html>
                 """.formatted(username, email, otpBox, formattedTimestamp);
+    }
+
+    private String accountDeletionOtpHtml(String username, String email, String otp) {
+        String formattedTimestamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm:ss a (z)"));
+        String otpBox = otpDisplayBoxHtml("Account Deletion Authorization OTP", otp, "#dc2626", "#fef2f2", "#b91c1c", "#991b1b");
+        return """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Account Deletion Verification - Zyndex</title>
+                  <style>
+                    body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                    .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+                    .header-box { background: linear-gradient(135deg, #b91c1c 0%%, #7f1d1d 100%%); padding: 24px 20px; text-align: center; }
+                    .content-box { padding: 24px 20px; }
+                    @media only screen and (max-width: 480px) {
+                      body { padding: 8px 4px !important; }
+                      .header-box { padding: 20px 14px !important; }
+                      .content-box { padding: 18px 14px !important; }
+                    }
+                  </style>
+                </head>
+                <body>
+                    <div class="email-wrapper">
+                        <div class="header-box">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
+                            <p style="color: #fee2e2; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Account Deletion Request</p>
+                        </div>
+                        <div class="content-box">
+                            <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Dear %s,</p>
+                            <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
+                                We are truly sorry to lose an amazing user like you (%s). You have initiated a permanent account deletion request on Zyndex.
+                            </p>
+                            <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
+                                Please use the following one-time password to verify your identity and confirm deletion. This code is valid for exactly 120 seconds:
+                            </p>
+                            %s
+                            <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; padding: 12px 16px; margin: 20px 0; font-size: 12px; color: #9f1239; word-break: break-word;">
+                                <b>Security Warning:</b> Once confirmed by typing <code>CONFIRM</code>, your access, bookmarks, and account records will be permanently erased. If you did not initiate this request, please log in and change your password immediately.
+                            </div>
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin: 20px 0; font-size: 12px; color: #64748b; word-break: break-word;">
+                                <b>Requested At:</b> %s
+                            </div>
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
+                                <p style="margin: 0;">Warm regards,</p>
+                                <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">The Zyndex Team</p>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(username, username, otpBox, formattedTimestamp);
     }
 
     private String resendOtpHtml(String username, String otp) {
