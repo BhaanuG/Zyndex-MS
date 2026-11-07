@@ -552,32 +552,21 @@ export default function UserAccessManagement() {
                       <div className="relative"><Hash className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" /><input type="text" value={formUser.registrationNo} onChange={(e) => setFormUser({ ...formUser, registrationNo: e.target.value })} placeholder="Registration number" className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm" /></div>
                     </div>
                   )}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-semibold text-gray-600">Platform Role</label>
-                      {!isPrimaryAdmin && (
-                        <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                          Main Admin Only
-                        </span>
-                      )}
+                  {isPrimaryAdmin && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-gray-600">Platform Role</label>
+                      </div>
+                      <select
+                        value={formUser.role}
+                        onChange={(e) => setFormUser({ ...formUser, role: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                      >
+                        <option value="user">User (Standard Reader / Student)</option>
+                        <option value="admin">Admin (Full Access)</option>
+                      </select>
                     </div>
-                    <select
-                      value={formUser.role}
-                      onChange={(e) => setFormUser({ ...formUser, role: e.target.value })}
-                      disabled={!isPrimaryAdmin}
-                      className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm ${
-                        !isPrimaryAdmin ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                      }`}
-                    >
-                      <option value="user">User (Standard Reader / Student)</option>
-                      <option value="admin">Admin (Full Access)</option>
-                    </select>
-                    {!isPrimaryAdmin && (
-                      <p className="text-[11px] text-gray-500 mt-1">
-                        Only the Main Administrator can elevate or demote platform roles between Admin and User.
-                      </p>
-                    )}
-                  </div>
+                  )}
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">User Type</label>
                     <select value={formUser.userType} onChange={(e) => setFormUser({ ...formUser, userType: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm">
@@ -593,10 +582,6 @@ export default function UserAccessManagement() {
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">University / College name (Optional)</label>
                     <input type="text" value={formUser.collegeName || formUser.universityName} onChange={(e) => setFormUser({ ...formUser, collegeName: e.target.value, universityName: '' })} placeholder="University or college name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Bio (Optional)</label>
-                    <textarea value={formUser.bio} onChange={(e) => setFormUser({ ...formUser, bio: e.target.value })} placeholder="About the user" rows="3" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
                   </div>
 
                   {isEditing && (

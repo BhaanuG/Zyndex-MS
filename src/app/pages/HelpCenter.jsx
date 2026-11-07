@@ -153,7 +153,6 @@ export default function HelpCenter() {
         <ul>
           <li><strong>Name:</strong> Update your display name</li>
           <li><strong>Email:</strong> Change your email address</li>
-          <li><strong>Bio:</strong> Add a personal description</li>
           <li><strong>Profile Picture:</strong> Your initial appears in a colored circle</li>
         </ul>
         <h3>Saving Changes:</h3>
@@ -711,13 +710,11 @@ export default function HelpCenter() {
         <ul>
           <li>Display Name</li>
           <li>Email Address</li>
-          <li>Bio/Description</li>
         </ul>
         <h3>Tips:</h3>
         <ul>
           <li>Use a valid email you check regularly</li>
           <li>Keep your name professional</li>
-          <li>Bio is optional but adds personality</li>
         </ul>
       `,
       tags: ['profile', 'edit', 'update', 'settings', 'personal'],
@@ -840,10 +837,6 @@ export default function HelpCenter() {
         <ul>
           <li><strong>Name:</strong> Cannot be empty</li>
           <li><strong>Email:</strong> Must be valid email format</li>
-        </ul>
-        <h3>Optional Fields:</h3>
-        <ul>
-          <li><strong>Bio:</strong> Can be left empty</li>
         </ul>
         <h3>Input Features:</h3>
         <ul>

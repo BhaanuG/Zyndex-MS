@@ -271,7 +271,6 @@ export default function UserProfile() {
                       </>
                     )}
 
-                    <textarea name="bio" value={profileData.bio} onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })} disabled={!isEditing} rows={4} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-none disabled:bg-gray-50" />
                     {isEditing && <button type="submit" className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-lg font-medium"><Save className="size-4" />Save Changes</button>}
                   </form>
                   <PasswordChangePanel user={user} />

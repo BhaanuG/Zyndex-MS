@@ -297,23 +297,38 @@
     outline-offset: 2px;
   }
 
-  /* Scrollbar */
+  /* Modern Ultra-Clean Scrollbar (macOS / iOS minimal style) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+  }
+
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--muted);
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--muted-foreground);
-    border-radius: 5px;
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+    transition: background 0.2s ease;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--foreground);
+    background: rgba(100, 116, 139, 0.65);
+  }
+
+  /* Auto-hide scrollbar when not hovering on scrollable containers */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 

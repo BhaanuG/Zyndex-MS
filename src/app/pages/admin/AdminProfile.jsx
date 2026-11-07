@@ -55,7 +55,6 @@ export default function AdminProfile() {
             <form onSubmit={handleSave} className="space-y-6">
               <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" /><input type="text" name="name" value={profileData.name} onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} disabled={!isEditing} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg disabled:bg-gray-50" /></div>
               <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" /><input type="email" name="email" value={profileData.email} onChange={(e) => setProfileData({ ...profileData, email: e.target.value })} disabled={!isEditing} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg disabled:bg-gray-50" /></div>
-              <textarea name="bio" value={profileData.bio} onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })} disabled={!isEditing} rows={4} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-none disabled:bg-gray-50" />
               <div className="flex justify-end gap-2">
                 {isEditing ? (
                   <>
