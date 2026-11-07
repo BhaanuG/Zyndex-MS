@@ -781,6 +781,10 @@ This section compiles all operational constraints, entitlement gates, pricing ta
 | **Inter-Service Isolation**| Direct service calls must provide `X-Gateway-Secret` | `*/.../GatewaySecretFilter.java` | `doFilter` | None | Blocks direct unauthorized port calls with HTTP 403 Forbidden. |
 | **Client Header Stripping**| Gateway purges client `X-User-*` headers | `api-gateway/.../JwtValidationFilter.java` | `filter` | None | Prevents identity spoofing; claims populated exclusively from verified JWT. |
 | **Feedback Email Audit Loop**| Admin response or reaction to user feedback in admin console | `content-service/.../FeedbackController.java` & `ContactEmailService.java` | `respond` / `sendFeedbackResponseEmail` | Updates `feedback.admin_response`, `feedback.responded_at` | Automatically emails user their review details, rating, time, and the administrator's response comment. |
+| **Self-Service Account Deletion**| Explicit multi-step reason capture + 120s OTP verification + `CONFIRM` challenge phrase | `auth-service/.../UserController.java`, `DeleteAccountModal.jsx` | `deleteAccount` | Deletes user from `users`, cascades to related profile records | Deletes user, sends farewell email, and alerts platform maintainer (`Bhaanugali@gmail.com`). |
+| **Cross-Schema Production Audit Persistence**| External microservice audit logging in multi-schema MySQL environments | `access-service`, `content-service`, `subscription-service`, `usage-service` | `*AuditLoggingFilter.java`, `application.yml` | Inserts into `${AUTH_DB_NAME:zyndex_auth}.system_logs` | Ensures audit logs survive server restarts and production cloud deployments. |
+| **Granular UI Interaction Audit Logging**| Captures micro-interactions (tab navigations, modal views, searches, data downloads) | `src/app/layouts/AdminLayout.jsx` | `recordInteraction` | Writes to `system_logs` with level `INFO` | Provides complete behavioral trace for administrative compliance. |
+| **Clean Export UI Standards**| Data table CSV exports use minimal `<Download />` icon controls with millisecond timestamps | `UserAccessManagement.jsx`, `ResourceManagement.jsx`, `AdminPayments.jsx` | `handleExportCsv` | Client-side file generation | Eliminates visual button clutter while maintaining ISO 8601 UTC/IST timestamped export artifacts. |
 
 ---
 
@@ -1775,28 +1779,29 @@ Statistics were calculated using a native filesystem audit executed across all s
 
 | Metric Category | Measured Quantity | Description & Character Breakdown |
 | :--- | :--- | :--- |
-| **Total Source Files** | **185 Files** | Application-owned source and configuration files |
-| **Total Lines of Code (LOC)** | **43,730 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **121,511 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **1,841,960 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **991,948 Characters** | 53.85% of total character stream |
-| **Digits & Numbers (`0-9`)** | **49,440 Characters** | 2.68% of total character stream |
-| **Symbols, Operators & Punctuation** | **262,410 Characters** | 14.25% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **538,162 Characters** | 29.22% of total character stream (indentation, newlines) |
+| **Total Source Files** | **208 Files** | Application-owned source, configuration, template, and schema manifests |
+| **Total Lines of Code (LOC)** | **48,836 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **171,864 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,095,126 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,138,182 Characters** | 54.33% of total character stream |
+| **Digits & Numbers (`0-9`)** | **52,926 Characters** | 2.53% of total character stream |
+| **Symbols, Operators & Punctuation** | **293,981 Characters** | 14.03% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **610,037 Characters** | 29.12% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
 | Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`.jsx`** | React UI Components & Pages | **93 Files** | **22,496 Lines** | **64,176 Words** | **982,848 Chars** |
-| **`.java`** | Spring Boot Microservices Backend | **59 Files** | **7,999 Lines** | **25,199 Words** | **391,833 Chars** |
-| **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,497 Lines** | **11,525 Words** | **151,027 Chars** |
-| **`.json`** | Package & Dependency Manifests | **2 Files** | **5,994 Lines** | **7,935 Words** | **169,922 Chars** |
-| **`.md`** | Technical Architecture Documentation | **1 File** | **1,693 Lines** | **10,820 Words** | **122,153 Chars** |
-| **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **730 Lines** | **1,421 Words** | **16,515 Chars** |
-| **`.yml`** | Spring Cloud & Gateway Configurations| **8 Files** | **302 Lines** | **399 Words** | **7,079 Chars** |
-| **`.html`** | Single-Page Application Entry Root | **1 File** | **19 Lines** | **36 Words** | **583 Chars** |
-| **Overall Total** | **Full Stack Application** | **185 Files** | **43,730 Lines** | **121,511 Words** | **1,841,960 Chars** |
+| **`.jsx`** | React UI Components & Pages | **95 Files** | **24,682 Lines** | **86,052 Words** | **1,086,142 Chars** |
+| **`.java`** | Spring Boot Microservices Backend | **63 Files** | **9,213 Lines** | **37,248 Words** | **459,603 Chars** |
+| **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,543 Lines** | **14,214 Words** | **152,778 Chars** |
+| **`.json`** | Package & Dependency Manifests | **3 Files** | **6,005 Lines** | **11,441 Words** | **170,276 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,393 Lines** | **19,210 Words** | **169,416 Chars** |
+| **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **801 Lines** | **1,834 Words** | **17,992 Chars** |
+| **`.yml`** | Spring Cloud & Gateway Configurations| **11 Files** | **646 Lines** | **1,245 Words** | **19,247 Chars** |
+| **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **523 Lines** | **552 Words** | **18,789 Chars** |
+| **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
+| **Overall Total** | **Full Stack Application** | **208 Files** | **48,836 Lines** | **171,864 Words** | **2,095,126 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
