@@ -1,0 +1,18 @@
+services:
+  # Static Web Service (Frontend SPA)
+  - type: web
+    name: zyndex-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: zyndex-api-gateway
+          property: host
+
