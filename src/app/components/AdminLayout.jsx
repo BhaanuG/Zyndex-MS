@@ -206,8 +206,6 @@ export default function AdminLayout({ children }) {
                   Dashboard
                 </motion.button>
               )}
-
-              <MaintenanceCountdownBar isPrimaryAdmin={false} inline />
               
               {showBackButton && !isProfilePage && (
                 <motion.button
@@ -282,6 +280,9 @@ export default function AdminLayout({ children }) {
               })}
             </nav>
 
+            {/* Maintenance Timer at down/bottom of the profile side bar */}
+            <MaintenanceCountdownBar isPrimaryAdmin={false} mode="admin-sidebar" />
+
             {/* Logout */}
             <div className="p-4 border-t border-gray-200">
               <button
@@ -338,8 +339,6 @@ export default function AdminLayout({ children }) {
                       Back
                     </motion.button>
                   )}
-
-                  <MaintenanceCountdownBar isPrimaryAdmin={false} inline />
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">

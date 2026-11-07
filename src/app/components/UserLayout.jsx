@@ -80,8 +80,6 @@ export default function UserLayout({ children }) {
               <BookOpen className="size-6 text-orange-600" />
               <span className="text-xl font-semibold text-gray-900">Zyndex</span>
             </Link>
-
-            <MaintenanceCountdownBar isPrimaryAdmin={false} inline />
             {user?.subscriptionPlan && user.subscriptionPlan !== 'FREE' && (() => {
               const plan = String(user.subscriptionPlan).toUpperCase();
               let badgeStyle = "bg-orange-50 text-orange-700 border-orange-200/80";
@@ -240,6 +238,9 @@ export default function UserLayout({ children }) {
               <LogOut className="size-4" />
               Logout
             </motion.button>
+
+            {/* Top-Right Corner Maintenance Countdown Timer & 10s Alert */}
+            <MaintenanceCountdownBar isPrimaryAdmin={false} mode="user" />
           </nav>
         </div>
       </header>

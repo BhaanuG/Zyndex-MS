@@ -1793,7 +1793,7 @@ Statistics were calculated using a native filesystem audit executed across all s
 
 | Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`.jsx`** | React UI Components & Pages | **95 Files** | **25,354 Lines** | **88,699 Words** | **1,124,740 Chars** |
+| **`.jsx`** | React UI Components & Pages | **95 Files** | **25,430 Lines** | **89,030 Words** | **1,128,527 Chars** |
 | **`.java`** | Spring Boot Microservices Backend | **63 Files** | **9,708 Lines** | **39,461 Words** | **488,386 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,567 Lines** | **14,274 Words** | **153,477 Chars** |
 | **`.json`** | Package & Dependency Manifests | **3 Files** | **6,005 Lines** | **11,441 Words** | **170,276 Chars** |
@@ -1802,7 +1802,7 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.yml`** | Spring Cloud & Gateway Configurations| **9 Files** | **549 Lines** | **881 Words** | **16,193 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **523 Lines** | **552 Words** | **18,789 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
-| **Overall Total** | **Full Stack Application** | **205 Files** | **49,905 Lines** | **176,489 Words** | **2,161,101 Chars** |
+| **Overall Total** | **Full Stack Application** | **205 Files** | **49,981 Lines** | **176,820 Words** | **2,164,888 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
