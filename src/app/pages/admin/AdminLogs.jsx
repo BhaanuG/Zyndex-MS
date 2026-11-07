@@ -391,130 +391,44 @@ export default function AdminLogs() {
     return () => clearInterval(interval);
   }, [autoRefresh, activeTab, readingPage, systemPage, adminLogsPage, adminSearchTerm]);
 
-  // Comprehensive Multi-Domain Enterprise Export for Main Admin
-  // Exports System & Admin Audit Logs, User Accounts, Payments & Transactions, and Resources
-  const exportAllPlatformData = async () => {
-    try {
-      setExportingAll(true);
-      const escapeCsv = (val) => {
-        if (val === null || val === undefined) return '""';
-        const str = String(val).replace(/"/g, '""');
-        return `"${str}"`;
-      };
+  // Download Options Menu Modal state
+  const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
 
-      const downloadCsv = (filename, headers, rows) => {
-        const csvContent =
-          '\uFEFF' +
-          [
-            headers.map(escapeCsv).join(','),
-            ...rows.map((r) => r.map(escapeCsv).join(','))
-          ].join('\r\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      };
-
-      const dateStr = new Date().toISOString().slice(0, 10);
-
-      // 1. Fetch complete system and admin audit logs
-      try {
-        const logsRes = await logService.getLogs({ page: 0, size: 5000 });
-        const logsList = logsRes.logs || [];
-        const logHeaders = ['Log ID', 'Timestamp', 'Microservice', 'Level', 'Action Executed', 'Actor Email', 'Details', 'Execution Status'];
-        const logRows = logsList.map((l) => [
-          l.id,
-          l.timestamp || l.createdAt,
-          l.service,
-          l.level,
-          l.action,
-          l.actorEmail || 'System',
-          l.details,
-          l.status || 'SUCCESS'
-        ]);
-        downloadCsv(`Zyndex_Enterprise_Audit_Logs_${dateStr}.csv`, logHeaders, logRows);
-      } catch (err) {
-        console.warn('Could not export full system logs:', err);
-      }
-
-      // 2. Fetch complete user directory
-      try {
-        const usersRes = await userService.getAllUsers({ page: 0, size: 5000 });
-        const userList = usersRes.users || [];
-        const userHeaders = ['User ID', 'Name', 'Email', 'Role', 'User Type', 'Institution', 'Status', 'Joined Date'];
-        const userRows = userList.map((u) => [
-          u.id,
-          u.name || u.username,
-          u.email,
-          u.role,
-          u.userType || 'Student',
-          u.collegeName || u.institution || 'Individual',
-          u.isOnline ? 'Online' : 'Offline',
-          u.createdAt || u.created_at
-        ]);
-        downloadCsv(`Zyndex_Enterprise_Users_${dateStr}.csv`, userHeaders, userRows);
-      } catch (err) {
-        console.warn('Could not export user records:', err);
-      }
-
-      // 3. Fetch complete payments & subscriptions
-      try {
-        const payRes = await subscriptionService.getAdminPayments();
-        const payList = payRes.payments || [];
-        const payHeaders = ['Payment ID', 'User Name', 'User Email', 'Plan Name', 'Amount (INR)', 'UTR Reference', 'Payment Date', 'Status'];
-        const payRows = payList.map((p) => [
-          p.id,
-          p.userName || p.name,
-          p.userEmail || p.email,
-          p.planName,
-          p.amount,
-          p.utrNumber,
-          p.paymentDate || p.createdAt,
-          p.status
-        ]);
-        downloadCsv(`Zyndex_Enterprise_Payments_${dateStr}.csv`, payHeaders, payRows);
-      } catch (err) {
-        console.warn('Could not export payments:', err);
-      }
-
-      // 4. Fetch catalog resources
-      try {
-        const resRes = await resourceService.getAllResources({ page: 0, size: 5000 });
-        const resList = resRes.resources || [];
-        const resHeaders = ['Resource ID', 'Title', 'Author', 'Department / Category', 'Type', 'Access Tier', 'Views Count', 'Rating'];
-        const resRows = resList.map((r) => [
-          r.id,
-          r.title,
-          r.author,
-          r.category,
-          r.type,
-          r.requiredTier || 'FREE',
-          r.viewCount || r.views || 0,
-          r.rating || 0
-        ]);
-        downloadCsv(`Zyndex_Enterprise_Resources_${dateStr}.csv`, resHeaders, resRows);
-      } catch (err) {
-        console.warn('Could not export resources:', err);
-      }
-
-      // 5. Also export complete reading sessions
-      exportCompleteDataToExcel();
-
-    } catch (error) {
-      console.error('Failed to export enterprise data:', error);
-      alert('An error occurred while compiling enterprise records for export.');
-    } finally {
-      setExportingAll(false);
-    }
+  // Helper function to format timestamp down to the second: YYYY-MM-DD_HH-mm-ss
+  const getSecondsTimestamp = () => {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
   };
 
-  const exportCompleteDataToExcel = () => {
+  const escapeCsv = (val) => {
+    if (val === null || val === undefined) return '""';
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
+  const triggerCsvDownload = (filename, headers, rows) => {
+    const csvContent =
+      '\uFEFF' +
+      [
+        headers.map(escapeCsv).join(','),
+        ...rows.map((r) => r.map(escapeCsv).join(','))
+      ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 1. Export Reading History & Engagement Analytics
+  const exportReadingHistoryCsv = () => {
+    const timeStamp = getSecondsTimestamp();
     const headers = [
       'Serial No',
       'Session ID',
@@ -532,12 +446,6 @@ export default function AdminLogs() {
       'Resource Authors',
       'Resource Categories'
     ];
-
-    const escapeCsv = (val) => {
-      if (val === null || val === undefined) return '""';
-      const str = String(val).replace(/"/g, '""');
-      return `"${str}"`;
-    };
 
     const rows = readingSessions.map((s, idx) => {
       const resourceTitles = s.resources.map((r) => r.title).join(' | ');
@@ -564,22 +472,162 @@ export default function AdminLogs() {
       ];
     });
 
-    const csvContent =
-      '\uFEFF' +
-      [
-        headers.map(escapeCsv).join(','),
-        ...rows.map((r) => r.map(escapeCsv).join(','))
-      ].join('\r\n');
+    triggerCsvDownload(`Zyndex_Reading_History_Analytics_${timeStamp}.csv`, headers, rows);
+    setDownloadMenuOpen(false);
+  };
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `Zyndex_Reading_Sessions_Complete_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  // 2. Export Microservice & Audit Logs
+  const exportMicroserviceAuditLogsCsv = async () => {
+    try {
+      const timeStamp = getSecondsTimestamp();
+      const res = await logService.getLogs({ page: 0, size: 10000 });
+      const rawLogs = res.logs || [];
+      const microserviceLogs = rawLogs.filter((l) => (l.service || '').toUpperCase() !== 'ADMIN-PORTAL');
+      
+      const headers = ['Log ID', 'Timestamp', 'Microservice', 'Severity Level', 'Action Executed', 'Actor Email', 'Execution Details', 'Execution Status'];
+      const rows = microserviceLogs.map((l) => [
+        l.id,
+        l.timestamp || l.createdAt,
+        l.service,
+        l.level,
+        l.action,
+        l.actorEmail || 'System',
+        l.details,
+        l.status || 'SUCCESS'
+      ]);
+
+      triggerCsvDownload(`Zyndex_Microservice_Audit_Logs_${timeStamp}.csv`, headers, rows);
+    } catch (err) {
+      console.error('Failed to export microservice logs:', err);
+      alert('Failed to export Microservice & Audit Logs.');
+    } finally {
+      setDownloadMenuOpen(false);
+    }
+  };
+
+  // 3. Export Admin Action Logs
+  const exportAdminActionLogsCsv = async () => {
+    try {
+      const timeStamp = getSecondsTimestamp();
+      const res = await logService.getLogs({ page: 0, size: 10000, service: 'ADMIN-PORTAL' });
+      const adminLogsList = res.logs || [];
+      
+      const headers = ['Log ID', 'Timestamp', 'Administrator Email', 'Action Name', 'Severity Level', 'Audit Summary & Action Details', 'Execution Status'];
+      const rows = adminLogsList.map((l) => [
+        l.id,
+        l.timestamp || l.createdAt,
+        l.actorEmail || 'admin@zyndex.com',
+        l.action,
+        l.level,
+        l.details,
+        l.status || 'SUCCESS'
+      ]);
+
+      triggerCsvDownload(`Zyndex_Admin_Action_Logs_${timeStamp}.csv`, headers, rows);
+    } catch (err) {
+      console.error('Failed to export admin action logs:', err);
+      alert('Failed to export Admin Action Logs.');
+    } finally {
+      setDownloadMenuOpen(false);
+    }
+  };
+
+  // 4. Export All Enterprise Data at Once (Logs, Users, Payments, Reading, Resources)
+  const exportAllPlatformData = async () => {
+    try {
+      setExportingAll(true);
+      const timeStamp = getSecondsTimestamp();
+
+      // 1. Fetch complete system and admin audit logs
+      try {
+        const logsRes = await logService.getLogs({ page: 0, size: 10000 });
+        const logsList = logsRes.logs || [];
+        const logHeaders = ['Log ID', 'Timestamp', 'Microservice', 'Level', 'Action Executed', 'Actor Email', 'Details', 'Execution Status'];
+        const logRows = logsList.map((l) => [
+          l.id,
+          l.timestamp || l.createdAt,
+          l.service,
+          l.level,
+          l.action,
+          l.actorEmail || 'System',
+          l.details,
+          l.status || 'SUCCESS'
+        ]);
+        triggerCsvDownload(`Zyndex_Enterprise_Audit_Logs_${timeStamp}.csv`, logHeaders, logRows);
+      } catch (err) {
+        console.warn('Could not export full system logs:', err);
+      }
+
+      // 2. Fetch complete user directory
+      try {
+        const usersRes = await userService.getAllUsers({ page: 0, size: 5000 });
+        const userList = usersRes.users || [];
+        const userHeaders = ['User ID', 'Name', 'Email', 'Role', 'User Type', 'Institution', 'Status', 'Joined Date'];
+        const userRows = userList.map((u) => [
+          u.id,
+          u.name || u.username,
+          u.email,
+          u.role,
+          u.userType || 'Student',
+          u.collegeName || u.institution || 'Individual',
+          u.isOnline ? 'Online' : 'Offline',
+          u.createdAt || u.created_at
+        ]);
+        triggerCsvDownload(`Zyndex_Enterprise_Users_${timeStamp}.csv`, userHeaders, userRows);
+      } catch (err) {
+        console.warn('Could not export user records:', err);
+      }
+
+      // 3. Fetch complete payments & subscriptions
+      try {
+        const payRes = await subscriptionService.getAdminPayments();
+        const payList = payRes.payments || [];
+        const payHeaders = ['Payment ID', 'User Name', 'User Email', 'Plan Name', 'Amount (INR)', 'UTR Reference', 'Payment Date', 'Status'];
+        const payRows = payList.map((p) => [
+          p.id,
+          p.userName || p.name,
+          p.userEmail || p.email,
+          p.planName,
+          p.amount,
+          p.utrNumber,
+          p.paymentDate || p.createdAt,
+          p.status
+        ]);
+        triggerCsvDownload(`Zyndex_Enterprise_Payments_${timeStamp}.csv`, payHeaders, payRows);
+      } catch (err) {
+        console.warn('Could not export payments:', err);
+      }
+
+      // 4. Fetch catalog resources
+      try {
+        const resRes = await resourceService.getAllResources({ page: 0, size: 5000 });
+        const resList = resRes.resources || [];
+        const resHeaders = ['Resource ID', 'Title', 'Author', 'Department / Category', 'Type', 'Access Tier', 'Views Count', 'Rating'];
+        const resRows = resList.map((r) => [
+          r.id,
+          r.title,
+          r.author,
+          r.category,
+          r.type,
+          r.requiredTier || 'FREE',
+          r.viewCount || r.views || 0,
+          r.rating || 0
+        ]);
+        triggerCsvDownload(`Zyndex_Enterprise_Resources_${timeStamp}.csv`, resHeaders, resRows);
+      } catch (err) {
+        console.warn('Could not export resources:', err);
+      }
+
+      // 5. Also export complete reading sessions
+      exportReadingHistoryCsv();
+
+    } catch (error) {
+      console.error('Failed to export enterprise data:', error);
+      alert('An error occurred while compiling enterprise records for export.');
+    } finally {
+      setExportingAll(false);
+      setDownloadMenuOpen(false);
+    }
   };
 
   const getLevelBadge = (level) => {
@@ -646,35 +694,65 @@ export default function AdminLogs() {
               Auto Refresh: {autoRefresh ? '10s Active' : 'Off'}
             </button>
 
-            <button
-              onClick={reloadAll}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-xs cursor-pointer"
-            >
-              <RefreshCw className={`size-3.5 ${loading ? 'animate-spin text-orange-500' : ''}`} />
-              Refresh Now
-            </button>
-
-            <button
-              onClick={exportCompleteDataToExcel}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl text-xs font-semibold hover:from-orange-700 hover:to-red-700 transition-all shadow-sm cursor-pointer"
-              title="Export complete session history and all accessed resources to CSV / Excel"
-            >
-              <FileSpreadsheet className="size-3.5" />
-              Export Sessions (CSV)
-            </button>
-
-            {isPrimaryAdmin && (
+            {/* Download Icon Button with Dropdown Modal */}
+            <div className="relative">
               <button
-                onClick={exportAllPlatformData}
-                disabled={exportingAll}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                title="Export all enterprise logs, audit records, users, payments, and resources"
+                onClick={() => setDownloadMenuOpen(!downloadMenuOpen)}
+                className="p-2.5 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 transition-all shadow-md cursor-pointer flex items-center justify-center group"
+                title="Download / Export Log Records"
               >
-                <Download className={`size-3.5 ${exportingAll ? 'animate-bounce text-orange-400' : ''}`} />
-                {exportingAll ? 'Compiling All Data...' : 'Export All Enterprise Data (Logs, Users, Payments)'}
+                <Download className="size-4 group-hover:scale-110 transition-transform" />
               </button>
-            )}
+
+              {downloadMenuOpen && (
+                <div
+                  className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-3 py-2 border-b border-gray-100 mb-1">
+                    <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">Select Export Dataset</p>
+                    <p className="text-[11px] text-gray-500">Includes exact seconds-accurate timestamps</p>
+                  </div>
+                  
+                  <button
+                    onClick={exportReadingHistoryCsv}
+                    className="w-full text-left px-3 py-2.5 text-xs font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition-colors flex items-center gap-2.5 cursor-pointer"
+                  >
+                    <BarChart3 className="size-4 text-orange-500" />
+                    <span>Reading History & Engagement Analytics</span>
+                  </button>
+
+                  <button
+                    onClick={exportMicroserviceAuditLogsCsv}
+                    className="w-full text-left px-3 py-2.5 text-xs font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition-colors flex items-center gap-2.5 cursor-pointer"
+                  >
+                    <ScrollText className="size-4 text-blue-500" />
+                    <span>Microservice & Audit Logs</span>
+                  </button>
+
+                  <button
+                    onClick={exportAdminActionLogsCsv}
+                    className="w-full text-left px-3 py-2.5 text-xs font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition-colors flex items-center gap-2.5 cursor-pointer"
+                  >
+                    <ShieldCheck className="size-4 text-emerald-500" />
+                    <span>Admin Action Logs</span>
+                  </button>
+
+                  {isPrimaryAdmin && (
+                    <div className="mt-1 pt-1 border-t border-gray-100">
+                      <button
+                        onClick={exportAllPlatformData}
+                        disabled={exportingAll}
+                        className="w-full text-left px-3 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors flex items-center gap-2.5 cursor-pointer disabled:opacity-50"
+                      >
+                        <Download className="size-4 text-orange-400" />
+                        <span>{exportingAll ? 'Compiling All Data...' : 'Download All Logs at Once'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
 

@@ -201,6 +201,15 @@ export default function AdminRequest() {
   const [loaderMessage, setLoaderMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
+
+  useState(() => {
+    apiClient.get('/users/maintenance-mode')
+      .then(res => {
+        if (res?.maintenanceMode) setIsMaintenanceActive(true);
+      })
+      .catch(() => {});
+  });
 
   const handleChange = (e) => {
     setFormData({
@@ -520,12 +529,17 @@ export default function AdminRequest() {
                 )}
 
                 {/* Submit Button */}
+                {isMaintenanceActive && (
+                  <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200 mb-3 text-center font-medium">
+                    Platform is under scheduled maintenance. Admin registration requests are temporarily unavailable.
+                  </p>
+                )}
                 <motion.button
                   type="submit"
-                  disabled={sending}
-                  className="w-full relative group"
-                  whileHover={{ scale: !sending ? 1.02 : 1 }}
-                  whileTap={{ scale: !sending ? 0.98 : 1 }}
+                  disabled={sending || isMaintenanceActive}
+                  className={`w-full relative group ${isMaintenanceActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  whileHover={{ scale: !sending && !isMaintenanceActive ? 1.02 : 1 }}
+                  whileTap={{ scale: !sending && !isMaintenanceActive ? 0.98 : 1 }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div className="relative flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-600/30 disabled:opacity-50 disabled:cursor-not-allowed">

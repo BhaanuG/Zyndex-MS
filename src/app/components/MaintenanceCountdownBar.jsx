@@ -1,0 +1,80 @@
+import React, { useState, useEffect } from 'react';
+import { Clock, AlertTriangle } from 'lucide-react';
+import userService from '@/services/api/userService';
+
+/**
+ * MaintenanceCountdownBar
+ * Renders a sticky top timer on user & regular admin portals when platform maintenance is scheduled in 15 minutes.
+ */
+export default function MaintenanceCountdownBar({ isPrimaryAdmin }) {
+  const [scheduledAt, setScheduledAt] = useState(null);
+  const [secondsRemaining, setSecondsRemaining] = useState(null);
+
+  useEffect(() => {
+    let timerId = null;
+
+    const checkMaintenance = async () => {
+      try {
+        const res = await userService.getMaintenanceMode();
+        if (res?.maintenanceMode && res?.scheduledAt) {
+          const startTime = new Date(res.scheduledAt).getTime();
+          const targetTime = startTime + 15 * 60 * 1000; // 15 minutes in ms
+          const now = Date.now();
+          const remainingSecs = Math.max(0, Math.floor((targetTime - now) / 1000));
+          setScheduledAt(res.scheduledAt);
+          setSecondsRemaining(remainingSecs);
+
+          // If time reached 0, trigger official active maintenance
+          if (remainingSecs <= 0 && !isPrimaryAdmin) {
+            userService.finalizeMaintenanceActive().catch(() => {});
+          }
+        } else {
+          setScheduledAt(null);
+          setSecondsRemaining(null);
+        }
+      } catch (err) {}
+    };
+
+    checkMaintenance();
+    const pollInterval = setInterval(checkMaintenance, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [isPrimaryAdmin]);
+
+  // Local second ticker
+  useEffect(() => {
+    if (secondsRemaining === null || secondsRemaining <= 0) return;
+    const ticker = setInterval(() => {
+      setSecondsRemaining(prev => {
+        if (prev <= 1) {
+          if (!isPrimaryAdmin) {
+            userService.finalizeMaintenanceActive().catch(() => {});
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(ticker);
+  }, [secondsRemaining, isPrimaryAdmin]);
+
+  if (secondsRemaining === null || isPrimaryAdmin) return null;
+
+  const minutes = Math.floor(secondsRemaining / 60);
+  const seconds = secondsRemaining % 60;
+  const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  return (
+    <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white px-4 py-2 text-xs font-semibold shadow-md flex items-center justify-between z-[9990] sticky top-0">
+      <div className="flex items-center gap-2">
+        <AlertTriangle className="size-4 animate-bounce shrink-0" />
+        <span>Platform Scheduled Maintenance: Service temporarily offline in</span>
+      </div>
+      <div className="flex items-center gap-1.5 bg-black/30 px-2.5 py-1 rounded-full font-mono text-xs tracking-wider border border-white/20">
+        <Clock className="size-3.5 text-amber-200" />
+        <span className="font-bold text-amber-100">{formattedTime}</span>
+      </div>
+    </div>
+  );
+}

@@ -70,24 +70,38 @@ export const AuthProvider = ({ children }) => {
     // Periodic check every 4 seconds: refresh user and check maintenance mode / session termination
     const interval = window.setInterval(async () => {
       refreshUser();
-      // If not primary admin, check if maintenance mode has been activated
+      // If not primary admin, check if maintenance mode has officially started
       if (!user.isPrimaryAdmin) {
         try {
           const res = await userService.getMaintenanceMode();
           if (res?.maintenanceMode) {
-            const currentRole = user.role || 'user';
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_data');
-            setUser(null);
-            setRole(null);
-            window.dispatchEvent(
-              new CustomEvent('zyndex:session-expired', {
-                detail: {
-                  role: currentRole,
-                  reason: 'The platform is currently in maintenance mode. We are sorry for the inconvenience, please check back shortly.'
-                }
-              })
-            );
+            // Check if 15 minutes window has elapsed
+            let isOfficiallyOffline = false;
+            if (res?.scheduledAt) {
+              const startTime = new Date(res.scheduledAt).getTime();
+              const elapsed = Date.now() - startTime;
+              if (elapsed >= 15 * 60 * 1000) {
+                isOfficiallyOffline = true;
+              }
+            } else {
+              isOfficiallyOffline = true;
+            }
+
+            if (isOfficiallyOffline) {
+              const currentRole = user.role || 'user';
+              localStorage.removeItem('auth_token');
+              localStorage.removeItem('user_data');
+              setUser(null);
+              setRole(null);
+              window.dispatchEvent(
+                new CustomEvent('zyndex:session-expired', {
+                  detail: {
+                    role: currentRole,
+                    reason: 'The platform is currently in maintenance mode. We are sorry for the inconvenience, please check back shortly.'
+                  }
+                })
+              );
+            }
           }
         } catch (ignored) {}
       }

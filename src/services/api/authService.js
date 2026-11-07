@@ -77,6 +77,7 @@ const authService = {
 
   sendOtp: (data) => apiClient.post('/send-otp', data),
   verifyOtp: (data) => apiClient.post('/verify-otp', data),
+  checkUserStatus: (email) => apiClient.post('/auth/check-status', { email }),
   getAccountDetails: (email, role) => apiClient.get(`/auth/account-details?email=${encodeURIComponent(email)}&role=${role}`),
   getAdminRequests: () => apiClient.get('/auth/admin-requests'),
   decideAdminRequest: (id, decision, reason = '') => apiClient.put(`/auth/admin-requests/${id}/decision`, { decision, reason }),

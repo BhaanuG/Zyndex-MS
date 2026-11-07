@@ -101,6 +101,11 @@ class AuthController {
         }
         Map<String, Object> user = auth.sanitizeUser(dbUser);
 
+        // Check if user account has been terminated by administrator
+        if (Boolean.TRUE.equals(user.get("terminated"))) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "The given email ID has been terminated by an administrator. Please contact administrator.");
+        }
+
         // Check maintenance mode: only Main Admin can log in during maintenance mode
         if (auth.isMaintenanceMode() && !Boolean.TRUE.equals(user.get("isPrimaryAdmin"))) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
@@ -135,6 +140,24 @@ class AuthController {
     Map<String, Object> checkLogin(@RequestBody Map<String, Object> body) {
         body.put("preview", true);
         return login(body);
+    }
+
+    @PostMapping("/check-status")
+    Map<String, Object> checkStatus(@RequestBody Map<String, Object> body) {
+        String email = AuthSupport.str(body.get("email")).trim();
+        if (email.isBlank()) {
+            return Map.of("exists", false, "terminated", false);
+        }
+        Map<String, Object> dbUser = auth.findUserByEmail(email);
+        if (dbUser == null) {
+            return Map.of("exists", false, "terminated", false);
+        }
+        boolean isTerminated = AuthSupport.bool(dbUser.get("terminated"));
+        return Map.of(
+            "exists", true,
+            "terminated", isTerminated,
+            "message", isTerminated ? "The given email ID has been terminated by an administrator. Please contact administrator." : "Active"
+        );
     }
 
     @PostMapping("/check-trusted-device")

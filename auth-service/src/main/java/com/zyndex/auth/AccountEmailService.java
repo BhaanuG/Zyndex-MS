@@ -364,6 +364,67 @@ class AccountEmailService {
                 """.formatted(username, username, email, LocalDateTime.now().toString().replace('T', ' '), properties.mainAdminEmail(), properties.otpMailFrom()));
     }
 
+    boolean sendMaintenanceScheduledEmail(String name, String email) {
+        return sendSafely(email, "Notice: Scheduled Platform Maintenance in 15 Minutes - Zyndex", """
+                Dear %s,
+
+                We would like to notify you that the Zyndex Digital Library platform is scheduled to undergo necessary system maintenance and technical upgrades starting in 15 minutes.
+
+                Maintenance Details:
+                - Platform: Zyndex Digital Library & Resource Hub
+                - Window: Starting in approximately 15 minutes
+                - Impact: Active reading sessions, resource downloads, and admin features will be temporarily unavailable.
+
+                Please save any in-progress reading sessions and work immediately. All your account records, reading histories, and active subscriptions remain completely safe and preserved.
+
+                We apologize for any temporary inconvenience and appreciate your patience while we optimize our services.
+
+                Warm regards,
+                The Zyndex Systems Team
+                %s
+                """.formatted(name, properties.otpMailFrom()));
+    }
+
+    boolean sendMaintenanceActiveEmail(String name, String email) {
+        return sendSafely(email, "Zyndex Platform Under Maintenance - Service Temporarily Offline", """
+                Dear %s,
+
+                The Zyndex platform is now officially undergoing scheduled maintenance.
+
+                During this maintenance period:
+                - Active user and administrative sessions have been safely suspended.
+                - Public informational pages (About, Pricing, Terms, Privacy) remain accessible.
+                - Logins, account registration, password resets, and catalog modifications are temporarily disabled.
+
+                Our engineering team is actively performing system enhancements to bring you higher performance and reliability. We will dispatch an automated confirmation email as soon as the platform is fully back online.
+
+                Thank you for your cooperation and understanding.
+
+                Sincerely,
+                Zyndex Technical Operations
+                %s
+                """.formatted(name, properties.otpMailFrom()));
+    }
+
+    boolean sendMaintenanceConcludedEmail(String name, String email) {
+        return sendSafely(email, "Good News! Zyndex is Back Online - Normal Access Restored", """
+                Dear %s,
+
+                We are pleased to inform you that the platform maintenance has concluded successfully, and all Zyndex systems, microservices, and digital library catalogs are now 100%% operational!
+
+                You can now sign in to your Zyndex account and resume accessing your academic books, journals, documents, and research materials seamlessly.
+
+                Platform Portal: https://zyndex.com
+                Support Contact: %s
+
+                Thank you for your patience and support!
+
+                Best regards,
+                The Zyndex Team
+                %s
+                """.formatted(name, properties.mainAdminEmail(), properties.otpMailFrom()));
+    }
+
     private boolean sendSafely(String to, String subject, String text) {
         try {
             send(to, subject, text);

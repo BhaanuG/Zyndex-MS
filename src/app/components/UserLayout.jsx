@@ -3,6 +3,7 @@ import { BookOpen, Search, User, LogOut, ArrowLeft, X, Sparkles, CreditCard } fr
 import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import MaintenanceCountdownBar from './MaintenanceCountdownBar';
 
 export default function UserLayout({ children }) {
   const navigate = useNavigate();
@@ -63,6 +64,7 @@ export default function UserLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <MaintenanceCountdownBar isPrimaryAdmin={false} />
       {/* Header */}
       <header className="py-4 px-6 bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">

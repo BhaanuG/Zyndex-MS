@@ -25,8 +25,8 @@ export default function AdminDashboard() {
     if (!isPrimaryAdmin) return;
     const nextState = !maintenanceMode;
     const confirmMsg = nextState
-      ? 'Are you sure you want to activate Platform Maintenance Mode?\n\nAll active users will be logged out immediately with a maintenance notice.'
-      : 'Are you sure you want to deactivate Maintenance Mode and restore normal access?';
+      ? 'Are you sure you want to activate Platform Maintenance Mode?\n\n• An announcement email will be dispatched to all users and regular admins.\n• A 15-minute countdown timer will run on user & regular admin portals.\n• When the 15-minute timer expires, all user and regular admin sessions will be terminated and a maintenance modal displayed.'
+      : 'Are you sure you want to deactivate Maintenance Mode and restore normal platform access?\n\nAn announcement email will be sent notifying everyone that Zyndex is back online.';
     if (!window.confirm(confirmMsg)) return;
 
     setTogglingMaintenance(true);

@@ -23,9 +23,9 @@ import java.net.URLEncoder;
 
 @Component
 public class AuthSupport {
-    private final JdbcTemplate jdbc;
-    private final AppProperties properties;
-    private final org.springframework.web.client.RestTemplate restTemplate;
+    public final JdbcTemplate jdbc;
+    public final AppProperties properties;
+    public final org.springframework.web.client.RestTemplate restTemplate;
     public final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public AuthSupport(JdbcTemplate jdbc, AppProperties properties, org.springframework.web.client.RestTemplate restTemplate) {
@@ -131,6 +131,9 @@ public class AuthSupport {
         if (user == null || !Boolean.TRUE.equals(bool(user.get("active")))) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid or inactive account.");
         }
+        if (Boolean.TRUE.equals(bool(user.get("terminated")))) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "The given email ID has been terminated by an administrator. Please contact administrator.");
+        }
 
         // Validate session token version against DB version to terminate superseded / force-logged-out sessions
         if (tokenClaims != null) {
@@ -200,6 +203,7 @@ public class AuthSupport {
         user.put("collegeName", first(row.get("college_name"), ""));
         user.put("universityName", first(row.get("university_name"), ""));
         user.put("active", bool(row.get("active")));
+        user.put("terminated", bool(row.get("terminated")));
         user.put("createdAt", row.get("created_at"));
         user.put("updatedAt", row.get("updated_at"));
 

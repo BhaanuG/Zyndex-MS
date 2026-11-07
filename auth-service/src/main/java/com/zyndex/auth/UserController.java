@@ -125,6 +125,7 @@ class UserController {
                 Map.entry("universityName", sanitized.get("universityName")),
                 Map.entry("bio", sanitized.get("bio")),
                 Map.entry("active", sanitized.get("active")),
+                Map.entry("terminated", sanitized.get("terminated") != null ? sanitized.get("terminated") : false),
                 Map.entry("isOnline", isOnline),
                 Map.entry("lastActiveAt", lastActiveObj != null ? String.valueOf(lastActiveObj) : ""),
                 Map.entry("dateJoined", sanitized.get("createdAt")),
@@ -342,8 +343,9 @@ class UserController {
         Map<String, Object> admin = auth.requirePrimaryAdmin(request);
         Map<String, Object> target = auth.findUserById(userId);
         if (target == null) throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
-        // Increment token version and clear last_active_at
-        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+
+        // Mark user as terminated, increment session token version and clear last_active_at
+        jdbc.update("UPDATE users SET terminated = true, session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
 
         String targetName = String.valueOf(AuthSupport.first(target.get("name"), target.get("username")));
         String targetEmail = String.valueOf(target.get("email"));
@@ -354,14 +356,36 @@ class UserController {
             jdbc.update("""
                     INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'ADMIN-PORTAL', 'WARN', 'ADMIN_FORCE_LOGOUT_USER', ?, ?, ?, 'SUCCESS')
-                    """, adminEmail, "Administrator terminated active session for user: " + targetName + " (" + targetEmail + ", ID: " + userId + ")", request.getRemoteAddr());
+                    """, adminEmail, "Administrator terminated active session and revoked access for user: " + targetName + " (" + targetEmail + ", ID: " + userId + ")", request.getRemoteAddr());
             jdbc.update("""
                     INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'USER_SESSION_TERMINATED', ?, ?, ?, 'SUCCESS')
                     """, targetEmail, "Active session token invalidated. Incremented session_token_version to enforce immediate logout for user ID: " + userId, request.getRemoteAddr());
         } catch (Exception ignored) {}
 
-        return Map.of("message", "User session terminated by administrator.", "userId", userId);
+        return Map.of("message", "User session terminated and account marked terminated by administrator.", "userId", userId);
+    }
+
+    @PostMapping("/{userId}/restore-access")
+    Map<String, Object> restoreAccess(HttpServletRequest request, @PathVariable("userId") long userId) {
+        Map<String, Object> admin = auth.requirePrimaryAdmin(request);
+        Map<String, Object> target = auth.findUserById(userId);
+        if (target == null) throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
+
+        jdbc.update("UPDATE users SET terminated = false, active = true WHERE id = ?", userId);
+
+        String targetName = String.valueOf(AuthSupport.first(target.get("name"), target.get("username")));
+        String targetEmail = String.valueOf(target.get("email"));
+        String adminEmail = String.valueOf(admin.get("email"));
+
+        try {
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'ADMIN-PORTAL', 'INFO', 'ADMIN_RESTORE_USER_ACCESS', ?, ?, ?, 'SUCCESS')
+                    """, adminEmail, "Administrator restored platform access for terminated user: " + targetName + " (" + targetEmail + ", ID: " + userId + ")", request.getRemoteAddr());
+        } catch (Exception ignored) {}
+
+        return Map.of("message", "User access successfully restored by administrator.", "userId", userId);
     }
 
     @PostMapping("/force-logout-all")
@@ -391,7 +415,14 @@ class UserController {
     Map<String, Object> getMaintenanceStatus() {
         var rows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_MODE' LIMIT 1");
         boolean enabled = !rows.isEmpty() && "true".equalsIgnoreCase(String.valueOf(rows.get(0).get("setting_value")));
-        return Map.of("maintenanceMode", enabled);
+        
+        var timeRows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_SCHEDULED_AT' LIMIT 1");
+        String scheduledAt = !timeRows.isEmpty() && timeRows.get(0).get("setting_value") != null ? String.valueOf(timeRows.get(0).get("setting_value")) : null;
+
+        return Map.of(
+            "maintenanceMode", enabled,
+            "scheduledAt", scheduledAt != null ? scheduledAt : ""
+        );
     }
 
     @PostMapping("/maintenance-mode")
@@ -399,25 +430,101 @@ class UserController {
         Map<String, Object> admin = auth.requirePrimaryAdmin(request);
         long adminId = AuthSupport.number(admin.get("id"));
         boolean enable = AuthSupport.bool(body.get("enabled"));
-        jdbc.update("""
-                INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
-                VALUES ('MAINTENANCE_MODE', ?, NOW(), ?)
-                ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW(), updated_by = VALUES(updated_by)
-                """, enable ? "true" : "false", admin.get("email"));
-
+        String actionType = AuthSupport.str(body.get("actionType")); // "SCHEDULE_START" | "FORCE_OFFICIAL_NOW" | "DEACTIVATE"
+        
         if (enable) {
-            // Immediately revoke all other active sessions when maintenance starts
-            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?", adminId);
+            String nowIso = java.time.Instant.now().toString();
+            jdbc.update("""
+                    INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
+                    VALUES ('MAINTENANCE_MODE', 'true', NOW(), ?)
+                    ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW(), updated_by = VALUES(updated_by)
+                    """, admin.get("email"));
+
+            jdbc.update("""
+                    INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
+                    VALUES ('MAINTENANCE_SCHEDULED_AT', ?, NOW(), ?)
+                    ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW(), updated_by = VALUES(updated_by)
+                    """, nowIso, admin.get("email"));
+
+            // Broadcast emails asynchronously to all active platform users and regular admins
+            new Thread(() -> {
+                try {
+                    var users = jdbc.queryForList("SELECT id, name, username, email FROM users WHERE id != ?", adminId);
+                    for (var u : users) {
+                        String name = String.valueOf(AuthSupport.first(u.get("name"), u.get("username")));
+                        String email = String.valueOf(u.get("email"));
+                        accountEmailService.sendMaintenanceScheduledEmail(name, email);
+                    }
+                } catch (Exception err) {
+                    System.err.println("Broadcast maintenance warning email failed: " + err.getMessage());
+                }
+            }).start();
+
+        } else {
+            jdbc.update("""
+                    INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
+                    VALUES ('MAINTENANCE_MODE', 'false', NOW(), ?)
+                    ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW(), updated_by = VALUES(updated_by)
+                    """, admin.get("email"));
+
+            jdbc.update("DELETE FROM system_settings WHERE setting_key = 'MAINTENANCE_SCHEDULED_AT'");
+
+            // Broadcast maintenance concluded email
+            new Thread(() -> {
+                try {
+                    var users = jdbc.queryForList("SELECT id, name, username, email FROM users WHERE id != ?", adminId);
+                    for (var u : users) {
+                        String name = String.valueOf(AuthSupport.first(u.get("name"), u.get("username")));
+                        String email = String.valueOf(u.get("email"));
+                        accountEmailService.sendMaintenanceConcludedEmail(name, email);
+                    }
+                } catch (Exception err) {
+                    System.err.println("Broadcast maintenance concluded email failed: " + err.getMessage());
+                }
+            }).start();
         }
 
         try {
             jdbc.update("""
                     INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'ADMIN-PORTAL', 'WARN', 'ADMIN_TOGGLE_MAINTENANCE_MODE', ?, ?, ?, 'SUCCESS')
-                    """, admin.get("email"), "Administrator toggled platform maintenance mode to: " + (enable ? "ACTIVATED" : "DEACTIVATED"), request.getRemoteAddr());
+                    """, admin.get("email"), "Administrator toggled platform maintenance mode to: " + (enable ? "ACTIVATED (15-min countdown triggered & email broadcast dispatched)" : "DEACTIVATED (Back Online email broadcast dispatched)"), request.getRemoteAddr());
         } catch (Exception ignored) {}
 
-        return Map.of("maintenanceMode", enable, "message", enable ? "Maintenance mode activated. All active sessions have been logged out." : "Maintenance mode deactivated.");
+        return Map.of("maintenanceMode", enable, "message", enable ? "Maintenance mode activated. Broadcast email sent and 15-minute countdown started." : "Maintenance mode deactivated. Zyndex is back online.");
+    }
+
+    @PostMapping("/maintenance-officially-active")
+    Map<String, Object> finalizeMaintenanceActive(HttpServletRequest request) {
+        // Called when 15-minute window elapses or admin enforces immediate official offline mode
+        var adminRows = jdbc.queryForList("SELECT id, email FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1", auth.properties.mainAdminEmail());
+        long adminId = adminRows.isEmpty() ? 0L : AuthSupport.number(adminRows.get(0).get("id"));
+
+        // Immediately revoke all other active sessions across the platform
+        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?", adminId);
+
+        // Broadcast email: Zyndex is now officially in maintenance
+        new Thread(() -> {
+            try {
+                var users = jdbc.queryForList("SELECT id, name, username, email FROM users WHERE id != ?", adminId);
+                for (var u : users) {
+                    String name = String.valueOf(AuthSupport.first(u.get("name"), u.get("username")));
+                    String email = String.valueOf(u.get("email"));
+                    accountEmailService.sendMaintenanceActiveEmail(name, email);
+                }
+            } catch (Exception err) {
+                System.err.println("Broadcast maintenance active email failed: " + err.getMessage());
+            }
+        }).start();
+
+        try {
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'MAINTENANCE_OFFICIALLY_ACTIVE', 'system', '15-minute countdown elapsed. All active users and regular admins terminated and maintenance active emails dispatched.', '127.0.0.1', 'SUCCESS')
+                    """);
+        } catch (Exception ignored) {}
+
+        return Map.of("message", "Maintenance is now officially active. All sessions terminated and emails dispatched.");
     }
 
     @PostMapping("/send-subscription-email")

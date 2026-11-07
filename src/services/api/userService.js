@@ -208,6 +208,10 @@ const userService = {
     return await apiClient.post(`/users/${userId}/force-logout`);
   },
 
+  restoreUserAccess: async (userId) => {
+    return await apiClient.post(`/users/${userId}/restore-access`);
+  },
+
   forceLogoutAllUsers: async () => {
     return await apiClient.post('/users/force-logout-all');
   },
@@ -218,6 +222,10 @@ const userService = {
 
   setMaintenanceMode: async (enabled) => {
     return await apiClient.post('/users/maintenance-mode', { enabled });
+  },
+
+  finalizeMaintenanceActive: async () => {
+    return await apiClient.post('/users/maintenance-officially-active');
   },
 
   /**

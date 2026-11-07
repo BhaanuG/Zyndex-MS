@@ -41,6 +41,41 @@ export default function Login() {
   const [otpSuccessMessage, setOtpSuccessMessage] = useState('');
   const [otpCountdown, setOtpCountdown] = useState(0);
 
+  // Terminated user detection & maintenance mode check
+  const [isTerminatedUser, setIsTerminatedUser] = useState(false);
+  const [terminatedMessage, setTerminatedMessage] = useState('');
+  const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
+
+  useEffect(() => {
+    // Check maintenance status
+    apiClient.get('/users/maintenance-mode')
+      .then(res => {
+        if (res?.maintenanceMode) {
+          setIsMaintenanceActive(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleEmailBlur = async () => {
+    const trimmed = email.trim();
+    if (!trimmed || !trimmed.includes('@') || isSignUpMode) return;
+    try {
+      const res = await authService.checkUserStatus(trimmed);
+      if (res?.terminated) {
+        setIsTerminatedUser(true);
+        setTerminatedMessage('The given email ID has been terminated by an administrator. Please contact administrator.');
+        setError('The given email ID has been terminated by an administrator. Please contact administrator.');
+      } else {
+        setIsTerminatedUser(false);
+        setTerminatedMessage('');
+        if (error.includes('terminated')) setError('');
+      }
+    } catch (err) {
+      // Ignored
+    }
+  };
+
   // Capture incoming redirect intentions from location state or query params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -407,6 +442,10 @@ export default function Login() {
                           setEmail(e.target.value);
                           setError('');
                           setSuccessMessage('');
+                          if (isTerminatedUser) {
+                            setIsTerminatedUser(false);
+                            setTerminatedMessage('');
+                          }
                           if (isSignUpMode && otpVerified) {
                             setOtpVerified(false);
                             setOtpSent(false);
@@ -414,6 +453,7 @@ export default function Login() {
                             setOtpSuccessMessage('');
                           }
                         }}
+                        onBlur={handleEmailBlur}
                         placeholder="Enter your email"
                         className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
                         required
@@ -616,12 +656,36 @@ export default function Login() {
                   </div>
                 )}
 
+                {isTerminatedUser && (
+                  <div className="flex items-start gap-2.5 p-4 bg-rose-50 border border-rose-300 rounded-xl text-rose-700 text-sm font-medium shadow-xs">
+                    <AlertCircle className="size-5 shrink-0 text-rose-600 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-rose-900">Account Terminated</p>
+                      <p className="mt-0.5 text-xs text-rose-800 leading-relaxed">
+                        {terminatedMessage || 'The given email ID has been terminated by an administrator. Please contact administrator.'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {isMaintenanceActive && (
+                  <div className="flex items-start gap-2.5 p-4 bg-amber-50 border border-amber-300 rounded-xl text-amber-800 text-sm font-medium shadow-xs">
+                    <AlertCircle className="size-5 shrink-0 text-amber-600 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-amber-950">System Under Maintenance</p>
+                      <p className="mt-0.5 text-xs text-amber-800 leading-relaxed">
+                        The platform is currently under scheduled maintenance. Sign in and account registration are temporarily disabled.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="relative group">
                   <button
                     type="submit"
-                    disabled={submitting || (isSignUpMode && !otpVerified)}
+                    disabled={submitting || (isSignUpMode && !otpVerified) || isTerminatedUser || (isMaintenanceActive && activeTab !== 'admin')}
                     className={`w-full relative group transition-all ${
-                      isSignUpMode && !otpVerified ? 'opacity-60 cursor-not-allowed' : 'disabled:opacity-70'
+                      (isSignUpMode && !otpVerified) || isTerminatedUser || (isMaintenanceActive && activeTab !== 'admin') ? 'opacity-60 cursor-not-allowed' : 'disabled:opacity-70'
                     }`}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />

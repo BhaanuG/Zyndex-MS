@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff, Download, LogOut, Wrench, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff, Download, LogOut, Wrench, ArrowUpDown, ArrowUp, ArrowDown, ShieldCheck, CheckCircle } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
@@ -49,7 +49,32 @@ export default function UserAccessManagement() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
   const [adminRequests, setAdminRequests] = useState([]);
-  const [loggingOutUser, setLoggingOutUser] = useState(null);
+  const [restoringUser, setRestoringUser] = useState(null);
+
+  const handleRestoreUserAccess = async (u) => {
+    if (!isPrimaryAdmin) return;
+    if (!window.confirm(`Restore platform access for ${u.name || u.email}?\n\nThe user will be allowed to sign in normally.`)) return;
+
+    setRestoringUser(u.id);
+    try {
+      await userService.restoreUserAccess(u.id);
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'INFO',
+        action: 'ADMIN_RESTORE_USER_ACCESS',
+        actorEmail: currentUser?.email || 'admin@zyndex.com',
+        details: `Administrator restored platform access for user: ${u.name || 'User'} (${u.email}, ID: ${u.id})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
+      alert(`Access has been successfully restored for ${u.name || u.email}.`);
+      await loadUsers(searchTerm);
+    } catch (err) {
+      alert(err.message || 'Failed to restore user access.');
+    } finally {
+      setRestoringUser(null);
+    }
+  };
   const [loggingOutAll, setLoggingOutAll] = useState(false);
   const [sortBy, setSortBy] = useState('dateJoined_desc'); // 'name_asc', 'name_desc', 'plan', 'expiry', 'dateJoined_desc', 'dateJoined_asc', 'role', 'status'
 
@@ -561,7 +586,14 @@ export default function UserAccessManagement() {
                   const platformRole = getPlatformRole(user);
                   return (
                     <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
-                      <td className={`py-4 px-6 ${user.isOnline ? 'text-emerald-600 font-semibold' : 'text-gray-900 font-medium'}`}>{user.name}</td>
+                      <td className={`py-4 px-6 ${user.terminated ? 'text-rose-600 line-through font-medium' : user.isOnline ? 'text-emerald-600 font-semibold' : 'text-gray-900 font-medium'}`}>
+                        {user.name}
+                        {user.terminated && (
+                          <span className="ml-2 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 border border-rose-200">
+                            Terminated
+                          </span>
+                        )}
+                      </td>
                       <td className="py-4 px-6 text-gray-600">{user.email}</td>
                       <td className="py-4 px-6">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
@@ -616,14 +648,25 @@ export default function UserAccessManagement() {
                         <div className="flex items-center gap-2">
                         {canManageUsers && <>
                           {isPrimaryAdmin && platformRole !== 'Main Admin' && (
-                            <button
-                              onClick={() => handleForceLogoutUser(user)}
-                              disabled={loggingOutUser === user.id}
-                              className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors cursor-pointer"
-                              title="Terminate active user session"
-                            >
-                              <LogOut className="size-4" />
-                            </button>
+                            user.terminated ? (
+                              <button
+                                onClick={() => handleRestoreUserAccess(user)}
+                                disabled={restoringUser === user.id}
+                                className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors cursor-pointer"
+                                title="Restore user access (reactivate account)"
+                              >
+                                <CheckCircle className="size-4" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleForceLogoutUser(user)}
+                                disabled={loggingOutUser === user.id}
+                                className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors cursor-pointer"
+                                title="Terminate active user session"
+                              >
+                                <LogOut className="size-4" />
+                              </button>
+                            )
                           )}
                           <button onClick={() => openEditModal(user)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors" title="Edit User & Plan"><Edit className="size-4" /></button>
                           <button onClick={() => openResetModal(user)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors" title="Reset Password"><KeyRound className="size-4" /></button>

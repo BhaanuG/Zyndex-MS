@@ -146,13 +146,16 @@ export default function AdminPayments() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Zyndex_Payments_Export_${new Date().toISOString().slice(0, 10)}.csv`);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const timestampStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    link.setAttribute('download', `Zyndex_Payments_Export_${timestampStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    setAlert({ message: 'Payments data exported to Excel (CSV) successfully!', type: 'success' });
+    setAlert({ message: 'Payments data exported with timestamps successfully!', type: 'success' });
   };
 
   // Status priority order for custom sorting
@@ -276,17 +279,17 @@ export default function AdminPayments() {
               <button
                 onClick={fetchPayments}
                 disabled={loading}
-                className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-xs"
+                className="p-2.5 bg-white border border-slate-200 text-slate-700 hover:text-orange-600 rounded-xl hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
+                title="Refresh payments list"
               >
-                <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
+                <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
               <button
                 onClick={handleExportExcel}
-                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
+                className="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
+                title="Download Payments with Timestamp (CSV/Excel)"
               >
-                <FileSpreadsheet className="size-4" />
-                <span>Export in Excel</span>
+                <Download className="size-4" />
               </button>
             </div>
           </div>

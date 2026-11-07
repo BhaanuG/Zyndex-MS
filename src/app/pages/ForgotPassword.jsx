@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, Mail, Lock, User, ArrowRight, Menu, X, Eye, EyeOff, KeyRound, CheckCircle2, Loader2 } from 'lucide-react';
 import authService from '@/services/api/authService';
+import apiClient from '@/services/api/apiClient';
 
 // Loader Component with Book Animation
 function SubmissionLoader({ message }) {
@@ -78,6 +79,15 @@ export default function ForgotPassword() {
   const [error, setError] = useState('');
   const [showLoader, setShowLoader] = useState(false);
   const [loaderMessage, setLoaderMessage] = useState('');
+  const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
+
+  useEffect(() => {
+    apiClient.get('/users/maintenance-mode')
+      .then(res => {
+        if (res?.maintenanceMode) setIsMaintenanceActive(true);
+      })
+      .catch(() => {});
+  }, []);
 
   // Password strength calculation
   const getPasswordStrength = (password) => {
@@ -510,12 +520,17 @@ export default function ForgotPassword() {
                 </motion.div>
 
                 {/* Submit Button */}
+                {isMaintenanceActive && (
+                  <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200 mt-4 text-center font-medium">
+                    Platform is under scheduled maintenance. Password resets are temporarily disabled.
+                  </p>
+                )}
                 <motion.button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full relative group mt-8"
-                  whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-                  whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
+                  disabled={isSubmitting || isMaintenanceActive}
+                  className={`w-full relative group mt-8 ${isMaintenanceActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  whileHover={{ scale: isSubmitting || isMaintenanceActive ? 1 : 1.02 }}
+                  whileTap={{ scale: isSubmitting || isMaintenanceActive ? 1 : 0.98 }}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.75 }}
