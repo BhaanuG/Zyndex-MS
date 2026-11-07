@@ -1,44 +1,75 @@
 <div align="center">
 
 <a href="https://github.com/BhaanuG/Zyndex-MS">
-  <img src="https://raw.githubusercontent.com/BhaanuG/Zyndex-MS/main/public/logo.svg" alt="Zyndex Logo" width="96" height="96" />
+  <img src="https://raw.githubusercontent.com/BhaanuG/Zyndex-MS/main/public/logo.svg" alt="Zyndex Logo" width="100" height="100" />
 </a>
 
 # ZYNDEX
 
-**Enterprise Distributed Academic Resource Platform & Digital Rights Governance Engine**
+### Enterprise Distributed Academic Learning & Digital Resource Management Platform
 
-*Conceived, Architected & Engineered Solely by **Bhaanu G (Bhaanu Gali)***  
-`Bhaanugali@gmail.com` • `2400030952@kluniversity.in` • [GitHub Repository](https://github.com/BhaanuG/Zyndex-MS)
-
-[![Build Status](https://img.shields.io/badge/Build-Passing%20(0%20Errors)-2ea44f?style=flat-square)](https://github.com/BhaanuG/Zyndex-MS)
-[![Java 21 LTS](https://img.shields.io/badge/Java-21%20LTS-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2024.0.0-6DB33F?style=flat-square&logo=spring&logoColor=white)](https://spring.io/projects/spring-cloud)
-[![React](https://img.shields.io/badge/React-18.3.1-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-6.0.5-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![MySQL 8.4](https://img.shields.io/badge/MySQL-8.4%20LTS-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-[![Security Policy](https://img.shields.io/badge/Security-Enforced-success?style=flat-square)](SECURITY.md)
-[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-blue?style=flat-square)](ACCESSIBILITY.md)
-
-[Architecture](#system-architecture--microservices-topology) • [Service Registry](#poly-service-microservices-ecosystem) • [REST APIs](#10-comprehensive-rest-api-reference) • [Security & Auth](#9-security-authentication--jwt-traceability) • [Quickstart](#automated-quickstart--local-cluster-orchestration) • [Audits & Metrics](#17-quantitative-codebase-statistics--metrics)
+<p align="center">
+  <b>Architected, Engineered & Authored Solely by <a href="mailto:Bhaanugali@gmail.com">Bhaanu G (Bhaanu Gali)</a></b><br/>
+  <code>Platform Maintainer & Principal Systems Architect</code><br/>
+  <a href="mailto:Bhaanugali@gmail.com">Bhaanugali@gmail.com</a> &bull; <a href="mailto:2400030952@kluniversity.in">2400030952@kluniversity.in</a> &bull; <a href="https://github.com/BhaanuG/Zyndex-MS">GitHub Repository</a>
+</p>
 
 ---
 
+<p align="center">
+  <a href="#core-architectural-highlights"><img src="https://img.shields.io/badge/Architecture-Poly--Service%20Microservices-blueviolet?style=for-the-badge" alt="Architecture" /></a>
+  <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21 LTS" /></a>
+  <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Spring%20Boot-3.4.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 3.4.2" /></a>
+  <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Spring%20Cloud-2024.0.0-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Cloud" /></a>
+  <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" /></a>
+  <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/Vite-6.0.5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 6" /></a>
+  <a href="#database-runtime-specifications"><img src="https://img.shields.io/badge/MySQL-8.4%20LTS-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8.4" /></a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT%20(Exclusive%20Attribution)-yellow?style=flat-square" alt="License" /></a>
+  <a href="SECURITY.md"><img src="https://img.shields.io/badge/Security-Cryptographic%20OTP%20%26%20JWT-2ea44f?style=flat-square" alt="Security" /></a>
+  <a href="ACCESSIBILITY.md"><img src="https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA%20%26%20Section%20508-blue?style=flat-square" alt="Accessibility" /></a>
+  <img src="https://img.shields.io/badge/Build%20Status-Passing%20(0%20Errors)-brightgreen?style=flat-square" alt="Build Status" />
+  <img src="https://img.shields.io/badge/Deployment-Render%20Cloud%20Native-46E3B7?style=flat-square" alt="Deployment" />
+</p>
+
+<p align="center">
+  <a href="#system-architecture--microservices-topology"><b>System Topology</b></a> &bull;
+  <a href="#core-architectural-highlights"><b>Architectural Highlights</b></a> &bull;
+  <a href="#microservice-registry-and-port-allocation"><b>Service Ports</b></a> &bull;
+  <a href="#10-comprehensive-rest-api-reference"><b>REST API Documentation</b></a> &bull;
+  <a href="#pin-to-pin-local-cluster-execution"><b>Cluster Quickstart</b></a> &bull;
+  <a href="#17-quantitative-codebase-statistics--metrics"><b>Quantitative Metrics</b></a>
+</p>
+
 </div>
 
-### Architectural Overview
+---
 
-Zyndex is a cloud-native, distributed digital library and academic resource governance platform engineered for higher-education campuses and research consortia. It provides end-to-end identity federation, cryptographic two-factor authentication, in-memory zero-leakage PDF stream slicing, dynamic UPI subscription settlement, and real-time student reading telemetry.
+### Executive Architectural Abstract
 
-Designed with poly-service autonomous microservices orchestrated via Spring Cloud Gateway and Netflix Eureka, the platform delivers sub-50ms routing overhead, strict inter-service boundary validation, and zero-downtime deployment capabilities.
+**Zyndex** is a production-grade, distributed academic learning and digital resource management platform designed for universities, campus libraries, research labs, and academic consortia. The platform eliminates content redistribution risks and resolves fragmented student entitlements through:
 
-> **Engineering Specifications**:
-> - **Lead Architect & Platform Owner**: Bhaanu G (Bhaanu Gali)
-> - **Engine Release**: `v1.0.4-PROD` (All platform rights and design architecture strictly reserved)
-> - **Cluster Footprint**: 7 Autonomous Microservices + Independent React SPA Client
-> - **Verification**: Clean build certification (`BUILD SUCCESS`, 0 compiler warnings, 0 runtime regressions)
+- **Strict Cryptographic Perimeter**: Dynamic 4-digit TLS-relayed OTP authentication, 24-hour trusted device recognition with preserved visual human CAPTCHA, and stateless HMAC-SHA256 JWT access tokens.
+- **Zero-Leakage In-Memory PDF Slicing**: Proprietary academic documents are sliced on-the-fly in heap memory via Apache PDFBox for unverified and evaluation tiers, preventing client-side retrieval of complete files.
+- **Real-Time Telemetry Engine**: Continuous 15-second client heartbeat aggregation that accurately measures active reading duration, total unique readers, and concurrent live sessions.
+- **UPI Instant Settlement Pipeline**: Direct UPI deep-link intent and dynamic QR code generation paired with 12-digit bank UTR hold verification and an administrative audit reconciliation portal.
+
+---
+
+### Engineering & Systems Matrix
+
+| Architecture Dimension | Technical Implementation | Operational SLA / Characteristic |
+| :--- | :--- | :--- |
+| **System Model** | Poly-Service Distributed Microservices | Zero shared memory; independent process isolation |
+| **Edge Gateway** | Spring Cloud Gateway on Netty (Reactive Non-Blocking I/O) | Sub-50ms reverse-proxy routing; global CORS & rate limiting |
+| **Service Registry** | Netflix Eureka Service Discovery | Real-time 30s heartbeat leasing & client-side load balancing |
+| **Perimeter Security** | `X-Gateway-Secret` Internal Header Validation | Downstream services block direct external access |
+| **Identity & Hashing** | Spring Security 6 + BCrypt (Adaptive Salt Factor 10) | Brute-force resistant credential storage |
+| **Persistence Layer** | MySQL 8.4 LTS with InnoDB Engine | ACID transaction boundaries with relational referential integrity |
+| **Frontend Framework** | React 18.3.1 SPA via Vite 6 + Tailwind CSS 3.4 | Dynamic code-split bundle; client-side routing fallback |
+| **Sole Authority** | **Bhaanu G (Bhaanu Gali)** | All system designs, IP, and platform rights reserved |
 
 ---
 
