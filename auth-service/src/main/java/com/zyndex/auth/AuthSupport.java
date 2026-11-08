@@ -169,7 +169,7 @@ public class AuthSupport {
                 int claimV = Integer.parseInt(String.valueOf(tokenVer));
                 int dbV = user.get("session_token_version") != null ? (int) number(user.get("session_token_version")) : 1;
                 if (claimV < dbV) {
-                    throw new ApiException(HttpStatus.UNAUTHORIZED, "Your session was terminated by an administrator or superseded by another device login.");
+                    throw new ApiException(HttpStatus.UNAUTHORIZED, "The session with the email ID " + userEmail + " is currently active and in use on another device or browser. To maintain account integrity, this session will now be closed.");
                 }
             }
         }

@@ -154,7 +154,15 @@ export default function UserHome() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
                 <input
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchQuery(val);
+                    if (val.trim().length >= 2) {
+                      const userName = getUrlSafeName();
+                      const userEmail = getUrlSafeEmail();
+                      navigate(`/Zyndex/User/${userName}/${userEmail}/Search?query=${encodeURIComponent(val)}`);
+                    }
+                  }}
                   placeholder="Search by title, author of resource, or keyword"
                   className="w-full pl-12 pr-4 py-4 rounded-2xl border border-orange-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />

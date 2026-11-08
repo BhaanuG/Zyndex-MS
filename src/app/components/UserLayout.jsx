@@ -79,102 +79,110 @@ export default function UserLayout({ children }) {
             </Link>
             {user?.subscriptionPlan && user.subscriptionPlan !== 'FREE' && (() => {
               const plan = String(user.subscriptionPlan).toUpperCase();
+              let badgeSymbol = "▲";
               let badgeStyle = "bg-orange-50 text-orange-700 border-orange-200/80";
-              let dotColor = "bg-orange-500";
-              let label = plan.replace('_', ' ');
+              let label = "Student Basic";
 
               if (plan.includes('ENTERPRISE')) {
-                badgeStyle = "bg-indigo-50 text-indigo-700 border-indigo-200";
-                dotColor = "bg-indigo-500";
+                badgeSymbol = "∞";
+                badgeStyle = "bg-purple-100 text-purple-800 border-purple-300";
+                label = "Enterprise";
               } else if (plan.includes('UNIVERSITY')) {
-                badgeStyle = "bg-purple-50 text-purple-700 border-purple-200";
-                dotColor = "bg-purple-500";
+                badgeSymbol = "⬢";
+                badgeStyle = "bg-indigo-100 text-indigo-800 border-indigo-300";
+                label = "University";
               } else if (plan.includes('RESEARCHER') || plan.includes('PRO')) {
-                badgeStyle = "bg-teal-50 text-teal-700 border-teal-200";
-                dotColor = "bg-teal-500";
+                badgeSymbol = "✦";
+                badgeStyle = "bg-teal-100 text-teal-800 border-teal-300";
+                label = "PhD Scholar";
               } else if (plan.includes('PLUS')) {
-                badgeStyle = "bg-amber-50 text-amber-700 border-amber-200";
-                dotColor = "bg-amber-500";
+                badgeSymbol = "⬦";
+                badgeStyle = "bg-amber-100 text-amber-800 border-amber-300";
+                label = "Student Plus";
               } else if (plan.includes('BASIC')) {
-                badgeStyle = "bg-blue-50 text-blue-700 border-blue-200";
-                dotColor = "bg-blue-500";
+                badgeSymbol = "▲";
+                badgeStyle = "bg-blue-100 text-blue-800 border-blue-300";
+                label = "Student Basic";
               }
 
               return (
                 <Link
                   to={`${baseUrl}/Profile/Billing/Pricing`}
                   title={`Subscribed Plan: ${label} (Click to manage)`}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border tracking-wide uppercase transition-all hover:scale-105 ${badgeStyle}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border tracking-wide uppercase transition-all hover:scale-105 shadow-2xs ${badgeStyle}`}
                 >
-                  <span className={`size-1.5 rounded-full ${dotColor}`} />
-                  {label}
+                  <span className="text-xs font-black">{badgeSymbol}</span>
+                  <span>{label}</span>
                 </Link>
               );
             })()}
           </div>
 
-          {/* Live Search Bar */}
-          <div className="flex-1 max-w-xl relative" ref={searchRef}>
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                placeholder="Search resources..."
-                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={clearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="size-4" />
-                </button>
-              )}
-            </form>
+          {/* Remove middle search bar from header on Home page if on Home */}
+          {!location.pathname.includes('/Home') ? (
+            <div className="flex-1 max-w-xl relative" ref={searchRef}>
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  placeholder="Search resources..."
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </form>
 
-            {/* Live Search Results Dropdown */}
-            <AnimatePresence>
-              {showSearchResults && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
-                >
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm font-medium text-gray-700">Live Results</p>
-                      <p className="text-xs text-gray-500">Type to search...</p>
-                    </div>
-                    
-                    {searchQuery.length > 0 ? (
-                      <div className="space-y-2">
-                        {/* No results message - since no data should be added */}
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="py-8 text-center text-gray-400"
-                        >
+              {/* Live Search Results Dropdown */}
+              <AnimatePresence>
+                {showSearchResults && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
+                  >
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm font-medium text-gray-700">Live Results</p>
+                        <p className="text-xs text-gray-500">Type to search...</p>
+                      </div>
+                      
+                      {searchQuery.length > 0 ? (
+                        <div className="space-y-2">
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="py-8 text-center text-gray-400"
+                          >
+                            <Search className="size-12 mx-auto mb-3 text-gray-300" />
+                            <p className="text-sm font-medium mb-1">No resources found</p>
+                            <p className="text-xs">Press Enter to search for "{searchQuery}"</p>
+                          </motion.div>
+                        </div>
+                      ) : (
+                        <div className="py-8 text-center text-gray-400">
                           <Search className="size-12 mx-auto mb-3 text-gray-300" />
-                          <p className="text-sm font-medium mb-1">No resources found</p>
-                          <p className="text-xs">Press Enter to search for "{searchQuery}"</p>
-                        </motion.div>
-                      </div>
-                    ) : (
-                      <div className="py-8 text-center text-gray-400">
-                        <Search className="size-12 mx-auto mb-3 text-gray-300" />
-                        <p className="text-xs">Start typing to see results</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                          <p className="text-xs">Start typing to see results</p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <div className="flex-1" />
+          )}
 
           <nav className="flex items-center gap-5">
             <motion.button

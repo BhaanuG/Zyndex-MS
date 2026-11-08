@@ -255,31 +255,28 @@ export default function PaymentPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between font-sans selection:bg-orange-500 selection:text-white">
-      {/* MINIMAL TOP HEADER: Only Zyndex Logo and Back Button */}
-      <header className="w-full bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between shadow-2xs">
+      {/* MINIMAL TOP HEADER: Only Zyndex Logo (Non-clickable, no redirect, no back button) */}
+      <header className="w-full bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between shadow-2xs select-none">
         <div className="flex items-center gap-2.5">
           <div className="size-10 rounded-xl bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center text-white shadow-md">
             <BookOpen className="size-5" />
           </div>
-          <div>
-            <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent tracking-tight">
+          <div className="flex flex-col">
+            <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent tracking-tight leading-tight">
               Zyndex
             </span>
-            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-              Payments
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-none mt-0.5">
+              Educational Excellence
             </span>
           </div>
         </div>
 
-        {/* Back Button */}
-        <button
-          type="button"
-          onClick={() => navigate(billingProfilePath)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all cursor-pointer"
-        >
-          <ArrowLeft className="size-4" />
-          <span>Back to Profile</span>
-        </button>
+        <div className="text-right">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+            <ShieldCheck className="size-3.5 text-orange-600" />
+            <span>Secure Checkout</span>
+          </span>
+        </div>
       </header>
 
       {/* MAIN PAYMENT WORKSPACE (No footer links, no other header links) */}
@@ -560,9 +557,10 @@ export default function PaymentPage() {
                 </span>
               </div>
 
-              {/* Right Side: Medium Clock + Digital Clock underneath */}
+              {/* Right Side: Medium Clock with live minutes/seconds hands + Digital Clock underneath */}
               <div className="flex flex-col items-center justify-center space-y-4">
                 <div className="relative size-32 md:size-36 flex items-center justify-center">
+                  {/* Outer circle progress */}
                   <svg className="size-32 md:size-36 -rotate-90 transform" viewBox="0 0 100 100">
                     <circle
                       cx="50"
@@ -587,9 +585,51 @@ export default function PaymentPage() {
                       style={{ transition: 'stroke-dashoffset 1s linear' }}
                     />
                   </svg>
-                  <div className="absolute flex flex-col items-center justify-center">
-                    <Clock className={`size-7 ${qrTimeLeft < 60 ? 'text-red-600 animate-pulse' : 'text-orange-600'}`} />
-                  </div>
+
+                  {/* Analog Clock Face with animated lively minutes & seconds hand */}
+                  <svg className="absolute size-24 transform pointer-events-none" viewBox="0 0 100 100">
+                    {/* Clock center pivot */}
+                    <circle cx="50" cy="50" r="3.5" className="fill-slate-800" />
+                    {/* Hour ticks */}
+                    {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => (
+                      <line
+                        key={deg}
+                        x1="50"
+                        y1="12"
+                        x2="50"
+                        y2="17"
+                        stroke="#94a3b8"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        transform={`rotate(${deg} 50 50)`}
+                      />
+                    ))}
+                    {/* Minute Hand: rotates based on elapsed minutes */}
+                    <line
+                      x1="50"
+                      y1="50"
+                      x2="50"
+                      y2="24"
+                      stroke="#334155"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      transform={`rotate(${((300 - qrTimeLeft) / 60) * 360 / 60} 50 50)`}
+                      style={{ transition: 'transform 1s linear' }}
+                    />
+                    {/* Lively Second Hand: rotates 360 deg every 60 seconds */}
+                    <line
+                      x1="50"
+                      y1="56"
+                      x2="50"
+                      y2="16"
+                      stroke={qrTimeLeft < 60 ? '#dc2626' : '#ea580c'}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      transform={`rotate(${(300 - qrTimeLeft) * 6} 50 50)`}
+                      style={{ transition: 'transform 1s linear' }}
+                    />
+                    <circle cx="50" cy="50" r="1.5" className={qrTimeLeft < 60 ? 'fill-red-600' : 'fill-orange-600'} />
+                  </svg>
                 </div>
 
                 {/* Medium Digital Clock underneath */}
@@ -599,21 +639,18 @@ export default function PaymentPage() {
                   }`}>
                     {formatTimer(qrTimeLeft)}
                   </span>
-                  <p className="text-xs font-semibold text-slate-500 mt-1">
-                    5-minute payment session
-                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Actions: Cancel and "I have paid" */}
+            {/* Bottom Actions: Cancel and "I Have Paid" */}
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <button
                 type="button"
                 onClick={handleIHavePaid}
                 className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>I have paid</span>
+                <span>I Have Paid</span>
               </button>
 
               <button

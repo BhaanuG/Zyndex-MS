@@ -4,7 +4,7 @@ import {
   CreditCard, Search, Download, CheckCircle2, XCircle, Clock, 
   AlertTriangle, Filter, RefreshCw, Check, X, ShieldAlert, 
   FileSpreadsheet, ArrowUpDown, ChevronDown, User, Calendar, 
-  Hash, DollarSign, Layers, ExternalLink, HelpCircle
+  Hash, DollarSign, Layers, ExternalLink, HelpCircle, Eye
 } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
@@ -53,6 +53,42 @@ export default function AdminPayments() {
     }, 6000);
     return () => clearInterval(pollTimer);
   }, []);
+
+  const [viewModalPayment, setViewModalPayment] = useState(null);
+
+  // Direct action execution (Accept & Not Received execute without extra popup modal)
+  const handleDirectAction = async (payment, action) => {
+    if (!payment) return;
+    setVerifying(true);
+    try {
+      const defaultNote = action === 'CONFIRM'
+        ? 'Verified and approved by admin.'
+        : 'Payment not received in bank statement.';
+      const res = await subscriptionService.verifyAdminPayment(payment.id, action, payment.utr || '', defaultNote);
+
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: action === 'CONFIRM' ? 'INFO' : 'WARN',
+        action: `ADMIN_PAYMENT_${action}`,
+        actorEmail: user?.email || 'admin@zyndex.com',
+        details: `Administrator ${action === 'CONFIRM' ? 'approved & confirmed' : 'marked as not received'} payment: ${payment.id} for user ${payment.user_email || payment.user_name} (Plan: ${payment.plan_id}, UTR: ${payment.utr || 'N/A'})`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
+      setAlert({
+        message: res.message || `Payment ${action === 'CONFIRM' ? 'confirmed and activated' : 'marked as not received'} successfully.`,
+        type: 'success'
+      });
+      await fetchPayments();
+    } catch (err) {
+      setAlert({
+        message: err.message || 'Action failed. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handleOpenActionModal = (payment, action) => {
     setActiveModal({ payment, action });
@@ -508,70 +544,69 @@ export default function AdminPayments() {
                               <span className="text-[11px] text-emerald-700 font-semibold inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">
                                 <CheckCircle2 className="size-3 text-emerald-500" /> Active
                               </span>
-                              {/* Option to Cancel or Delete duplicate/approved payment */}
                               <button
-                                onClick={() => handleOpenActionModal(p, 'CANCEL')}
-                                className="px-2 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                                title="Cancel approved payment and revert user to Free plan"
+                                onClick={() => setViewModalPayment(p)}
+                                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                title="View payment details"
                               >
-                                <span>Cancel</span>
+                                <Eye className="size-3.5 text-slate-600" />
                               </button>
+                            </div>
+                          ) : p.status === 'CANCELLED' || !p.utr ? (
+                            /* Cancelled by user in QR page, or UTR not entered yet: Show Eye icon only */
+                            <div className="flex items-center justify-center gap-1.5">
                               <button
-                                onClick={() => handleOpenActionModal(p, 'DELETE')}
-                                className="px-2 py-0.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                                title="Delete payment record permanently (e.g. duplicate payment)"
+                                onClick={() => setViewModalPayment(p)}
+                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 border border-slate-200 cursor-pointer"
+                                title="View details"
                               >
-                                <span>Delete</span>
+                                <Eye className="size-3.5 text-slate-600" />
+                                <span>Details</span>
                               </button>
                             </div>
                           ) : (
+                            /* User entered UTR: Accept & Not Received are direct one-click; Decline opens reason popup */
                             <div className="flex items-center justify-center gap-1.5 flex-wrap max-w-xs mx-auto">
-                              {/* Accept / Confirm */}
+                              {/* Accept directly */}
                               <button
-                                onClick={() => handleOpenActionModal(p, 'CONFIRM')}
-                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
-                                title="Accept payment and activate subscription"
+                                disabled={verifying}
+                                onClick={() => handleDirectAction(p, 'CONFIRM')}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95 disabled:opacity-50"
+                                title="Accept payment directly and activate subscription"
                               >
                                 <Check className="size-3" />
                                 <span>Accept</span>
                               </button>
 
-                              {/* Decline */}
+                              {/* Decline with reason modal */}
                               <button
+                                disabled={verifying}
                                 onClick={() => handleOpenActionModal(p, 'DECLINE')}
-                                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
-                                title="Decline payment with reason sent to email"
+                                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95 disabled:opacity-50"
+                                title="Decline payment with comment and email notification"
                               >
                                 <X className="size-3" />
                                 <span>Decline</span>
                               </button>
 
-                              {/* Not Received */}
+                              {/* Not Received directly */}
                               <button
-                                onClick={() => handleOpenActionModal(p, 'NOT_RECEIVED')}
-                                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[11px] font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
-                                title="Mark as Not Received with custom reason box and notify email"
+                                disabled={verifying}
+                                onClick={() => handleDirectAction(p, 'NOT_RECEIVED')}
+                                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[11px] font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95 disabled:opacity-50"
+                                title="Mark as Not Received directly"
                               >
                                 <AlertTriangle className="size-3" />
                                 <span>Not Received</span>
                               </button>
 
-                              {/* Cancel */}
+                              {/* View Info */}
                               <button
-                                onClick={() => handleOpenActionModal(p, 'CANCEL')}
-                                className="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-                                title="Cancel payment transaction"
+                                onClick={() => setViewModalPayment(p)}
+                                className="p-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-all cursor-pointer"
+                                title="View details"
                               >
-                                <span>Cancel</span>
-                              </button>
-
-                              {/* Delete */}
-                              <button
-                                onClick={() => handleOpenActionModal(p, 'DELETE')}
-                                className="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-                                title="Delete duplicate or erroneous payment"
-                              >
-                                <span>Delete</span>
+                                <Eye className="size-3.5" />
                               </button>
                             </div>
                           )}
@@ -587,6 +622,96 @@ export default function AdminPayments() {
 
         {/* Verification Action Modal */}
         <AnimatePresence>
+          {/* Eye Icon Info Details Modal */}
+          {viewModalPayment && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 z-50 backdrop-blur-xs"
+                onClick={() => setViewModalPayment(null)}
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              >
+                <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-orange-50 text-orange-600">
+                        <CreditCard className="size-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-base">Payment Details</h3>
+                        <p className="text-xs text-slate-500 font-mono">{viewModalPayment.id}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setViewModalPayment(null)}
+                      className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      <X className="size-5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                      <span className="text-slate-500 block">User Name</span>
+                      <span className="font-bold text-slate-800">{viewModalPayment.user_name || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">User Email</span>
+                      <span className="font-bold text-slate-800">{viewModalPayment.user_email || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Plan</span>
+                      <span className="font-bold text-slate-800">{(viewModalPayment.plan_id || 'N/A').replace(/_/g, ' ')}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Amount</span>
+                      <span className="font-bold text-slate-800">₹{((viewModalPayment.amount_paise || 0) / 100).toFixed(2)}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Status</span>
+                      <span className="font-bold">{getStatusBadge(viewModalPayment.status)}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">UTR Reference</span>
+                      <span className="font-mono font-bold text-slate-900">{viewModalPayment.utr || 'Not Submitted'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Order ID</span>
+                      <span className="font-mono text-slate-700">{viewModalPayment.order_id || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Created At</span>
+                      <span className="text-slate-700">{viewModalPayment.created_at ? new Date(viewModalPayment.created_at).toLocaleString() : 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  {viewModalPayment.review_reason && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                      <span className="font-bold block mb-0.5">Admin Note / Review Reason:</span>
+                      <p>{viewModalPayment.review_reason}</p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      onClick={() => setViewModalPayment(null)}
+                      className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+
           {activeModal && (
             <>
               <motion.div

@@ -436,10 +436,29 @@ export default function Login() {
             <Link to="/Zyndex/Legal/Terms" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Terms</Link>
           </nav>
 
-          <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="lg:hidden p-2 hover:bg-orange-50 rounded-lg transition-colors">
-            {showMobileMenu ? <X className="size-6 text-slate-600" /> : <Menu className="size-6 text-slate-600" />}
-          </button>
         </div>
+
+        {/* Mobile Navigation Dropdown Menu */}
+        <AnimatePresence>
+          {showMobileMenu && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="lg:hidden mt-4 pt-4 border-t border-orange-200/60 flex flex-col gap-1 overflow-hidden"
+            >
+              <Link to="/Zyndex/About/About-Us" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">About Us</Link>
+              <Link to="/Zyndex/About/Contact" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Contact</Link>
+              <Link to="/Zyndex/About/Pricing" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Pricing</Link>
+              <Link to="/Zyndex/Resources/Browse" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Browse</Link>
+              <Link to="/Zyndex/Resources/Categories" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Categories</Link>
+              <Link to="/Zyndex/Support/Help-Center" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Help Center</Link>
+              <Link to="/Zyndex/Support/Frequently-Asked-Questions" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">FAQ</Link>
+              <Link to="/Zyndex/Legal/Privacy" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Privacy Policy</Link>
+              <Link to="/Zyndex/Legal/Terms" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Terms of Service</Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       <div className="relative z-10 container mx-auto px-6 py-12">

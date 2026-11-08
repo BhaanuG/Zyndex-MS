@@ -13,6 +13,7 @@ import { AlertCircle, Clock, LogIn, ShieldAlert, ArrowRight } from 'lucide-react
  */
 export default function SessionTimeoutModal() {
   const [modalData, setModalData] = useState(null); // { role, reason }
+  const [countdown, setCountdown] = useState(15);
 
   useEffect(() => {
     const handleSessionExpired = (e) => {
@@ -20,6 +21,7 @@ export default function SessionTimeoutModal() {
         role: 'user',
         reason: 'Your session has expired due to 2 hours and 30 minutes of inactivity. Please log in again to continue.'
       });
+      setCountdown(15);
     };
 
     window.addEventListener('zyndex:session-expired', handleSessionExpired);
@@ -27,6 +29,27 @@ export default function SessionTimeoutModal() {
       window.removeEventListener('zyndex:session-expired', handleSessionExpired);
     };
   }, []);
+
+  // 15 seconds auto logout countdown timer
+  useEffect(() => {
+    if (!modalData) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          const isAdmin = modalData.role === 'admin';
+          const loginPath = isAdmin ? '/Zyndex/Admin/Log-In' : '/Zyndex/User/Log-In';
+          setModalData(null);
+          window.location.href = loginPath;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [modalData]);
 
   if (!modalData) return null;
 
@@ -77,7 +100,9 @@ export default function SessionTimeoutModal() {
             </div>
 
             <p className="text-xs text-slate-500 leading-normal px-1 text-center font-normal">
-              {isMaintenance ? 'The platform is currently undergoing maintenance. Please check back shortly.' : 'Your session was terminated. Please authenticate again when ready.'}
+              {modalData.reason?.includes('another device') 
+                ? `Automatic logout in ${countdown}s for account security.`
+                : isMaintenance ? 'The platform is currently undergoing maintenance. Please check back shortly.' : `Automatic redirect in ${countdown}s. Please authenticate again when ready.`}
             </p>
 
             <div className="pt-2">
@@ -87,7 +112,7 @@ export default function SessionTimeoutModal() {
                 className="w-full py-3.5 px-5 rounded-2xl text-sm font-bold text-white bg-[#e50914] hover:bg-[#c70812] shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ArrowRight className="size-4" />
-                <span>Return to {isAdmin ? 'Admin' : 'User'} Log In</span>
+                <span>Return to {isAdmin ? 'Admin' : 'User'} Log In ({countdown}s)</span>
               </button>
             </div>
           </div>

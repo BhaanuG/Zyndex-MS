@@ -196,36 +196,32 @@ export default function Pricing() {
     },
     {
       id: 'UNIVERSITY',
-      name: 'University',
-      target: 'Colleges & universities',
-      price: '₹1,00,000',
-      period: 'per year',
+      name: 'Academic Faculty & Educator',
+      target: 'Individual professors & academic mentors',
+      price: '₹999',
+      period: 'per month',
       features: [
-        'Unlimited institutional access',
-        'Books, Journals & Research documents',
-        'Multiple user licenses',
-        'SSO login & Campus-wide access',
-        'College entitlement management',
-        'Reading usage analytics dashboard',
-        'User & department reports management',
+        'Complete academic resource catalog',
+        'Academic journals, papers & textbooks',
+        'Advanced scholarly search & syllabus curation',
+        'Citation & bibliography export tools',
+        'Unlimited online reading & offline browser saving',
       ],
       color: 'border-indigo-200 bg-indigo-50/10 text-indigo-950',
       btnColor: 'bg-indigo-600 text-white hover:bg-indigo-700',
     },
     {
       id: 'ENTERPRISE',
-      name: 'Enterprise / Institution',
-      target: 'Large research organizations',
-      price: '₹3 - 5 Lakh',
-      period: 'per year',
+      name: 'Distinguished Fellow & Scholar',
+      target: 'Postdoctoral fellows & senior researchers',
+      price: '₹1,999',
+      period: 'per month',
       features: [
-        'Everything in University plan',
-        'Custom content & user permissions',
-        'Dedicated administrator manager',
-        'Advanced analytics & compliance reports',
-        'Data / export reports',
-        'REST API programmatic integration',
-        'Organization-wide custom rules',
+        'Complete academic catalog with priority access',
+        'Full document downloads & offline browser saving',
+        'Advanced semantic research indexing',
+        'Early access to newly archived academic journals',
+        'Comprehensive research reading analytics',
       ],
       color: 'border-purple-200 bg-purple-50/10 text-purple-950',
       btnColor: 'bg-purple-600 text-white hover:bg-purple-700',
@@ -480,6 +476,18 @@ export default function Pricing() {
       setPendingPlan(plan);
       setRedirectIntent('/Profile/Billing/Pricing', { planId: plan.id, type: 'plan_selection' });
       setShowLoginModal(true);
+      return;
+    }
+
+    // If user already has an active paid subscription, prevent new plan selection until active plan ends
+    if (activeSub?.status === 'ACTIVE' && activeSub?.planId !== 'FREE') {
+      const activeEndDate = activeSub.endDate || activeSub.end_date;
+      const expiryFormatted = activeEndDate ? new Date(activeEndDate).toLocaleDateString() : 'its expiration';
+      setCustomAlert({
+        title: 'Active Subscription In Progress',
+        message: `You currently have an active ${(activeSub.planName || activeSub.planId).replace(/_/g, ' ')} membership which expires on ${expiryFormatted}. Per platform policy, another plan cannot be purchased until your active plan duration concludes.`,
+        type: 'info'
+      });
       return;
     }
 

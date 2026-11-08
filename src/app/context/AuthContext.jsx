@@ -67,9 +67,8 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user || !localStorage.getItem('auth_token')) return undefined;
-    // Periodic check every 4 seconds: refresh user and check maintenance mode / session termination
+    // Background heartbeat every 15 seconds to check maintenance mode
     const interval = window.setInterval(async () => {
-      refreshUser();
       // If not primary admin, check if maintenance mode has officially started
       if (!user.isPrimaryAdmin) {
         try {
@@ -105,18 +104,10 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (ignored) {}
       }
-    }, 4000);
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        refreshUser();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    }, 15000);
 
     return () => {
       window.clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [user?.id, user?.isPrimaryAdmin, user?.role]);
 
