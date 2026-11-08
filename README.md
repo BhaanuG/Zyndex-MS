@@ -850,6 +850,42 @@ sequenceDiagram
     end
 ```
 
+### 4.7 Flow 7: Seamless Role Elevation & Demotion Lifecycle (Admin ↔ User)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor SuperAdmin as Primary Administrator
+    participant Dashboard as Admin Console (UserAccessManagement)
+    participant GW as API Gateway (:8080)
+    participant Auth as Auth Service (:8081)
+    participant DB as MySQL (zyndex_auth)
+    actor TargetUser as Target User (Client Browser)
+
+    Note over SuperAdmin,TargetUser: Scenario A: Demoting Admin to User / Scholar
+    SuperAdmin->>Dashboard: Selects User & Changes Role dropdown to 'user'
+    Dashboard->>GW: PUT /api/users/{id}/role {role: 'user'}
+    GW->>Auth: Validates Primary Admin JWT & forwards payload
+    Auth->>DB: UPDATE users SET role = 'STUDENT', session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?
+    Auth->>Auth: Dispatches Role Change Email Notice to target user
+    Auth-->>Dashboard: 200 OK {message: 'User role updated successfully.', roleEmailSent: true}
+    
+    TargetUser->>GW: Any heartbeat, navigation, or API query
+    GW->>Auth: GET /api/auth/me (stale JWT with obsolete admin role)
+    Auth-->>GW: 401 Unauthorized (claim v < db session_token_version)
+    GW-->>TargetUser: 401 Unauthorized ("Your session was terminated by an administrator or superseded by another device login.")
+    TargetUser->>TargetUser: SessionTimeoutModal surfaces with accurate reason
+    TargetUser->>TargetUser: Logs in as User -> resolveAuthRedirectPath navigates to /Zyndex/User/:name/:email/Home stably without loops
+
+    Note over SuperAdmin,TargetUser: Scenario B: Promoting User to Administrator
+    SuperAdmin->>Dashboard: Selects User & Changes Role dropdown to 'admin'
+    Dashboard->>GW: PUT /api/users/{id}/role {role: 'admin'}
+    GW->>Auth: Validates Primary Admin JWT & forwards payload
+    Auth->>DB: UPDATE users SET role = 'ADMIN', session_token_version = session_token_version + 1 WHERE id = ?
+    Auth->>Auth: Dispatches Promotion Email Notice with Admin Guidelines
+    TargetUser->>TargetUser: Re-authenticates -> Directed directly to /Zyndex/Admin/:name/:email/Dashboard
+```
+
 ---
 
 ## 5. Business Logic & Rules Knowledge Base
@@ -884,6 +920,9 @@ This section compiles all operational constraints, entitlement gates, pricing ta
 | **Cross-Schema Production Audit Persistence**| External microservice audit logging in multi-schema MySQL environments | `access-service`, `content-service`, `subscription-service`, `usage-service` | `*AuditLoggingFilter.java`, `application.yml` | Inserts into `${AUTH_DB_NAME:zyndex_auth}.system_logs` | Ensures audit logs survive server restarts and production cloud deployments. |
 | **Granular UI Interaction Audit Logging**| Captures micro-interactions (tab navigations, modal views, searches, data downloads) | `src/app/layouts/AdminLayout.jsx` | `recordInteraction` | Writes to `system_logs` with level `INFO` | Provides complete behavioral trace for administrative compliance. |
 | **Clean Export UI Standards**| Data table CSV exports use minimal `<Download />` icon controls with millisecond timestamps | `UserAccessManagement.jsx`, `ResourceManagement.jsx`, `AdminPayments.jsx` | `handleExportCsv` | Client-side file generation | Eliminates visual button clutter while maintaining ISO 8601 UTC/IST timestamped export artifacts. |
+| **Strict Document DRM & Download Elimination** | Complete removal of offline file downloads for users and regular admins | `access-service/.../AccessController.java`, `content-service/.../ResourceController.java` | `check`, `download`, `createDownloadToken` | None | Blocks direct file downloads across users and regular admins. Ensures academic documents remain in-browser with secure streaming previews and watermarks. |
+| **Bidirectional Role Switching & Portal Stability** | Admin-to-User and User-to-Admin transitions increment session token version | `auth-service/.../UserController.java`, `AuthContext.jsx`, `redirectHelper.js` | `update`, `updateRole`, `resolveAuthRedirectPath` | Updates `users.session_token_version`, `users.role` | Immediately invalidates stale tokens holding obsolete roles. Clears cached redirect intents to prevent login bouncing loops and renders the designated portal smoothly. |
+| **Accurate Administrative Termination Modal** | Administrative force-logout surfaces dedicated Session Terminated modal with reason | `auth-service/.../AuthSupport.java`, `src/services/api/apiClient.js`, `SessionTimeoutModal.jsx` | `requireUser`, `apiClient.interceptors`, `SessionTimeoutModal` | Queries `users.is_terminated` | Dispatches `zyndex:session-expired` on HTTP 403 Forbidden with exact reason string instead of throwing unhandled 404 route errors to ErrorBoundary. |
 
 ---
 
