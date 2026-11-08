@@ -205,18 +205,26 @@ class AuthController {
         // Delete any existing device record for this token & email
         jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
 
-        // Store trust with exactly 24-hour expiration
+        // Calculate midnight IST (12:00 AM IST of the following day)
+        java.time.ZoneId istZone = java.time.ZoneId.of("Asia/Kolkata");
+        java.time.ZonedDateTime nowIst = java.time.ZonedDateTime.now(istZone);
+        java.time.ZonedDateTime midnightNextIst = nowIst.toLocalDate().plusDays(1).atStartOfDay(istZone);
+        java.time.Instant expiryInstant = midnightNextIst.toInstant();
+        java.sql.Timestamp expiryTimestamp = java.sql.Timestamp.from(expiryInstant);
+
+        // Store trust expiring at midnight IST (00:00 AM IST) of the calendar date
         jdbc.update("""
                 INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at)
-                VALUES (?, ?, ?, ?, ?, ?, '127.0.0.1', NOW(), NOW() + INTERVAL 24 HOUR)
+                VALUES (?, ?, ?, ?, ?, ?, '127.0.0.1', NOW(), ?)
                 """,
                 userId, email, deviceToken,
                 deviceName.isBlank() ? "Trusted Web Browser" : deviceName,
                 browser.isBlank() ? "Browser" : browser,
-                os.isBlank() ? "Desktop/Mobile" : os
+                os.isBlank() ? "Desktop/Mobile" : os,
+                expiryTimestamp
         );
 
-        return Map.of("message", "Device trusted successfully for 24 hours.", "expiresInHours", 24);
+        return Map.of("message", "Device trusted successfully until midnight IST (00:00).", "expiresAt", expiryInstant.toString());
     }
 
     @GetMapping("/account-details")

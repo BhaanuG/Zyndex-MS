@@ -721,13 +721,13 @@ export default function MailOtpVerification() {
                       </p>
                       <ul className="list-disc pl-4 space-y-1 text-slate-700">
                         <li>
-                          <b>Skip Repeated OTPs for 24 Hours:</b> If your session times out or you re-login later today on this same browser, you will <b>only solve the captcha verification</b> and bypass entering an email OTP.
+                          <b>Skip Repeated OTPs Today:</b> If you log in again on this same browser before midnight (12:00 AM IST), you will <b>only solve the captcha verification</b> and avoid entering an email OTP.
                         </li>
                         <li>
-                          <b>24-Hour Expiry:</b> When the 24-hour day period ends, the security system will request an email OTP again for safety.
+                          <b>Midnight (12:00 AM IST) Daily Reset:</b> Once the calendar day completes and the clock reaches 12:00 AM IST, all active and closed sessions expire and fresh OTP verification will be required for the first login of that new day.
                         </li>
                         <li>
-                          <b>New / Another Devices Protected:</b> If someone tries to log in with your credentials on a different phone, computer, or incognito tab, <b>Mail OTP will still strictly be required</b>.
+                          <b>New / Another Devices Protected:</b> If someone tries to log in with your credentials on a different device, browser, or private window, <b>Mail OTP will still strictly be required</b>.
                         </li>
                       </ul>
                     </div>
