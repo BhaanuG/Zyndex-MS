@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Mail, Lock, ArrowRight, Menu, X, Eye, EyeOff, Shield, User, AlertCircle, GraduationCap, KeyRound, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { BookOpen, Mail, Lock, ArrowRight, ArrowLeft, Menu, X, Eye, EyeOff, Shield, User, AlertCircle, GraduationCap, KeyRound, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import authService, { validateLogin as validateLoginRequest } from '@/services/api/authService';
 import apiClient from '@/services/api/apiClient';
@@ -406,21 +406,43 @@ export default function Login() {
         <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[size:32px_32px]" />
       </div>
 
-      <motion.header className="relative z-10 py-6 px-8 backdrop-blur-sm border-b border-orange-200/50 depth-3d-elevated glass-3d" initial={{ y: -100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}>
+      <motion.header className="relative z-10 py-4 sm:py-6 px-4 sm:px-8 backdrop-blur-sm border-b border-orange-200/50 depth-3d-elevated glass-3d" initial={{ y: -100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-orange-600/20 rounded-xl blur-xl" />
-              <div className="relative bg-gradient-to-br from-orange-600 to-red-600 p-2.5 rounded-xl shadow-lg">
-                <BookOpen className="size-6 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Back to Home / Previous Page Button */}
+            <motion.button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/Zyndex/About/About-Us');
+                }
+              }}
+              className="p-2 -ml-1 text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
+              whileHover={{ x: -2 }}
+              whileTap={{ scale: 0.95 }}
+              title="Go Back"
+              aria-label="Go Back"
+            >
+              <ArrowLeft className="size-5" />
+            </motion.button>
+
+            <Link to="/Zyndex/About/About-Us" className="flex items-center gap-2.5 sm:gap-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-orange-600/20 rounded-xl blur-xl" />
+                <div className="relative bg-gradient-to-br from-orange-600 to-red-600 p-2 sm:p-2.5 rounded-xl shadow-lg">
+                  <BookOpen className="size-5 sm:size-6 text-white" />
+                </div>
               </div>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">Zyndex</h1>
-              <p className="text-xs text-slate-500 font-medium">Educational Excellence</p>
-            </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">Zyndex</h1>
+                <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-none mt-0.5">Educational Excellence</p>
+              </div>
+            </Link>
           </div>
 
+          {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1 flex-wrap">
             <Link to="/Zyndex/About/About-Us" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">About Us</Link>
             <Link to="/Zyndex/About/Contact" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Contact</Link>
@@ -436,6 +458,18 @@ export default function Login() {
             <Link to="/Zyndex/Legal/Terms" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Terms</Link>
           </nav>
 
+          {/* Mobile Menu Hamburger Button */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="p-2 text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all border border-orange-200/60"
+              aria-label="Toggle Public Pages Menu"
+              title="Toggle Menu"
+            >
+              {showMobileMenu ? <X className="size-6 text-orange-600" /> : <Menu className="size-6 text-slate-700" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation Dropdown Menu */}
@@ -445,43 +479,44 @@ export default function Login() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden mt-4 pt-4 border-t border-orange-200/60 flex flex-col gap-1 overflow-hidden"
+              className="lg:hidden mt-3 pt-3 border-t border-orange-200/60 flex flex-col gap-1 overflow-hidden"
             >
-              <Link to="/Zyndex/About/About-Us" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">About Us</Link>
-              <Link to="/Zyndex/About/Contact" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Contact</Link>
-              <Link to="/Zyndex/About/Pricing" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Pricing</Link>
-              <Link to="/Zyndex/Resources/Browse" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Browse</Link>
-              <Link to="/Zyndex/Resources/Categories" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Categories</Link>
-              <Link to="/Zyndex/Support/Help-Center" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Help Center</Link>
-              <Link to="/Zyndex/Support/Frequently-Asked-Questions" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">FAQ</Link>
-              <Link to="/Zyndex/Legal/Privacy" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Privacy Policy</Link>
-              <Link to="/Zyndex/Legal/Terms" onClick={() => setShowMobileMenu(false)} className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Terms of Service</Link>
+              <div className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Public Pages</div>
+              <Link to="/Zyndex/About/About-Us" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">About Us</Link>
+              <Link to="/Zyndex/About/Contact" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Contact</Link>
+              <Link to="/Zyndex/About/Pricing" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Pricing</Link>
+              <Link to="/Zyndex/Resources/Browse" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Browse Library</Link>
+              <Link to="/Zyndex/Resources/Categories" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Categories</Link>
+              <Link to="/Zyndex/Support/Help-Center" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Help Center</Link>
+              <Link to="/Zyndex/Support/Frequently-Asked-Questions" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">FAQ</Link>
+              <Link to="/Zyndex/Legal/Privacy" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Privacy Policy</Link>
+              <Link to="/Zyndex/Legal/Terms" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Terms of Service</Link>
             </motion.div>
           )}
         </AnimatePresence>
       </motion.header>
 
-      <div className="relative z-10 container mx-auto px-6 py-12">
-        <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[calc(100vh-200px)]">
-          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="space-y-8">
-            <div className="space-y-6">
-              <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 py-6 sm:py-12">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[calc(100vh-160px)]">
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="space-y-6 sm:space-y-8 hidden md:block">
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
                 <span className="text-slate-900">Educational Resource</span>
                 <br />
                 <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">Library Platform</span>
               </h1>
-              <p className="text-xl text-slate-600 leading-relaxed">
+              <p className="text-base sm:text-xl text-slate-600 leading-relaxed max-w-xl">
                 Create your account, explore educational resources, and access uploaded PDFs and articles from the Zyndex library.
               </p>
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="relative">
+          <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="relative w-full max-w-xl mx-auto">
             <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-3xl blur-3xl opacity-10" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-orange-200/50 p-8 lg:p-10 depth-3d-float glass-3d surface-highlight">
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-slate-900 mb-2">{isSignUpMode ? 'Create Account' : 'Welcome Back'}</h2>
-                <p className="text-slate-600">
+            <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-orange-200/50 p-5 sm:p-8 lg:p-10 depth-3d-float glass-3d surface-highlight">
+              <div className="mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">{isSignUpMode ? 'Create Account' : 'Welcome Back'}</h2>
+                <p className="text-sm sm:text-base text-slate-600">
                   {isSignUpMode ? 'Create your Zyndex user account with your name, email, and password.' : 'Sign in with your Zyndex account.'}
                 </p>
               </div>
