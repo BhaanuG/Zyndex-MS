@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router';
-import { BookOpen, Search, User, LogOut, ArrowLeft, X, Sparkles, CreditCard } from 'lucide-react';
+import { BookOpen, Search, User, LogOut, ArrowLeft, X, Sparkles, CreditCard, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -11,6 +11,7 @@ export default function UserLayout({ children }) {
   const { user, logout, getUrlSafeName, getUrlSafeEmail } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const searchRef = useRef(null);
 
   const handleLogout = () => {
@@ -67,15 +68,29 @@ export default function UserLayout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="py-4 px-6 bg-white border-b sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+      <header className="py-3 sm:py-4 px-4 sm:px-6 bg-white border-b sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Back Button always visible on left */}
+            <motion.button
+              type="button"
+              onClick={handleBack}
+              className="text-xs sm:text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-orange-50 border border-gray-200 hover:border-orange-200 cursor-pointer shadow-2xs"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              title="Go back to previous page"
+              aria-label="Back"
+            >
+              <ArrowLeft className="size-3.5 sm:size-4 text-orange-600" />
+              <span className="hidden xs:inline">Back</span>
+            </motion.button>
+
             <Link 
               to={`${baseUrl}/Home`} 
-              className="flex items-center gap-2 hover:scale-105 transition-transform"
+              className="flex items-center gap-1.5 sm:gap-2 hover:scale-105 transition-transform"
             >
-              <BookOpen className="size-6 text-orange-600" />
-              <span className="text-xl font-semibold text-gray-900">Zyndex</span>
+              <BookOpen className="size-5 sm:size-6 text-orange-600 shrink-0" />
+              <span className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Zyndex</span>
             </Link>
             {user?.subscriptionPlan && user.subscriptionPlan !== 'FREE' && (() => {
               const plan = String(user.subscriptionPlan).toUpperCase();
@@ -109,10 +124,10 @@ export default function UserLayout({ children }) {
                 <Link
                   to={`${baseUrl}/Profile/Billing/Pricing`}
                   title={`Subscribed Plan: ${label} (Click to manage)`}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border tracking-wide uppercase transition-all hover:scale-105 shadow-2xs ${badgeStyle}`}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border tracking-wide uppercase transition-all hover:scale-105 shadow-2xs ${badgeStyle}`}
                 >
                   <span className="text-xs font-black">{badgeSymbol}</span>
-                  <span>{label}</span>
+                  <span className="hidden sm:inline">{label}</span>
                 </Link>
               );
             })()}
@@ -120,7 +135,7 @@ export default function UserLayout({ children }) {
 
           {/* Remove middle search bar from header on Home page if on Home */}
           {!location.pathname.includes('/Home') ? (
-            <div className="flex-1 max-w-xl relative" ref={searchRef}>
+            <div className="flex-1 max-w-xs md:max-w-md lg:max-w-xl relative hidden md:block" ref={searchRef}>
               <form onSubmit={handleSearchSubmit} className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                 <input
@@ -128,7 +143,7 @@ export default function UserLayout({ children }) {
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search resources..."
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-10 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
                 {searchQuery && (
                   <button
@@ -184,19 +199,8 @@ export default function UserLayout({ children }) {
             <div className="flex-1" />
           )}
 
-          <nav className="flex items-center gap-5">
-            <motion.button
-              type="button"
-              onClick={handleBack}
-              className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-orange-50 border border-gray-200 hover:border-orange-200 cursor-pointer shadow-2xs"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title="Go back to previous page"
-              aria-label="Back"
-            >
-              <ArrowLeft className="size-4 text-orange-600" />
-              <span>Back</span>
-            </motion.button>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-4 lg:gap-5">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 to={`${baseUrl}/Home`}
@@ -235,7 +239,93 @@ export default function UserLayout({ children }) {
             {/* Top-Right Corner Maintenance Countdown Timer & 10s Alert */}
             <MaintenanceCountdownBar isPrimaryAdmin={false} mode="user" />
           </nav>
+
+          {/* Mobile Right Controls: Maintenance timer & Hamburger button */}
+          <div className="flex md:hidden items-center gap-2">
+            <MaintenanceCountdownBar isPrimaryAdmin={false} mode="user" />
+            <motion.button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-xl text-gray-700 hover:text-orange-600 hover:bg-orange-50 border border-gray-200 transition-colors"
+              whileTap={{ scale: 0.92 }}
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </motion.button>
+          </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden border-t border-gray-100 mt-3 pt-3 pb-2 space-y-2 bg-white"
+            >
+              {/* Mobile Search Bar inside dropdown */}
+              {!location.pathname.includes('/Home') && (
+                <form onSubmit={handleSearchSubmit} className="relative px-2 mb-3">
+                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Search resources..."
+                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </form>
+              )}
+
+              <div className="flex flex-col space-y-1 px-2">
+                <Link
+                  to={`${baseUrl}/Home`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    location.pathname.includes('/Home')
+                      ? 'bg-orange-50 text-orange-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Home
+                </Link>
+                <Link
+                  to={`${baseUrl}/Profile`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    location.pathname.includes('/Profile')
+                      ? 'bg-orange-50 text-orange-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <User className="size-4" />
+                  Profile & Settings
+                </Link>
+                <Link
+                  to={`${baseUrl}/Profile/Billing/Pricing`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  <CreditCard className="size-4" />
+                  Plans & Pricing
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-2 w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition-all cursor-pointer"
+                >
+                  <LogOut className="size-4" />
+                  Logout
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Main Content */}

@@ -146,14 +146,10 @@ class AuthController {
                 String os = AuthSupport.str(body.get("os")).trim();
                 boolean isTrusted = Boolean.TRUE.equals(body.get("isTrusted"));
 
-                java.time.Instant expiryInstant;
-                if (isTrusted) {
-                    java.time.ZoneId istZone = java.time.ZoneId.of("Asia/Kolkata");
-                    java.time.ZonedDateTime nowIst = java.time.ZonedDateTime.now(istZone);
-                    expiryInstant = nowIst.toLocalDate().plusDays(1).atStartOfDay(istZone).toInstant();
-                } else {
-                    expiryInstant = java.time.Instant.now().plus(30, java.time.temporal.ChronoUnit.DAYS);
-                }
+                // Device trust expiry: if explicitly trusted, until midnight IST; otherwise keep active device session for 30 days
+                java.time.Instant expiryInstant = isTrusted
+                        ? java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).toLocalDate().plusDays(1).atStartOfDay(java.time.ZoneId.of("Asia/Kolkata")).toInstant()
+                        : java.time.Instant.now().plus(30, java.time.temporal.ChronoUnit.DAYS);
 
                 jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
                 jdbc.update("""

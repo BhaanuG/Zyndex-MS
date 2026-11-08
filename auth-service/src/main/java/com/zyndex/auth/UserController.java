@@ -790,9 +790,9 @@ class UserController {
         long userId = AuthSupport.number(user.get("id"));
         String email = AuthSupport.str(user.get("email"));
 
-        // Clean expired sessions that have passed their full retention window
+        // Purge obsolete sessions that have passed 30 days retention window
         try {
-            jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= NOW()");
+            jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= DATE_SUB(NOW(), INTERVAL 30 DAY)");
         } catch (Exception ignored) {}
 
         var devices = jdbc.queryForList("""
