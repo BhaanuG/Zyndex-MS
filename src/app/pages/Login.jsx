@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { motion } from 'motion/react';
-import { BookOpen, Mail, Lock, ArrowRight, Menu, X, Eye, EyeOff, Shield, User, AlertCircle, GraduationCap, KeyRound, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Mail, Lock, ArrowRight, Menu, X, Eye, EyeOff, Shield, User, AlertCircle, GraduationCap, KeyRound, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import authService, { validateLogin as validateLoginRequest } from '@/services/api/authService';
 import apiClient from '@/services/api/apiClient';
@@ -45,6 +45,7 @@ export default function Login() {
   const [isTerminatedUser, setIsTerminatedUser] = useState(false);
   const [terminatedMessage, setTerminatedMessage] = useState('');
   const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(true);
 
   useEffect(() => {
     // Check maintenance status
@@ -326,30 +327,71 @@ export default function Login() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Dedicated Full-Width Maintenance Banner (Positioned separately above the content) */}
-      {isMaintenanceActive && (
-        <motion.div
-          initial={{ y: -40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="relative z-50 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white px-6 py-3.5 shadow-lg border-b border-white/20"
-        >
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-xs shrink-0">
-                <AlertCircle className="size-5 text-white animate-pulse" />
+      {/* Centered Modal Popup for Login page during active maintenance mode (No auto-closing period) */}
+      {isMaintenanceActive && showMaintenanceModal && activeTab !== 'admin' && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            className="bg-white rounded-[28px] max-w-md w-full shadow-2xl border border-slate-200/80 overflow-hidden text-center relative"
+          >
+            {/* Header Banner: Gradient from red to vibrant orange with soft radial glow */}
+            <div className="bg-gradient-to-b from-[#e61919] via-[#f43f14] to-[#f95716] p-7 text-white text-center relative overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowMaintenanceModal(false)}
+                className="absolute top-4 right-4 p-1.5 text-white/80 hover:text-white rounded-full bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="size-5" />
+              </button>
+              <div className="size-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-3.5 shadow-inner ring-4 ring-white/10">
+                <ShieldAlert className="size-8 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-bold tracking-wide">Platform Maintenance Mode Active</p>
-                <p className="text-xs text-amber-100">
-                  The Zyndex platform is currently undergoing scheduled maintenance. Sign in and account registration are temporarily suspended.
-                </p>
+              <h3 className="text-2xl font-extrabold tracking-tight text-white">
+                Platform Under Maintenance
+              </h3>
+              <p className="text-xs text-orange-100 font-semibold mt-1">
+                Scheduled System Maintenance in Progress
+              </p>
+            </div>
+
+            {/* Body Content */}
+            <div className="p-6 pt-5 space-y-4">
+              {/* Callout box */}
+              <div className="p-4 bg-[#fffbeb] border border-[#fef3c7] rounded-2xl text-left flex items-start gap-3 shadow-xs">
+                <AlertCircle className="size-5 text-[#d97706] shrink-0 mt-0.5" />
+                <div className="text-xs text-[#92400e] leading-relaxed">
+                  <p className="font-bold text-sm text-[#78350f] mb-1">
+                    Maintenance Notice
+                  </p>
+                  <p>The Zyndex platform is currently undergoing scheduled maintenance. Sign in and account registration are temporarily suspended.</p>
+                  <p className="mt-2 text-slate-600 font-medium">
+                    If you have any inquiries, please visit our contact page and submit your message to our support team.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                  to="/Zyndex/Contact/Contact-Us"
+                  className="w-full py-3 px-5 rounded-2xl text-sm font-bold text-white bg-[#e50914] hover:bg-[#c70812] shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Mail className="size-4" />
+                  <span>Go to Contact Page</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowMaintenanceModal(false)}
+                  className="w-full sm:w-auto py-3 px-5 rounded-2xl text-sm font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  Dismiss
+                </button>
               </div>
             </div>
-            <div className="px-3 py-1 bg-black/25 rounded-full border border-white/20 text-xs font-mono font-semibold text-amber-200 shrink-0">
-              Service Offline
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       )}
 
       <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-amber-50">
