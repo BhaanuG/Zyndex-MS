@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, Mail, Lock, ArrowRight, Menu, X, Eye, EyeOff, Shield, User, AlertCircle, GraduationCap, KeyRound, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import authService, { validateLogin as validateLoginRequest } from '@/services/api/authService';
