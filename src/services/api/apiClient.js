@@ -137,6 +137,35 @@ apiClient.interceptors.response.use(
         case 500:
           console.error('Server error:', parsedError.message);
           break;
+        case 503:
+          // If 503 is due to maintenance mode, trigger the session-expired maintenance modal for logged in users
+          if (hasToken && !isAuthFormRequest && parsedError.message && parsedError.message.toLowerCase().includes('maintenance') && !isSessionExpiredDispatched) {
+            isSessionExpiredDispatched = true;
+            const savedUser = localStorage.getItem('user_data');
+            let role = 'user';
+            try {
+              if (savedUser) role = JSON.parse(savedUser)?.role || 'user';
+            } catch (e) {}
+
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('zyndex:session-expired', {
+                  detail: {
+                    role,
+                    reason: parsedError.message
+                  }
+                })
+              );
+            }
+
+            setTimeout(() => {
+              isSessionExpiredDispatched = false;
+            }, 3000);
+          }
+          break;
         default:
           console.error('API Error:', parsedError.message);
       }

@@ -152,6 +152,12 @@ public class AuthSupport {
             throw new ApiException(HttpStatus.FORBIDDEN, "The given email ID has been terminated by an administrator. Please contact administrator.");
         }
 
+        // Validate maintenance mode first: if platform is in maintenance mode, non-primary admins must receive the maintenance notification
+        Map<String, Object> sanitized = sanitizeUser(user);
+        if (isMaintenanceMode() && !Boolean.TRUE.equals(sanitized.get("isPrimaryAdmin"))) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.");
+        }
+
         // Validate session token version against DB version to terminate superseded / force-logged-out sessions
         // Primary Administrator is exempt from single-session version invalidation to allow multi-tab / multi-device management without abrupt logouts
         String userEmail = str(user.get("email"));
@@ -168,10 +174,6 @@ public class AuthSupport {
             }
         }
 
-        Map<String, Object> sanitized = sanitizeUser(user);
-        if (isMaintenanceMode() && !Boolean.TRUE.equals(sanitized.get("isPrimaryAdmin"))) {
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.");
-        }
         return sanitized;
     }
 
