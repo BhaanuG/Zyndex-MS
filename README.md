@@ -51,10 +51,10 @@
 
 **Zyndex** is a production-grade, distributed academic learning and digital resource management platform designed for universities, campus libraries, research labs, and academic consortia. The platform eliminates content redistribution risks and resolves fragmented student entitlements through:
 
-- **Strict Cryptographic Perimeter**: Dynamic 4-digit TLS-relayed OTP authentication, 24-hour trusted device recognition with preserved visual human CAPTCHA, and stateless HMAC-SHA256 JWT access tokens.
+- **Strict Cryptographic Perimeter**: Dynamic 4-digit TLS-relayed OTP authentication, multi-device session management with Instagram-style active session monitoring, 24-hour trusted device recognition with daily midnight IST reset, single-session token version enforcement (`session_token_version`), and stateless HMAC-SHA256 JWT access tokens.
 - **Zero-Leakage In-Memory PDF Slicing**: Proprietary academic documents are sliced on-the-fly in heap memory via Apache PDFBox for unverified and evaluation tiers, preventing client-side retrieval of complete files.
 - **Real-Time Telemetry Engine**: Continuous 15-second client heartbeat aggregation that accurately measures active reading duration, total unique readers, and concurrent live sessions.
-- **UPI Instant Settlement Pipeline**: Direct UPI deep-link intent and dynamic QR code generation paired with 12-digit bank UTR hold verification and an administrative audit reconciliation portal.
+- **Dedicated UPI Checkout & Instant Reconciliation**: Dedicated multi-segment checkout route (`/Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/UTR/*`) featuring real-time analog clock hands with digital countdown (5-minute QR window, 10-minute UTR window), live UPI payment intent generation, bank UTR hold verification, browser-authenticated invoice viewer (`/Zyndex/Invoice/:id`), and administrative reconciliation portal.
 
 ---
 
@@ -273,28 +273,39 @@ This section provides an exhaustive, class-by-class and method-by-method technic
        6. Asynchronously sends welcome email via `accountEmailService.sendSignupConfirmationEmail`.
      - **Exceptions**: `ApiException(HttpStatus.BAD_REQUEST)` if fields are missing or email exists.
      - **Database Operations**: `SELECT id FROM users WHERE LOWER(email) = ?`, `INSERT INTO users ...`.
-  2. `login(@RequestBody Map<String, Object> body)`
-     - **Signature**: `Map<String, Object> login(Map<String, Object> body)`
+  2. `login(HttpServletRequest request, @RequestBody Map<String, Object> body)`
+     - **Signature**: `Map<String, Object> login(HttpServletRequest, Map<String, Object>)`
      - **Mapping**: `POST /api/auth/login`
-     - **Parameters**: `email`, `password`, `role` (default `"user"`).
+     - **Parameters**: `email`, `password`, `role` (default `"user"`), optional `deviceToken`, `deviceName`, `browser`, `os`, `isTrusted`.
      - **Return**: Map containing `token` (7-day signed JWT) and sanitized `user` object.
      - **Execution Sequence**:
        1. Queries `users` by lowercase email. Throws 401 if not found.
-       2. Verifies account status is `ACTIVE` (throws 403 if suspended/pending).
+       2. Verifies account status is `ACTIVE` and `is_terminated == false` (throws 403 if terminated or suspended).
        3. Checks role authorization: if `role="admin"` requested, user must possess `role="ADMIN"`.
        4. Evaluates password with `auth.passwordEncoder.matches(rawPassword, storedHash)`. Throws 401 on mismatch.
-       5. Updates `last_active_at = NOW()` in `users` table (used for live telemetry analytics).
-       6. Generates HMAC-SHA256 JWT via `auth.signToken(user)` containing `sub`, `role`, `email`, `name`.
+       5. Increments `session_token_version = session_token_version + 1` in `users` table to invalidate older active sessions across other devices.
+       6. Extracts real client IP via `AuthSupport.getClientIp(request)` (reading `X-Forwarded-For` / remote network address).
+       7. If `deviceToken` is supplied, registers/updates the device session in `trusted_devices` table with `is_trusted` flag and expiration timestamp (midnight IST if trusted, 30 days retention for active session tracking).
+       8. Generates HMAC-SHA256 JWT via `auth.signToken(user)` containing updated `session_token_version`.
      - **Exceptions**: `ApiException(HttpStatus.UNAUTHORIZED)`, `ApiException(HttpStatus.FORBIDDEN)`.
-  3. `checkLogin(@RequestBody Map<String, Object> body)`
-     - **Signature**: `Map<String, Object> checkLogin(Map<String, Object> body)`
+  3. `checkLogin(HttpServletRequest request, @RequestBody Map<String, Object> body)`
+     - **Signature**: `Map<String, Object> checkLogin(HttpServletRequest, Map<String, Object>)`
      - **Mapping**: `POST /api/auth/check-login`
      - **Purpose**: Pre-validates user credentials during multi-step authenticator screens without issuing an active session token.
-  4. `adminRequest(@RequestBody Map<String, Object> body)`
+  4. `checkTrustedDevice(@RequestBody Map<String, Object> body)`
+     - **Mapping**: `POST /api/auth/check-trusted-device`
+     - **Purpose**: Verifies whether an incoming `deviceToken` is actively recognized and flagged with `is_trusted = true` (within the current day prior to midnight IST) to safely bypass email OTP during login.
+  5. `trustDevice(HttpServletRequest request, @RequestBody Map<String, Object> body)`
+     - **Mapping**: `POST /api/auth/trust-device`
+     - **Purpose**: Stores or renews a device session in `trusted_devices` with device token, device name, browser, OS, real client IP, and trust status.
+  6. `untrustDevice(@RequestBody Map<String, Object> body)`
+     - **Mapping**: `POST /api/auth/untrust-device`
+     - **Purpose**: Sets `is_trusted = false` for the designated device token without wiping its login history from user audit logs.
+  7. `adminRequest(@RequestBody Map<String, Object> body)`
      - **Signature**: `Map<String, Object> adminRequest(Map<String, Object> body)`
      - **Mapping**: `POST /api/auth/admin-request`
      - **Purpose**: Allows institutional leaders to submit an administrative access request stored in `admin_requests` table with status `PENDING`.
-  5. `decideAdminRequest(HttpServletRequest request, @PathVariable long id, @RequestBody Map<String, Object> body)`
+  8. `decideAdminRequest(HttpServletRequest request, @PathVariable long id, @RequestBody Map<String, Object> body)`
      - **Signature**: `Map<String, Object> decideAdminRequest(HttpServletRequest, long, Map<String, Object>)`
      - **Mapping**: `PUT /api/auth/admin-requests/{id}/decision`
      - **Purpose**: Approves (`APPROVED`) or rejects (`REJECTED`) admin requests. If approved, promotes target user role to `ADMIN`.
@@ -327,11 +338,24 @@ This section provides an exhaustive, class-by-class and method-by-method technic
 #### 3.1.3 `UserController.java`
 - **Path**: `auth-service/src/main/java/com/zyndex/auth/UserController.java`
 - **Package**: `com.zyndex.auth`
-- **Purpose**: User profile management, administrative user CRUD, status updates, and internal plan upgrade email dispatches.
+- **Purpose**: User profile management, administrative user CRUD, status updates, multi-device session tracking, device revocation, and internal plan upgrade email dispatches.
 - **Key Methods**:
   1. `profile(HttpServletRequest request, @PathVariable("userId") String userId)`: Returns user profile including name, email, department, college, and active subscription plan.
   2. `updateProfile(HttpServletRequest request, @RequestBody Map<String, Object> body)`: Updates name, department, phone, college, and avatar URL.
-  3. `planUpgradeEmail(HttpServletRequest request, @RequestBody Map<String, Object> body)`: Internal inter-service endpoint called by `subscription-service` to dispatch celebratory email when admin confirms UPI payment or subscription is upgraded.
+  3. `getActiveSessions(HttpServletRequest request)`:
+     - **Mapping**: `GET /api/users/sessions`
+     - **Purpose**: Powers the Instagram-style **Security & Devices** panel.
+     - **Logic**: Retrieves active and trusted devices from `trusted_devices` table for the current user ID / email, extracts caller's real client IP (`AuthSupport.getClientIp`), current `session_token_version`, and device trust metadata.
+  4. `revokeOtherSessions(HttpServletRequest request, @RequestBody Map<String, Object> body)`:
+     - **Mapping**: `POST /api/users/sessions/revoke-others`
+     - **Purpose**: Increments user's `session_token_version` to invalidate all other JWT sessions across browsers/devices and purges other device registrations from `trusted_devices`. Re-issues a fresh JWT for the active browser.
+  5. `revokeDeviceSession(HttpServletRequest request, @PathVariable("deviceId") long deviceId)`:
+     - **Mapping**: `DELETE /api/users/sessions/devices/{deviceId}`
+     - **Purpose**: Revokes and purges a specific device login record by ID, logging the action in `system_logs`.
+  6. `deleteAccount(HttpServletRequest request, @RequestBody Map<String, Object> body)`:
+     - **Mapping**: `DELETE /api/users/profile`
+     - **Purpose**: Self-service permanent account deletion protected by 4-digit OTP verification and confirmation challenge phrase. Dispatches farewell and admin audit emails.
+  7. `planUpgradeEmail(HttpServletRequest request, @RequestBody Map<String, Object> body)`: Internal inter-service endpoint called by `subscription-service` to dispatch celebratory email when admin confirms UPI payment or subscription is upgraded.
 
 #### 3.1.4 `LogController.java`
 - **Path**: `auth-service/src/main/java/com/zyndex/auth/LogController.java`
@@ -698,13 +722,14 @@ sequenceDiagram
 
 ---
 
-### 4.5 Flow 5: UPI Direct Checkout, UTR Submission & Admin Verification
+### 4.5 Flow 5: Dedicated Multi-Segment Checkout, Live Animated Clock & UTR Reconciliation
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Student
-    participant UI as Pricing.jsx
+    actor User as Student / Subscriber
+    participant Pricing as Pricing.jsx
+    participant PayPage as PaymentPage.jsx (QR & UTR)
     participant GW as API Gateway (8080)
     participant Sub as subscription-service (8085)
     participant AdminUI as AdminPayments.jsx
@@ -713,44 +738,51 @@ sequenceDiagram
     participant Mail as SMTP Relay
     participant DB as zyndex_subscription (MySQL)
 
-    User->>UI: Selects "Student Plus" (₹199/mo) & clicks Checkout
-    UI->>GW: POST /api/subscriptions/checkout {planId: "STUDENT_PLUS"}
-    GW->>Sub: Forward request (UserId: 15)
+    User->>Pricing: Selects Plan & clicks "Select Plan"
+    Pricing->>GW: POST /api/subscriptions/checkout {planId: "STUDENT_PLUS"}
+    GW->>Sub: Forward request (User ID: 15)
     Sub->>Sub: PaymentService.createCheckoutSession()
     Sub->>DB: INSERT INTO payments (status='PAYMENT_INITIATED', order_id='ORD_...')
-    Sub-->>UI: Returns {paymentId, orderId, upiIntentUri, qrCodeUrl, amountPaise: 19900}
-    UI->>User: Renders UPI QR code & 180s countdown timer
-    User->>User: Scans QR with PhonePe/GPay & transfers ₹199
-    User->>UI: Enters 12-digit UTR reference (e.g. "412345678901")
-    UI->>GW: POST /api/subscriptions/payment/{id}/submit-utr {utr: "412345678901"}
+    Sub-->>Pricing: Returns {paymentId, orderId, upiIntentUri, qrCodeUrl, amountPaise: 19900}
+    Pricing->>User: Navigates to dedicated URL: /Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/:::::::::
+    User->>PayPage: Displays Zyndex Educational Excellence, live dynamic analog clock hands & 5-minute digital countdown
+    User->>User: Scans QR code with PhonePe / GPay / Paytm & transfers amount
+    User->>PayPage: Clicks "I Have Paid"
+    PayPage->>User: Transitions to UTR route: /.../Payment/:orderId/UTR/::::::::: with 10-minute expiry
+    User->>PayPage: Inputs 12-digit UTR reference (e.g., "412345678901") & clicks "Verify Payment"
+    PayPage->>GW: POST /api/payments/submit-utr {paymentId, utrNumber: "412345678901"}
     GW->>Sub: Forward request
     Sub->>Sub: PaymentService.submitUtrForReview()
     Sub->>DB: UPDATE payments SET status='REVIEW_REQUIRED', utr='412345678901'
     Sub->>DB: INSERT INTO payment_audit_logs (event='UTR_SUBMITTED_HOLD')
     Sub->>Mail: Dispatches Hold Notification email to Bhaanugali@gmail.com
-    Sub-->>UI: Returns {status: "REVIEW_REQUIRED", message: "Subscription on hold pending review"}
-    UI->>User: Displays "Payment Verification on Hold / Processing" modal (2-minute auto-close or manual close)
-    
-    Note over AdminUI,Sub: Administrator Verifies Bank Credit
-    AdminUI->>GW: GET /api/subscriptions/admin/payments
+    Sub-->>PayPage: Returns {status: "REVIEW_REQUIRED"}
+    PayPage->>User: Shows Payment Submitted status & redirect to Order Details
+
+    Note over AdminUI,Sub: Administrator Verifies Bank Settlement
+    AdminUI->>GW: GET /api/payments/admin/all
     GW->>Sub: Forward request (Role: ADMIN)
     Sub->>DB: SELECT * FROM payments ORDER BY created_at DESC
-    Sub->>Auth: Fetches user name & email for each transaction
-    Sub-->>AdminUI: Returns populated payment history
-    AdminUI->>AdminUI: Admin clicks "Confirm & Verify" on order
-    AdminUI->>GW: POST /api/subscriptions/admin/payments/{id}/verify {action: "CONFIRM"}
-    GW->>Sub: Forward request
-    Sub->>Sub: PaymentService.verifyAdminPayment() -> activateSuccessfulSubscription()
-    Sub->>DB: UPDATE payments SET status='SUCCESS'
-    Sub->>DB: UPDATE subscriptions SET status='REVOKED' WHERE user_id=15
-    Sub->>DB: INSERT INTO subscriptions (status='ACTIVE', plan_id='STUDENT_PLUS')
-    Sub->>Access: POST /api/access/subscribe {userId: 15, plan: "STUDENT_PLUS", durationDays: 30}
-    Access->>Access: Elevates entitlements in access_entitlements
-    Sub->>Auth: POST /api/users/internal/plan-upgrade-email
-    Auth->>Mail: Dispatches Plan Upgrade Confirmation email to student
-    Sub->>Mail: Dispatches detailed multi-page Tax Invoice receipt
-    Sub-->>AdminUI: 200 OK {"status": "SUCCESS"}
-    AdminUI->>AdminUI: Updates badge to green "SUCCESS"
+    Sub->>Auth: Fetches user name & email
+    Sub-->>AdminUI: Populates transactions table with color-coded badges
+    Note over AdminUI: UTR Submitted -> Admin sees direct Accept & Decline buttons; Cancelled at QR -> Eye info icon only
+    alt Admin Confirms Payment
+        AdminUI->>GW: POST /api/payments/admin/verify {paymentId, action: "CONFIRM"}
+        GW->>Sub: Forward request
+        Sub->>Sub: PaymentService.verifyAdminPayment() -> activateSuccessfulSubscription()
+        Sub->>DB: UPDATE payments SET status='SUCCESS'
+        Sub->>DB: UPDATE subscriptions SET status='REVOKED' WHERE user_id=15
+        Sub->>DB: INSERT INTO subscriptions (status='ACTIVE', plan_id='STUDENT_PLUS')
+        Sub->>Access: POST /api/access/subscribe {userId: 15, plan: "STUDENT_PLUS", durationDays: 30}
+        Sub->>Auth: POST /api/users/internal/plan-upgrade-email
+        Auth->>Mail: Dispatches Plan Upgrade Confirmation email with timestamp
+        Sub->>Mail: Dispatches multi-page printable GST Tax Invoice
+    else Admin Declines Payment
+        AdminUI->>AdminUI: Admin clicks Decline, opens modal and enters reason comments
+        AdminUI->>GW: POST /api/payments/admin/verify {paymentId, action: "DECLINE", note: "..."}
+        Sub->>DB: UPDATE payments SET status='FAILED', failure_reason=note
+        Sub->>Mail: Dispatches rejection notice with admin comments to user
+    end
 ```
 
 ---
@@ -886,6 +918,46 @@ sequenceDiagram
     TargetUser->>TargetUser: Re-authenticates -> Directed directly to /Zyndex/Admin/:name/:email/Dashboard
 ```
 
+### 4.8 Flow 8: Multi-Device Session Management, Inactivity Timers & Revocation
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Scholar
+    participant Mobile as Mobile Browser (Android/iOS)
+    participant Laptop as Laptop Browser
+    participant GW as API Gateway (8080)
+    participant Auth as auth-service (8081)
+    participant DB as zyndex_auth (MySQL)
+
+    Note over User,Mobile: 1. User Logs In On Mobile Phone
+    Mobile->>GW: POST /api/auth/login {email, password, role: 'user', deviceToken: 'dev_m1', os: 'Android', browser: 'Chrome'}
+    GW->>Auth: Forward login request
+    Auth->>Auth: Extracts client IP (e.g., 10.123.11.104) via AuthSupport.getClientIp
+    Auth->>DB: UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NOW()
+    Auth->>DB: INSERT INTO trusted_devices (device_token='dev_m1', os='Android', ip_address='10.123.11.104', is_trusted=false/true, expires_at=NOW()+30d)
+    Auth-->>Mobile: Issues JWT (v=2)
+
+    Note over User,Laptop: 2. User Opens Laptop & Inspects Security & Devices
+    Laptop->>GW: GET /api/users/sessions (Bearer JWT)
+    GW->>Auth: Forward request
+    Auth->>DB: SELECT * FROM trusted_devices WHERE user_id = ?
+    Auth-->>Laptop: Returns active devices list & current caller IP
+    Laptop->>Laptop: UI displays "This Device • Active Now" (Laptop) and "Login Activity on Other Browsers & Devices" (Android Mobile with IP and login time)
+
+    Note over User,Laptop: 3. Session Revocation / Concurrent Device Invalidation
+    alt User Revokes Other Sessions
+        Laptop->>GW: POST /api/users/sessions/revoke-others {currentDeviceToken: 'dev_l1'}
+        GW->>Auth: Forward request
+        Auth->>DB: UPDATE users SET session_token_version = session_token_version + 1
+        Auth->>DB: DELETE FROM trusted_devices WHERE device_token != 'dev_l1'
+        Auth-->>Laptop: Issues refreshed JWT (v=3)
+        Note over Mobile: Mobile next API call receives 401 Unauthorized -> Displays Session Timeout Modal ("Session active on another device") -> Auto-logs out in 15 seconds
+    else 2 hr 30 min Inactivity Timeout Triggered
+        Note over Laptop: After 2 hours idle -> Surfaces 30-min warning modal; after 2h 30m -> Closes session with 15s countdown modal
+    end
+```
+
 ---
 
 ## 5. Business Logic & Rules Knowledge Base
@@ -916,6 +988,10 @@ This section compiles all operational constraints, entitlement gates, pricing ta
 | **Client Header Stripping**| Gateway purges client `X-User-*` headers | `api-gateway/.../JwtValidationFilter.java` | `filter` | None | Prevents identity spoofing; claims populated exclusively from verified JWT. |
 | **Feedback Email Audit Loop**| Admin response or reaction to user feedback in admin console | `content-service/.../FeedbackController.java` & `ContactEmailService.java` | `respond` / `sendFeedbackResponseEmail` | Updates `feedback.admin_response`, `feedback.responded_at` | Automatically emails user their review details, rating, time, and the administrator's response comment. |
 | **Self-Service Account Deletion**| Explicit multi-step reason capture + 120s OTP verification + `CONFIRM` challenge phrase | `auth-service/.../UserController.java`, `DeleteAccountModal.jsx` | `deleteAccount` | Deletes user from `users`, cascades to related profile records | Deletes user, sends farewell email, and alerts platform maintainer (`Bhaanugali@gmail.com`). |
+| **Instagram-Style Device Sessions** | Multi-device tracking with IP detection, login time, and independent revocation | `auth-service/.../UserController.java`, `UserProfile.jsx` | `getActiveSessions`, `revokeDeviceSession` | `trusted_devices` table | Displays active device vs all other browsers/devices; allows individual logout or global revoke. |
+| **24-Hour Trusted Device Renewal** | Checkbox on OTP verification grants 24h OTP bypass until midnight IST | `auth-service/.../MidnightDailySessionScheduler.java`, `AuthController.java` | `executeMidnightDailyReset`, `trustDevice` | Sets `trusted_devices.is_trusted = FALSE` at 00:00 IST | Forces daily OTP verification re-check at midnight IST while retaining 30-day device audit trail. |
+| **Plan Hierarchy & Icon Badges** | Unique geometric badge beside brand text: ▲ (Basic), ⬦ (Plus), ✦ (PhD), ⬢ (Univ), ∞ (Enterprise) | `UserLayout.jsx`, `Pricing.jsx` | Dynamic Badge Renderer | Evaluates `user.subscriptionPlan` | Displays plan rank visually with locked upgrades until active subscription lapses. |
+| **Dedicated Multi-Segment Checkout** | Protected URL `/Zyndex/User/.../Billing/:amount/Payment/:orderId/UTR/*` | `PaymentPage.jsx`, `routes.jsx` | Dedicated Payment Lifecycle | `payments` status transitions | Clean UI with 5-min QR clock, 10-min UTR expiry, anti-tamper session checks, and direct status indicators. |
 | **Platform Maintenance Mode** | Primary Admin triggers 15-minute preparation window | `auth-service/.../UserController.java`, `MaintenanceCountdownBar.jsx` | `toggleMaintenanceMode`, `finalizeMaintenanceActive` | `system_settings.MAINTENANCE_MODE`, `MAINTENANCE_SCHEDULED_AT` | Broadcasts 15-min warning email; displays 10s auto-closing popup & top-right countdown for scholars; displays sidebar bottom countdown for admins; revokes active sessions upon expiry; handles early cancellation notices. |
 | **Cross-Schema Production Audit Persistence**| External microservice audit logging in multi-schema MySQL environments | `access-service`, `content-service`, `subscription-service`, `usage-service` | `*AuditLoggingFilter.java`, `application.yml` | Inserts into `${AUTH_DB_NAME:zyndex_auth}.system_logs` | Ensures audit logs survive server restarts and production cloud deployments. |
 | **Granular UI Interaction Audit Logging**| Captures micro-interactions (tab navigations, modal views, searches, data downloads) | `src/app/layouts/AdminLayout.jsx` | `recordInteraction` | Writes to `system_logs` with level `INFO` | Provides complete behavioral trace for administrative compliance. |
@@ -1083,23 +1159,28 @@ d:\Zyndex\
     │   ├── components/                        # Shared UI Components
     │   │   ├── RootLayout.jsx                 # Top-level shell with global navigation and footer
     │   │   ├── PublicLayout.jsx               # Navigation shell for unauthenticated visitors
-    │   │   ├── UserLayout.jsx                 # Authenticated student layout with user sidebar and search bar
+    │   │   ├── UserLayout.jsx                 # Authenticated student layout with user top navbar, search bar, plan badges & top-right Back button
     │   │   ├── AdminLayout.jsx                # Administrator shell with admin sidebar, header, and breadcrumbs
     │   │   ├── ProtectedRoute.jsx             # Role-based route guard enforcing USER or ADMIN authentication
     │   │   ├── PageTransitionWrapper.jsx      # Framer Motion animated route transition wrapper
     │   │   ├── ErrorBoundary.jsx              # Global React error boundary catching unhandled rendering exceptions
     │   │   ├── InvoiceModal.jsx               # Modal dialog rendering interactive GST tax invoice with 1-click print/download
-    │   │   ├── Navbar.jsx                     # Global top navigation bar with search, quick links, and user badge
+    │   │   ├── SessionTimeoutModal.jsx        # Inactivity (2 hr 30 min) and involuntary session superseding notification modal with 15s auto-countdown
+    │   │   ├── SessionWarningModal.jsx        # 30-minute advance inactivity warning dialog prompted at 2 hours idle
+    │   │   ├── DeleteAccountModal.jsx         # Multi-step permanent account self-deletion dialog with reason capture and OTP challenge
+    │   │   ├── Navbar.jsx                     # Global top navigation bar with quick links, mobile hamburger menu, and auth action buttons
     │   │   └── Footer.jsx                     # Academic branding, copyright, policy links, and status indicator
     │   └── pages/                             # Application View Pages
     │       ├── Login.jsx                      # Unified sign-in and registration portal with role selection
     │       ├── ForgotPassword.jsx             # Password reset flow via OTP email verification
-    │       ├── MailOtpVerification.jsx        # 4-digit email OTP verification screen with geometric formation animation
+    │       ├── MailOtpVerification.jsx        # 4-digit email OTP verification screen with geometric formation animation & 24h device trust selection
     │       ├── MaintenanceCountdownBar.jsx    # Real-time sticky 15-minute maintenance countdown timer bar
     │       ├── AdminRequest.jsx               # Faculty and staff administrative access request application
     │       ├── UserAuthenticator.jsx          # Student multi-factor verification intermediate screen
     │       ├── AdminAuthenticator.jsx         # Administrator multi-factor verification intermediate screen
-    │       ├── Pricing.jsx                    # Comprehensive pricing matrix, UPI checkout modal, QR code & UTR submission
+    │       ├── Pricing.jsx                    # Comprehensive pricing matrix with locked-plan protection and multi-plan selection
+    │       ├── PaymentPage.jsx                # Dedicated full-page checkout: live clock hands, 5-min QR window, 10-min UTR window & anti-tamper order verification
+    │       ├── InvoiceViewPage.jsx            # Standalone browser-authenticated printable invoice page with 60-second unauthenticated redirect
     │       ├── Browse.jsx                     # Filterable academic catalog with level, department, and format filters
     │       ├── BrowseCategory.jsx             # Category-specific textbook and journal listing
     │       ├── About.jsx                      # Institutional background, mission statement, and governance overview
@@ -1355,10 +1436,16 @@ All client-facing requests route through the **API Gateway** on port `8080`.
 | `POST` | `/api/send-otp` | Public | `{"email": "student@univ.edu"}` | `{"message": "Verification code sent.", "expiresInSeconds": 120}` | Dispatches a 4-digit numeric OTP via SMTP with 120s TTL. |
 | `POST` | `/api/verify-otp` | Public | `{"email": "...", "otp": "1234"}` | `{"message": "OTP verified successfully."}` | Validates 4-digit OTP prior to account registration or login. |
 | `POST` | `/api/auth/register` | Public | `{"name": "...", "email": "...", "password": "...", "userType": "Student"}` | `{"message": "...", "user": {...}}` | Creates a new student account and sends welcome email. |
-| `POST` | `/api/auth/login` | Public | `{"email": "...", "password": "...", "role": "user"}` | `{"token": "ey...", "user": {...}}` | Authenticates credentials and returns 7-day JWT token. |
+| `POST` | `/api/auth/login` | Public | `{"email": "...", "password": "...", "role": "user", "deviceToken": "...", "browser": "...", "os": "..."}` | `{"token": "ey...", "user": {...}}` | Authenticates credentials, extracts real client IP, records device session in `trusted_devices`, and returns JWT. |
 | `POST` | `/api/auth/check-login` | Public | `{"email": "...", "password": "...", "role": "user"}` | `{"message": "Credentials verified.", "user": {...}}` | Pre-validates credentials without issuing session token. |
+| `POST` | `/api/auth/check-trusted-device` | Public | `{"email": "...", "deviceToken": "..."}` | `{"trusted": true/false}` | Evaluates if device was trusted today prior to midnight IST. |
+| `POST` | `/api/auth/trust-device` | Public | `{"email": "...", "deviceToken": "...", "deviceName": "...", "browser": "...", "os": "...", "isTrusted": true}` | `{"message": "...", "expiresAt": "..."}` | Records or updates device login session and trust status. |
+| `POST` | `/api/auth/untrust-device` | Public | `{"email": "...", "deviceToken": "..."}` | `{"message": "Device trust removed successfully."}` | Clears 24-hour OTP bypass for the specified device token. |
 | `GET` | `/api/auth/account-details` | Public | Query: `email`, `role` | `{"fullName": "...", "email": "..."}` | Retrieves public profile name for password reset UI. |
 | `GET` | `/api/users/profile` | Student (`user`) | None | `{"id": 1, "name": "...", "email": "...", "subscriptionPlan": "STUDENT_PLUS"}` | Returns the authenticated student profile with active plan. |
+| `GET` | `/api/users/sessions` | Student (`user`) | None | `{"currentIp": "...", "devices": [...]}` | Retrieves active device sessions and login history for Security & Devices. |
+| `POST` | `/api/users/sessions/revoke-others` | Student (`user`) | `{"currentDeviceToken": "..."}` | `{"message": "...", "token": "..."}` | Invalidates other active device sessions and re-issues current JWT. |
+| `DELETE` | `/api/users/sessions/devices/{deviceId}` | Student (`user`) | Path: `deviceId` | `{"message": "...", "success": true}` | Terminates and removes a specific recognized device login session. |
 | `GET` | `/api/logs` | Admin (`admin`)| Query: `page`, `size`, `service`, `level`, `search` | `{"logs": [...], "total": 100, "stats": {...}}` | Paginated system audit logs with level counts. |
 
 ### 10.2 Content & Catalog Microservice (`content-service` : 8082)
@@ -1591,6 +1678,18 @@ erDiagram
   - `details` (TEXT, Nullable)
   - `ip_address` (VARCHAR(50), Nullable)
   - `status` (VARCHAR(50), Default `'SUCCESS'`)
+- **`trusted_devices`**:
+  - `id` (BIGINT, PK, AUTO_INCREMENT)
+  - `user_id` (BIGINT, Not Null)
+  - `email` (VARCHAR(190), Not Null)
+  - `device_token` (VARCHAR(255), Not Null) - Unique browser/hardware UUID
+  - `device_name` (VARCHAR(120), Nullable) - e.g., 'Chrome on Windows', 'Mobile Web'
+  - `browser` (VARCHAR(80), Nullable) - Detected browser family
+  - `operating_system` (VARCHAR(80), Nullable) - Detected platform (Windows, macOS, Android, iOS)
+  - `ip_address` (VARCHAR(80), Nullable) - Network client IP from request headers
+  - `is_trusted` (BOOLEAN, Default `TRUE`) - Active 24-hour OTP bypass validity
+  - `trusted_at` (DATETIME(6), Default `CURRENT_TIMESTAMP(6)`) - Login registration timestamp
+  - `expires_at` (DATETIME(6), Not Null) - Expiry boundary (midnight IST for trust, 30 days retention for active sessions)
 
 #### 2. Schema: `zyndex_content`
 - **`resources`**:
@@ -1734,33 +1833,45 @@ stateDiagram-v2
 
 ### 12.1 Step-by-Step Payment Lifecycle & Source Locations
 
-1. **Checkout Initiation**:
-   - In [`src/app/pages/Pricing.jsx`](file:///d:/Zyndex/src/app/pages/Pricing.jsx), student selects a plan (e.g. `Student Plus` @ ₹199/mo).
-   - Sends `POST /api/payments/checkout`.
-   - In [`subscription-service/.../PaymentService.java`](file:///d:/Zyndex/subscription-service/src/main/java/com/zyndex/subscription/PaymentService.java) (`createCheckoutSession`), creates payment record (`status = 'PAYMENT_INITIATED'`) and formats UPI URI:
-     ```
-     upi://pay?pa=918897337687@waaxis&pn=Zyndex%20Digital&am=199.00&tr=ORD_...&tn=Subscription%20STUDENT_PLUS
-     ```
-   - Returns dynamic QR server URL (`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=...`).
-2. **UTR Reference Submission**:
-   - Student scans QR code with PhonePe, GPay, Paytm, or BHIM.
-   - Enters the resulting 12-digit **Bank Reference / UTR Number** into the checkout modal.
-   - Client calls `POST /api/payments/submit-utr`.
-   - `PaymentService.java` (`submitUtrForReview`) updates status to **`REVIEW_REQUIRED`** (rendered as **In Hold** in the UI) and logs an entry in `payment_audit_logs`.
-   - Asynchronously triggers `sendAdminHoldNotificationEmail`, alerting administrators (`Bhaanugali@gmail.com` and `Bhaanugali99sai@gmail.com`).
-3. **Live Admin Operations**:
-   - In [`src/app/pages/admin/AdminPayments.jsx`](file:///d:/Zyndex/src/app/pages/admin/AdminPayments.jsx), the dashboard polls `GET /api/payments/admin/all` every 6 seconds.
-   - Displays separate columns for **User Name**, **Email Address**, **Date & Time**, **UTR Number**, **Present Plan**, **Previous Plan**, **Amount**, and **Status**.
-   - Badges: 🟢 Green (`SUCCESS`), 🟡 Yellow (`In Hold` / `REVIEW_REQUIRED`), 🔵 Blue (`Initiated` / `Processing`), 🔴 Red (`Failed`).
-4. **Administrative Verification & Activation**:
-   - Admin cross-references UTR in bank records and clicks **Confirm & Verify**.
-   - Calls `POST /api/payments/admin/verify` (`action: "CONFIRM"`).
-   - `PaymentService.java` executes `activateSuccessfulSubscription`:
-     1. Updates payment status to `'SUCCESS'`.
-     2. Revokes previous active subscription in `subscriptions` and inserts new active subscription.
-     3. Calls `access-service/api/access/subscribe` via `RestTemplate` to immediately elevate reading permissions.
-     4. Calls `auth-service/api/users/internal/plan-upgrade-email` to dispatch confirmation email.
-     5. Sends customer payment receipt email with multi-page GST tax invoice details.
+1. **Checkout Initiation & Plan Restriction**:
+   - In [`src/app/pages/Pricing.jsx`](file:///d:/Zyndex/src/app/pages/Pricing.jsx), plans are presented with full feature lists:
+     - Free / Demo (₹0)
+     - Student Basic (₹99/mo) &bull; Symbol `▲`
+     - Student Plus (₹199/mo) &bull; Symbol `⬦`
+     - PhD Researcher (₹499/mo) &bull; Symbol `✦`
+     - University Campus (₹1,00,000/yr) &bull; Symbol `⬢`
+     - Enterprise Institution (₹3,00,000/yr) &bull; Symbol `∞`
+   - **Active Plan Lock**: If a user is on an active plan, other plan checkout actions are locked with clear guidance until the current plan tenure finishes.
+   - When a user chooses a valid plan, a new payment order is generated and the client navigates to the dedicated full-page payment portal:
+     `/Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/:::::::::`
+2. **Dedicated Payment Portal & QR Window**:
+   - Hosted in [`src/app/pages/PaymentPage.jsx`](file:///d:/Zyndex/src/app/pages/PaymentPage.jsx) under brand header *"Zyndex Educational Excellence"*.
+   - All standard navigation links and footers are cleanly isolated.
+   - Left card displays the high-resolution UPI QR code generated from direct UPI URI:
+     `upi://pay?pa=918897337687@waaxis&pn=Zyndex%20Educational%20Excellence&am=199.00&tr=ORD_...`
+   - Right card displays a live, running **analog circular clock** with moving minute and second hands alongside a synchronous 5-minute digital countdown.
+   - If user clicks **Cancel Payment**, the payment status updates to `CANCELLED` and remains visible in audit records.
+3. **UTR Submission Window**:
+   - When user clicks **I Have Paid**, the app transitions to the dedicated UTR submission URL:
+     `/Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/UTR/:::::::::`
+   - A 10-minute validity timer is initiated.
+   - User enters their 12-digit bank reference UTR number.
+   - Client dispatches `POST /api/payments/submit-utr`. Status transitions to **`REVIEW_REQUIRED`** (**In Hold**).
+   - Asynchronously triggers instant notification email to `Bhaanugali@gmail.com`.
+   - If someone copies and pastes the payment URL after completion or cancellation, anti-tamper security renders the final order details rather than re-initiating the checkout session.
+4. **Live Administrative Reconciliation**:
+   - In [`src/app/pages/admin/AdminPayments.jsx`](file:///d:/Zyndex/src/app/pages/admin/AdminPayments.jsx), the dashboard polls transactions every 6 seconds.
+   - Standardized status colors:
+     - 🟢 **Success**: Green badge
+     - 🔵 **Initiated**: Blue badge
+     - 🟡 **In Hold / Review Required**: Yellow badge
+     - 🔴 **Cancelled / Declined**: Red badge
+     - ⚪ **Expired**: Dark grey badge
+   - If an order was cancelled at the QR stage without UTR, admins see a view-only eye icon with transaction metadata.
+   - When a valid UTR is submitted, admins see direct **Confirm & Verify** and **Decline** buttons. Declining prompts the administrator for mandatory comment reasons, which are emailed to the user with full timestamps.
+5. **Browser-Locked Tax Invoices**:
+   - Hosted at `/Zyndex/Invoice/:paymentId` and `/Zyndex/User/.../Profile/Billing/Invoice/:paymentId`.
+   - Accessible only if the user is actively logged into the matching account on that browser session. If unauthenticated, the user is warned and safely redirected to `/Zyndex/User/Log-In` after 60 seconds.
 
 ---
 
