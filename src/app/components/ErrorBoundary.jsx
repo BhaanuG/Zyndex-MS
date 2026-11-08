@@ -9,7 +9,17 @@ export default function ErrorBoundary() {
   console.error('Route error:', error);
 
   const handleGoHome = () => {
-    navigate('/Zyndex/Log-In');
+    try {
+      const savedUser = localStorage.getItem('user_data');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed?.role === 'admin') {
+          navigate('/Zyndex/Admin/Log-In');
+          return;
+        }
+      }
+    } catch (e) {}
+    navigate('/Zyndex/User/Log-In');
   };
 
   const handleRefresh = () => {

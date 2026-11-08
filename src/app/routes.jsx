@@ -275,6 +275,11 @@ export const router = createBrowserRouter([
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/Pricing",
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><Pricing /></PageTransitionWrapper></ProtectedRoute>
+      },
+      // Catch-all route to gracefully redirect invalid or outdated paths to appropriate portal instead of throwing 404 to ErrorBoundary
+      {
+        path: "*",
+        element: <Navigate to="/Zyndex/User/Log-In" replace />
       }
     ]
   }

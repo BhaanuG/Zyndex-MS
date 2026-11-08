@@ -149,7 +149,7 @@ public class AuthSupport {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid or inactive account.");
         }
         if (Boolean.TRUE.equals(bool(user.get("terminated")))) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "The given email ID has been terminated by an administrator. Please contact administrator.");
+            throw new ApiException(HttpStatus.FORBIDDEN, "Your session was terminated by an administrator. Please contact administrator.");
         }
 
         // Validate maintenance mode first: if platform is in maintenance mode, non-primary admins must receive the maintenance notification

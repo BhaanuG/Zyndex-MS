@@ -261,6 +261,11 @@ class UserController {
 
         boolean roleEmailSent = false;
         if (roleChanged) {
+            // When an admin changes the user's role (e.g. ADMIN -> STUDENT/user or vice versa),
+            // increment session_token_version so obsolete tokens with the wrong role/permissions
+            // are immediately invalidated and the user is prompted to authenticate with their new role.
+            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+
             String adminName = request.getHeader("X-User-Name");
             if (adminName == null || adminName.isBlank()) adminName = "Main Administrator";
             String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -296,6 +301,9 @@ class UserController {
 
         boolean roleEmailSent = false;
         if (!oldRole.equalsIgnoreCase(newRole)) {
+            // Invalidate existing sessions immediately so the user can switch to their new portal cleanly
+            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+
             String name = String.valueOf(AuthSupport.first(existingUser.get("username"), AuthSupport.first(existingUser.get("name"), "User")));
             String email = AuthSupport.str(existingUser.get("email"));
             String adminName = request.getHeader("X-User-Name");

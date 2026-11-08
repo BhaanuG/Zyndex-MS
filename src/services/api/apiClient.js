@@ -92,13 +92,26 @@ apiClient.interceptors.response.use(
 
       switch (status) {
         case 401:
+        case 403:
           // Ignore "Authorization token is missing" when no token is in storage (prevents secondary cascade popups)
           if (parsedError.message === 'Authorization token is missing' && !hasToken) {
             break;
           }
 
-          // Only trigger timeout notification when an already-authenticated session expires.
-          if (hasToken && !isAuthFormRequest && !isSessionExpiredDispatched) {
+          // For 403 Forbidden, check if this is an administrative termination or session revocation
+          const isTerminationOrSessionError =
+            status === 401 ||
+            (status === 403 && (
+              parsedError.message.toLowerCase().includes('terminate') ||
+              parsedError.message.toLowerCase().includes('session') ||
+              parsedError.message.toLowerCase().includes('permission') ||
+              parsedError.message.toLowerCase().includes('superseded') ||
+              parsedError.message.toLowerCase().includes('access denied') ||
+              parsedError.message.toLowerCase().includes('forbidden')
+            ));
+
+          // Only trigger timeout notification when an already-authenticated session expires or is terminated.
+          if (hasToken && !isAuthFormRequest && isTerminationOrSessionError && !isSessionExpiredDispatched) {
             isSessionExpiredDispatched = true;
             const savedUser = localStorage.getItem('user_data');
             let role = 'user';
@@ -111,7 +124,7 @@ apiClient.interceptors.response.use(
 
             // Dispatch global event so SessionTimeoutModal pops up gracefully
             if (typeof window !== 'undefined') {
-              const reasonMsg = parsedError.message || 'Your session has expired or was terminated by administrator. Please log in again to continue.';
+              const reasonMsg = parsedError.message || 'Your session was terminated by an administrator. Please authenticate again when ready.';
               window.dispatchEvent(
                 new CustomEvent('zyndex:session-expired', {
                   detail: {
@@ -127,9 +140,6 @@ apiClient.interceptors.response.use(
               isSessionExpiredDispatched = false;
             }, 3000);
           }
-          break;
-        case 403:
-          console.error('Access forbidden:', parsedError.message);
           break;
         case 404:
           console.error('Resource not found:', parsedError.message);

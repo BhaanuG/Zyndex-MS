@@ -26,7 +26,7 @@ spring:
         - id: content-user-service
           uri: lb://CONTENT-SERVICE
           predicates:
-            - Path=/api/users/favorites/**, /api/users/downloads/**, /api/users/recent-views/**
+            - Path=/api/users/favorites, /api/users/favorites/**, /api/users/downloads, /api/users/downloads/**, /api/users/recent-views, /api/users/recent-views/**
 
         - id: auth-service
           uri: lb://AUTH-SERVICE
