@@ -418,7 +418,6 @@ class AccountEmailService {
                 - You can continue your academic reading, research, and platform operations without any interruption or session suspension.
                 - When the maintenance window is rescheduled in the future, advance notice will be provided.
 
-                Platform Portal: https://zyndex.com
                 Support Contact: %s
 
                 We apologize for any confusion caused by the initial notice and thank you for your understanding.
@@ -437,7 +436,6 @@ class AccountEmailService {
 
                 You can now sign in to your Zyndex account and resume accessing your academic books, journals, documents, and research materials seamlessly.
 
-                Platform Portal: https://zyndex.com
                 Support Contact: %s
 
                 Thank you for your patience and support!

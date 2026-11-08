@@ -1879,20 +1879,20 @@ Statistics were calculated using a native filesystem audit executed across all s
 | Metric Category | Measured Quantity | Description & Character Breakdown |
 | :--- | :--- | :--- |
 | **Total Source Files** | **208 Files** | Application-owned source, configuration, template, and schema manifests |
-| **Total Lines of Code (LOC)** | **50,487 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **179,803 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,194,213 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,194,848 Characters** | 54.45% of total character stream |
+| **Total Lines of Code (LOC)** | **50,485 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **179,797 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,194,109 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,194,792 Characters** | 54.45% of total character stream |
 | **Digits & Numbers (`0-9`)** | **54,704 Characters** | 2.49% of total character stream |
-| **Symbols, Operators & Punctuation** | **305,592 Characters** | 13.93% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **639,069 Characters** | 29.13% of total character stream (indentation, newlines) |
+| **Symbols, Operators & Punctuation** | **305,582 Characters** | 13.93% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **639,031 Characters** | 29.13% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
 | Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`.jsx`** | React UI Components & Pages | **95 Files** | **25,659 Lines** | **90,035 Words** | **1,141,322 Chars** |
-| **`.java`** | Spring Boot Microservices Backend | **63 Files** | **9,751 Lines** | **39,756 Words** | **491,181 Chars** |
+| **`.java`** | Spring Boot Microservices Backend | **63 Files** | **9,749 Lines** | **39,750 Words** | **491,077 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,567 Lines** | **14,274 Words** | **153,477 Chars** |
 | **`.json`** | Package & Dependency Manifests | **2 Files** | **5,994 Lines** | **11,424 Words** | **169,922 Chars** |
 | **`.md`** | Technical Architecture Documentation | **6 Files** | **2,497 Lines** | **20,573 Words** | **180,985 Chars** |
@@ -1900,7 +1900,7 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **12 Files** | **665 Lines** | **1,287 Words** | **19,662 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **523 Lines** | **552 Words** | **18,789 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
-| **Overall Total** | **Full Stack Application** | **208 Files** | **50,487 Lines** | **179,803 Words** | **2,194,213 Chars** |
+| **Overall Total** | **Full Stack Application** | **208 Files** | **50,485 Lines** | **179,797 Words** | **2,194,109 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
