@@ -12,6 +12,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
 import subscriptionService from '@/services/api/subscriptionService';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
+import { getDeviceInfo } from '@/utils/deviceHelper';
 
 export default function UserProfile() {
   const { user, updateProfile } = useAuth();
@@ -397,45 +398,53 @@ export default function UserProfile() {
                   </div>
 
                   {/* Current Device Session - Instagram Style */}
-                  <div className="border border-emerald-200/80 bg-emerald-50/30 rounded-2xl p-5 shadow-2xs">
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
-                      <span className="relative flex size-2.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full size-2.5 bg-emerald-500"></span>
-                      </span>
-                      This Device &bull; Active Now
-                    </div>
-
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3.5 min-w-0">
-                        <div className="p-3 bg-emerald-100/70 text-emerald-700 rounded-2xl shrink-0 mt-0.5">
-                          <Laptop className="size-6" />
+                  {(() => {
+                    const currentInfo = getDeviceInfo();
+                    const isMobileCurrent = String(currentInfo.os || '').toLowerCase().includes('android') || 
+                                           String(currentInfo.os || '').toLowerCase().includes('ios') ||
+                                           String(currentInfo.browser || '').toLowerCase().includes('mobile');
+                    return (
+                      <div className="border border-emerald-200/80 bg-emerald-50/30 rounded-2xl p-5 shadow-2xs">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
+                          <span className="relative flex size-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full size-2.5 bg-emerald-500"></span>
+                          </span>
+                          This Device &bull; Active Now
                         </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-sm font-bold text-gray-900">
-                              Windows PC &bull; Chrome
-                            </h3>
-                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
-                              Current Session
-                            </span>
-                          </div>
 
-                          <p className="text-xs text-gray-600 mt-1 flex items-center gap-1.5 font-medium">
-                            <span>Near IP: <span className="font-mono text-gray-800">{sessionsData.currentIp}</span></span>
-                            <span className="text-gray-300">•</span>
-                            <span className="text-emerald-700 font-semibold">Active now</span>
-                          </p>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3.5 min-w-0">
+                            <div className="p-3 bg-emerald-100/70 text-emerald-700 rounded-2xl shrink-0 mt-0.5">
+                              {isMobileCurrent ? <Smartphone className="size-6 text-emerald-700" /> : <Laptop className="size-6 text-emerald-700" />}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-sm font-bold text-gray-900">
+                                  {currentInfo.os || 'Personal Device'} &bull; {currentInfo.browser || 'Browser'}
+                                </h3>
+                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
+                                  Current Session
+                                </span>
+                              </div>
 
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500 mt-2 font-mono">
-                            <span>Session Start: {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
-                            <span className="text-gray-300">•</span>
-                            <span className="text-amber-700 font-semibold">Auto-Reset: Midnight IST (00:00)</span>
+                              <p className="text-xs text-gray-600 mt-1 flex items-center gap-1.5 font-medium">
+                                <span>Near IP: <span className="font-mono text-gray-800">{sessionsData.currentIp}</span></span>
+                                <span className="text-gray-300">•</span>
+                                <span className="text-emerald-700 font-semibold">Active now</span>
+                              </p>
+
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500 mt-2 font-mono">
+                                <span>Session Start: {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                                <span className="text-gray-300">•</span>
+                                <span className="text-amber-700 font-semibold">Auto-Reset: Midnight IST (00:00)</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
                   {/* Other Recognized Devices / Logins */}
                   <div>
