@@ -2014,129 +2014,241 @@ export default function AdminLogs() {
           )}
 
           {/* System Audit Log Detail Modal */}
-          {selectedLog && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
-              onClick={() => setSelectedLog(null)}
-            >
+          {selectedLog && (() => {
+            // Helper function to synthesize detailed "Who, What, Target, Action, Result" breakdown
+            const parseLogNarrative = (log) => {
+              const actor = log.actorEmail || 'System Core Process';
+              const action = log.action || 'OPERATION';
+              const service = log.service || 'SYSTEM';
+              const ip = log.ipAddress || '127.0.0.1';
+              const details = log.details || '';
+              const status = log.status || 'SUCCESS';
+
+              let whoRole = actor.includes('admin') || actor.toLowerCase().includes('bhaanu') ? 'Platform Administrator' : (actor === 'system' ? 'Automated Microservice Worker' : 'Registered Scholar / Student');
+              let whatDid = details;
+              let targetResource = 'Platform Infrastructure';
+              let whatObtained = status === 'SUCCESS' ? 'HTTP 200 OK — Requested operation completed successfully and changes were committed.' : 'Operation encountered validation or authorization restriction.';
+              let securityImpact = 'Low / Standard Operation';
+
+              if (action.includes('USER_LOGIN')) {
+                whatDid = `Authenticated identity via verified password credentials. A fresh JWT access token (version stamped) was issued.`;
+                targetResource = `User Account (${actor})`;
+                whatObtained = `Cryptographic JWT Bearer Token, User Profile claims, and active session initialization.`;
+                securityImpact = 'Standard Authentication Session';
+              } else if (action.includes('DEVICE_TRUSTED')) {
+                whatDid = `Granted 24-hour trusted device authentication status on this browser.`;
+                targetResource = `Hardware / Browser Device Token`;
+                whatObtained = `24-hour bypass of OTP challenges until midnight IST (00:00).`;
+                securityImpact = 'Elevated Device Trust';
+              } else if (action.includes('DEVICE_REVOKED')) {
+                whatDid = `Explicitly revoked recognized device session and deleted trust authorization.`;
+                targetResource = `Device Session Registry`;
+                whatObtained = `Immediate invalidation of hardware token and forced OTP challenge on subsequent logins.`;
+                securityImpact = 'Security Hardening Action';
+              } else if (action.includes('SESSIONS_REVOKED')) {
+                whatDid = `Triggered global revocation of all other active browser and device sessions by bumping session_token_version.`;
+                targetResource = `All Concurrent Login Sessions`;
+                whatObtained = `Immediate termination of remote JWT access tokens on other hardware devices.`;
+                securityImpact = 'High Security Revocation';
+              } else if (action.includes('PAYMENT_ADMIN_VERIFIED')) {
+                whatDid = `Administrator performed manual bank reconciliation on 12-digit UTR reference and confirmed customer payment.`;
+                targetResource = `Customer Subscription & Invoicing Pipeline`;
+                whatObtained = `Account plan upgraded to active tier, access-service entitlements elevated, and GST Tax Invoice emailed.`;
+                securityImpact = 'Financial Settlement Execution';
+              } else if (action.includes('PAYMENT_INITIATED')) {
+                whatDid = `Customer initiated checkout order and generated dynamic UPI QR code.`;
+                targetResource = `UPI Gateway & Orders Registry`;
+                whatObtained = `Order ID, direct UPI intent link (waaxis), and 5-minute checkout countdown session.`;
+                securityImpact = 'Transaction Initiation';
+              } else if (action.includes('UTR_SUBMITTED')) {
+                whatDid = `Customer submitted 12-digit bank reference UTR number after scanning QR code.`;
+                targetResource = `Payment Hold Queue`;
+                whatObtained = `Order transitioned to In Hold (REVIEW_REQUIRED) and instant admin alert dispatched.`;
+                securityImpact = 'Payment Settlement Hold';
+              } else if (action.includes('RESOURCE_DOWNLOAD')) {
+                whatDid = `Reader requested authorized PDF document binary stream or single-use download token.`;
+                targetResource = `Curated Academic Content Catalog`;
+                whatObtained = `60-second single-use token or direct binary PDF stream.`;
+                securityImpact = 'Content Access & IP Protection';
+              } else if (action.includes('DAILY_MIDNIGHT_RESET')) {
+                whatDid = `Scheduled cron execution reset daily 24-hour trust cycles and purged expired devices.`;
+                targetResource = `Platform-wide Security Tokens`;
+                whatObtained = `Session token versions incremented for non-primary accounts, forcing daily OTP check.`;
+                securityImpact = 'Automated Perimeter Renewal';
+              } else if (action.includes('ACCOUNT_DELETED')) {
+                whatDid = `User completed 4-digit OTP deletion challenge and purged account permanently.`;
+                targetResource = `User Profile & Entitlements`;
+                whatObtained = `Complete removal of user credentials from users table and farewell email sent.`;
+                securityImpact = 'Permanent Data Erasure';
+              }
+
+              return {
+                actor,
+                whoRole,
+                whatDid,
+                targetResource,
+                whatObtained,
+                securityImpact
+              };
+            };
+
+            const narrative = parseLogNarrative(selectedLog);
+
+            return (
               <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-gray-200 overflow-hidden my-6 max-h-[90vh] flex flex-col"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+                onClick={() => setSelectedLog(null)}
               >
-                <div className="p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <ScrollText className="size-5 text-white" />
-                    <div>
-                      <h3 className="text-base font-bold text-white leading-tight">
-                        Audit Log Details #{selectedLog.id}
-                      </h3>
-                      <p className="text-xs text-orange-100 font-medium">
-                        {selectedLog.service || 'SYSTEM'} &bull; {selectedLog.action}
-                      </p>
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full border border-gray-200 overflow-hidden my-6 max-h-[92vh] flex flex-col"
+                >
+                  {/* Header Banner */}
+                  <div className="p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-2xl bg-white/20 flex items-center justify-center font-bold text-white shadow-inner">
+                        <ScrollText className="size-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-base font-bold text-white leading-tight">
+                            Audit Log Inspection #{selectedLog.id}
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/25 text-white">
+                            {selectedLog.service}
+                          </span>
+                        </div>
+                        <p className="text-xs text-orange-100 font-mono mt-0.5">
+                          Action: {selectedLog.action}
+                        </p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => setSelectedLog(null)}
+                      className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer"
+                      title="Close inspection"
+                    >
+                      <X className="size-5" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setSelectedLog(null)}
-                    className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer"
-                  >
-                    <X className="size-5" />
-                  </button>
-                </div>
 
-                <div className="p-6 space-y-4 text-xs overflow-y-auto flex-1">
-                  {/* Summary Grid: What did, When, Latency, Output Status */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">What Was Done (Action)</span>
-                      <span className="text-xs font-bold text-slate-900 font-mono block">
-                        {selectedLog.action || 'OPERATION'}
-                      </span>
-                    </div>
-
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Outcome Status & Level</span>
-                      <div className="flex items-center gap-2 mt-0.5">
+                  <div className="p-6 space-y-5 text-xs overflow-y-auto flex-1">
+                    {/* 4-Card Quick Metrics */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Status</span>
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                           selectedLog.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
                         }`}>
                           <CheckCircle2 className="size-3" />
                           {selectedLog.status || 'SUCCESS'}
                         </span>
-                        {getLevelBadge(selectedLog.level)}
                       </div>
-                    </div>
 
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">When (Timestamp)</span>
-                      <span className="text-xs font-mono text-slate-800 font-bold block">
-                        {selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString('en-IN', {
-                          year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                        }) : 'N/A'}
-                      </span>
-                    </div>
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Log Severity</span>
+                        <div className="mt-0.5">
+                          {getLevelBadge(selectedLog.level)}
+                        </div>
+                      </div>
 
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Response Time / Latency</span>
-                      <span className="text-xs font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block">
-                        {selectedLog.responseTimeMs ? `${selectedLog.responseTimeMs} ms` : '15 ms'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Microservice & Actor Breakdown */}
-                  <div className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2">
-                    <div className="flex items-center justify-between py-1 border-b border-slate-200/60">
-                      <span className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">Microservice:</span>
-                      <span className="font-mono font-bold text-slate-800 text-xs bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                        {selectedLog.service}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between py-1 border-b border-slate-200/60">
-                      <span className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">Actor (Email / User):</span>
-                      <span className="font-mono text-slate-900 text-xs font-bold">
-                        {selectedLog.actorEmail || 'System Process'}
-                      </span>
-                    </div>
-
-                    {selectedLog.ipAddress && (
-                      <div className="flex items-center justify-between py-1">
-                        <span className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">Client IP Address:</span>
-                        <span className="font-mono text-slate-700 text-xs font-medium">
-                          {selectedLog.ipAddress}
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Latency</span>
+                        <span className="text-xs font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block">
+                          {selectedLog.responseTimeMs ? `${selectedLog.responseTimeMs} ms` : '14 ms'}
                         </span>
                       </div>
-                    )}
+
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Security Level</span>
+                        <span className="text-[11px] font-bold text-slate-700">
+                          {narrative.securityImpact}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* DETAILED NARRATIVE: WHO, WHAT, TARGET, RESULT */}
+                    <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4">
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-700 border-b border-slate-200 pb-2 flex items-center justify-between">
+                        <span>Event Traceability & Execution Details</span>
+                        <span className="font-mono text-slate-500 lowercase font-normal">id: #{selectedLog.id}</span>
+                      </h4>
+
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {/* WHO / ACTOR */}
+                        <div className="space-y-1 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">1. Who Executed It (Actor)</span>
+                          <p className="text-xs font-bold text-slate-900 font-mono break-all">{narrative.actor}</p>
+                          <span className="inline-block mt-1 text-[11px] font-semibold text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200/60">
+                            Role: {narrative.whoRole}
+                          </span>
+                          <div className="text-[11px] text-slate-500 font-mono pt-1">
+                            IP: <span className="font-bold text-slate-800">{selectedLog.ipAddress || '127.0.0.1'}</span>
+                          </div>
+                        </div>
+
+                        {/* TARGET RESOURCE */}
+                        <div className="space-y-1 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">2. What Was Targeted (Entity)</span>
+                          <p className="text-xs font-bold text-slate-900">{narrative.targetResource}</p>
+                          <div className="text-[11px] text-slate-500 font-mono pt-1">
+                            Service: <span className="font-bold text-slate-800">{selectedLog.service}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-mono">
+                            Time: <span className="font-bold text-slate-800">{selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString('en-IN') : 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* WHAT DID */}
+                      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">3. What Was Done (Action & Operational Context)</span>
+                        <p className="text-xs text-slate-800 leading-relaxed font-medium">
+                          {narrative.whatDid}
+                        </p>
+                      </div>
+
+                      {/* WHAT THEY GOT / RESULT */}
+                      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">4. What Was Obtained / Resulting Impact</span>
+                        <p className="text-xs text-slate-800 leading-relaxed font-medium">
+                          {narrative.whatObtained}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Raw System Payload Details */}
+                    <div className="space-y-1.5">
+                      <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px] block">
+                        Raw System Log Details & Output Message:
+                      </span>
+                      <pre className="p-4 bg-slate-900 text-slate-100 border border-slate-800 rounded-2xl text-[11px] font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner">
+                        {selectedLog.details || 'Operation completed with HTTP 200 OK standard payload.'}
+                      </pre>
+                    </div>
                   </div>
 
-                  {/* What They Did & What They Got (Execution Output) */}
-                  <div className="space-y-1.5">
-                    <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px] block">
-                      Execution Summary & What Was Obtained (Output):
+                  <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500 font-mono">
+                      Logged at: {selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString('en-IN') : 'Just now'}
                     </span>
-                    <pre className="p-4 bg-slate-900 text-slate-100 border border-slate-800 rounded-2xl text-[11px] font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner">
-                      {selectedLog.details || 'Operation completed with HTTP 200 OK standard payload.'}
-                    </pre>
+                    <button
+                      onClick={() => setSelectedLog(null)}
+                      className="px-5 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                    >
+                      Close Inspection
+                    </button>
                   </div>
-                </div>
-
-                <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-                  <button
-                    onClick={() => setSelectedLog(null)}
-                    className="px-5 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
-                  >
-                    Close
-                  </button>
-                </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
+            );
+          })()}
         </AnimatePresence>
       </div>
     </AdminLayout>
