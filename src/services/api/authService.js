@@ -207,6 +207,15 @@ const authService = {
       console.warn('Could not register trusted device:', error);
     }
   },
+
+  untrustDevice: async (email, deviceToken) => {
+    try {
+      const response = await apiClient.post('/auth/untrust-device', { email, deviceToken });
+      return response;
+    } catch (error) {
+      console.warn('Could not remove trusted device:', error);
+    }
+  },
 };
 
 export default authService;

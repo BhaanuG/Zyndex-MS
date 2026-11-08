@@ -850,11 +850,22 @@ class UserController {
     Map<String, Object> revokeDeviceSession(HttpServletRequest request, @PathVariable("deviceId") long deviceId) {
         Map<String, Object> user = auth.requireUser(request);
         long userId = AuthSupport.number(user.get("id"));
-        String email = AuthSupport.str(user.get("email"));
+        String email = AuthSupport.str(user.get("email")).trim().toLowerCase();
 
-        var rows = jdbc.queryForList("SELECT * FROM trusted_devices WHERE id = ? AND (user_id = ? OR LOWER(email) = LOWER(?))", deviceId, userId, email);
+        var rows = jdbc.queryForList("SELECT * FROM trusted_devices WHERE id = ? AND (user_id = ? OR LOWER(email) = ?)", deviceId, userId, email);
         if (rows.isEmpty()) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Device session not found or already removed.");
+            // Also check if admin is revoking or user is resolving by ID
+            rows = jdbc.queryForList("SELECT * FROM trusted_devices WHERE id = ?", deviceId);
+            if (rows.isEmpty()) {
+                throw new ApiException(HttpStatus.NOT_FOUND, "Device session not found or already removed.");
+            }
+            // Verify ownership if not primary admin
+            var row = rows.get(0);
+            long rowUserId = row.get("user_id") != null ? AuthSupport.number(row.get("user_id")) : -1;
+            String rowEmail = AuthSupport.str(row.get("email")).trim().toLowerCase();
+            if (rowUserId != userId && !rowEmail.equalsIgnoreCase(email) && !Boolean.TRUE.equals(user.get("isPrimaryAdmin"))) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "You do not have permission to revoke this device session.");
+            }
         }
 
         jdbc.update("DELETE FROM trusted_devices WHERE id = ?", deviceId);
@@ -866,7 +877,7 @@ class UserController {
                     """.formatted(deviceId), email, request.getRemoteAddr());
         } catch (Exception ignored) {}
 
-        return Map.of("message", "Device session successfully revoked.");
+        return Map.of("message", "Device session successfully revoked.", "success", true);
     }
 
     @GetMapping("/admin-activity-metrics")

@@ -40,6 +40,7 @@ public class SecurityConfig {
                     "/api/auth/check-status",
                     "/api/auth/check-trusted-device",
                     "/api/auth/trust-device",
+                    "/api/auth/untrust-device",
                     "/actuator/health",
                     "/actuator/info",
                     "/api/health"

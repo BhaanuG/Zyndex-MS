@@ -235,6 +235,18 @@ class AuthController {
         return Map.of("message", "Device trusted successfully until midnight IST (00:00).", "expiresAt", expiryInstant.toString());
     }
 
+    @PostMapping("/untrust-device")
+    Map<String, Object> untrustDevice(@RequestBody Map<String, Object> body) {
+        String email = AuthSupport.str(body.get("email")).trim().toLowerCase();
+        String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();
+
+        if (!email.isBlank() && !deviceToken.isBlank()) {
+            jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
+        }
+
+        return Map.of("message", "Device trust removed successfully.");
+    }
+
     @GetMapping("/account-details")
     Map<String, Object> accountDetails(@RequestParam("email") String email, @RequestParam(value = "role", defaultValue = "user") String role) {
         Map<String, Object> user = auth.findUserByEmail(email.trim().toLowerCase());

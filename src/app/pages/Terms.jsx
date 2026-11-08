@@ -45,8 +45,12 @@ export default function Terms() {
           text: 'When creating an account, you must provide accurate, current, and complete information. You agree to promptly update your account information to maintain its accuracy. Providing false, misleading, or fraudulent information may result in immediate termination of your account.'
         },
         {
-          subtitle: 'Account Responsibility',
+          subtitle: 'Account Responsibility & Multi-Factor Security',
           text: 'You are solely responsible for maintaining the confidentiality of your account credentials, including your username and password. You agree to: (a) immediately notify us of any unauthorized use of your account, (b) ensure that you log out from your account at the end of each session, (c) not share your account with others, and (d) accept responsibility for all activities that occur under your account. Zyndex will not be liable for any loss or damage arising from your failure to comply with this obligation.'
+        },
+        {
+          subtitle: 'Trusted Devices & 24-Hour Session Lifecycle Policy',
+          text: 'To protect scholar credentials against credential stuffing and unauthorized session hijacking, Zyndex enforces multi-factor Mail OTP authentication:\n\n• Optional 24-Hour Device Trust: During login verification, users may elect to "Trust this device". Trust sessions remember that specific hardware/browser pairing until midnight (12:00 AM IST) of the current calendar date, allowing seamless single-step captcha sign-in on that specific device.\n\n• Untrusted Logins Require Strict OTP: If you do not select "Trust this device", or if you sign in from a shared computer, private/incognito browsing tab, or new hardware, one-time email OTP verification is strictly required for every login.\n\n• Automated Midnight IST Reset: Every night at exactly 12:00:00 AM (00:00) Indian Standard Time (Asia/Kolkata), all active trust tokens expire automatically, renewing security requirements across all user and administrative accounts.\n\n• Instant User-Initiated Device Revocation: Users retain full control to view all active browser logins under Profile -> Security & Devices and can instantly terminate individual devices or log out from all other sessions at any time.'
         }
       ]
     },

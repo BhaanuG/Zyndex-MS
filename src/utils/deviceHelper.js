@@ -20,6 +20,12 @@ export function getOrCreateDeviceToken() {
   return token;
 }
 
+export function clearDeviceToken() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(DEVICE_STORAGE_KEY);
+  localStorage.removeItem('device_token');
+}
+
 export function getDeviceInfo() {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') {
     return { browser: 'Browser', os: 'Unknown OS', deviceName: 'Web Client' };

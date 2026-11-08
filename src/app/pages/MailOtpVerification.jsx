@@ -418,9 +418,9 @@ export default function MailOtpVerification() {
       }
 
       // If user opted to trust this device, register it for 24-hour OTP skip
+      const deviceToken = getOrCreateDeviceToken();
       if (trustDevice) {
         try {
-          const deviceToken = getOrCreateDeviceToken();
           const info = getDeviceInfo();
           await authService.trustDevice({
             email: (pendingAuth.email || '').trim().toLowerCase(),
@@ -442,6 +442,15 @@ export default function MailOtpVerification() {
           }
         } catch (e) {
           console.warn('Failed to register trusted device:', e);
+        }
+      } else {
+        // Explicitly untrusted: wipe any prior trusted registration and local token so next login ALWAYS requires OTP
+        try {
+          await authService.untrustDevice((pendingAuth.email || '').trim().toLowerCase(), deviceToken);
+          localStorage.removeItem('zyndex_device_token');
+          localStorage.removeItem('device_token');
+        } catch (e) {
+          console.warn('Failed to remove untrusted device token:', e);
         }
       }
 

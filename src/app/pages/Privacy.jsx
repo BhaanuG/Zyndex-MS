@@ -35,8 +35,8 @@ export default function Privacy() {
           text: 'Active reading history, resource access logs, bookmarks, notes, favorites, search queries, and subject preferences. Reading duration is collected with privacy-safe, visibility-aware tracking that automatically pauses when browser tabs are inactive or minimized.'
         },
         {
-          subtitle: 'Usage & Technical Data',
-          text: 'IP address, browser type and version, device indicators, access timestamps, and session security hashes required to prevent unauthorized account access and secure multi-device authorization.'
+          subtitle: 'Usage, Device & Security Data',
+          text: 'IP address, browser type and version, operating system, hardware indicators, access timestamps, and cryptographic session security tokens. If you elect to trust a browser device for 24 hours, an anonymous hardware-bound device token is stored to safely bypass repeated OTPs on that exact browser until midnight (12:00 AM IST) of the active calendar date. We do not track device locations beyond general IP subnet verification.'
         },
         {
           subtitle: 'User-Generated Content & Feedback',
@@ -117,8 +117,8 @@ export default function Privacy() {
           text: 'Platform telemetry, account databases, and academic files are maintained in secure, ISO/IEC 27001-certified data centers located in modern cloud availability zones. All data access requires encrypted credentials and multi-tenant isolation.'
         },
         {
-          subtitle: 'Multi-Layer Security Architecture',
-          text: 'Zyndex implements defense-in-depth security measures: TLS 1.3 encryption for all data in transit, AES-256 encryption at rest, BCrypt cryptographic password hashing, short-lived 5-minute single-use OTP handshakes, dynamic geometric challenge verification, and automated session invalidation on tab closure or workstation lock.'
+          subtitle: 'Multi-Layer Security & Device Authorization Architecture',
+          text: 'Zyndex implements defense-in-depth security measures: TLS 1.3 encryption for all data in transit, AES-256 encryption at rest, BCrypt cryptographic password hashing, short-lived 5-minute single-use OTP handshakes, dynamic geometric challenge verification, and automated session invalidation on tab closure or workstation lock. Additionally, our 24-hour trusted device system automatically revokes device privileges at midnight (12:00 AM IST) daily, and grants users immediate self-service revocation of any active browser login via their Profile settings.'
         },
         {
           subtitle: 'No Guarantee Disclaimer',

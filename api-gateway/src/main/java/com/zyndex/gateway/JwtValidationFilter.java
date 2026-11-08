@@ -41,6 +41,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
             "/api/auth/check-status",
             "/api/auth/check-trusted-device",
             "/api/auth/trust-device",
+            "/api/auth/untrust-device",
             "/api/logs",
             "/api/health",
             "/api/feedback/contact",
