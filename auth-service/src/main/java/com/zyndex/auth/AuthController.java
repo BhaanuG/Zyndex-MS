@@ -80,7 +80,7 @@ class AuthController {
     }
 
     @PostMapping("/login")
-    Map<String, Object> login(@RequestBody Map<String, Object> body) {
+    Map<String, Object> login(HttpServletRequest request, @RequestBody Map<String, Object> body) {
         String email = AuthSupport.str(body.get("email"));
         String password = AuthSupport.str(body.get("password"));
         String role = AuthSupport.str(body.get("role"));
@@ -127,6 +127,8 @@ class AuthController {
         if (preview) {
             return Map.of("message", "Credentials verified.", "user", user);
         }
+
+        String clientIp = AuthSupport.getClientIp(request);
         try {
             // Increment session_token_version to invalidate any previous active sessions on other devices
             jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NOW() WHERE id = ?", user.get("id"));
@@ -135,19 +137,52 @@ class AuthController {
             if (updatedUser != null) {
                 user = auth.sanitizeUser(updatedUser);
             }
+
+            // If device info provided in login request, record/update device session in trusted_devices table
+            String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();
+            if (!deviceToken.isBlank()) {
+                String deviceName = AuthSupport.str(body.get("deviceName")).trim();
+                String browser = AuthSupport.str(body.get("browser")).trim();
+                String os = AuthSupport.str(body.get("os")).trim();
+                boolean isTrusted = Boolean.TRUE.equals(body.get("isTrusted"));
+
+                java.time.Instant expiryInstant;
+                if (isTrusted) {
+                    java.time.ZoneId istZone = java.time.ZoneId.of("Asia/Kolkata");
+                    java.time.ZonedDateTime nowIst = java.time.ZonedDateTime.now(istZone);
+                    expiryInstant = nowIst.toLocalDate().plusDays(1).atStartOfDay(istZone).toInstant();
+                } else {
+                    expiryInstant = java.time.Instant.now().plus(30, java.time.temporal.ChronoUnit.DAYS);
+                }
+
+                jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
+                jdbc.update("""
+                        INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at, is_trusted)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)
+                        """,
+                        user.get("id"), email, deviceToken,
+                        deviceName.isBlank() ? "Web Browser" : deviceName,
+                        browser.isBlank() ? "Browser" : browser,
+                        os.isBlank() ? "Desktop/Mobile" : os,
+                        clientIp,
+                        java.sql.Timestamp.from(expiryInstant),
+                        isTrusted
+                );
+            }
+
             jdbc.update(
                 "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
-                "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'USER_LOGIN', ?, 'User successfully logged in and session token issued.', '127.0.0.1', 'SUCCESS')",
-                user.get("email")
+                "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'USER_LOGIN', ?, 'User successfully logged in and session token issued.', ?, 'SUCCESS')",
+                user.get("email"), clientIp
             );
         } catch (Exception ignored) {}
         return Map.of("token", auth.signToken(user), "user", user);
     }
 
     @PostMapping("/check-login")
-    Map<String, Object> checkLogin(@RequestBody Map<String, Object> body) {
+    Map<String, Object> checkLogin(HttpServletRequest request, @RequestBody Map<String, Object> body) {
         body.put("preview", true);
-        return login(body);
+        return login(request, body);
     }
 
     @PostMapping("/check-status")
@@ -177,14 +212,9 @@ class AuthController {
             return Map.of("trusted", false);
         }
 
-        // Clean expired trusted devices
-        try {
-            jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= NOW()");
-        } catch (Exception ignored) {}
-
-        // Check if device is trusted and not expired
+        // Check if device is trusted, marked as is_trusted = true, and not expired
         var rows = jdbc.queryForList(
-                "SELECT id, expires_at FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ? AND expires_at > NOW() LIMIT 1",
+                "SELECT id, expires_at FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_trusted = TRUE AND expires_at > NOW() LIMIT 1",
                 email, deviceToken
         );
 
@@ -193,12 +223,13 @@ class AuthController {
     }
 
     @PostMapping("/trust-device")
-    Map<String, Object> trustDevice(@RequestBody Map<String, Object> body) {
+    Map<String, Object> trustDevice(HttpServletRequest request, @RequestBody Map<String, Object> body) {
         String email = AuthSupport.str(body.get("email")).trim().toLowerCase();
         String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();
         String deviceName = AuthSupport.str(body.get("deviceName")).trim();
         String browser = AuthSupport.str(body.get("browser")).trim();
         String os = AuthSupport.str(body.get("os")).trim();
+        boolean isTrusted = body.get("isTrusted") == null || Boolean.TRUE.equals(body.get("isTrusted"));
 
         if (email.isBlank() || deviceToken.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Email and deviceToken are required.");
@@ -213,26 +244,39 @@ class AuthController {
         // Delete any existing device record for this token & email
         jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
 
-        // Calculate midnight IST (12:00 AM IST of the following day)
-        java.time.ZoneId istZone = java.time.ZoneId.of("Asia/Kolkata");
-        java.time.ZonedDateTime nowIst = java.time.ZonedDateTime.now(istZone);
-        java.time.ZonedDateTime midnightNextIst = nowIst.toLocalDate().plusDays(1).atStartOfDay(istZone);
-        java.time.Instant expiryInstant = midnightNextIst.toInstant();
+        String clientIp = AuthSupport.getClientIp(request);
+
+        java.time.Instant expiryInstant;
+        if (isTrusted) {
+            // Calculate midnight IST (12:00 AM IST of the following day)
+            java.time.ZoneId istZone = java.time.ZoneId.of("Asia/Kolkata");
+            java.time.ZonedDateTime nowIst = java.time.ZonedDateTime.now(istZone);
+            java.time.ZonedDateTime midnightNextIst = nowIst.toLocalDate().plusDays(1).atStartOfDay(istZone);
+            expiryInstant = midnightNextIst.toInstant();
+        } else {
+            // For untrusted active logins, keep device entry recorded for 30 days so it remains in Security & Devices login history
+            expiryInstant = java.time.Instant.now().plus(30, java.time.temporal.ChronoUnit.DAYS);
+        }
         java.sql.Timestamp expiryTimestamp = java.sql.Timestamp.from(expiryInstant);
 
-        // Store trust expiring at midnight IST (00:00 AM IST) of the calendar date
         jdbc.update("""
-                INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at)
-                VALUES (?, ?, ?, ?, ?, ?, '127.0.0.1', NOW(), ?)
+                INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at, is_trusted)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)
                 """,
                 userId, email, deviceToken,
-                deviceName.isBlank() ? "Trusted Web Browser" : deviceName,
+                deviceName.isBlank() ? "Web Browser" : deviceName,
                 browser.isBlank() ? "Browser" : browser,
                 os.isBlank() ? "Desktop/Mobile" : os,
-                expiryTimestamp
+                clientIp,
+                expiryTimestamp,
+                isTrusted
         );
 
-        return Map.of("message", "Device trusted successfully until midnight IST (00:00).", "expiresAt", expiryInstant.toString());
+        return Map.of(
+            "message", isTrusted ? "Device trusted successfully until midnight IST (00:00)." : "Device session recorded successfully.",
+            "expiresAt", expiryInstant.toString(),
+            "isTrusted", isTrusted
+        );
     }
 
     @PostMapping("/untrust-device")
@@ -241,7 +285,8 @@ class AuthController {
         String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();
 
         if (!email.isBlank() && !deviceToken.isBlank()) {
-            jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
+            // Mark as untrusted instead of deleting so the login history remains visible in Security & Devices
+            jdbc.update("UPDATE trusted_devices SET is_trusted = FALSE WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
         }
 
         return Map.of("message", "Device trust removed successfully.");

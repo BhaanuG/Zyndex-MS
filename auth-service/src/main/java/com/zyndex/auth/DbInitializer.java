@@ -147,6 +147,9 @@ class DbInitializer implements CommandLineRunner {
         try {
             jdbc.execute("ALTER TABLE users ADD COLUMN is_terminated BOOLEAN NOT NULL DEFAULT FALSE");
         } catch (Exception ignored) {}
+        try {
+            jdbc.execute("ALTER TABLE trusted_devices ADD COLUMN is_trusted BOOLEAN NOT NULL DEFAULT TRUE");
+        } catch (Exception ignored) {}
         seedInitialLogsIfEmpty();
         ensureMainAdmin();
     }

@@ -37,9 +37,11 @@ public class MidnightDailySessionScheduler {
         log.info("[DAILY MIDNIGHT IST RESET] Executing daily cycle boundary check at: {}", nowIst);
 
         try {
-            // 1. Purge all trusted device registrations whose expires_at has passed
-            int deletedDevices = jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= NOW()");
-            log.info("[DAILY MIDNIGHT IST RESET] Expired {} trusted device registrations.", deletedDevices);
+            // 1. Reset trust status for devices that reached midnight IST without deleting their session history
+            int resetTrustCount = jdbc.update("UPDATE trusted_devices SET is_trusted = FALSE WHERE expires_at <= NOW() AND is_trusted = TRUE");
+            // Clean up truly expired device records (> 30 days old)
+            int deletedOld = jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            log.info("[DAILY MIDNIGHT IST RESET] Reset trust for {} devices, purged {} obsolete records.", resetTrustCount, deletedOld);
 
             // 2. Invalidate sessions across all standard users and non-primary admins
             var adminRows = jdbc.queryForList("SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1", properties.mainAdminEmail());
@@ -56,8 +58,8 @@ public class MidnightDailySessionScheduler {
                     INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'DAILY_MIDNIGHT_RESET', 'system', ?, '127.0.0.1', 'SUCCESS')
                     """,
-                    "Daily 12:00 AM IST cycle reset completed. Expired devices purged (" + deletedDevices +
-                    ") and non-primary sessions reset (" + updatedSessions + " accounts)."
+                    "Daily 12:00 AM IST cycle reset completed. Trust reset (" + resetTrustCount +
+                    "), obsolete records purged (" + deletedOld + ") and non-primary sessions reset (" + updatedSessions + " accounts)."
             );
         } catch (Exception e) {
             log.error("[DAILY MIDNIGHT IST RESET] Error during midnight reset: {}", e.getMessage(), e);

@@ -417,41 +417,31 @@ export default function MailOtpVerification() {
         }).catch(() => {});
       }
 
-      // If user opted to trust this device, register it for 24-hour OTP skip
+      // Register this login device in the database so it appears in Security & Devices login activity
       const deviceToken = getOrCreateDeviceToken();
-      if (trustDevice) {
-        try {
-          const info = getDeviceInfo();
-          await authService.trustDevice({
-            email: (pendingAuth.email || '').trim().toLowerCase(),
-            deviceToken,
-            deviceName: info.deviceName,
-            browser: info.browser,
-            os: info.os,
-          });
+      try {
+        const info = getDeviceInfo();
+        await authService.trustDevice({
+          email: (pendingAuth.email || '').trim().toLowerCase(),
+          deviceToken,
+          deviceName: info.deviceName,
+          browser: info.browser,
+          os: info.os,
+          isTrusted: Boolean(trustDevice),
+        });
 
-          if (pendingAuth.role === 'admin') {
-            logService.createLog({
-              service: 'AUTH-SERVICE',
-              level: 'INFO',
-              action: 'ADMIN_DEVICE_TRUSTED',
-              actorEmail: (pendingAuth.email || '').trim().toLowerCase(),
-              details: `Administrator elected to trust device (${info.browser} on ${info.os}) for 24 hours`,
-              status: 'SUCCESS'
-            }).catch(() => {});
-          }
-        } catch (e) {
-          console.warn('Failed to register trusted device:', e);
+        if (trustDevice && pendingAuth.role === 'admin') {
+          logService.createLog({
+            service: 'AUTH-SERVICE',
+            level: 'INFO',
+            action: 'ADMIN_DEVICE_TRUSTED',
+            actorEmail: (pendingAuth.email || '').trim().toLowerCase(),
+            details: `Administrator elected to trust device (${info.browser} on ${info.os}) for 24 hours`,
+            status: 'SUCCESS'
+          }).catch(() => {});
         }
-      } else {
-        // Explicitly untrusted: wipe any prior trusted registration and local token so next login ALWAYS requires OTP
-        try {
-          await authService.untrustDevice((pendingAuth.email || '').trim().toLowerCase(), deviceToken);
-          localStorage.removeItem('zyndex_device_token');
-          localStorage.removeItem('device_token');
-        } catch (e) {
-          console.warn('Failed to remove untrusted device token:', e);
-        }
+      } catch (e) {
+        console.warn('Failed to record device session:', e);
       }
 
       sessionStorage.removeItem('pending_auth');

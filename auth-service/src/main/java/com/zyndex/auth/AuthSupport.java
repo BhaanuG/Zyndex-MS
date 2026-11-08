@@ -34,6 +34,29 @@ public class AuthSupport {
         this.restTemplate = restTemplate;
     }
 
+    public static String getClientIp(HttpServletRequest request) {
+        if (request == null) return "127.0.0.1";
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        } else if (ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return (ip != null && !ip.isBlank()) ? ip : "127.0.0.1";
+    }
+
     public Map<String, Object> findUserByEmail(String email) {
         var rows = jdbc.queryForList("SELECT * FROM users WHERE email = ? LIMIT 1", email);
         return rows.isEmpty() ? null : rows.get(0);

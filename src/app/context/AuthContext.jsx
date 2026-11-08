@@ -5,6 +5,7 @@ import SessionTimeoutModal from '@/app/components/SessionTimeoutModal';
 import SessionWarningModal from '@/app/components/SessionWarningModal';
 import authService from '@/services/api/authService';
 import userService from '@/services/api/userService';
+import { getOrCreateDeviceToken, getDeviceInfo } from '@/utils/deviceHelper';
 
 const AuthContext = createContext();
 
@@ -138,7 +139,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password, selectedRole) => {
-    const response = await authService.login({ email, password, role: selectedRole });
+    let devicePayload = {};
+    try {
+      const deviceToken = getOrCreateDeviceToken();
+      const info = getDeviceInfo();
+      devicePayload = {
+        deviceToken,
+        deviceName: info.deviceName,
+        browser: info.browser,
+        os: info.os,
+      };
+    } catch (e) {}
+
+    const response = await authService.login({
+      email,
+      password,
+      role: selectedRole,
+      ...devicePayload,
+    });
     setUser(response.user);
     setRole(response.user.role);
     return response.user;

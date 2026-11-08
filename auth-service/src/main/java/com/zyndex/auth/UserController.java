@@ -790,19 +790,19 @@ class UserController {
         long userId = AuthSupport.number(user.get("id"));
         String email = AuthSupport.str(user.get("email"));
 
-        // Clean expired
+        // Clean expired sessions that have passed their full retention window
         try {
             jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= NOW()");
         } catch (Exception ignored) {}
 
         var devices = jdbc.queryForList("""
-                SELECT id, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at
+                SELECT id, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at, is_trusted
                 FROM trusted_devices
                 WHERE user_id = ? OR LOWER(email) = LOWER(?)
                 ORDER BY trusted_at DESC
                 """, userId, email);
 
-        String currentIp = request.getRemoteAddr();
+        String currentIp = AuthSupport.getClientIp(request);
         return Map.of(
             "currentIp", currentIp != null ? currentIp : "127.0.0.1",
             "sessionTokenVersion", user.get("session_token_version") != null ? user.get("session_token_version") : 1,
