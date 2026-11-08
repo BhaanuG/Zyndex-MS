@@ -22,8 +22,11 @@ public class ContentAuditLoggingFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         String uri = req.getRequestURI();
         String method = req.getMethod();
+        long startTime = System.currentTimeMillis();
 
         chain.doFilter(request, response);
+
+        long responseTimeMs = System.currentTimeMillis() - startTime;
 
         // Record meaningful operations asynchronously into zyndex_auth.system_logs
         if (!"OPTIONS".equalsIgnoreCase(method) && !uri.contains("/health") && !uri.contains("/actuator")) {
@@ -53,9 +56,9 @@ public class ContentAuditLoggingFilter implements Filter {
 
             try {
                 jdbc.update("""
-                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
-                        VALUES (NOW(), 'CONTENT-SERVICE', 'INFO', ?, ?, ?, ?, 'SUCCESS')
-                        """, action, actorEmail, details, ip);
+                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status, response_time_ms)
+                        VALUES (NOW(), 'CONTENT-SERVICE', 'INFO', ?, ?, ?, ?, 'SUCCESS', ?)
+                        """, action, actorEmail, details, ip, responseTimeMs);
             } catch (Exception ignored) {}
         }
     }

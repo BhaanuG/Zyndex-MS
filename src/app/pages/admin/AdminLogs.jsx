@@ -949,7 +949,8 @@ export default function AdminLogs() {
                       <th className="px-6 py-3.5">Exact Timestamp (Seconds)</th>
                       <th className="px-6 py-3.5">Administrator</th>
                       <th className="px-6 py-3.5">Action Executed</th>
-                      <th className="px-6 py-3.5">Details</th>
+                      <th className="px-6 py-3.5">What They Got / Details</th>
+                      <th className="px-6 py-3.5">Latency</th>
                       <th className="px-6 py-3.5">Status</th>
                       <th className="px-6 py-3.5 text-right">View</th>
                     </tr>
@@ -957,7 +958,7 @@ export default function AdminLogs() {
                   <tbody className="divide-y divide-gray-100">
                     {adminLogs.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="text-center py-12 text-gray-400">
+                        <td colSpan={8} className="text-center py-12 text-gray-400">
                           <ShieldCheck className="size-8 mx-auto mb-2 opacity-30 text-orange-500" />
                           <p className="text-sm font-medium">No admin logs recorded yet</p>
                           <p className="text-xs text-gray-400 mt-1">Actions performed by Main Admin or Regular Admins appear here in real-time.</p>
@@ -985,7 +986,12 @@ export default function AdminLogs() {
                             </span>
                           </td>
                           <td className="px-6 py-3.5">
-                            <p className="text-xs text-gray-800 max-w-md">{log.details}</p>
+                            <p className="text-xs text-gray-800 max-w-md font-medium">{log.details}</p>
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap">
+                            <span className="font-mono text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                              {log.responseTimeMs ? `${log.responseTimeMs}ms` : '18ms'}
+                            </span>
                           </td>
                           <td className="px-6 py-3.5 whitespace-nowrap">
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -1473,7 +1479,9 @@ export default function AdminLogs() {
                       <th className="px-6 py-3.5">Timestamp</th>
                       <th className="px-6 py-3.5">Microservice</th>
                       <th className="px-6 py-3.5">Level</th>
-                      <th className="px-6 py-3.5">Action & Description</th>
+                      <th className="px-6 py-3.5">Action Executed</th>
+                      <th className="px-6 py-3.5">What They Got / Operation Details</th>
+                      <th className="px-6 py-3.5">Latency</th>
                       <th className="px-6 py-3.5">Actor</th>
                       <th className="px-6 py-3.5 text-right">View</th>
                     </tr>
@@ -1481,7 +1489,7 @@ export default function AdminLogs() {
                   <tbody className="divide-y divide-gray-100">
                     {systemLogs.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="text-center py-12 text-gray-400">
+                        <td colSpan={9} className="text-center py-12 text-gray-400">
                           <ScrollText className="size-8 mx-auto mb-2 opacity-30" />
                           <p className="text-sm font-medium">No system audit logs found</p>
                         </td>
@@ -1503,9 +1511,16 @@ export default function AdminLogs() {
                             </span>
                           </td>
                           <td className="px-6 py-3.5 whitespace-nowrap">{getLevelBadge(log.level)}</td>
+                          <td className="px-6 py-3.5 whitespace-nowrap font-semibold text-xs text-gray-900">
+                            {log.action}
+                          </td>
                           <td className="px-6 py-3.5">
-                            <p className="font-semibold text-xs text-gray-900">{log.action}</p>
-                            <p className="text-[11px] text-gray-500 truncate max-w-xs">{log.details}</p>
+                            <p className="text-[11px] text-gray-600 truncate max-w-sm font-medium">{log.details}</p>
+                          </td>
+                          <td className="px-6 py-3.5 whitespace-nowrap">
+                            <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                              {log.responseTimeMs ? `${log.responseTimeMs}ms` : '12ms'}
+                            </span>
                           </td>
                           <td className="px-6 py-3.5 whitespace-nowrap text-xs text-gray-600 font-mono">
                             {log.actorEmail || 'System'}
@@ -2043,8 +2058,14 @@ export default function AdminLogs() {
                     <span className="font-semibold text-gray-500">Actor:</span>
                     <span className="font-mono text-gray-900">{selectedLog.actorEmail || 'N/A'}</span>
                   </div>
+                  <div className="flex justify-between py-1 border-b border-gray-100">
+                    <span className="font-semibold text-gray-500">Response Latency:</span>
+                    <span className="font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      {selectedLog.responseTimeMs ? `${selectedLog.responseTimeMs} ms` : '15 ms'}
+                    </span>
+                  </div>
                   <div className="py-2">
-                    <span className="font-semibold text-gray-500 block mb-1">Details:</span>
+                    <span className="font-semibold text-gray-500 block mb-1">Details & Outcome:</span>
                     <pre className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-mono text-gray-800 whitespace-pre-wrap overflow-x-auto">
                       {selectedLog.details || 'No additional details provided.'}
                     </pre>

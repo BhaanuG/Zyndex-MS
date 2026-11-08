@@ -22,8 +22,11 @@ public class AccessAuditLoggingFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         String uri = req.getRequestURI();
         String method = req.getMethod();
+        long startTime = System.currentTimeMillis();
 
         chain.doFilter(request, response);
+
+        long responseTimeMs = System.currentTimeMillis() - startTime;
 
         if (!"OPTIONS".equalsIgnoreCase(method) && !uri.contains("/health") && !uri.contains("/actuator")) {
             String actorEmail = req.getHeader("X-User-Email");
@@ -40,9 +43,9 @@ public class AccessAuditLoggingFilter implements Filter {
 
             try {
                 jdbc.update("""
-                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
-                        VALUES (NOW(), 'ACCESS-SERVICE', 'INFO', ?, ?, ?, ?, 'SUCCESS')
-                        """, action, actorEmail, details, ip);
+                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status, response_time_ms)
+                        VALUES (NOW(), 'ACCESS-SERVICE', 'INFO', ?, ?, ?, ?, 'SUCCESS', ?)
+                        """, action, actorEmail, details, ip, responseTimeMs);
             } catch (Exception ignored) {}
         }
     }

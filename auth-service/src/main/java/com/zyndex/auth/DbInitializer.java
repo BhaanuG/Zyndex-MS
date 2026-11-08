@@ -91,6 +91,7 @@ class DbInitializer implements CommandLineRunner {
                   details TEXT NULL,
                   ip_address VARCHAR(80) NULL,
                   status VARCHAR(30) NOT NULL DEFAULT 'SUCCESS',
+                  response_time_ms INT NULL DEFAULT NULL,
                   PRIMARY KEY (id),
                   INDEX idx_syslogs_service (service),
                   INDEX idx_syslogs_level (level),

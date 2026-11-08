@@ -66,7 +66,7 @@ public class LogController {
         String countQuery = "SELECT COUNT(*) FROM system_logs " + whereSql;
         Long total = jdbc.queryForObject(countQuery, Long.class, params.toArray());
 
-        String dataQuery = "SELECT id, DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') AS formatted_time, timestamp, service, level, action, actor_email, details, ip_address, status " +
+        String dataQuery = "SELECT id, DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') AS formatted_time, timestamp, service, level, action, actor_email, details, ip_address, status, response_time_ms " +
                 " FROM system_logs " + whereSql + " ORDER BY id DESC LIMIT ? OFFSET ?";
         
         List<Object> dataParams = new ArrayList<>(params);
@@ -115,7 +115,8 @@ public class LogController {
                         "actorEmail", row.get("actor_email") != null ? row.get("actor_email") : "system",
                         "details", row.get("details") != null ? row.get("details") : "",
                         "ipAddress", row.get("ip_address") != null ? row.get("ip_address") : "127.0.0.1",
-                        "status", row.get("status") != null ? row.get("status") : "SUCCESS"
+                        "status", row.get("status") != null ? row.get("status") : "SUCCESS",
+                        "responseTimeMs", row.get("response_time_ms") != null ? row.get("response_time_ms") : 0
                 )).toList(),
                 "total", total != null ? total : 0L,
                 "page", page.get("page"),
@@ -145,6 +146,7 @@ public class LogController {
         String details = AuthSupport.str(body.get("details"));
         String ipAddress = request.getRemoteAddr();
         String status = AuthSupport.str(body.get("status"));
+        Integer responseTimeMs = body.get("responseTimeMs") != null ? ((Number) body.get("responseTimeMs")).intValue() : (body.get("durationMs") != null ? ((Number) body.get("durationMs")).intValue() : null);
 
         if (service.isBlank()) service = "SYSTEM";
         if (level.isBlank()) level = "INFO";
@@ -152,9 +154,9 @@ public class LogController {
         if (status.isBlank()) status = "SUCCESS";
 
         jdbc.update(
-                "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
-                        "VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?)",
-                service, level.toUpperCase(), action, actorEmail, details, ipAddress, status
+                "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status, response_time_ms) " +
+                        "VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?)",
+                service, level.toUpperCase(), action, actorEmail, details, ipAddress, status, responseTimeMs
         );
 
         return Map.of("message", "Log recorded successfully.");
