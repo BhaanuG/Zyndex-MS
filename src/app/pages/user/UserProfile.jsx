@@ -424,7 +424,7 @@ export default function UserProfile() {
                     )}
                   </div>
 
-                  {/* Current Device Session - Instagram Style */}
+                  {/* Current Device Session */}
                   {(() => {
                     const currentInfo = getDeviceInfo();
                     const isMobileCurrent = String(currentInfo.os || '').toLowerCase().includes('android') || 

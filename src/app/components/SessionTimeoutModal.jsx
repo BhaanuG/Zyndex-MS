@@ -62,9 +62,24 @@ export default function SessionTimeoutModal() {
   };
 
   const isMaintenance = modalData.reason && modalData.reason.toLowerCase().includes('maintenance');
-  const isMultiDevice = modalData.reason && (modalData.reason.toLowerCase().includes('another device') || modalData.reason.toLowerCase().includes('in use on another'));
-  const isInactivity = modalData.reason && (modalData.reason.toLowerCase().includes('inactivity') || modalData.reason.toLowerCase().includes('2 hours and 30 minutes'));
-  const isTerminated = modalData.reason && (modalData.reason.toLowerCase().includes('terminated') || modalData.reason.toLowerCase().includes('involuntary'));
+  const isMultiDevice = modalData.reason && (
+    modalData.reason.toLowerCase().includes('another device') || 
+    modalData.reason.toLowerCase().includes('in use on another') ||
+    modalData.reason.toLowerCase().includes('active and in use') ||
+    modalData.reason.toLowerCase().includes('using some where') ||
+    modalData.reason.toLowerCase().includes('session with the email')
+  );
+  const isInactivity = modalData.reason && (
+    modalData.reason.toLowerCase().includes('inactivity') || 
+    modalData.reason.toLowerCase().includes('2 hours and 30 minutes') ||
+    modalData.reason.toLowerCase().includes('timed out') ||
+    modalData.reason.toLowerCase().includes('time outed')
+  );
+  const isTerminated = modalData.reason && (
+    modalData.reason.toLowerCase().includes('terminated') || 
+    modalData.reason.toLowerCase().includes('involuntary') ||
+    modalData.reason.toLowerCase().includes('perimeter')
+  );
 
   let headerTitle = 'Session Terminated';
   let headerSubtitle = 'Administrator / Inactivity Action';

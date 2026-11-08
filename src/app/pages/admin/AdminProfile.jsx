@@ -226,7 +226,7 @@ export default function AdminProfile() {
               <PasswordChangePanel user={user} />
             </div>
 
-            {/* Devices & Sessions Management - Instagram Style as in User Portal */}
+            {/* Devices & Sessions Management */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -249,7 +249,7 @@ export default function AdminProfile() {
                 )}
               </div>
 
-              {/* Current Device Session - Instagram Style */}
+              {/* Current Device Session */}
               {(() => {
                 const currentInfo = getDeviceInfo();
                 const isMobileCurrent = String(currentInfo.os || '').toLowerCase().includes('android') || 
