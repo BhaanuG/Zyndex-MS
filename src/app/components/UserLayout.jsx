@@ -95,28 +95,28 @@ export default function UserLayout({ children }) {
             {user?.subscriptionPlan && user.subscriptionPlan !== 'FREE' && (() => {
               const plan = String(user.subscriptionPlan).toUpperCase();
               let badgeSymbol = "○";
-              let badgeStyle = "bg-blue-50 text-blue-700 border-blue-200";
+              let badgeColor = "text-blue-600 hover:text-blue-700";
               let label = "Student Basic";
 
-              if (plan.includes('ENTERPRISE')) {
+              if (plan.includes('ENTERPRISE') || plan.includes('FELLOW')) {
                 badgeSymbol = "∞";
-                badgeStyle = "bg-purple-100 text-purple-800 border-purple-300";
-                label = "Enterprise";
-              } else if (plan.includes('UNIVERSITY')) {
+                badgeColor = "text-purple-600 hover:text-purple-700";
+                label = "Distinguished Fellow & Scholar";
+              } else if (plan.includes('UNIVERSITY') || plan.includes('FACULTY') || plan.includes('EDUCATOR')) {
                 badgeSymbol = "⬢";
-                badgeStyle = "bg-indigo-100 text-indigo-800 border-indigo-300";
-                label = "University";
-              } else if (plan.includes('RESEARCHER') || plan.includes('PRO')) {
+                badgeColor = "text-indigo-600 hover:text-indigo-700";
+                label = "Academic Faculty & Educator";
+              } else if (plan.includes('RESEARCHER') || plan.includes('PRO') || plan.includes('PHD')) {
                 badgeSymbol = "✦";
-                badgeStyle = "bg-teal-100 text-teal-800 border-teal-300";
-                label = "PhD Scholar";
+                badgeColor = "text-teal-600 hover:text-teal-700";
+                label = "PhD Scholar / Researcher";
               } else if (plan.includes('PLUS')) {
                 badgeSymbol = "⬦";
-                badgeStyle = "bg-amber-100 text-amber-800 border-amber-300";
+                badgeColor = "text-amber-600 hover:text-amber-700";
                 label = "Student Plus";
               } else if (plan.includes('BASIC')) {
                 badgeSymbol = "○";
-                badgeStyle = "bg-blue-100 text-blue-800 border-blue-300";
+                badgeColor = "text-blue-600 hover:text-blue-700";
                 label = "Student Basic";
               }
 
@@ -124,10 +124,10 @@ export default function UserLayout({ children }) {
                 <Link
                   to={`${baseUrl}/Profile/Billing/Pricing`}
                   title={`Subscribed Plan: ${label} (Click to manage)`}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border tracking-wide uppercase transition-all hover:scale-105 shadow-2xs ${badgeStyle}`}
+                  aria-label={`Subscribed Plan: ${label}`}
+                  className={`inline-flex items-center justify-center text-lg sm:text-xl font-black leading-none transition-transform hover:scale-110 active:scale-95 ${badgeColor}`}
                 >
-                  <span className="text-xs font-black">{badgeSymbol}</span>
-                  <span className="hidden sm:inline">{label}</span>
+                  <span>{badgeSymbol}</span>
                 </Link>
               );
             })()}

@@ -216,13 +216,12 @@ export default function UserProfile() {
     if (plan.includes('BASIC')) return '₹99';
     if (plan.includes('PLUS')) return '₹199';
     if (plan.includes('PRO') || plan.includes('RESEARCHER')) return '₹499';
-    if (plan.includes('UNIVERSITY')) return '₹1,00,000';
-    return '₹3 - 5 Lakh';
+    if (plan.includes('UNIVERSITY') || plan.includes('FACULTY') || plan.includes('EDUCATOR')) return '₹999';
+    return '₹1,999';
   };
 
   const getPlanDuration = (plan) => {
     if (!plan || plan === 'FREE') return 'Forever';
-    if (plan.includes('UNIVERSITY') || plan.includes('ENTERPRISE')) return '365 Days';
     return '30 Days';
   };
 
