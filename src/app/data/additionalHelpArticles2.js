@@ -792,4 +792,171 @@ Zyndex Resources/
     tags: ['productivity', 'efficiency', 'workflow', 'optimization', 'tips'],
     readTime: '4 min read'
   },
+  {
+    id: 101,
+    category: 'Billing & Subscriptions',
+    title: 'Understanding Academic Plan Badges and Exclusive Symbols',
+    description: 'Learn about the unique symbols and color badges for each academic tier',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Academic Plan Symbols & Badges</h2>
+        <p class="article-intro">Zyndex identifies each scholar's active membership tier using bespoke aesthetic symbols and themed badge accents located right beside the Zyndex logo in the top navigation.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Plan Symbols & Colors:</h3>
+          <ul class="article-list">
+            <li><strong>Free Academic Reader:</strong> Standard view with no badge needed.</li>
+            <li><strong>Student Basic (₹199/mo):</strong> Marked with the solid triangle <strong>"▲"</strong> in bright blue, providing foundational textbook access and previewing.</li>
+            <li><strong>Student Plus (₹499/mo):</strong> Denoted by stacked diamonds <strong>"⬦"</strong> in warm amber, offering extended offline study capabilities.</li>
+            <li><strong>PhD Scholar / Researcher (₹799/mo):</strong> Distinguished by the four-point sparkle <strong>"✦"</strong> in teal, unlocking deep paper archives and citations.</li>
+            <li><strong>Academic Faculty & Educator (₹999/mo):</strong> Highlighted by the hexagon with core dot <strong>"⬢"</strong> in royal indigo, designed for syllabus curation.</li>
+            <li><strong>Distinguished Fellow & Scholar (₹1,999/mo):</strong> Crowned by the sleek infinity loop <strong>"∞"</strong> in vibrant purple, granting unlimited resource privileges.</li>
+          </ul>
+        </div>
+
+        <div class="tip-box">
+          <h4 class="tip-heading">🔒 Active Plan Lock:</h4>
+          <p>While an active paid plan is underway, selecting or paying for a different tier is disabled until your active duration completes, protecting your current entitlements without accidental double billing.</p>
+        </div>
+      </div>
+    `,
+    tags: ['plans', 'badges', 'symbols', 'billing', 'tiers', 'student', 'fellow'],
+    readTime: '3 min read'
+  },
+  {
+    id: 102,
+    category: 'Billing & Subscriptions',
+    title: 'Dedicated Payment Checkout & 12-Digit UTR Verification',
+    description: 'Guide to completing UPI checkout, clock timers, and submitting your UTR reference',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Dedicated UPI Checkout & UTR Submission</h2>
+        <p class="article-intro">Zyndex provides a distraction-free, dedicated checkout flow under official Educational Excellence branding.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Phase 1: Dynamic QR & 5-Minute Timer</h3>
+          <ul class="article-list">
+            <li>Select your plan on the Pricing page to launch your secure payment session.</li>
+            <li>The payment workspace features a dynamic UPI QR code on the left and a circular analog clock with animated minute and second hands alongside a digital countdown timer on the right.</li>
+            <li>You have <strong>5 minutes</strong> to scan the QR code with any UPI app (Google Pay, PhonePe, Paytm, CRED, BHIM, or your bank app).</li>
+            <li>Once money transfer is confirmed in your app, click <strong>"I Have Paid"</strong>.</li>
+            <li>If you decide not to proceed, click <strong>"Cancel"</strong> to safely log the cancellation in your billing records.</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Phase 2: 12-Digit UTR Submission & 10-Minute Window</h3>
+          <ul class="article-list">
+            <li>After clicking "I Have Paid", you transition to the step-2 UTR submission page with a generous <strong>10-minute timer</strong>.</li>
+            <li>Locate your 12-digit transaction reference number in your UPI app:
+              <ul>
+                <li>Google Pay: "UPI transaction ID"</li>
+                <li>PhonePe: "UTR" under Transfer Details</li>
+                <li>Paytm & Others: "UPI Ref No" or "Ref No"</li>
+              </ul>
+            </li>
+            <li>Input the 12 digits and click <strong>"Verify & Submit UTR"</strong>.</li>
+            <li>An immediate email notification is dispatched to Zyndex administration (Bhaanugali@gmail.com) for swift bank reconciliation.</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Color-Coded Status Tracking:</h3>
+          <p>You can follow the verification in your Profile & Billing dashboard:</p>
+          <ul class="article-list">
+            <li><span style="color:#2563eb; font-weight:bold;">Blue:</span> Initiated / Active session</li>
+            <li><span style="color:#d97706; font-weight:bold;">Amber:</span> Under Admin Verification</li>
+            <li><span style="color:#16a34a; font-weight:bold;">Green:</span> Success / Approved & Activated</li>
+            <li><span style="color:#dc2626; font-weight:bold;">Red:</span> Cancelled by user or Declined</li>
+            <li><span style="color:#4b5563; font-weight:bold;">Dark Gray:</span> Expired session</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    tags: ['payment', 'qr', 'clock', 'timer', 'utr', 'upi', 'checkout', 'verification'],
+    readTime: '4 min read'
+  },
+  {
+    id: 103,
+    category: 'Account & Security',
+    title: 'Concurrent Session Protection & 15-Second Auto Logout Notice',
+    description: 'How Zyndex safeguards scholar accounts against simultaneous unauthorized logins',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Concurrent Session Protection</h2>
+        <p class="article-intro">To prevent credential sharing, unauthorized access, and session hijacking, Zyndex enforces intelligent single-active-device security.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">How It Works:</h3>
+          <ul class="article-list">
+            <li>If you log into your Zyndex account on a new phone, laptop, or browser, any previous session active on another device receives an immediate security prompt:
+              <br/>
+              <em>"The session with the email ID [your email] is currently active and in use on another device or browser. To maintain account integrity, this session will now be closed."</em>
+            </li>
+            <li>A visible 15-second countdown timer alerts you before automatically terminating the superseded session and returning safely to the login screen.</li>
+            <li>This ensures only one device actively streams educational documents under your credentials at any moment.</li>
+          </ul>
+        </div>
+
+        <div class="section-block">
+          <h3 class="section-heading">Managing Devices in Security & Devices:</h3>
+          <p>Under your Profile -> <strong>Security & Devices</strong> tab, you can review:</p>
+          <ul class="article-list">
+            <li>Your current active device marked with an emerald "This Device" tag.</li>
+            <li>All recognized and trusted devices with operating system, browser, IP address, and trust expiration timestamps.</li>
+            <li>A one-click <strong>"Revoke"</strong> button to immediately kick off any individual unrecognized browser.</li>
+            <li>A universal <strong>"Log out from all other devices"</strong> button for emergency account recovery.</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    tags: ['security', 'devices', 'session', 'concurrent', 'logout', 'protection', 'trusted'],
+    readTime: '3 min read'
+  },
+  {
+    id: 104,
+    category: 'Features & Tools',
+    title: 'Live Instant Search on User Home',
+    description: 'Experience effortless, real-time catalog filtering as you type',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Instant Live Search Experience</h2>
+        <p class="article-intro">Searching for research articles, textbooks, authors, and syllabi on Zyndex no longer requires waiting or clicking buttons.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Key Search Capabilities:</h3>
+          <ul class="article-list">
+            <li><strong>Instant As-You-Type Filtering:</strong> As soon as you enter 2 characters into the prominent home search bar, results filter live in real time.</li>
+            <li><strong>Broad Attribute Matching:</strong> Search queries evaluate resource titles, author names, subject tags, and category classifications simultaneously.</li>
+            <li><strong>Clean Single-Search Interface:</strong> The secondary header search bar has been streamlined on the home dashboard to focus your attention completely on the interactive central search console.</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    tags: ['search', 'live', 'instant', 'filter', 'home', 'library'],
+    readTime: '2 min read'
+  },
+  {
+    id: 105,
+    category: 'Privacy & Legal',
+    title: 'Single-Browser Invoice Security & Privacy Lock',
+    description: 'Why Zyndex invoices cannot be opened outside authenticated browser sessions',
+    content: `
+      <div class="article-content">
+        <h2 class="article-heading">Cryptographically Locked Invoices</h2>
+        <p class="article-intro">Educational billing receipts and GST tax invoices contain personal and institutional financial details. Zyndex employs strict browser-bound privacy protection.</p>
+        
+        <div class="section-block">
+          <h3 class="section-heading">Security Protections:</h3>
+          <ul class="article-list">
+            <li><strong>Authenticated Session Binding:</strong> Invoices can only be viewed in the exact browser profile where the account holder is actively signed in.</li>
+            <li><strong>Anti-Tamper & Anti-Scraping Protection:</strong> If an invoice link is copied and opened in an unauthenticated or incognito browser, Zyndex prevents data leakage by rendering a <strong>404 Not Found</strong> response.</li>
+            <li><strong>Automated Login Redirection:</strong> After 60 seconds of viewing an unauthenticated invoice screen, the page automatically redirects the visitor to the official Login portal.</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    tags: ['invoice', 'billing', 'security', 'privacy', 'receipt', '404'],
+    readTime: '3 min read'
+  }
 ];

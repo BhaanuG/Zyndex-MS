@@ -80,6 +80,30 @@ export default function FAQ() {
       answer: 'Nothing is lost. Your account automatically defaults to our Free Academic Reader tier. Your bookmarks, custom reading lists, notes, and profile history remain completely preserved and accessible indefinitely.',
     },
     {
+      question: 'How do the new academic plans and visual plan badges work?',
+      answer: 'Zyndex offers specialized scholar tiers: Student Basic (₹199/mo), Student Plus (₹499/mo), PhD Scholar / Researcher (₹799/mo), Academic Faculty & Educator (₹999/mo), and Distinguished Fellow & Scholar (₹1,999/mo), alongside our Free tier. Each plan displays a distinct symbol and color badge beside your Zyndex logo: Solid Triangle "▲" (Blue) for Student Basic, Stacked Diamonds "⬦" (Amber) for Student Plus, Four-Point Sparkle "✦" (Teal) for PhD Scholar, Hexagon with Core Dot "⬢" (Indigo) for Academic Faculty, and Sleek Infinity Loop "∞" (Purple) for Distinguished Fellow.',
+    },
+    {
+      question: 'Can I purchase another plan while I have an active subscription?',
+      answer: 'No. To guarantee clear billing and ensure full access uninterrupted for the duration you purchased, active subscriptions are exclusive. While your current plan is in effect, selecting or paying for a different tier is disabled until your active subscription period concludes.',
+    },
+    {
+      question: 'What is the dedicated payment checkout process and how long do I have?',
+      answer: 'When you choose a plan, a dedicated checkout session opens with live analog and digital timers. You have 5 minutes to scan the dynamic UPI QR code. After completing the payment in your UPI app, click "I Have Paid" to enter your 12-digit UTR reference number. You then have a full 10-minute window to input and confirm your UTR. If you cancel at any time, your record is updated seamlessly in your billing dashboard.',
+    },
+    {
+      question: 'What happens if someone accesses my account on another device or browser?',
+      answer: 'Zyndex features real-time concurrent session protection. If your account is authenticated on a new device or browser, any previous active session is immediately informed: "The session with the email ID is currently active and in use on another device or browser. To maintain account integrity, this session will now be closed." A 15-second visual countdown gives you time to finish reading before automatically logging out the old device.',
+    },
+    {
+      question: 'How does live instant search work on the user home page?',
+      answer: 'On your user home page, the search experience is instantaneous. As soon as you type two or more characters into the search bar, Zyndex filters and displays matching textbooks, articles, authors, and subjects in real time without requiring you to press Enter or click a search button.',
+    },
+    {
+      question: 'How are invoices secured and who can view them?',
+      answer: 'All invoices and payment receipts are cryptographically locked to the specific browser and session where the purchase was completed. If an invoice URL is copied and opened in another browser or without an active login, Zyndex displays a 404 Not Found screen and automatically redirects to the login page after 60 seconds to protect financial privacy.',
+    },
+    {
       question: 'How can I contact support and what is the typical turnaround time?',
       answer: 'You can submit an inquiry via our Contact Us portal or email support directly at support@zyndex.com. Our administrative and support desk operates with average response times under 24 hours for all learner inquiries and under 2 hours for payment assistance.',
     },
