@@ -231,7 +231,7 @@ export default function UserProfile() {
 
   return (
     <UserLayout>
-      <div className="py-12 px-6 min-h-[75vh]">
+      <div className="py-12 px-6 min-h-[calc(100vh+80px)] pb-32">
         <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-4 gap-6">
             <div className="bg-white rounded-xl shadow-md p-6 text-center h-fit">
