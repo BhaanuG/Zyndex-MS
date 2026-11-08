@@ -395,19 +395,20 @@ export default function AdminLogs() {
   }, [adminLevelFilter]);
 
   // Live auto-refresh polling every 10 seconds for real-time responsiveness
+  // Preserves active filter and page selections without resetting to overall view
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
       if (activeTab === 'admin') {
-        fetchAdminLogs(adminLogsPage);
+        fetchAdminLogs(adminLogsPage, adminLevelFilter);
       } else if (activeTab === 'reading') {
         fetchReadingData(readingPage);
       } else {
-        fetchSystemLogs(systemPage);
+        fetchSystemLogs(systemPage, levelFilter, serviceFilter);
       }
     }, 10000);
     return () => clearInterval(interval);
-  }, [autoRefresh, activeTab, readingPage, systemPage, adminLogsPage, adminSearchTerm]);
+  }, [autoRefresh, activeTab, readingPage, systemPage, adminLogsPage, adminLevelFilter, adminSearchTerm, levelFilter, serviceFilter, searchTerm]);
 
   // Download Options Menu Modal state
   const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);

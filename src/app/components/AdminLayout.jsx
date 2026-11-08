@@ -74,56 +74,86 @@ export default function AdminLayout({ children }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname, user]);
 
-  // Wire click and action tracking in Admin Portal
+  // Wire click, select, and action tracking in Admin Portal
   const lastClickTimeRef = useRef(0);
+  const lastClickKeyRef = useRef('');
   useEffect(() => {
     if (!user || user.role !== 'admin') return;
 
     const handleClick = (e) => {
       const now = Date.now();
-      // Throttle identical rapid clicks
-      if (now - lastClickTimeRef.current < 2000) return;
-
       const target = e.target;
       const button = target.closest('button');
       const link = target.closest('a');
-      const input = target.closest('input, select, textarea');
+      const select = target.closest('select');
+      const input = target.closest('input, textarea');
+      const card = target.closest('[data-log-label]') || target.closest('[title]');
 
       let actionTitle = 'ADMIN_USER_CLICK';
       let actionDesc = null;
+      let clickKey = '';
 
       const pageName = location.pathname.split('/').filter(Boolean).pop() || 'Admin-Dashboard';
 
       if (button) {
         const text = button.innerText?.trim() || button.getAttribute('title') || button.getAttribute('aria-label') || 'Button';
-        // Contextual analysis of the clicked button
-        let intent = 'Triggered control';
+        clickKey = `btn_${text}_${pageName}`;
+        if (now - lastClickTimeRef.current < 1000 && lastClickKeyRef.current === clickKey) return;
+
+        let intent = 'Triggered button action';
         const lower = text.toLowerCase();
-        if (lower.includes('download') || lower.includes('export')) intent = 'Initiated data export / download';
-        else if (lower.includes('filter') || lower.includes('search')) intent = 'Filtered data table or search queries';
-        else if (lower.includes('save') || lower.includes('update')) intent = 'Submitted modifications / settings';
-        else if (lower.includes('delete') || lower.includes('trash')) intent = 'Opened deletion / revocation dialog';
-        else if (lower.includes('terminate') || lower.includes('logout')) intent = 'Triggered session revocation control';
-        else if (lower.includes('confirm') || lower.includes('verify')) intent = 'Initiated verification / confirmation workflow';
-        else if (lower.includes('cancel') || lower.includes('close')) intent = 'Dismissed dialog / cancelled action';
-        else if (lower.includes('tab') || lower.includes('logs') || lower.includes('metrics')) intent = 'Switched dashboard audit view / tab';
+        if (lower.includes('download') || lower.includes('export')) intent = 'Initiated audit / analytics data export';
+        else if (lower.includes('filter') || lower.includes('level') || lower.includes('service')) intent = 'Filtered dataset or logs table';
+        else if (lower.includes('search')) intent = 'Executed search query on dataset';
+        else if (lower.includes('save') || lower.includes('update') || lower.includes('submit')) intent = 'Submitted record modifications or configuration settings';
+        else if (lower.includes('delete') || lower.includes('trash') || lower.includes('remove')) intent = 'Invoked account/resource deletion procedure';
+        else if (lower.includes('terminate') || lower.includes('logout')) intent = 'Initiated session termination / revocation workflow';
+        else if (lower.includes('confirm') || lower.includes('verify') || lower.includes('approve')) intent = 'Approved / verified pending user action or request';
+        else if (lower.includes('reject') || lower.includes('dismiss')) intent = 'Rejected / declined user request';
+        else if (lower.includes('cancel') || lower.includes('close')) intent = 'Dismissed dialog / cancelled current operation';
+        else if (lower.includes('maintenance')) intent = 'Toggled platform maintenance mode control';
+        else if (lower.includes('tab') || lower.includes('logs') || lower.includes('metrics') || lower.includes('reading') || lower.includes('audit')) intent = 'Switched dashboard audit view / tab';
+        else if (lower.includes('reload') || lower.includes('refresh')) intent = 'Triggered real-time dataset reload';
 
         actionTitle = `ADMIN_CLICK_${text.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase().slice(0, 30)}`;
-        actionDesc = `Administrator (${user.name || user.email}) ${intent} by clicking "${text.slice(0, 60)}" on the ${pageName} interface [Element: <button>, Timestamp: ${new Date().toISOString()}]`;
+        actionDesc = `Administrator (${user.name || user.email}) ${intent} by clicking button "${text.slice(0, 60)}" on the ${pageName} page [Element: <button>, Timestamp: ${new Date().toISOString()}]`;
+      } else if (select) {
+        const selectName = select.getAttribute('name') || select.id || 'Dropdown';
+        const selectedOptionText = select.options[select.selectedIndex]?.text || select.value;
+        clickKey = `sel_${selectName}_${selectedOptionText}`;
+        if (now - lastClickTimeRef.current < 1000 && lastClickKeyRef.current === clickKey) return;
+
+        actionTitle = `ADMIN_SELECT_${selectName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase().slice(0, 25)}`;
+        actionDesc = `Administrator (${user.name || user.email}) selected option "${selectedOptionText}" from dropdown [${selectName}] on ${pageName} page`;
       } else if (link) {
         const text = link.innerText?.trim() || link.getAttribute('title') || link.getAttribute('href') || 'Navigation';
         const href = link.getAttribute('href') || 'link';
+        clickKey = `link_${href}`;
+        if (now - lastClickTimeRef.current < 1000 && lastClickKeyRef.current === clickKey) return;
+
         actionTitle = 'ADMIN_NAVIGATION_CLICK';
-        actionDesc = `Administrator (${user.name || user.email}) navigated via link "${text.slice(0, 50)}" to destination [${href}] from current view ${pageName}`;
+        actionDesc = `Administrator (${user.name || user.email}) navigated via link "${text.slice(0, 50)}" to destination [${href}] from ${pageName} view`;
+      } else if (card && !button && !link) {
+        const title = card.getAttribute('title') || card.getAttribute('data-log-label') || card.innerText?.slice(0, 30);
+        if (title) {
+          clickKey = `card_${title}`;
+          if (now - lastClickTimeRef.current < 1200 && lastClickKeyRef.current === clickKey) return;
+          actionTitle = `ADMIN_CLICK_${title.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase().slice(0, 25)}`;
+          actionDesc = `Administrator (${user.name || user.email}) selected filter / KPI card "${title}" on ${pageName} page`;
+        }
       } else if (input) {
         const placeholder = input.getAttribute('placeholder') || input.getAttribute('name') || input.id || input.tagName;
         const valType = input.type || 'text';
+        clickKey = `inp_${placeholder}`;
+        if (now - lastClickTimeRef.current < 3000 && lastClickKeyRef.current === clickKey) return;
+
         actionTitle = 'ADMIN_INPUT_FOCUS';
-        actionDesc = `Administrator (${user.name || user.email}) interacted with form field [${placeholder}] (type: ${valType}) on ${pageName} view`;
+        actionDesc = `Administrator (${user.name || user.email}) clicked and focused on input field [${placeholder}] (type: ${valType}) on ${pageName} page`;
       }
 
       if (actionDesc) {
         lastClickTimeRef.current = now;
+        lastClickKeyRef.current = clickKey;
         logService.createLog({
           service: 'ADMIN-PORTAL',
           level: 'INFO',
@@ -135,8 +165,30 @@ export default function AdminLayout({ children }) {
       }
     };
 
+    // Also listen for change events on selects to immediately capture exact option selected
+    const handleChange = (e) => {
+      const select = e.target.closest('select');
+      if (!select) return;
+      const selectName = select.getAttribute('name') || select.getAttribute('aria-label') || select.id || 'Filter Dropdown';
+      const selectedOptionText = select.options[select.selectedIndex]?.text || select.value;
+      const pageName = location.pathname.split('/').filter(Boolean).pop() || 'Admin-Dashboard';
+
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'INFO',
+        action: `ADMIN_FILTER_CHANGED`,
+        actorEmail: user.email || 'admin@zyndex.com',
+        details: `Administrator (${user.name || user.email}) changed filter [${selectName}] to "${selectedOptionText}" on ${pageName} page`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+    };
+
     window.addEventListener('click', handleClick, { passive: true, capture: true });
-    return () => window.removeEventListener('click', handleClick, { capture: true });
+    window.addEventListener('change', handleChange, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener('click', handleClick, { capture: true });
+      window.removeEventListener('change', handleChange, { capture: true });
+    };
   }, [location.pathname, user]);
 
   const handleLogout = () => {
