@@ -153,7 +153,11 @@ public class AuthSupport {
         }
 
         // Validate session token version against DB version to terminate superseded / force-logged-out sessions
-        if (tokenClaims != null) {
+        // Primary Administrator is exempt from single-session version invalidation to allow multi-tab / multi-device management without abrupt logouts
+        String userEmail = str(user.get("email"));
+        boolean isPrimaryAdminUser = userEmail.equalsIgnoreCase(properties.mainAdminEmail());
+
+        if (!isPrimaryAdminUser && tokenClaims != null) {
             Object tokenVer = tokenClaims.get("v");
             if (tokenVer != null) {
                 int claimV = Integer.parseInt(String.valueOf(tokenVer));

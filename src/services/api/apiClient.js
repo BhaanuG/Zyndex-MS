@@ -11,6 +11,8 @@ const apiClient = axios.create({
   },
 });
 
+let isSessionExpiredDispatched = false;
+
 // Request interceptor - Add auth token to requests
 apiClient.interceptors.request.use(
   (config) => {
@@ -90,8 +92,14 @@ apiClient.interceptors.response.use(
 
       switch (status) {
         case 401:
+          // Ignore "Authorization token is missing" when no token is in storage (prevents secondary cascade popups)
+          if (parsedError.message === 'Authorization token is missing' && !hasToken) {
+            break;
+          }
+
           // Only trigger timeout notification when an already-authenticated session expires.
-          if (hasToken && !isAuthFormRequest) {
+          if (hasToken && !isAuthFormRequest && !isSessionExpiredDispatched) {
+            isSessionExpiredDispatched = true;
             const savedUser = localStorage.getItem('user_data');
             let role = 'user';
             try {
@@ -113,6 +121,11 @@ apiClient.interceptors.response.use(
                 })
               );
             }
+
+            // Reset after short cooldown in case of legitimate subsequent sessions
+            setTimeout(() => {
+              isSessionExpiredDispatched = false;
+            }, 3000);
           }
           break;
         case 403:
