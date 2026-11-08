@@ -33,7 +33,7 @@ export default function MaintenanceCountdownBar({ isPrimaryAdmin, mode = 'user' 
           }
           setSecondsRemaining(remainingSecs);
 
-          if (remainingSecs <= 0 && !isPrimaryAdmin) {
+          if (remainingSecs <= 0 && res?.isOfficiallyActive && !isPrimaryAdmin) {
             userService.finalizeMaintenanceActive().catch(() => {});
           }
         } else {

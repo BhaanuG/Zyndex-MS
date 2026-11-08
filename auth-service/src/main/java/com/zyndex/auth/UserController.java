@@ -607,7 +607,25 @@ class UserController {
 
     @PostMapping("/maintenance-officially-active")
     Map<String, Object> finalizeMaintenanceActive(HttpServletRequest request) {
-        // Called when 15-minute window elapses or admin enforces immediate official offline mode
+        // Only finalize if maintenance mode is enabled in system settings
+        var maintRows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_MODE' LIMIT 1");
+        if (maintRows.isEmpty() || !"true".equalsIgnoreCase(String.valueOf(maintRows.get(0).get("setting_value")))) {
+            return Map.of("message", "Maintenance mode is not active.");
+        }
+
+        // Verify that the 15-minute countdown window has truly elapsed on the server
+        var timeRows = jdbc.queryForList("SELECT setting_value FROM system_settings WHERE setting_key = 'MAINTENANCE_SCHEDULED_AT' LIMIT 1");
+        if (!timeRows.isEmpty() && timeRows.get(0).get("setting_value") != null) {
+            try {
+                String schedStr = String.valueOf(timeRows.get(0).get("setting_value"));
+                java.time.Instant scheduledInstant = java.time.Instant.parse(schedStr);
+                long elapsedSeconds = java.time.Duration.between(scheduledInstant, java.time.Instant.now()).getSeconds();
+                if (elapsedSeconds < 15 * 60) {
+                    return Map.of("message", "Maintenance preparation window is still pending (" + (15 * 60 - elapsedSeconds) + " seconds remaining).");
+                }
+            } catch (Exception ignored) {}
+        }
+
         var adminRows = jdbc.queryForList("SELECT id, email FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1", auth.properties.mainAdminEmail());
         long adminId = adminRows.isEmpty() ? 0L : AuthSupport.number(adminRows.get(0).get("id"));
 
