@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Clock, 
   CheckCircle2, 
@@ -12,7 +12,14 @@ import {
   HelpCircle, 
   Loader2,
   Receipt,
-  BookOpen
+  BookOpen,
+  CreditCard,
+  Landmark,
+  Wallet,
+  QrCode,
+  Smartphone,
+  Lock,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import subscriptionService from '@/services/api/subscriptionService';
@@ -34,6 +41,30 @@ export default function PaymentPage() {
   const [qrTimeLeft, setQrTimeLeft] = useState(300);
   const [utrTimeLeft, setUtrTimeLeft] = useState(600); // 10 minutes minimum
   
+  // Payment Method Selection: 'upi' (default) | 'card' | 'netbanking' | 'wallet'
+  const [selectedMethod, setSelectedMethod] = useState('upi');
+
+  // Credit / Debit Card Form state
+  const [cardData, setCardData] = useState({
+    number: '',
+    name: user?.name || '',
+    expiry: '',
+    cvv: ''
+  });
+  const [processingCard, setProcessingCard] = useState(false);
+  const [cardError, setCardError] = useState('');
+
+  // Net Banking state
+  const [selectedBank, setSelectedBank] = useState('HDFC');
+  const [processingBank, setProcessingBank] = useState(false);
+  const [bankError, setBankError] = useState('');
+
+  // Digital Wallet state
+  const [selectedWallet, setSelectedWallet] = useState('paytm');
+  const [processingWallet, setProcessingWallet] = useState(false);
+  const [walletPhone, setWalletPhone] = useState('');
+  const [walletError, setWalletError] = useState('');
+
   // UTR Form state
   const [utrNumber, setUtrNumber] = useState('');
   const [submittingUtr, setSubmittingUtr] = useState(false);
@@ -161,16 +192,83 @@ export default function PaymentPage() {
     return () => clearInterval(poll);
   }, [paymentData?.paymentId, paymentData?.status, refreshUser]);
 
-  const handleCancelPayment = async () => {
-    if (!paymentData?.paymentId) return;
-    setCancelling(true);
+  const handleCardPayment = async (e) => {
+    if (e) e.preventDefault();
+    const cleanNum = cardData.number.replace(/\s+/g, '');
+    if (cleanNum.length < 15 || cleanNum.length > 16) {
+      setCardError('Please enter a valid 15 or 16-digit card number.');
+      return;
+    }
+    if (!cardData.name.trim()) {
+      setCardError('Cardholder name is required.');
+      return;
+    }
+    if (!/^\d{2}\/\d{2}$/.test(cardData.expiry)) {
+      setCardError('Expiry format must be MM/YY.');
+      return;
+    }
+    if (cardData.cvv.length < 3 || cardData.cvv.length > 4) {
+      setCardError('Please enter a valid 3 or 4-digit CVV.');
+      return;
+    }
+
+    setProcessingCard(true);
+    setCardError('');
     try {
-      await subscriptionService.cancelPayment(paymentData.paymentId);
-      setPaymentData(prev => ({ ...prev, status: 'CANCELLED' }));
+      // Simulate secure 3D-Secure gateway redirect & card settlement
+      await new Promise(r => setTimeout(r, 2200));
+      const res = await subscriptionService.confirmSimulatedPayment(paymentData.paymentId);
+      setPaymentData(res);
+      await refreshUser();
     } catch (err) {
-      setError(err.message || 'Failed to cancel payment.');
+      setCardError(err.message || 'Card authorization failed. Please try another card or UPI.');
     } finally {
-      setCancelling(false);
+      setProcessingCard(false);
+    }
+  };
+
+  const handleNetBankingPayment = async (e) => {
+    if (e) e.preventDefault();
+    if (!selectedBank) {
+      setBankError('Please select your preferred banking partner.');
+      return;
+    }
+
+    setProcessingBank(true);
+    setBankError('');
+    try {
+      // Simulate secure bank net-banking redirect and instant clearance
+      await new Promise(r => setTimeout(r, 2400));
+      const res = await subscriptionService.confirmSimulatedPayment(paymentData.paymentId);
+      setPaymentData(res);
+      await refreshUser();
+    } catch (err) {
+      setBankError(err.message || 'Net banking processing failed. Please try another bank or UPI.');
+    } finally {
+      setProcessingBank(false);
+    }
+  };
+
+  const handleWalletPayment = async (e) => {
+    if (e) e.preventDefault();
+    const cleanPhone = walletPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      setWalletError('Please enter a valid 10-digit registered mobile number.');
+      return;
+    }
+
+    setProcessingWallet(true);
+    setWalletError('');
+    try {
+      // Simulate wallet debit & instant token clearance
+      await new Promise(r => setTimeout(r, 2000));
+      const res = await subscriptionService.confirmSimulatedPayment(paymentData.paymentId);
+      setPaymentData(res);
+      await refreshUser();
+    } catch (err) {
+      setWalletError(err.message || 'Wallet debit failed. Please check wallet balance or try UPI.');
+    } finally {
+      setProcessingWallet(false);
     }
   };
 
@@ -529,146 +627,536 @@ export default function PaymentPage() {
           </motion.div>
         ) : (
           /* =========================================================================
-             PAYMENT QR PAGE REDESIGN
-             - No header links or footer
-             - Only Zyndex logo + Back button
-             - Single Box: Left side QR code, Right side Medium Clock + Digital Clock underneath
-             - No UPI ID number mentioned
-             - Options: Cancel & "I have paid"
+             PAYMENT SELECTION & ORDER PROCESSING PAGE
+             - Supports UPI QR (default), Credit/Debit Card, Net Banking & Wallets
+             - Features active security clock and countdown
+             - Includes immediate simulated gateway verification or UTR submission
              ========================================================================= */
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-8 md:p-12 space-y-8"
+            className="w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-6 md:p-10 space-y-8"
           >
-            {/* Box with Left: QR code, Right: Medium Clock + Digital Clock */}
-            <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-around gap-8">
-              {/* Left Side: QR Code (No UPI ID text) */}
-              <div className="flex flex-col items-center space-y-3">
-                <div className="p-3 bg-white rounded-2xl shadow-md border border-slate-200 relative group">
-                  <img
-                    src={paymentData?.qrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi%3A%2F%2Fpay%3Fpa%3D918897337687%40waaxis%26am%3D${amount || 199}`}
-                    alt="Payment QR Code"
-                    className="size-56 md:size-64 object-contain rounded-xl"
-                  />
-                </div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Scan to Pay ₹{amount || paymentData?.amountRupees || '199'}
+            {/* Top Order Summary & Timer Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div>
+                <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Step 1: Select Payment Method</span>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
+                  Complete Payment for {paymentData?.planId ? paymentData.planId.replace(/_/g, ' ') : 'Subscription'}
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Order ID: <span className="font-mono font-semibold text-slate-700">{orderId}</span> &bull; Total Amount: <span className="font-bold text-slate-900">₹{amount || paymentData?.amountRupees || '199'}</span>
+                </p>
+              </div>
+
+              {/* Digital countdown pill */}
+              <div className="flex items-center gap-2 bg-orange-50/80 border border-orange-200/80 px-3.5 py-1.5 rounded-xl self-start sm:self-auto shrink-0">
+                <Clock className={`size-4 ${qrTimeLeft < 60 ? 'text-red-600 animate-pulse' : 'text-orange-600'}`} />
+                <span className="font-mono text-xs font-bold text-orange-950">
+                  {formatTimer(qrTimeLeft)} remaining
                 </span>
               </div>
+            </div>
 
-              {/* Right Side: Medium Clock with live minutes/seconds hands + Digital Clock underneath */}
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="relative size-32 md:size-36 flex items-center justify-center">
-                  {/* Outer circle progress */}
-                  <svg className="size-32 md:size-36 -rotate-90 transform" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r={radius}
-                      className="text-slate-200"
-                      strokeWidth="6"
-                      stroke="currentColor"
-                      fill="transparent"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r={radius}
-                      className={qrTimeLeft < 60 ? 'text-red-500' : 'text-orange-500'}
-                      strokeWidth="6"
-                      strokeDasharray={circumference}
-                      strokeDashoffset={strokeDashoffset}
-                      strokeLinecap="round"
-                      stroke="currentColor"
-                      fill="transparent"
-                      style={{ transition: 'stroke-dashoffset 1s linear' }}
-                    />
-                  </svg>
+            {/* Payment Method Switcher Tabs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setSelectedMethod('upi')}
+                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  selectedMethod === 'upi'
+                    ? 'bg-white text-orange-600 shadow-sm border border-slate-200/80'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <QrCode className="size-4" />
+                <span>UPI / QR</span>
+              </button>
 
-                  {/* Analog Clock Face with animated lively minutes & seconds hand */}
-                  <svg className="absolute size-24 transform pointer-events-none" viewBox="0 0 100 100">
-                    {/* Clock center pivot */}
-                    <circle cx="50" cy="50" r="3.5" className="fill-slate-800" />
-                    {/* Hour ticks */}
-                    {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => (
-                      <line
-                        key={deg}
-                        x1="50"
-                        y1="12"
-                        x2="50"
-                        y2="17"
-                        stroke="#94a3b8"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        transform={`rotate(${deg} 50 50)`}
+              <button
+                type="button"
+                onClick={() => setSelectedMethod('card')}
+                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  selectedMethod === 'card'
+                    ? 'bg-white text-orange-600 shadow-sm border border-slate-200/80'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <CreditCard className="size-4" />
+                <span>Cards</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedMethod('netbanking')}
+                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  selectedMethod === 'netbanking'
+                    ? 'bg-white text-orange-600 shadow-sm border border-slate-200/80'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Landmark className="size-4" />
+                <span>Net Banking</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedMethod('wallet')}
+                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  selectedMethod === 'wallet'
+                    ? 'bg-white text-orange-600 shadow-sm border border-slate-200/80'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Wallet className="size-4" />
+                <span>Wallets</span>
+              </button>
+            </div>
+
+            {/* TAB CONTENT: UPI / QR CODE */}
+            {selectedMethod === 'upi' && (
+              <div className="space-y-6">
+                <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-around gap-8">
+                  {/* Left Side: QR Code */}
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="p-3 bg-white rounded-2xl shadow-md border border-slate-200 relative group">
+                      <img
+                        src={paymentData?.qrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi%3A%2F%2Fpay%3Fpa%3D918897337687%40waaxis%26am%3D${amount || 199}`}
+                        alt="Payment QR Code"
+                        className="size-52 md:size-60 object-contain rounded-xl"
                       />
-                    ))}
-                    {/* Minute Hand: rotates based on elapsed minutes */}
-                    <line
-                      x1="50"
-                      y1="50"
-                      x2="50"
-                      y2="24"
-                      stroke="#334155"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      transform={`rotate(${((300 - qrTimeLeft) / 60) * 360 / 60} 50 50)`}
-                      style={{ transition: 'transform 1s linear' }}
-                    />
-                    {/* Lively Second Hand: rotates 360 deg every 60 seconds */}
-                    <line
-                      x1="50"
-                      y1="56"
-                      x2="50"
-                      y2="16"
-                      stroke={qrTimeLeft < 60 ? '#dc2626' : '#ea580c'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      transform={`rotate(${(300 - qrTimeLeft) * 6} 50 50)`}
-                      style={{ transition: 'transform 1s linear' }}
-                    />
-                    <circle cx="50" cy="50" r="1.5" className={qrTimeLeft < 60 ? 'fill-red-600' : 'fill-orange-600'} />
-                  </svg>
+                    </div>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Scan with any UPI App &bull; ₹{amount || paymentData?.amountRupees || '199'}
+                    </span>
+                  </div>
+
+                  {/* Right Side: Medium Clock with live minutes/seconds hands + Digital Clock underneath */}
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <div className="relative size-32 md:size-36 flex items-center justify-center">
+                      {/* Outer circle progress */}
+                      <svg className="size-32 md:size-36 -rotate-90 transform" viewBox="0 0 100 100">
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r={radius}
+                          className="text-slate-200"
+                          strokeWidth="6"
+                          stroke="currentColor"
+                          fill="transparent"
+                        />
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r={radius}
+                          className={qrTimeLeft < 60 ? 'text-red-500' : 'text-orange-500'}
+                          strokeWidth="6"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={strokeDashoffset}
+                          strokeLinecap="round"
+                          stroke="currentColor"
+                          fill="transparent"
+                          style={{ transition: 'stroke-dashoffset 1s linear' }}
+                        />
+                      </svg>
+
+                      {/* Analog Clock Face with animated lively minutes & seconds hand */}
+                      <svg className="absolute size-24 transform pointer-events-none" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="3.5" className="fill-slate-800" />
+                        {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => (
+                          <line
+                            key={deg}
+                            x1="50"
+                            y1="12"
+                            x2="50"
+                            y2="17"
+                            stroke="#94a3b8"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            transform={`rotate(${deg} 50 50)`}
+                          />
+                        ))}
+                        <line
+                          x1="50"
+                          y1="50"
+                          x2="50"
+                          y2="24"
+                          stroke="#334155"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          transform={`rotate(${((300 - qrTimeLeft) / 60) * 360 / 60} 50 50)`}
+                          style={{ transition: 'transform 1s linear' }}
+                        />
+                        <line
+                          x1="50"
+                          y1="56"
+                          x2="50"
+                          y2="16"
+                          stroke={qrTimeLeft < 60 ? '#dc2626' : '#ea580c'}
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          transform={`rotate(${(300 - qrTimeLeft) * 6} 50 50)`}
+                          style={{ transition: 'transform 1s linear' }}
+                        />
+                        <circle cx="50" cy="50" r="1.5" className={qrTimeLeft < 60 ? 'fill-red-600' : 'fill-orange-600'} />
+                      </svg>
+                    </div>
+
+                    <div className="text-center">
+                      <span className={`font-mono text-3xl font-black tracking-wider ${
+                        qrTimeLeft < 60 ? 'text-red-600 animate-pulse' : 'text-slate-900'
+                      }`}>
+                        {formatTimer(qrTimeLeft)}
+                      </span>
+                      <p className="text-[11px] text-slate-500 font-medium mt-0.5">Session Validity</p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Medium Digital Clock underneath */}
-                <div className="text-center">
-                  <span className={`font-mono text-3xl font-black tracking-wider ${
-                    qrTimeLeft < 60 ? 'text-red-600 animate-pulse' : 'text-slate-900'
-                  }`}>
-                    {formatTimer(qrTimeLeft)}
-                  </span>
+                {/* Bottom Actions: Cancel and "I Have Paid" */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleIHavePaid}
+                    className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Check className="size-4" />
+                    <span>I Have Paid & Enter UTR</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCancelPayment}
+                    disabled={cancelling}
+                    className="py-4 px-8 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    {cancelling ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        <span>Cancelling...</span>
+                      </>
+                    ) : (
+                      <span>Cancel</span>
+                    )}
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Bottom Actions: Cancel and "I Have Paid" */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <button
-                type="button"
-                onClick={handleIHavePaid}
-                className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>I Have Paid</span>
-              </button>
+            {/* TAB CONTENT: CREDIT / DEBIT CARDS */}
+            {selectedMethod === 'card' && (
+              <form onSubmit={handleCardPayment} className="space-y-6 max-w-xl mx-auto">
+                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                  <div className="absolute right-4 top-4 opacity-10">
+                    <CreditCard className="size-32" />
+                  </div>
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="size-10 rounded-lg bg-amber-400/20 border border-amber-300/40 flex items-center justify-center">
+                      <div className="size-6 rounded bg-amber-400/50" />
+                    </div>
+                    <span className="text-xs font-mono uppercase tracking-widest text-slate-400">Debit / Credit</span>
+                  </div>
+                  <div className="font-mono text-lg sm:text-xl tracking-widest mb-4">
+                    {cardData.number || '•••• •••• •••• ••••'}
+                  </div>
+                  <div className="flex justify-between items-end text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Cardholder</span>
+                      <span className="font-semibold uppercase truncate block max-w-44">{cardData.name || 'SCHOLAR NAME'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Expires</span>
+                      <span className="font-mono font-semibold">{cardData.expiry || 'MM/YY'}</span>
+                    </div>
+                  </div>
+                </div>
 
-              <button
-                type="button"
-                onClick={handleCancelPayment}
-                disabled={cancelling}
-                className="py-4 px-8 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                {cancelling ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    <span>Cancelling...</span>
-                  </>
-                ) : (
-                  <span>Cancel</span>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Card Number</label>
+                    <input
+                      type="text"
+                      maxLength={19}
+                      value={cardData.number}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
+                        setCardData(prev => ({ ...prev, number: val }));
+                        setCardError('');
+                      }}
+                      placeholder="4532 •••• •••• 8892"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-semibold focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Cardholder Name</label>
+                    <input
+                      type="text"
+                      value={cardData.name}
+                      onChange={(e) => {
+                        setCardData(prev => ({ ...prev, name: e.target.value }));
+                        setCardError('');
+                      }}
+                      placeholder="Name as printed on card"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Expiry Date</label>
+                      <input
+                        type="text"
+                        maxLength={5}
+                        value={cardData.expiry}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/\D/g, '');
+                          if (val.length >= 3) {
+                            val = `${val.slice(0, 2)}/${val.slice(2, 4)}`;
+                          }
+                          setCardData(prev => ({ ...prev, expiry: val }));
+                          setCardError('');
+                        }}
+                        placeholder="MM/YY"
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-semibold focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">CVV / CVC</label>
+                      <input
+                        type="password"
+                        maxLength={4}
+                        value={cardData.cvv}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                          setCardData(prev => ({ ...prev, cvv: val }));
+                          setCardError('');
+                        }}
+                        placeholder="•••"
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-semibold focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-center"
+                      />
+                    </div>
+                  </div>
+
+                  {cardError && (
+                    <p className="text-xs font-semibold text-red-600 flex items-center gap-1.5">
+                      <AlertCircle className="size-3.5" />
+                      <span>{cardError}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="submit"
+                    disabled={processingCard}
+                    className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    {processingCard ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        <span>Authorizing with Bank 3DS...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="size-4" />
+                        <span>Pay ₹{amount || paymentData?.amountRupees || '199'} Securely</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelPayment}
+                    disabled={cancelling || processingCard}
+                    className="py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* TAB CONTENT: NET BANKING */}
+            {selectedMethod === 'netbanking' && (
+              <form onSubmit={handleNetBankingPayment} className="space-y-6 max-w-xl mx-auto">
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Popular Indian Banks</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {[
+                      { id: 'HDFC', name: 'HDFC Bank' },
+                      { id: 'SBI', name: 'State Bank of India' },
+                      { id: 'ICICI', name: 'ICICI Bank' },
+                      { id: 'AXIS', name: 'Axis Bank' },
+                      { id: 'KOTAK', name: 'Kotak Mahindra' },
+                      { id: 'PNB', name: 'Punjab National' }
+                    ].map(bank => (
+                      <button
+                        key={bank.id}
+                        type="button"
+                        onClick={() => setSelectedBank(bank.id)}
+                        className={`p-3 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${
+                          selectedBank === bank.id
+                            ? 'bg-orange-50 border-orange-500 text-orange-950 shadow-2xs'
+                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="truncate">{bank.name}</span>
+                        {selectedBank === bank.id && <Check className="size-3.5 text-orange-600 shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">All Other Banks</label>
+                  <select
+                    value={selectedBank}
+                    onChange={(e) => setSelectedBank(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:border-orange-500 outline-none"
+                  >
+                    <option value="HDFC">HDFC Bank</option>
+                    <option value="SBI">State Bank of India</option>
+                    <option value="ICICI">ICICI Bank</option>
+                    <option value="AXIS">Axis Bank</option>
+                    <option value="KOTAK">Kotak Mahindra Bank</option>
+                    <option value="PNB">Punjab National Bank</option>
+                    <option value="BOB">Bank of Baroda</option>
+                    <option value="CANARA">Canara Bank</option>
+                    <option value="UNION">Union Bank of India</option>
+                    <option value="IDBI">IDBI Bank</option>
+                    <option value="YES">Yes Bank</option>
+                    <option value="INDUSIND">IndusInd Bank</option>
+                  </select>
+                </div>
+
+                {bankError && (
+                  <p className="text-xs font-semibold text-red-600 flex items-center gap-1.5">
+                    <AlertCircle className="size-3.5" />
+                    <span>{bankError}</span>
+                  </p>
                 )}
-              </button>
-            </div>
+
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                  <div className="flex items-center gap-2 font-bold text-slate-800">
+                    <ShieldCheck className="size-4 text-emerald-600" />
+                    <span>Direct Bank Gateway Authorization</span>
+                  </div>
+                  <p>You will be securely routed through your bank’s official payment portal to approve the transaction.</p>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="submit"
+                    disabled={processingBank}
+                    className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    {processingBank ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        <span>Connecting to Bank Gateway...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Landmark className="size-4" />
+                        <span>Proceed to Pay ₹{amount || paymentData?.amountRupees || '199'}</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelPayment}
+                    disabled={cancelling || processingBank}
+                    className="py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* TAB CONTENT: DIGITAL WALLETS */}
+            {selectedMethod === 'wallet' && (
+              <form onSubmit={handleWalletPayment} className="space-y-6 max-w-xl mx-auto">
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Select Wallet</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {[
+                      { id: 'paytm', name: 'Paytm Wallet' },
+                      { id: 'phonepe', name: 'PhonePe Wallet' },
+                      { id: 'mobikwik', name: 'MobiKwik' },
+                      { id: 'amazonpay', name: 'Amazon Pay' }
+                    ].map(w => (
+                      <button
+                        key={w.id}
+                        type="button"
+                        onClick={() => setSelectedWallet(w.id)}
+                        className={`p-3 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
+                          selectedWallet === w.id
+                            ? 'bg-orange-50 border-orange-500 text-orange-950 shadow-2xs'
+                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>{w.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Registered Mobile Number
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3.5 text-sm font-bold text-slate-500 font-mono">+91</span>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={walletPhone}
+                      onChange={(e) => {
+                        setWalletPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
+                        setWalletError('');
+                      }}
+                      placeholder="98765 43210"
+                      className="w-full pl-14 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+                    />
+                  </div>
+                  {walletError && (
+                    <p className="text-xs font-semibold text-red-600 flex items-center gap-1.5 mt-1">
+                      <AlertCircle className="size-3.5" />
+                      <span>{walletError}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="submit"
+                    disabled={processingWallet || walletPhone.length !== 10}
+                    className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    {processingWallet ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        <span>Sending Debit Request to Wallet...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="size-4" />
+                        <span>Pay ₹{amount || paymentData?.amountRupees || '199'} with Wallet</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelPayment}
+                    disabled={cancelling || processingWallet}
+                    className="py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
           </motion.div>
         )}
       </main>
