@@ -269,6 +269,14 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
       },
       {
+        path: "Zyndex/User/:name/:email/Profile/Security-and-Devices",
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
+      },
+      {
+        path: "Zyndex/User/:name/:email/Profile/Sessions",
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
+      },
+      {
         path: "Zyndex/User/:name/:email/Profile/Billing",
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
       },

@@ -182,8 +182,8 @@ export default function DeleteAccountModal({ isOpen, onClose, user }) {
               <Trash2 className="size-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Delete Account</h2>
-              <p className="text-xs text-gray-500">Permanent removal of your profile and library data</p>
+              <h2 className="text-xl font-bold text-gray-900">Delete Account & Erase Personal Data</h2>
+              <p className="text-xs text-gray-500">Irreversible action under General Privacy & Security Policy</p>
             </div>
           </div>
           <button
@@ -210,19 +210,37 @@ export default function DeleteAccountModal({ isOpen, onClose, user }) {
 
         {step === 1 ? (
           <div className="space-y-5">
-            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 space-y-1">
-              <p className="font-bold flex items-center gap-1.5 text-amber-950">
-                <AlertTriangle className="size-4 text-amber-600" />
-                We are sorry to lose an amazing scholar!
+            <div className="p-4 bg-red-50/80 border border-red-200 rounded-2xl text-xs text-red-950 space-y-2">
+              <p className="font-bold text-sm flex items-center gap-1.5 text-red-900">
+                <AlertTriangle className="size-4 text-red-600 shrink-0" />
+                Are you sure you want to delete your account? This cannot be undone.
               </p>
-              <p className="text-amber-800 leading-relaxed">
-                Before deleting your account, please tell us why you are leaving. Your feedback helps our academic team improve the experience for everyone.
+              <p className="text-red-800/90 leading-relaxed text-[11px]">
+                Deleting your account will immediately terminate your active membership. All of your saved bookmarks, reading history, verified credentials, and active device sessions will be permanently purged from our servers in compliance with digital privacy standards.
               </p>
+              <div className="pt-1 border-t border-red-200/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-red-900 font-medium">
+                <div className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-red-600" />
+                  <span>Immediate session termination</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-red-600" />
+                  <span>Permanent data erasure</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-red-600" />
+                  <span>Loss of plan entitlements</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-red-600" />
+                  <span>Non-recoverable library history</span>
+                </div>
+              </div>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2.5">
-                Why are you deleting your account? (Select all that apply)
+                Please tell us why you are leaving (Required for security auditing)
               </label>
               <div className="space-y-2">
                 {COMMON_REASONS.map((reason, idx) => {

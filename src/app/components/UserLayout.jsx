@@ -207,7 +207,7 @@ export default function UserLayout({ children }) {
               <Link
                 to={`${baseUrl}/Profile`}
                 className={`text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                  location.pathname.includes('/Profile') && !location.pathname.includes('/Billing/Pricing')
+                  location.pathname.includes('/Profile')
                     ? 'text-orange-600 font-semibold' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -216,22 +216,9 @@ export default function UserLayout({ children }) {
                 Profile
               </Link>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                to={`${baseUrl}/Profile/Billing/Pricing`}
-                className={`text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                  location.pathname.includes('/Profile/Billing/Pricing')
-                    ? 'text-orange-600 font-semibold' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <CreditCard className="size-4" />
-                Plans & Billing
-              </Link>
-            </motion.div>
             <motion.button
               onClick={handleLogout}
-              className="text-sm text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              className="text-sm text-red-600 hover:text-red-700 transition-colors flex items-center gap-2 cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

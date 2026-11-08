@@ -93,13 +93,25 @@ class AuthController {
         }
         Map<String, Object> dbUser = auth.findUserByEmail(email);
         if (dbUser == null) {
-            throw new ApiException(preview ? HttpStatus.NOT_FOUND : HttpStatus.UNAUTHORIZED,
-                    preview ? "Entered unregistered email." : "Invalid email or password.");
+            String roleSpecificNotFound = "admin".equalsIgnoreCase(role)
+                    ? "This email is not registered as an administrator. Please check your credentials or request admin access."
+                    : "This email is not registered for user access. Please create an account or verify your email.";
+            throw new ApiException(HttpStatus.NOT_FOUND, roleSpecificNotFound);
         }
-        if (!auth.passwordEncoder.matches(password, AuthSupport.str(dbUser.get("password")))) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, preview ? "Entered wrong password." : "Invalid email or password.");
-        }
+
         Map<String, Object> user = auth.sanitizeUser(dbUser);
+
+        // Check if the role matches before checking password or throwing generic errors
+        if (!role.isBlank() && !role.equalsIgnoreCase(String.valueOf(user.get("role")))) {
+            String roleMismatchMsg = "admin".equalsIgnoreCase(String.valueOf(user.get("role")))
+                    ? "This email is registered with administrator privileges. Please switch to the Admin Log In portal to continue."
+                    : "This email is registered as a user/student account. Please switch to the User Log In portal to access your account.";
+            throw new ApiException(HttpStatus.FORBIDDEN, roleMismatchMsg);
+        }
+
+        if (!auth.passwordEncoder.matches(password, AuthSupport.str(dbUser.get("password")))) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Entered wrong password. Please try again or reset your password.");
+        }
 
         // Check if user account has been terminated by administrator
         if (Boolean.TRUE.equals(user.get("terminated"))) {
@@ -112,10 +124,6 @@ class AuthController {
                     "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator. We apologize for the inconvenience.");
         }
 
-        if (!role.isBlank() && !role.equals(user.get("role"))) {
-            throw new ApiException(HttpStatus.FORBIDDEN,
-                    "admin".equals(role) ? "Entered wrong email for admin access." : "Entered wrong email for user access.");
-        }
         if (preview) {
             return Map.of("message", "Credentials verified.", "user", user);
         }

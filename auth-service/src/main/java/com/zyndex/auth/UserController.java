@@ -846,6 +846,29 @@ class UserController {
         );
     }
 
+    @DeleteMapping("/sessions/devices/{deviceId}")
+    Map<String, Object> revokeDeviceSession(HttpServletRequest request, @PathVariable("deviceId") long deviceId) {
+        Map<String, Object> user = auth.requireUser(request);
+        long userId = AuthSupport.number(user.get("id"));
+        String email = AuthSupport.str(user.get("email"));
+
+        var rows = jdbc.queryForList("SELECT * FROM trusted_devices WHERE id = ? AND (user_id = ? OR LOWER(email) = LOWER(?))", deviceId, userId, email);
+        if (rows.isEmpty()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Device session not found or already removed.");
+        }
+
+        jdbc.update("DELETE FROM trusted_devices WHERE id = ?", deviceId);
+
+        try {
+            jdbc.update("""
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'DEVICE_REVOKED', ?, 'User revoked trusted device session ID: %d', ?, 'SUCCESS')
+                    """.formatted(deviceId), email, request.getRemoteAddr());
+        } catch (Exception ignored) {}
+
+        return Map.of("message", "Device session successfully revoked.");
+    }
+
     @GetMapping("/admin-activity-metrics")
     Map<String, Object> getAdminActivityMetrics(HttpServletRequest request) {
         Map<String, Object> admin = auth.requireAdmin(request);

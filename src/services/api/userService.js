@@ -261,6 +261,10 @@ const userService = {
     return await apiClient.post('/users/sessions/revoke-others', { currentDeviceToken });
   },
 
+  revokeDeviceSession: async (deviceId) => {
+    return await apiClient.delete(`/users/sessions/devices/${deviceId}`);
+  },
+
   getScholarTelemetry: async (userId) => {
     return await apiClient.get(`/usage/scholars/${userId}/telemetry`);
   },
