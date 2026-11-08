@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { User, Mail, Save, Shield, Edit, X, Trash2, Activity, MessageSquare, BookOpen, Laptop, Bell, Check, Clock, Radio, AlertTriangle } from 'lucide-react';
+import { User, Mail, Save, Shield, Edit, X, Trash2, Laptop, Smartphone, Globe, LogOut, Check, Radio } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
 import DeleteAccountModal from '@/app/components/DeleteAccountModal';
+import { getDeviceInfo } from '@/utils/deviceHelper';
 
 export default function AdminProfile() {
   const { user, updateProfile, isPrimaryAdmin } = useAuth();
@@ -13,14 +14,9 @@ export default function AdminProfile() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [profileData, setProfileData] = useState({ name: '', email: '', bio: '', role: 'Administrator' });
 
-  // Admin Activity Metrics & Security Hardening State
-  const [activityMetrics, setActivityMetrics] = useState({
-    actionsThisMonth: 0,
-    resolvedFeedbackCount: 0,
-    totalFeedbackCount: 0,
-    resolutionRate: 100,
-    contentCurated: 0
-  });
+  const [sessionsData, setSessionsData] = useState({ currentIp: '127.0.0.1', devices: [], sessionTokenVersion: 1 });
+  const [revokingSessions, setRevokingSessions] = useState(false);
+  const [revokingDeviceId, setRevokingDeviceId] = useState(null);
 
   const [sessionTelemetry, setSessionTelemetry] = useState({
     currentIp: '127.0.0.1',
@@ -28,15 +24,6 @@ export default function AdminProfile() {
     browserFingerprint: 'Chrome on Windows (V8 Engine)',
     securityVersion: 'v1'
   });
-
-  const [alertPreferences, setAlertPreferences] = useState({
-    adminNotifyAccessRequests: true,
-    adminNotifyBankUtr: true,
-    adminNotifyRateLimitSpikes: true,
-    adminNotifyAccountDeletions: true
-  });
-  const [savingAlerts, setSavingAlerts] = useState(false);
-  const [alertSuccess, setAlertSuccess] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -52,31 +39,14 @@ export default function AdminProfile() {
   useEffect(() => {
     async function loadAdminData() {
       try {
-        const [metricsRes, sessRes, prefRes] = await Promise.allSettled([
-          userService.getAdminActivityMetrics(),
-          userService.getActiveSessions(),
-          userService.getUserPreferences()
-        ]);
-
-        if (metricsRes.status === 'fulfilled' && metricsRes.value) {
-          setActivityMetrics(metricsRes.value);
-        }
-
-        if (sessRes.status === 'fulfilled' && sessRes.value) {
+        const sessRes = await userService.getActiveSessions();
+        if (sessRes) {
+          setSessionsData(sessRes);
           setSessionTelemetry({
-            currentIp: sessRes.value.currentIp || '127.0.0.1',
+            currentIp: sessRes.currentIp || '127.0.0.1',
             tokenIssuedAt: new Date().toLocaleTimeString(),
             browserFingerprint: `${navigator.userAgent.includes('Chrome') ? 'Google Chrome' : 'Standard Web Browser'} (${navigator.platform || 'Desktop'})`,
-            securityVersion: `v${sessRes.value.sessionTokenVersion || 1}`
-          });
-        }
-
-        if (prefRes.status === 'fulfilled' && prefRes.value) {
-          setAlertPreferences({
-            adminNotifyAccessRequests: prefRes.value.adminNotifyAccessRequests !== false,
-            adminNotifyBankUtr: prefRes.value.adminNotifyBankUtr !== false,
-            adminNotifyRateLimitSpikes: prefRes.value.adminNotifyRateLimitSpikes !== false,
-            adminNotifyAccountDeletions: prefRes.value.adminNotifyAccountDeletions !== false
+            securityVersion: `v${sessRes.sessionTokenVersion || 1}`
           });
         }
       } catch (e) {
@@ -86,24 +56,55 @@ export default function AdminProfile() {
     loadAdminData();
   }, []);
 
-  const handleSaveAlerts = async (e) => {
-    e?.preventDefault();
-    setSavingAlerts(true);
-    setAlertSuccess(false);
+  const handleRevokeOtherSessions = async () => {
+    if (!window.confirm('Log out from all other devices?\n\nYou will remain logged in on this browser, but all other active admin logins and recognized sessions will be immediately signed out.')) {
+      return;
+    }
+    setRevokingSessions(true);
     try {
-      const res = await userService.updateUserPreferences(alertPreferences);
-      setAlertPreferences({
-        adminNotifyAccessRequests: res.adminNotifyAccessRequests !== false,
-        adminNotifyBankUtr: res.adminNotifyBankUtr !== false,
-        adminNotifyRateLimitSpikes: res.adminNotifyRateLimitSpikes !== false,
-        adminNotifyAccountDeletions: res.adminNotifyAccountDeletions !== false
-      });
-      setAlertSuccess(true);
-      setTimeout(() => setAlertSuccess(false), 3000);
+      const currentToken = localStorage.getItem('zyndex_device_token') || localStorage.getItem('device_token') || '';
+      const res = await userService.revokeOtherSessions(currentToken);
+      if (res?.token) {
+        localStorage.setItem('auth_token', res.token);
+      }
+      setSessionsData((prev) => ({
+        ...prev,
+        devices: (prev?.devices || []).filter((d) => d.device_token === currentToken),
+      }));
+      const refreshedSess = await userService.getActiveSessions();
+      if (refreshedSess) {
+        setSessionsData(refreshedSess);
+      }
     } catch (err) {
-      alert(err.message || 'Failed to save alert preferences.');
+      alert(err.message || 'Failed to log out from other devices.');
     } finally {
-      setSavingAlerts(false);
+      setRevokingSessions(false);
+    }
+  };
+
+  const handleRevokeDevice = async (deviceId, deviceName) => {
+    if (!window.confirm(`Log out ${deviceName || 'this device'}?\n\nThis will immediately terminate the session and require OTP verification for any future sign-in.`)) {
+      return;
+    }
+    setRevokingDeviceId(deviceId);
+    setSessionsData((prev) => ({
+      ...prev,
+      devices: (prev?.devices || []).filter((d) => d.id !== deviceId),
+    }));
+    try {
+      await userService.revokeDeviceSession(deviceId);
+      const refreshedSess = await userService.getActiveSessions();
+      if (refreshedSess) {
+        setSessionsData(refreshedSess);
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to revoke device session.');
+      const refreshedSess = await userService.getActiveSessions();
+      if (refreshedSess) {
+        setSessionsData(refreshedSess);
+      }
+    } finally {
+      setRevokingDeviceId(null);
     }
   };
 
@@ -121,50 +122,20 @@ export default function AdminProfile() {
     <AdminLayout>
       <div className="max-w-5xl mx-auto space-y-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">Administrator Profile & Security</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Authoritative governance metrics, session telemetry, and alert dispatch preferences</p>
+              <p className="text-xs text-gray-500 mt-0.5">Authoritative governance credentials, active device monitoring, and security telemetry</p>
             </div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-200 text-orange-700 rounded-xl text-xs font-bold">
               <Shield className="size-4 text-orange-600" />
               {isPrimaryAdmin ? 'Primary Root Authority' : 'Operations Admin'}
             </div>
           </div>
-
-          {/* Admin Activity & Performance Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-xs hover:border-blue-300 transition-all">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Actions This Month</span>
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl"><Activity className="size-4" /></div>
-              </div>
-              <div className="text-2xl font-black text-gray-900">{activityMetrics.actionsThisMonth}</div>
-              <p className="text-[11px] text-blue-600 font-medium mt-1">Audit log records & approvals executed</p>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-300 transition-all">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Feedback Resolution</span>
-                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><MessageSquare className="size-4" /></div>
-              </div>
-              <div className="text-2xl font-black text-gray-900">{activityMetrics.resolutionRate}%</div>
-              <p className="text-[11px] text-emerald-600 font-medium mt-1">{activityMetrics.resolvedFeedbackCount} of {activityMetrics.totalFeedbackCount} inquiries resolved</p>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-purple-100 shadow-xs hover:border-purple-300 transition-all">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Content Curated</span>
-                <div className="p-2 bg-purple-50 text-purple-600 rounded-xl"><BookOpen className="size-4" /></div>
-              </div>
-              <div className="text-2xl font-black text-gray-900">{activityMetrics.contentCurated}</div>
-              <p className="text-[11px] text-purple-600 font-medium mt-1">Active verified academic resources</p>
-            </div>
-          </div>
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column: Admin Avatar & Authority Details */}
+          {/* Left Column: Admin Avatar, Authority Details & Current Session Telemetry */}
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
               <div className="size-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-3xl font-semibold mx-auto mb-4 shadow-lg shadow-orange-500/20">
@@ -178,7 +149,7 @@ export default function AdminProfile() {
               </div>
             </div>
 
-            {/* Current Session Telemetry */}
+            {/* Current Session Telemetry (Position retained down of name/email) */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
                 <Radio className="size-4 text-emerald-600 animate-pulse" />
@@ -201,7 +172,7 @@ export default function AdminProfile() {
             </div>
           </div>
 
-          {/* Right Column: Profile Edit, Alert Preferences, Security */}
+          {/* Right Column: Credentials, Devices & Logins, and Security */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-6">
@@ -255,87 +226,170 @@ export default function AdminProfile() {
               <PasswordChangePanel user={user} />
             </div>
 
-            {/* Admin Alert Preferences Panel */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
-              <div className="flex items-center justify-between">
+            {/* Devices & Sessions Management - Instagram Style as in User Portal */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <Bell className="size-4 text-orange-600" />
-                    Admin Notification & Alert Preferences
+                    <Shield className="size-4 text-orange-600" />
+                    Security & Recognized Devices
                   </h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Real-time alerts dispatched to your administrative email inbox</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Active administrator sessions and logged-in hardware browsers</p>
                 </div>
+                {sessionsData.devices && sessionsData.devices.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleRevokeOtherSessions}
+                    disabled={revokingSessions}
+                    className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    <LogOut className="size-4 text-rose-600" />
+                    {revokingSessions ? 'Signing Out Other Devices...' : 'Log out of all other sessions'}
+                  </button>
+                )}
               </div>
 
-              <form onSubmit={handleSaveAlerts} className="space-y-3 pt-2">
-                <label className="flex items-start gap-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
-                  <input
-                    type="checkbox"
-                    checked={alertPreferences.adminNotifyAccessRequests}
-                    onChange={(e) => setAlertPreferences({ ...alertPreferences, adminNotifyAccessRequests: e.target.checked })}
-                    className="mt-0.5 size-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-gray-900">New Admin Access Requests</span>
-                    <p className="text-[11px] text-gray-500">Immediate email dispatch when a scholar submits an administrative access endorsement request.</p>
-                  </div>
-                </label>
+              {/* Current Device Session - Instagram Style */}
+              {(() => {
+                const currentInfo = getDeviceInfo();
+                const isMobileCurrent = String(currentInfo.os || '').toLowerCase().includes('android') || 
+                                       String(currentInfo.os || '').toLowerCase().includes('ios') ||
+                                       String(currentInfo.browser || '').toLowerCase().includes('mobile');
+                return (
+                  <div className="border border-emerald-200/80 bg-emerald-50/30 rounded-2xl p-5 shadow-2xs">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
+                      <span className="relative flex size-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full size-2.5 bg-emerald-500"></span>
+                      </span>
+                      This Device &bull; Active Now
+                    </div>
 
-                <label className="flex items-start gap-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
-                  <input
-                    type="checkbox"
-                    checked={alertPreferences.adminNotifyBankUtr}
-                    onChange={(e) => setAlertPreferences({ ...alertPreferences, adminNotifyBankUtr: e.target.checked })}
-                    className="mt-0.5 size-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-gray-900">Offline Bank UTR Verification Pending</span>
-                    <p className="text-[11px] text-gray-500">Instant notification when a user submits a 12-digit UPI bank reference for manual credit reconciliation.</p>
-                  </div>
-                </label>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3.5 min-w-0">
+                        <div className="p-3 bg-emerald-100/70 text-emerald-700 rounded-2xl shrink-0 mt-0.5">
+                          {isMobileCurrent ? <Smartphone className="size-6 text-emerald-700" /> : <Laptop className="size-6 text-emerald-700" />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm font-bold text-gray-900">
+                              {currentInfo.os || 'Personal Device'} &bull; {currentInfo.browser || 'Browser'}
+                            </h4>
+                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
+                              Current Session
+                            </span>
+                          </div>
 
-                <label className="flex items-start gap-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
-                  <input
-                    type="checkbox"
-                    checked={alertPreferences.adminNotifyRateLimitSpikes}
-                    onChange={(e) => setAlertPreferences({ ...alertPreferences, adminNotifyRateLimitSpikes: e.target.checked })}
-                    className="mt-0.5 size-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-gray-900">High-Frequency Rate-Limiting & Failed Login Spikes</span>
-                    <p className="text-[11px] text-gray-500">Alert triggers when multiple suspicious or failed credential attempts occur from the same network IP.</p>
-                  </div>
-                </label>
+                          <p className="text-xs text-gray-600 mt-1 flex items-center gap-1.5 font-medium">
+                            <span>Near IP: <span className="font-mono text-gray-800">{sessionsData.currentIp}</span></span>
+                            <span className="text-gray-300">•</span>
+                            <span className="text-emerald-700 font-semibold">Active now</span>
+                          </p>
 
-                <label className="flex items-start gap-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
-                  <input
-                    type="checkbox"
-                    checked={alertPreferences.adminNotifyAccountDeletions}
-                    onChange={(e) => setAlertPreferences({ ...alertPreferences, adminNotifyAccountDeletions: e.target.checked })}
-                    className="mt-0.5 size-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-gray-900">User Account Deletion Events</span>
-                    <p className="text-[11px] text-gray-500">Audit notice dispatched when a scholar completes 4-digit OTP deletion and purges their account.</p>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500 mt-2 font-mono">
+                            <span>Session Start: {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                            <span className="text-gray-300">•</span>
+                            <span className="text-amber-700 font-semibold">Auto-Reset: Midnight IST (00:00)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </label>
+                );
+              })()}
 
-                <div className="flex items-center justify-between pt-2">
-                  {alertSuccess ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-                      <Check className="size-4" /> Alert preferences updated!
-                    </span>
-                  ) : <span />}
-                  <button
-                    type="submit"
-                    disabled={savingAlerts}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-orange-600/20 disabled:opacity-50 cursor-pointer"
-                  >
-                    <Save className="size-4" />
-                    {savingAlerts ? 'Saving...' : 'Save Alert Settings'}
-                  </button>
-                </div>
-              </form>
+              {/* Other Recognized Devices / Logins */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                  Login Activity on Other Browsers & Devices
+                </h4>
+
+                {(() => {
+                  const currentToken = localStorage.getItem('zyndex_device_token') || localStorage.getItem('device_token') || '';
+                  const otherDevices = (sessionsData.devices || []).filter((d) => !currentToken || d.device_token !== currentToken);
+
+                  return (
+                    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-2xs divide-y divide-gray-100">
+                      {otherDevices.length > 0 ? (
+                        otherDevices.map((d) => (
+                          <div key={d.id} className="p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="p-3 bg-slate-100 text-slate-600 rounded-2xl shrink-0">
+                                {String(d.operating_system || '').toLowerCase().includes('android') ||
+                                 String(d.operating_system || '').toLowerCase().includes('ios') ||
+                                 String(d.operating_system || '').toLowerCase().includes('phone') ||
+                                 String(d.device_name || '').toLowerCase().includes('mobile') ||
+                                 String(d.browser || '').toLowerCase().includes('mobile') ? (
+                                  <Smartphone className="size-6 text-slate-700" />
+                                ) : (
+                                  <Laptop className="size-6 text-slate-700" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="text-sm font-bold text-gray-900 truncate">
+                                    {d.operating_system || 'Device'} &bull; {d.browser || 'Browser'}
+                                  </p>
+                                  {d.is_trusted ? (
+                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                                      Trusted 24h
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
+                                      Active Device
+                                    </span>
+                                  )}
+                                </div>
+
+                                <p className="text-xs text-gray-500 font-medium mt-1">
+                                  IP: <span className="font-mono text-gray-700">{d.ip_address || '127.0.0.1'}</span> &bull; {d.device_name || 'Personal Computer'}
+                                </p>
+
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 font-medium mt-1.5">
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="text-slate-400 font-semibold">Logged In:</span>
+                                    <span className="font-mono text-slate-800">
+                                      {d.trusted_at ? new Date(d.trusted_at).toLocaleString('en-IN', {
+                                        month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true
+                                      }) : 'Active Login'}
+                                    </span>
+                                  </span>
+                                  <span className="text-slate-300">•</span>
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="text-slate-400 font-semibold">Session Status:</span>
+                                    <span className={`font-mono font-semibold ${d.is_trusted ? 'text-amber-700' : 'text-slate-700'}`}>
+                                      {d.is_trusted ? 'Trust Expires Midnight IST' : 'Active Session'}
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleRevokeDevice(d.id, `${d.operating_system} (${d.browser})`)}
+                                disabled={revokingDeviceId === d.id}
+                                className="px-3.5 py-2 bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-2xs"
+                                title="Log out from this device"
+                              >
+                                <Trash2 className="size-3.5" />
+                                {revokingDeviceId === d.id ? 'Logging out...' : 'Log out'}
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-8 text-center text-gray-400">
+                          <Globe className="size-8 mx-auto mb-2 text-gray-300" />
+                          <p className="text-xs font-semibold text-gray-600">No other recognized sessions</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">You are currently logged in only on this active browser.</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
 
             {/* Danger Zone: Delete Regular Admin Account */}

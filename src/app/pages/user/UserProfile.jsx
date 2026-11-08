@@ -246,6 +246,33 @@ export default function UserProfile() {
                   ✓ Verified Student
                 </span>
               )}
+
+              {/* Current Session Telemetry */}
+              <div className="mt-4 pt-4 border-t border-gray-100 text-left space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b border-gray-100">
+                  <span className="relative flex size-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
+                  </span>
+                  <h4 className="text-[11px] font-bold text-gray-900 uppercase tracking-wider">Current Session Telemetry</h4>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-bold">Authenticated IP Address</span>
+                    <span className="font-mono font-bold text-gray-800">{sessionsData.currentIp || '127.0.0.1'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-bold">Token Issuance Status</span>
+                    <span className="font-mono font-bold text-emerald-700">Active (HMAC-SHA256 &bull; v{sessionsData.sessionTokenVersion || 1})</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-bold">Client Runtime Fingerprint</span>
+                    <span className="text-gray-700 font-medium">
+                      {navigator.userAgent.includes('Chrome') ? 'Google Chrome' : navigator.userAgent.includes('Firefox') ? 'Mozilla Firefox' : 'Standard Web Browser'} ({navigator.platform || 'Desktop/Mobile'})
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="lg:col-span-3 bg-white rounded-xl shadow-md">
