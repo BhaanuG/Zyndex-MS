@@ -354,24 +354,14 @@ export default function Pricing() {
     setProcessing(true);
     try {
       const res = await subscriptionService.createCheckout(plan.id, preferredMethod);
-      setTxnDetails({
-        id: res.paymentId,
-        orderId: res.orderId,
-        qrId: res.qrId,
-        qrUrl: res.qrUrl,
-        checkoutUrl: res.checkoutUrl,
-        amount: (res.amount / 100).toFixed(2),
-        status: res.status || 'PAYMENT_INITIATED',
-        date: '',
-        paymentMethodName: preferredMethod,
-        failureReason: '',
-        reviewReason: '',
-        verificationLevel: res.verificationLevel || 0
-      });
-      setTimeLeft(res.timeLeft || 180);
-      setActivePaymentMethod(preferredMethod.toLowerCase());
-      setCheckoutStep('waiting_for_payment');
-      setShowCheckout(true);
+      const safeName = encodeURIComponent(user?.name ? user.name.replace(/\s+/g, '-') : 'Scholar');
+      const safeEmail = encodeURIComponent(user?.email || 'user@zyndex.com');
+      const amountPaise = res.amount || (plan.price ? parseFloat(plan.price.replace(/[^\d.]/g, '')) * 100 : 19900);
+      const amountRupees = (amountPaise / 100).toFixed(0);
+      const orderId = res.orderId || res.paymentId;
+
+      // Navigate directly to dedicated payment order page with ::::::::: suffix
+      navigate(`/Zyndex/User/${safeName}/${safeEmail}/Profile/Billing/${amountRupees}/Payment/${orderId}/:::::::::`);
     } catch (error) {
       setCustomAlert({
         title: 'Checkout Error',

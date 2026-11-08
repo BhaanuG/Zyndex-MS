@@ -227,6 +227,24 @@ public class SubscriptionController {
         return paymentService.getPaymentStatus(userId, paymentId);
     }
 
+    @GetMapping("/order-status/{orderId}")
+    public Map<String, Object> getOrderStatus(HttpServletRequest request, @PathVariable("orderId") String orderId) {
+        Long userId = getUserIdHeader(request);
+        if (userId == null) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
+        }
+
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT id FROM payments WHERE (order_id = ? OR id = ?) AND user_id = ?",
+                orderId, orderId, userId
+        );
+        if (rows.isEmpty()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Payment order not found.");
+        }
+        String paymentId = String.valueOf(rows.get(0).get("id"));
+        return paymentService.getPaymentStatus(userId, paymentId);
+    }
+
     @PostMapping("/payment/{paymentId}/cancel")
     public Map<String, Object> cancelPayment(HttpServletRequest request, @PathVariable("paymentId") String paymentId) {
         Long userId = getUserIdHeader(request);

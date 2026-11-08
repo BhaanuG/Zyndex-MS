@@ -54,6 +54,15 @@ const subscriptionService = {
     }
   },
 
+  getOrderStatus: async (orderId) => {
+    try {
+      const response = await apiClient.get(`/subscriptions/order-status/${orderId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   getPayments: async () => {
     try {
       const response = await apiClient.get('/subscriptions/payments');

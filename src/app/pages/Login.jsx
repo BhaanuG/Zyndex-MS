@@ -319,7 +319,15 @@ export default function Login() {
         ? '/Zyndex/Admin/Authenticator-Verification-Page' 
         : '/Zyndex/User/Authenticator-Verification-Page');
     } catch (err) {
-      setError(err.message || 'Login failed.');
+      const errMsg = err.message || '';
+      if (isSignUpMode && (errMsg.includes('OTP verification is required') || errMsg.includes('OTP') || errMsg.includes('expired'))) {
+        setOtpVerified(false);
+        setOtpSent(false);
+        setOtpCode('');
+        setError('Your verification session has expired. Please verify your email again.');
+      } else {
+        setError(errMsg || (isSignUpMode ? 'Registration failed.' : 'Login failed.'));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -478,7 +486,21 @@ export default function Login() {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
                       <div className="relative flex items-center">
                         <User className="absolute left-4 size-5 text-slate-400" />
-                        <input type="text" value={name} onChange={(e) => { setName(e.target.value); setError(''); setSuccessMessage(''); }} placeholder="Enter your full name" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input" required />
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            // Automatically capitalize the first letter of each word
+                            const formatted = val.replace(/(?:^|\s)\S/g, (match) => match.toUpperCase());
+                            setName(formatted);
+                            setError('');
+                            setSuccessMessage('');
+                          }}
+                          placeholder="Enter your full name"
+                          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
+                          required
+                        />
                       </div>
                     </div>
                     <div>
@@ -711,9 +733,23 @@ export default function Login() {
                 )}
 
                 {error && (
-                  <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
-                    <AlertCircle className="size-4" />
-                    <span>{error}</span>
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm space-y-2">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="size-4 shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                    {isSignUpMode && error.includes('expired') && (
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={handleSendSignupOtp}
+                          disabled={sendingOtp}
+                          className="px-3.5 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all"
+                        >
+                          {sendingOtp ? 'Sending...' : 'Request New OTP'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 

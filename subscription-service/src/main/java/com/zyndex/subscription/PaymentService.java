@@ -175,9 +175,37 @@ public class PaymentService {
         resp.put("status", currentStatusStr);
         resp.put("paymentId", paymentId);
         resp.put("orderId", orderId);
+        resp.put("planId", payment.get("plan_id"));
+        resp.put("amount", payment.get("amount_paise"));
+        long amtPaise = payment.get("amount_paise") != null ? ((Number) payment.get("amount_paise")).longValue() : 0L;
+        resp.put("amountRupees", amtPaise / 100.0);
+        resp.put("currency", payment.get("currency"));
+        resp.put("paymentMethod", payment.get("payment_method"));
         resp.put("utr", utr);
         resp.put("failureReason", payment.get("failure_reason"));
         resp.put("reviewReason", payment.get("review_reason"));
+        resp.put("createdAt", payment.get("created_at") != null ? String.valueOf(payment.get("created_at")) : null);
+        resp.put("paidAt", payment.get("paid_at") != null ? String.valueOf(payment.get("paid_at")) : null);
+        resp.put("expiresAt", expiresInstant != null ? expiresInstant.getEpochSecond() : null);
+
+        // Generate or include QR url and UPI URI if still pending/initiated
+        if (!PaymentStatus.valueOf(currentStatusStr).isTerminal()) {
+            double amountRupees = amtPaise / 100.0;
+            String targetUpiId = (receiverUpiId != null && !receiverUpiId.isBlank()) ? receiverUpiId : "918897337687@waaxis";
+            String planId = String.valueOf(payment.get("plan_id"));
+            try {
+                String upiUri = "upi://pay?pa=" + targetUpiId +
+                        "&pn=ScholarSphere%20Digital" +
+                        "&am=" + String.format(Locale.US, "%.2f", amountRupees) +
+                        "&tr=" + orderId +
+                        "&tn=" + URLEncoder.encode("Subscription " + planId, StandardCharsets.UTF_8);
+                String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
+                        URLEncoder.encode(upiUri, StandardCharsets.UTF_8);
+                resp.put("qrUrl", qrUrl);
+                resp.put("upiUri", upiUri);
+                resp.put("receiverUpiId", targetUpiId);
+            } catch (Exception ignored) {}
+        }
         return resp;
     }
 

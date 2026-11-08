@@ -31,6 +31,7 @@ import UserHome from './pages/user/UserHome';
 import SearchResults from './pages/user/SearchResults';
 import ResourceDetail from './pages/user/ResourceDetail';
 import UserProfile from './pages/user/UserProfile';
+import PaymentPage from './pages/PaymentPage';
 
 export const router = createBrowserRouter([
   {
@@ -283,6 +284,14 @@ export const router = createBrowserRouter([
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/Pricing",
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><Pricing /></PageTransitionWrapper></ProtectedRoute>
+      },
+      {
+        path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/*",
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
+      },
+      {
+        path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId",
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
       },
       // Catch-all route to gracefully redirect invalid or outdated paths to appropriate portal instead of throwing 404 to ErrorBoundary
       {
