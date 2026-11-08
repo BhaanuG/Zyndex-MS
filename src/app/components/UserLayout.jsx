@@ -68,11 +68,6 @@ export default function UserLayout({ children }) {
       <header className="py-4 px-6 bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {showBackButton && (
-              <button onClick={handleBack} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Back" aria-label="Back">
-                <ArrowLeft className="size-5" />
-              </button>
-            )}
             <Link 
               to={`${baseUrl}/Home`} 
               className="flex items-center gap-2 hover:scale-105 transition-transform"
@@ -233,12 +228,12 @@ export default function UserLayout({ children }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 min-h-[calc(100vh-180px)]">
+      <main className="flex-1 pb-16">
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12 px-6 mt-12">
+      <footer className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12 px-6 mt-auto">
         <div className="max-w-6xl mx-auto">
           <motion.div 
             className="text-center"

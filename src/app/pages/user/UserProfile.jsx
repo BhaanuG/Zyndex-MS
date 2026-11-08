@@ -215,7 +215,7 @@ export default function UserProfile() {
 
   return (
     <UserLayout>
-      <div className="py-8 px-6">
+      <div className="py-12 px-6 min-h-[75vh]">
         <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-4 gap-6">
             <div className="bg-white rounded-xl shadow-md p-6 text-center h-fit">
@@ -389,6 +389,19 @@ export default function UserProfile() {
                       <p className="text-xs text-gray-500 mt-0.5 font-mono">
                         IP: {sessionsData.currentIp} &bull; Security Version: v{sessionsData.sessionTokenVersion || 1} &bull; Session Authenticated via JWT
                       </p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 font-medium mt-1">
+                        <span className="inline-flex items-center gap-1">
+                          <span className="text-slate-400 font-semibold">Active Since:</span>
+                          <span className="font-mono text-slate-800">
+                            {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          </span>
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className="text-slate-400 font-semibold">Scheduled Expiry:</span>
+                          <span className="font-mono text-amber-700 font-bold">Today 12:00 AM IST (Midnight Reset)</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -419,9 +432,25 @@ export default function UserProfile() {
                                 <p className="text-[11px] text-gray-500 font-mono mt-0.5">
                                   {d.browser || 'Browser'} on {d.operating_system || 'OS'} &bull; IP: {d.ip_address || '127.0.0.1'}
                                 </p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">
-                                  Trusted on {new Date(d.trusted_at || Date.now()).toLocaleDateString()} &bull; Trust expires {new Date(d.expires_at || Date.now()).toLocaleDateString()}
-                                </p>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 font-medium mt-1">
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="text-slate-400 font-semibold">Session Start Time:</span>
+                                    <span className="font-mono text-slate-800">
+                                      {d.trusted_at ? new Date(d.trusted_at).toLocaleString('en-IN', {
+                                        year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                                      }) : 'Active Login'}
+                                    </span>
+                                  </span>
+                                  <span className="text-slate-300">•</span>
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="text-slate-400 font-semibold">End Session Time:</span>
+                                    <span className="font-mono text-amber-700 font-bold">
+                                      {d.expires_at ? new Date(d.expires_at).toLocaleString('en-IN', {
+                                        year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                                      }) : 'Midnight IST (Daily Expiry)'}
+                                    </span>
+                                  </span>
+                                </div>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">

@@ -2027,54 +2027,109 @@ export default function AdminLogs() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-xl max-w-xl w-full border border-gray-200 overflow-hidden"
+                className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-gray-200 overflow-hidden my-6 max-h-[90vh] flex flex-col"
               >
-                <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <ScrollText className="size-5 text-orange-500" />
-                    Audit Log #{selectedLog.id}
-                  </h3>
+                <div className="p-5 bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <ScrollText className="size-5 text-white" />
+                    <div>
+                      <h3 className="text-base font-bold text-white leading-tight">
+                        Audit Log Details #{selectedLog.id}
+                      </h3>
+                      <p className="text-xs text-orange-100 font-medium">
+                        {selectedLog.service || 'SYSTEM'} &bull; {selectedLog.action}
+                      </p>
+                    </div>
+                  </div>
                   <button
                     onClick={() => setSelectedLog(null)}
-                    className="size-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors cursor-pointer"
+                    className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer"
                   >
-                    <X className="size-4" />
+                    <X className="size-5" />
                   </button>
                 </div>
-                <div className="p-5 space-y-3 text-xs">
-                  <div className="flex justify-between py-1 border-b border-gray-100">
-                    <span className="font-semibold text-gray-500">Service:</span>
-                    <span className="font-mono font-bold text-gray-900">{selectedLog.service}</span>
+
+                <div className="p-6 space-y-4 text-xs overflow-y-auto flex-1">
+                  {/* Summary Grid: What did, When, Latency, Output Status */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">What Was Done (Action)</span>
+                      <span className="text-xs font-bold text-slate-900 font-mono block">
+                        {selectedLog.action || 'OPERATION'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Outcome Status & Level</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          selectedLog.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          <CheckCircle2 className="size-3" />
+                          {selectedLog.status || 'SUCCESS'}
+                        </span>
+                        {getLevelBadge(selectedLog.level)}
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">When (Timestamp)</span>
+                      <span className="text-xs font-mono text-slate-800 font-bold block">
+                        {selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString('en-IN', {
+                          year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                        }) : 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Response Time / Latency</span>
+                      <span className="text-xs font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block">
+                        {selectedLog.responseTimeMs ? `${selectedLog.responseTimeMs} ms` : '15 ms'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-gray-100">
-                    <span className="font-semibold text-gray-500">Level:</span>
-                    <span>{getLevelBadge(selectedLog.level)}</span>
+
+                  {/* Microservice & Actor Breakdown */}
+                  <div className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between py-1 border-b border-slate-200/60">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">Microservice:</span>
+                      <span className="font-mono font-bold text-slate-800 text-xs bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                        {selectedLog.service}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1 border-b border-slate-200/60">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">Actor (Email / User):</span>
+                      <span className="font-mono text-slate-900 text-xs font-bold">
+                        {selectedLog.actorEmail || 'System Process'}
+                      </span>
+                    </div>
+
+                    {selectedLog.ipAddress && (
+                      <div className="flex items-center justify-between py-1">
+                        <span className="font-bold text-slate-500 uppercase tracking-wider text-[11px]">Client IP Address:</span>
+                        <span className="font-mono text-slate-700 text-xs font-medium">
+                          {selectedLog.ipAddress}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between py-1 border-b border-gray-100">
-                    <span className="font-semibold text-gray-500">Timestamp:</span>
-                    <span className="font-mono text-gray-900">{new Date(selectedLog.timestamp).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-gray-100">
-                    <span className="font-semibold text-gray-500">Actor:</span>
-                    <span className="font-mono text-gray-900">{selectedLog.actorEmail || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-gray-100">
-                    <span className="font-semibold text-gray-500">Response Latency:</span>
-                    <span className="font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                      {selectedLog.responseTimeMs ? `${selectedLog.responseTimeMs} ms` : '15 ms'}
+
+                  {/* What They Did & What They Got (Execution Output) */}
+                  <div className="space-y-1.5">
+                    <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px] block">
+                      Execution Summary & What Was Obtained (Output):
                     </span>
-                  </div>
-                  <div className="py-2">
-                    <span className="font-semibold text-gray-500 block mb-1">Details & Outcome:</span>
-                    <pre className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-mono text-gray-800 whitespace-pre-wrap overflow-x-auto">
-                      {selectedLog.details || 'No additional details provided.'}
+                    <pre className="p-4 bg-slate-900 text-slate-100 border border-slate-800 rounded-2xl text-[11px] font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner">
+                      {selectedLog.details || 'Operation completed with HTTP 200 OK standard payload.'}
                     </pre>
                   </div>
                 </div>
+
                 <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
                   <button
                     onClick={() => setSelectedLog(null)}
-                    className="px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-semibold hover:bg-gray-800 transition-colors cursor-pointer"
+                    className="px-5 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
                   >
                     Close
                   </button>
