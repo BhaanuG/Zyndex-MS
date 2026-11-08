@@ -18,6 +18,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (isPrimaryAdmin) {
       userService.getMaintenanceMode().then(res => setMaintenanceMode(Boolean(res?.maintenanceMode))).catch(() => {});
+      const poll = setInterval(() => {
+        userService.getMaintenanceMode().then(res => setMaintenanceMode(Boolean(res?.maintenanceMode))).catch(() => {});
+      }, 4000);
+      return () => clearInterval(poll);
     }
   }, [isPrimaryAdmin]);
 

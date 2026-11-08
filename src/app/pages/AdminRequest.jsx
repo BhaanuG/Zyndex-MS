@@ -203,13 +203,18 @@ export default function AdminRequest() {
   const [error, setError] = useState('');
   const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     apiClient.get('/users/maintenance-mode')
       .then(res => {
-        if (res?.maintenanceMode) setIsMaintenanceActive(true);
+        // Only block admin request if maintenance has officially commenced (after the 15-minute countdown)
+        if (res?.isOfficiallyActive || (res?.maintenanceMode && !res?.scheduledAt)) {
+          setIsMaintenanceActive(true);
+        } else {
+          setIsMaintenanceActive(false);
+        }
       })
       .catch(() => {});
-  });
+  }, []);
 
   const handleChange = (e) => {
     setFormData({

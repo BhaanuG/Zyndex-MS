@@ -84,7 +84,12 @@ export default function ForgotPassword() {
   useEffect(() => {
     apiClient.get('/users/maintenance-mode')
       .then(res => {
-        if (res?.maintenanceMode) setIsMaintenanceActive(true);
+        // Only block password reset if maintenance has officially commenced (after the 15-minute preparation period)
+        if (res?.isOfficiallyActive || (res?.maintenanceMode && !res?.scheduledAt)) {
+          setIsMaintenanceActive(true);
+        } else {
+          setIsMaintenanceActive(false);
+        }
       })
       .catch(() => {});
   }, []);
