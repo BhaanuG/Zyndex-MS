@@ -19,7 +19,11 @@ export default function UserLayout({ children }) {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(`${baseUrl}/Home`);
+    }
   };
 
   // Get dynamic URL parts
@@ -58,16 +62,21 @@ export default function UserLayout({ children }) {
     setShowSearchResults(false);
   };
 
-  const isHomePage = location.pathname.includes('/Home');
-  const isProfilePage = location.pathname.includes('/Profile');
-  const showBackButton = !isHomePage && !isProfilePage;
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="py-4 px-6 bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-center cursor-pointer shrink-0"
+              title="Go back to previous page"
+              aria-label="Back"
+            >
+              <ArrowLeft className="size-5" />
+            </button>
             <Link 
               to={`${baseUrl}/Home`} 
               className="flex items-center gap-2 hover:scale-105 transition-transform"
@@ -175,17 +184,6 @@ export default function UserLayout({ children }) {
           </div>
 
           <nav className="flex items-center gap-6">
-            {showBackButton && (
-              <motion.button
-                onClick={handleBack}
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ArrowLeft className="size-4" />
-                Back
-              </motion.button>
-            )}
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 to={`${baseUrl}/Home`}
