@@ -118,7 +118,7 @@ export default function Privacy() {
         },
         {
           subtitle: 'Multi-Layer Security & Device Authorization Architecture',
-          text: 'Zyndex implements defense-in-depth security measures: TLS 1.3 encryption for all data in transit, AES-256 encryption at rest, BCrypt cryptographic password hashing, short-lived 5-minute single-use OTP handshakes, dynamic geometric challenge verification, and automated session invalidation on tab closure or workstation lock. Additionally, our 24-hour trusted device system automatically revokes device privileges at midnight (12:00 AM IST) daily, and grants users immediate self-service revocation of any active browser login via their Profile settings.'
+          text: 'Zyndex implements defense-in-depth security measures: TLS 1.3 encryption for all data in transit, AES-256 encryption at rest, BCrypt cryptographic password hashing, short-lived 5-minute single-use OTP handshakes, dynamic geometric challenge verification, and automated session invalidation on tab closure or workstation lock. Additionally, our 24-hour trusted device system automatically revokes device privileges at midnight (12:00 AM IST) daily, and grants users immediate self-service revocation of any active browser login via their Profile settings. Invoices and financial statements are cryptographically tied to the authenticated user browser; external or unauthorized requests are masked as 404 Not Found and redirected to the login portal after 60 seconds.'
         },
         {
           subtitle: 'No Guarantee Disclaimer',

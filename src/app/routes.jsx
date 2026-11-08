@@ -32,6 +32,7 @@ import SearchResults from './pages/user/SearchResults';
 import ResourceDetail from './pages/user/ResourceDetail';
 import UserProfile from './pages/user/UserProfile';
 import PaymentPage from './pages/PaymentPage';
+import InvoiceViewPage from './pages/InvoiceViewPage';
 
 export const router = createBrowserRouter([
   {
@@ -286,12 +287,32 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><Pricing /></PageTransitionWrapper></ProtectedRoute>
       },
       {
+        path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/UTR/*",
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
+      },
+      {
+        path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/UTR",
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
+      },
+      {
         path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/*",
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId",
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
+      },
+      {
+        path: "Zyndex/Invoice/:paymentId",
+        element: <PageTransitionWrapper duration={5000}><InvoiceViewPage /></PageTransitionWrapper>
+      },
+      {
+        path: "Zyndex/Billing/Invoice/:paymentId",
+        element: <PageTransitionWrapper duration={5000}><InvoiceViewPage /></PageTransitionWrapper>
+      },
+      {
+        path: "Zyndex/User/:name/:email/Profile/Billing/Invoice/:paymentId",
+        element: <PageTransitionWrapper duration={5000}><InvoiceViewPage /></PageTransitionWrapper>
       },
       // Catch-all route to gracefully redirect invalid or outdated paths to appropriate portal instead of throwing 404 to ErrorBoundary
       {

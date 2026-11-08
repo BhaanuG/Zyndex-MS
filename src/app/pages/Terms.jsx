@@ -132,7 +132,15 @@ export default function Terms() {
       content: [
         {
           subtitle: 'Transparent Pricing & UPI Protocol',
-          text: 'Zyndex offers flexible subscription tiers (Free / Demo, Student Basic, Student Plus, PhD Scholar / Researcher, University, and Enterprise / Institution). Upgrades are paid in Indian Rupees (INR) via direct merchant UPI transfer presented in the checkout screen with 12-digit UTR reference validation.'
+          text: 'Zyndex offers flexible subscription tiers (Free / Demo, Student Basic, Student Plus, PhD Scholar / Researcher, University, and Enterprise / Institution). Upgrades are paid in Indian Rupees (INR) via direct merchant UPI transfer presented in the dedicated checkout screen with 12-digit UTR reference validation. QR payment sessions expire strictly after 5 minutes, and subsequent UTR submission windows remain valid for 10 minutes before auto-expiring.'
+        },
+        {
+          subtitle: 'Color-Coded Status Tracking & Portal Transparency',
+          text: 'Every transaction is authoritatively logged with distinct visual indicators across user and admin portals: Active/Initiated (Blue), Success/Approved (Green), Cancelled or Declined by Admin (Red), Under Admin Verification (Amber), and Session Expired (Dark Gray). Users can review real-time transaction statuses directly under Profile & Billing.'
+        },
+        {
+          subtitle: 'Strict Invoice Privacy & Single-Browser Security',
+          text: 'Official tax invoices and billing receipts are digitally signed and restricted. Tax invoices can only be opened and viewed on the specific browser and workstation where the user is actively authenticated. Unauthenticated requests to invoice URLs automatically render a 404 Not Found error and safely redirect to the login portal after 60 seconds.'
         },
         {
           subtitle: 'No Auto-Debit or Surprise Charges',

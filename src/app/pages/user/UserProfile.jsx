@@ -687,16 +687,17 @@ export default function UserProfile() {
                                 </td>
                                 <td className="py-3.5 px-4">
                                   <span className={`px-2.5 py-1 text-[11px] font-bold rounded-full border uppercase ${
-                                    pmt.status === 'SUCCESS' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                    pmt.status === 'PAYMENT_INITIATED' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                    pmt.status === 'PROCESSING' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                    pmt.status === 'FAILED' ? 'bg-red-50 text-red-700 border-red-200' :
-                                    pmt.status === 'CANCELLED' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                                    pmt.status === 'REVIEW_REQUIRED' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                    pmt.status === 'EXPIRED' ? 'bg-gray-100 text-gray-700 border-gray-200' :
-                                    'bg-slate-50 text-slate-700 border-slate-200'
+                                    pmt.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                                    pmt.status === 'PAYMENT_INITIATED' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                    pmt.status === 'PROCESSING' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                    pmt.status === 'FAILED' ? 'bg-red-100 text-red-800 border-red-300' :
+                                    pmt.status === 'DECLINED' ? 'bg-red-100 text-red-800 border-red-300' :
+                                    pmt.status === 'CANCELLED' ? 'bg-red-100 text-red-800 border-red-300' :
+                                    pmt.status === 'REVIEW_REQUIRED' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                    pmt.status === 'EXPIRED' ? 'bg-gray-800 text-gray-100 border-gray-900' :
+                                    'bg-slate-200 text-slate-800 border-slate-300'
                                   }`}>
-                                    {pmt.status}
+                                    {pmt.status === 'FAILED' && pmt.failure_reason?.includes('DECLINE') ? 'DECLINED' : pmt.status}
                                   </span>
                                 </td>
                                 <td className="py-3.5 px-4 text-right">
