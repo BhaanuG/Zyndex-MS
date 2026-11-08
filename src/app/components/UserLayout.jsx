@@ -19,9 +19,11 @@ export default function UserLayout({ children }) {
   };
 
   const handleBack = () => {
+    // If the user has history in this tab/window, go back
     if (window.history.length > 1) {
       navigate(-1);
     } else {
+      // Otherwise navigate safely back to Home
       navigate(`${baseUrl}/Home`);
     }
   };
@@ -68,15 +70,6 @@ export default function UserLayout({ children }) {
       <header className="py-4 px-6 bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-center cursor-pointer shrink-0"
-              title="Go back to previous page"
-              aria-label="Back"
-            >
-              <ArrowLeft className="size-5" />
-            </button>
             <Link 
               to={`${baseUrl}/Home`} 
               className="flex items-center gap-2 hover:scale-105 transition-transform"
@@ -183,7 +176,19 @@ export default function UserLayout({ children }) {
             </AnimatePresence>
           </div>
 
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-5">
+            <motion.button
+              type="button"
+              onClick={handleBack}
+              className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-orange-50 border border-gray-200 hover:border-orange-200 cursor-pointer shadow-2xs"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              title="Go back to previous page"
+              aria-label="Back"
+            >
+              <ArrowLeft className="size-4 text-orange-600" />
+              <span>Back</span>
+            </motion.button>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 to={`${baseUrl}/Home`}
