@@ -163,18 +163,20 @@ class ResourceController {
     Map<String, Object> createDownloadToken(
             @PathVariable("id") long id,
             HttpServletRequest request) {
-        String userIdStr = request.getHeader("X-User-Id");
+        String email = request.getHeader("X-User-Email");
         String role = request.getHeader("X-User-Role");
+        String userIdStr = request.getHeader("X-User-Id");
+        boolean isPrimaryAdmin = email != null && email.equalsIgnoreCase(properties.mainAdminEmail());
 
-        if (userIdStr == null || userIdStr.isBlank()) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
+        if (!isPrimaryAdmin) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Download tokens are disabled for users and regular admins. Use the online reader.");
         }
 
-        long userId = Long.parseLong(userIdStr);
+        long userId = (userIdStr != null && !userIdStr.isBlank()) ? Long.parseLong(userIdStr) : 0L;
         String token = UUID.randomUUID().toString();
 
         jdbc.update("INSERT INTO download_tokens (token, resource_id, user_id, role, created_at) VALUES (?, ?, ?, ?, NOW())",
-                token, id, userId, role);
+                token, id, userId, role != null ? role : "ADMIN");
 
         return Map.of("token", token);
     }
@@ -294,17 +296,17 @@ class ResourceController {
 
     @GetMapping("/{id}/download")
     ResponseEntity<?> download(HttpServletRequest request, @PathVariable("id") long id) {
-        String userIdStr = request.getHeader("X-User-Id");
         String role = request.getHeader("X-User-Role");
+        String email = request.getHeader("X-User-Email");
+        String userIdStr = request.getHeader("X-User-Id");
+        boolean isPrimaryAdmin = email != null && email.equalsIgnoreCase(properties.mainAdminEmail());
 
-        if (userIdStr == null || userIdStr.isBlank()) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
-        }
-        if (!"ADMIN".equalsIgnoreCase(role)) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Downloads are not available in the user portal. Use the online preview instead.");
+        // Downloading is completely disabled for students, regular users, and regular admins.
+        if (!isPrimaryAdmin) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Direct downloading of resources has been disabled. Please read and study documents within the secure online reader.");
         }
 
-        long userId = Long.parseLong(userIdStr);
+        long userId = (userIdStr != null && !userIdStr.isBlank()) ? Long.parseLong(userIdStr) : 0L;
 
         var rows = jdbc.queryForList("SELECT * FROM resources WHERE id = ? LIMIT 1", id);
         if (rows.isEmpty()) {

@@ -80,11 +80,11 @@ public class AccessController {
         }
 
         // 4. Evaluate action-specific gating rules (e.g. downloads)
+        // Downloads are strictly prohibited for user and regular admins.
         boolean isDownload = "DOWNLOAD".equalsIgnoreCase(permission);
-
-        if (isDownload && userTier < 3) {
+        if (isDownload) {
             return Map.of("authorized", false, "reason",
-                "Direct downloads are available starting on the PhD Scholar / Researcher plan. Upgrade your plan to download.");
+                "Direct downloading of resources is disabled across user and administrator portals. Please use the secure online reader.");
         }
 
         if (userTier == 0) { // Free tier reading limits

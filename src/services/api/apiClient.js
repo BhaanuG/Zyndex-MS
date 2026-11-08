@@ -98,16 +98,14 @@ apiClient.interceptors.response.use(
             break;
           }
 
-          // For 403 Forbidden, check if this is an administrative termination or session revocation
+          // For 403 Forbidden, ONLY trigger session termination when it is explicitly an account/session revocation or termination
           const isTerminationOrSessionError =
             status === 401 ||
             (status === 403 && (
               parsedError.message.toLowerCase().includes('terminate') ||
-              parsedError.message.toLowerCase().includes('session') ||
-              parsedError.message.toLowerCase().includes('permission') ||
+              parsedError.message.toLowerCase().includes('session was') ||
               parsedError.message.toLowerCase().includes('superseded') ||
-              parsedError.message.toLowerCase().includes('access denied') ||
-              parsedError.message.toLowerCase().includes('forbidden')
+              parsedError.message.toLowerCase().includes('inactive account')
             ));
 
           // Only trigger timeout notification when an already-authenticated session expires or is terminated.

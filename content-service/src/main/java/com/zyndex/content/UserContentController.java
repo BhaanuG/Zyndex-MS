@@ -24,40 +24,10 @@ public class UserContentController {
         this.restTemplate = restTemplate;
     }
 
-    @SuppressWarnings("unchecked")
     @GetMapping("/downloads")
     public Map<String, Object> downloads(HttpServletRequest request, @RequestParam Map<String, String> query) {
-        String userIdStr = request.getHeader("X-User-Id");
-        if (userIdStr == null || userIdStr.isBlank()) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
-        }
-        long userId = Long.parseLong(userIdStr);
-        var pageParams = sql.page(query);
-
-        // Fetch user download logs from usage-service
-        String usageUrl = "http://usage-service/api/usage/downloads/user/" + userId + "?page=" + pageParams.get("page") + "&size=" + pageParams.get("size");
-        Map<String, Object> usageResponse;
-        try {
-            usageResponse = restTemplate.getForObject(usageUrl, Map.class);
-        } catch (Exception e) {
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "USAGE_SERVICE_UNAVAILABLE", "Usage service is temporarily unavailable.");
-        }
-
-        List<Map<String, Object>> usageList = (List<Map<String, Object>>) usageResponse.getOrDefault("resources", List.of());
-        long total = ((Number) usageResponse.getOrDefault("totalElements", 0)).longValue();
-
-        List<Map<String, Object>> resourcesList = new ArrayList<>();
-        for (Map<String, Object> usage : usageList) {
-            long resourceId = SqlSupport.number(usage.get("resource_id"));
-            var rows = jdbc.queryForList("SELECT * FROM resources WHERE id = ? LIMIT 1", resourceId);
-            if (!rows.isEmpty()) {
-                Map<String, Object> resource = sql.mapResource(rows.get(0));
-                resource.put("downloadedAt", usage.get("downloaded_at"));
-                resourcesList.add(resource);
-            }
-        }
-
-        return sql.pageResult("resources", resourcesList, total, pageParams.get("page"), pageParams.get("size"));
+        // Downloads feature has been removed for users and regular admins.
+        return Map.of("resources", List.of(), "total", 0, "totalPages", 0, "currentPage", 0);
     }
 
     @GetMapping("/favorites")

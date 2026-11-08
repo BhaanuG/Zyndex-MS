@@ -114,25 +114,30 @@ export function resolveAuthRedirectPath(user, overrideTarget = null) {
     if (rawTarget.includes('/Zyndex/User/')) {
       const match = rawTarget.match(/\/Zyndex\/User\/[^/]+\/[^/]+(\/.*)?$/);
       const subPath = match && match[1] ? match[1] : '';
+      clearRedirectIntent();
       return `/Zyndex/User/${safeName}/${safeEmail}${subPath || '/Home'}`;
     }
 
     // If it's public browse or public categories, map to user home / search
     if (rawTarget.includes('/Resources/Browse') || rawTarget === '/Home') {
+      clearRedirectIntent();
       return `/Zyndex/User/${safeName}/${safeEmail}/Home`;
     }
 
     if (rawTarget.includes('/Resources/Categories')) {
+      clearRedirectIntent();
       return `/Zyndex/User/${safeName}/${safeEmail}/Home`;
     }
 
     // If it's a public informational page, user can either stay on it or go home
     if (rawTarget.startsWith('/Zyndex/About/') || rawTarget.startsWith('/Zyndex/Support/') || rawTarget.startsWith('/Zyndex/Legal/')) {
+      clearRedirectIntent();
       return rawTarget;
     }
 
     // If it's a relative user subpath e.g. '/Resource/5', '/Search?q=AI', '/Profile/My-Favorites'
     if (rawTarget.startsWith('/')) {
+      clearRedirectIntent();
       return `/Zyndex/User/${safeName}/${safeEmail}${rawTarget}`;
     }
   }
