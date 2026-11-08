@@ -79,8 +79,8 @@ export default function UserLayout({ children }) {
             </Link>
             {user?.subscriptionPlan && user.subscriptionPlan !== 'FREE' && (() => {
               const plan = String(user.subscriptionPlan).toUpperCase();
-              let badgeSymbol = "▲";
-              let badgeStyle = "bg-orange-50 text-orange-700 border-orange-200/80";
+              let badgeSymbol = "○";
+              let badgeStyle = "bg-blue-50 text-blue-700 border-blue-200";
               let label = "Student Basic";
 
               if (plan.includes('ENTERPRISE')) {
@@ -100,7 +100,7 @@ export default function UserLayout({ children }) {
                 badgeStyle = "bg-amber-100 text-amber-800 border-amber-300";
                 label = "Student Plus";
               } else if (plan.includes('BASIC')) {
-                badgeSymbol = "▲";
+                badgeSymbol = "○";
                 badgeStyle = "bg-blue-100 text-blue-800 border-blue-300";
                 label = "Student Basic";
               }

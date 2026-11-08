@@ -62,6 +62,31 @@ export default function SessionTimeoutModal() {
   };
 
   const isMaintenance = modalData.reason && modalData.reason.toLowerCase().includes('maintenance');
+  const isMultiDevice = modalData.reason && (modalData.reason.toLowerCase().includes('another device') || modalData.reason.toLowerCase().includes('in use on another'));
+  const isInactivity = modalData.reason && (modalData.reason.toLowerCase().includes('inactivity') || modalData.reason.toLowerCase().includes('2 hours and 30 minutes'));
+  const isTerminated = modalData.reason && (modalData.reason.toLowerCase().includes('terminated') || modalData.reason.toLowerCase().includes('involuntary'));
+
+  let headerTitle = 'Session Terminated';
+  let headerSubtitle = 'Administrator / Inactivity Action';
+  let calloutTitle = 'Session Notification';
+
+  if (isMaintenance) {
+    headerTitle = 'Platform Under Maintenance';
+    headerSubtitle = 'Scheduled System Maintenance in Progress';
+    calloutTitle = 'Maintenance Notice';
+  } else if (isMultiDevice) {
+    headerTitle = 'Signed in on Another Device';
+    headerSubtitle = 'Active Session Concurrent Protection';
+    calloutTitle = 'Account Security Alert';
+  } else if (isInactivity) {
+    headerTitle = 'Session Time-Out';
+    headerSubtitle = '2 hr 30 min Inactivity Protection Triggered';
+    calloutTitle = 'Inactivity Protection';
+  } else if (isTerminated) {
+    headerTitle = 'Access Terminated';
+    headerSubtitle = 'Administrative Perimeter Action';
+    calloutTitle = 'Administrator Action';
+  }
 
   return (
     <AnimatePresence>
@@ -78,10 +103,10 @@ export default function SessionTimeoutModal() {
               <ShieldAlert className="size-8 text-white" />
             </div>
             <h3 className="text-2xl font-extrabold tracking-tight text-white">
-              {isMaintenance ? 'Platform Under Maintenance' : 'Session Terminated'}
+              {headerTitle}
             </h3>
             <p className="text-xs text-orange-100 font-semibold mt-1">
-              {isMaintenance ? 'Scheduled System Maintenance in Progress' : 'Administrator / Inactivity Action'}
+              {headerSubtitle}
             </p>
           </div>
 
@@ -92,7 +117,7 @@ export default function SessionTimeoutModal() {
               <AlertCircle className="size-5 text-[#d97706] shrink-0 mt-0.5" />
               <div className="text-xs text-[#92400e] leading-relaxed">
                 <p className="font-bold text-sm text-[#78350f] mb-1">
-                  {isMaintenance ? 'Maintenance Notice' : 'Session Notification'}
+                  {calloutTitle}
                 </p>
                 <p>{modalData.reason}</p>
                 <p className="mt-1 text-slate-500 font-medium">We apologize for the inconvenience.</p>

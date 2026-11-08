@@ -806,7 +806,7 @@ Zyndex Resources/
           <h3 class="section-heading">Plan Symbols & Colors:</h3>
           <ul class="article-list">
             <li><strong>Free Academic Reader:</strong> Standard view with no badge needed.</li>
-            <li><strong>Student Basic (₹199/mo):</strong> Marked with the solid triangle <strong>"▲"</strong> in bright blue, providing foundational textbook access and previewing.</li>
+            <li><strong>Student Basic (₹199/mo):</strong> Marked with the open circle <strong>"○"</strong> in bright blue, providing foundational textbook access and previewing.</li>
             <li><strong>Student Plus (₹499/mo):</strong> Denoted by stacked diamonds <strong>"⬦"</strong> in warm amber, offering extended offline study capabilities.</li>
             <li><strong>PhD Scholar / Researcher (₹799/mo):</strong> Distinguished by the four-point sparkle <strong>"✦"</strong> in teal, unlocking deep paper archives and citations.</li>
             <li><strong>Academic Faculty & Educator (₹999/mo):</strong> Highlighted by the hexagon with core dot <strong>"⬢"</strong> in royal indigo, designed for syllabus curation.</li>

@@ -215,7 +215,7 @@ export default function ResourceDetail() {
   };
 
   const previewUrl = resource?.fileUrl
-    ? (previewToken ? `${apiBaseUrl}/resources/${id}/file?token=${encodeURIComponent(previewToken)}` : '')
+    ? `${apiBaseUrl}/resources/${id}/file${previewToken ? `?token=${encodeURIComponent(previewToken)}` : ''}`
     : '';
   const previewUrlWithVersion = previewUrl
     ? `${previewUrl}${previewUrl.includes('?') ? '&' : '?'}v=${encodeURIComponent(resource?.updatedAt || resource?.createdAt || '')}`
@@ -314,37 +314,37 @@ export default function ResourceDetail() {
 
   return (
     <UserLayout>
-      <div className="py-8 px-6">
+      <div className="py-4 sm:py-8 px-3 sm:px-6">
         <div className="max-w-4xl mx-auto">
           {!resource ? (
-            <motion.div className="bg-white rounded-xl shadow-md p-16 text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <motion.div className="bg-white rounded-xl shadow-md p-10 sm:p-16 text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <FileText className="size-16 mx-auto mb-4 text-gray-300" />
               <p className="text-lg font-medium mb-2">Resource not found</p>
               <p className="text-sm">The resource you're looking for doesn't exist.</p>
             </motion.div>
           ) : (
             <>
-              <motion.div className="bg-white rounded-xl shadow-md p-8 mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <div className="flex items-start justify-between mb-6 gap-4">
-                  <div className="flex-1">
-                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-4">{resource.title}</h1>
+              <motion.div className="bg-white rounded-xl shadow-md p-4 sm:p-8 mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-4 break-words">{resource.title}</h1>
                     
                     {/* Neatly Organized Academic Metadata */}
                     <div className="space-y-2 mb-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 divide-y divide-slate-200/70 text-xs">
-                      <div className="flex items-center justify-between pb-2">
-                        <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="flex items-center justify-between pb-2 gap-2">
+                        <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
                           <Tag className="size-3.5 text-orange-500" /> Category
                         </span>
-                        <span className="font-semibold text-slate-800">
+                        <span className="font-semibold text-slate-800 truncate text-right">
                           {resource.category || 'General'}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2">
-                        <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="flex items-center justify-between pt-2 gap-2">
+                        <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
                           <User className="size-3.5 text-blue-500" /> Author
                         </span>
-                        <span className="font-semibold text-slate-800" title={resource.author || resource.subject || 'Zyndex Contributor'}>
+                        <span className="font-semibold text-slate-800 truncate text-right" title={resource.author || resource.subject || 'Zyndex Contributor'}>
                           {resource.author || resource.subject || 'Zyndex Contributor'}
                         </span>
                       </div>
@@ -369,9 +369,9 @@ export default function ResourceDetail() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button onClick={toggleFavorite} className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${isFavorite ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}>
-                      <Heart className={`size-5 ${isFavorite ? 'fill-current' : ''}`} />
+                  <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
+                    <button onClick={toggleFavorite} className={`flex items-center gap-2 px-4 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm ${isFavorite ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}>
+                      <Heart className={`size-4 sm:size-5 ${isFavorite ? 'fill-current' : ''}`} />
                       {isFavorite ? 'Favourite' : 'Add Favourite'}
                     </button>
                   </div>
@@ -460,12 +460,9 @@ export default function ResourceDetail() {
                     </button>
                   </div>
                 ) : previewUrl && isPdfPreview ? (
-                  <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">
-                    <p className="text-gray-700">Loading PDF preview...</p>
-                  </div>
-                ) : resource?.fileUrl && !previewToken ? (
-                  <div className="border border-amber-200 rounded-xl p-6 bg-amber-50">
-                    <p className="text-amber-800">Preparing the secure preview...</p>
+                  <div className="border border-gray-200 rounded-xl p-6 bg-gray-50 flex items-center justify-center gap-3">
+                    <div className="size-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-gray-700 text-sm font-medium">Loading secure PDF preview...</p>
                   </div>
                 ) : previewUrl ? (
                   <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">

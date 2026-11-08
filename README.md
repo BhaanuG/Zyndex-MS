@@ -990,7 +990,7 @@ This section compiles all operational constraints, entitlement gates, pricing ta
 | **Self-Service Account Deletion**| Explicit multi-step reason capture + 120s OTP verification + `CONFIRM` challenge phrase | `auth-service/.../UserController.java`, `DeleteAccountModal.jsx` | `deleteAccount` | Deletes user from `users`, cascades to related profile records | Deletes user, sends farewell email, and alerts platform maintainer (`Bhaanugali@gmail.com`). |
 | **Recognized Device Sessions** | Multi-device tracking with IP detection, login time, and independent revocation | `auth-service/.../UserController.java`, `UserProfile.jsx` | `getActiveSessions`, `revokeDeviceSession` | `trusted_devices` table | Displays active device vs all other browsers/devices; allows individual logout or global revoke. |
 | **24-Hour Trusted Device Renewal** | Checkbox on OTP verification grants 24h OTP bypass until midnight IST | `auth-service/.../MidnightDailySessionScheduler.java`, `AuthController.java` | `executeMidnightDailyReset`, `trustDevice` | Sets `trusted_devices.is_trusted = FALSE` at 00:00 IST | Forces daily OTP verification re-check at midnight IST while retaining 30-day device audit trail. |
-| **Plan Hierarchy & Icon Badges** | Unique geometric badge beside brand text: ▲ (Basic), ⬦ (Plus), ✦ (PhD), ⬢ (Univ), ∞ (Enterprise) | `UserLayout.jsx`, `Pricing.jsx` | Dynamic Badge Renderer | Evaluates `user.subscriptionPlan` | Displays plan rank visually with locked upgrades until active subscription lapses. |
+| **Plan Hierarchy & Icon Badges** | Unique geometric badge beside brand text: ○ (Basic), ⬦ (Plus), ✦ (PhD), ⬢ (Univ), ∞ (Enterprise) | `UserLayout.jsx`, `Pricing.jsx` | Dynamic Badge Renderer | Evaluates `user.subscriptionPlan` | Displays plan rank visually with locked upgrades until active subscription lapses. |
 | **Dedicated Multi-Segment Checkout** | Protected URL `/Zyndex/User/.../Billing/:amount/Payment/:orderId/UTR/*` | `PaymentPage.jsx`, `routes.jsx` | Dedicated Payment Lifecycle | `payments` status transitions | Clean UI with 5-min QR clock, 10-min UTR expiry, anti-tamper session checks, and direct status indicators. |
 | **Platform Maintenance Mode** | Primary Admin triggers 15-minute preparation window | `auth-service/.../UserController.java`, `MaintenanceCountdownBar.jsx` | `toggleMaintenanceMode`, `finalizeMaintenanceActive` | `system_settings.MAINTENANCE_MODE`, `MAINTENANCE_SCHEDULED_AT` | Broadcasts 15-min warning email; displays 10s auto-closing popup & top-right countdown for scholars; displays sidebar bottom countdown for admins; revokes active sessions upon expiry; handles early cancellation notices. |
 | **Cross-Schema Production Audit Persistence**| External microservice audit logging in multi-schema MySQL environments | `access-service`, `content-service`, `subscription-service`, `usage-service` | `*AuditLoggingFilter.java`, `application.yml` | Inserts into `${AUTH_DB_NAME:zyndex_auth}.system_logs` | Ensures audit logs survive server restarts and production cloud deployments. |
@@ -1836,7 +1836,7 @@ stateDiagram-v2
 1. **Checkout Initiation & Plan Restriction**:
    - In [`src/app/pages/Pricing.jsx`](file:///d:/Zyndex/src/app/pages/Pricing.jsx), plans are presented with full feature lists:
      - Free / Demo (₹0)
-     - Student Basic (₹99/mo) &bull; Symbol `▲`
+     - Student Basic (₹99/mo) &bull; Symbol `○`
      - Student Plus (₹199/mo) &bull; Symbol `⬦`
      - PhD Researcher (₹499/mo) &bull; Symbol `✦`
      - University Campus (₹1,00,000/yr) &bull; Symbol `⬢`
