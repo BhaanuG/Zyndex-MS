@@ -128,7 +128,8 @@ class AuthController {
             return Map.of("message", "Credentials verified.", "user", user);
         }
 
-        String clientIp = AuthSupport.getClientIp(request);
+        String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
+        String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
         try {
             // Increment session_token_version to invalidate any previous active sessions on other devices
             jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NOW() WHERE id = ?", user.get("id"));
@@ -241,7 +242,8 @@ class AuthController {
         // Delete any existing device record for this token & email
         jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
 
-        String clientIp = AuthSupport.getClientIp(request);
+        String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
+        String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
 
         java.time.Instant expiryInstant;
         if (isTrusted) {

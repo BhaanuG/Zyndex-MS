@@ -12,7 +12,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
 import subscriptionService from '@/services/api/subscriptionService';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
-import { getDeviceInfo } from '@/utils/deviceHelper';
+import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedClientIp } from '@/utils/deviceHelper';
 
 export default function UserProfile() {
   const { user, updateProfile } = useAuth();
@@ -74,15 +74,32 @@ export default function UserProfile() {
     async function loadSessionData() {
       if (!user?.id) return;
       try {
+        // Resolve real device public IP asynchronously if needed
+        let publicIp = getCachedClientIp();
+        if (!publicIp) {
+          fetchClientPublicIp().then(ip => {
+            if (ip) {
+              setSessionsData(prev => ({
+                ...prev,
+                currentIp: (!prev.currentIp || prev.currentIp === '127.0.0.1' || prev.currentIp === '0:0:0:0:0:0:0:1' || prev.currentIp === '::1') ? ip : prev.currentIp
+              }));
+            }
+          }).catch(() => {});
+        }
+
         const sessRes = await userService.getActiveSessions();
         if (sessRes) {
           const normalizeIp = (ip) => {
-            if (!ip || ip === '0:0:0:0:0:0:0:1' || ip === '::1') return '127.0.0.1';
+            if (!ip || ip === '0:0:0:0:0:0:0:1' || ip === '::1') return publicIp || '127.0.0.1';
             return ip;
           };
+          const resolvedCurrentIp = (sessRes.currentIp && sessRes.currentIp !== '127.0.0.1' && sessRes.currentIp !== '0:0:0:0:0:0:0:1' && sessRes.currentIp !== '::1')
+            ? sessRes.currentIp
+            : (publicIp || sessRes.currentIp || '127.0.0.1');
+
           setSessionsData({
             ...sessRes,
-            currentIp: normalizeIp(sessRes.currentIp),
+            currentIp: resolvedCurrentIp,
             devices: (sessRes.devices || []).map(d => ({
               ...d,
               ip_address: normalizeIp(d.ip_address)

@@ -35,10 +35,28 @@ public class AuthSupport {
     }
 
     public static String getClientIp(HttpServletRequest request) {
+        return getClientIp(request, null);
+    }
+
+    public static String getClientIp(HttpServletRequest request, String clientProvidedIp) {
+        // If client provided a valid non-loopback IP, prioritize it
+        if (clientProvidedIp != null && !clientProvidedIp.isBlank()) {
+            String clean = clientProvidedIp.trim();
+            if (!"0:0:0:0:0:0:0:1".equals(clean) && !"::1".equals(clean) && !"127.0.0.1".equals(clean) && !"localhost".equalsIgnoreCase(clean)) {
+                return clean;
+            }
+        }
+
         if (request == null) return "127.0.0.1";
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("CF-Connecting-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("True-Client-IP");
         }
         if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

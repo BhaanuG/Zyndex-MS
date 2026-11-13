@@ -50,3 +50,65 @@ export function getDeviceInfo() {
   return { browser, os, deviceName };
 }
 
+/**
+ * Resolves the client's public/network IP address using standard public IP resolution services.
+ * Caches the resolved IP in memory and localStorage for fast synchronous reuse across sessions.
+ */
+let cachedClientIp = null;
+
+export async function fetchClientPublicIp() {
+  if (typeof window === 'undefined') return '';
+  if (cachedClientIp) return cachedClientIp;
+
+  try {
+    const saved = localStorage.getItem('zyndex_client_ip');
+    if (saved && saved !== '127.0.0.1' && saved !== '0:0:0:0:0:0:0:1' && saved !== '::1') {
+      cachedClientIp = saved;
+    }
+  } catch (e) {}
+
+  const endpoints = [
+    'https://api.ipify.org?format=json',
+    'https://api64.ipify.org?format=json',
+    'https://ipapi.co/json/'
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        const ip = (data.ip || data.query || '').trim();
+        if (ip && ip !== '127.0.0.1' && ip !== '0:0:0:0:0:0:0:1' && ip !== '::1') {
+          cachedClientIp = ip;
+          try {
+            localStorage.setItem('zyndex_client_ip', ip);
+          } catch (e) {}
+          return ip;
+        }
+      }
+    } catch (err) {
+      // try next endpoint
+    }
+  }
+
+  return cachedClientIp || '';
+}
+
+export function getCachedClientIp() {
+  if (cachedClientIp) return cachedClientIp;
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('zyndex_client_ip');
+      if (saved && saved !== '127.0.0.1' && saved !== '0:0:0:0:0:0:0:1' && saved !== '::1') {
+        cachedClientIp = saved;
+        return saved;
+      }
+    } catch (e) {}
+  }
+  return '';
+}
+

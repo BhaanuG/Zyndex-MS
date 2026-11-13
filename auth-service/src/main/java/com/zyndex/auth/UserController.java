@@ -801,9 +801,10 @@ class UserController {
                 ORDER BY trusted_at DESC
                 """, userId, email);
 
-        String currentIp = AuthSupport.getClientIp(request);
+        String clientProvidedIp = request.getHeader("X-Client-IP");
+        String currentIp = AuthSupport.getClientIp(request, clientProvidedIp);
         return Map.of(
-            "currentIp", currentIp != null ? currentIp : "127.0.0.1",
+            "currentIp", currentIp,
             "sessionTokenVersion", user.get("session_token_version") != null ? user.get("session_token_version") : 1,
             "devices", devices
         );

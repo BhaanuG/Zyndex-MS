@@ -5,7 +5,7 @@ import SessionTimeoutModal from '@/app/components/SessionTimeoutModal';
 import SessionWarningModal from '@/app/components/SessionWarningModal';
 import authService from '@/services/api/authService';
 import userService from '@/services/api/userService';
-import { getOrCreateDeviceToken, getDeviceInfo } from '@/utils/deviceHelper';
+import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedClientIp } from '@/utils/deviceHelper';
 
 const AuthContext = createContext();
 
@@ -143,11 +143,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const deviceToken = getOrCreateDeviceToken();
       const info = getDeviceInfo();
+      let clientIp = getCachedClientIp();
+      if (!clientIp) {
+        try {
+          clientIp = await fetchClientPublicIp();
+        } catch (e) {}
+      }
       devicePayload = {
         deviceToken,
         deviceName: info.deviceName,
         browser: info.browser,
         os: info.os,
+        clientIp: clientIp || undefined,
       };
     } catch (e) {}
 

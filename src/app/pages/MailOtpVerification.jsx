@@ -7,7 +7,7 @@ import apiClient from '@/services/api/apiClient';
 import authService from '@/services/api/authService';
 import logService from '@/services/api/logService';
 import { resolveAuthRedirectPath } from '@/utils/redirectHelper';
-import { getOrCreateDeviceToken, getDeviceInfo } from '@/utils/deviceHelper';
+import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedClientIp } from '@/utils/deviceHelper';
 
 const OTP_EXPIRY_SECONDS = 120;
 const OTP_REQUEST_SESSION_KEY = 'mail_otp_request_state';
@@ -421,12 +421,19 @@ export default function MailOtpVerification() {
       const deviceToken = getOrCreateDeviceToken();
       try {
         const info = getDeviceInfo();
+        let clientIp = getCachedClientIp();
+        if (!clientIp) {
+          try {
+            clientIp = await fetchClientPublicIp();
+          } catch (e) {}
+        }
         await authService.trustDevice({
           email: (pendingAuth.email || '').trim().toLowerCase(),
           deviceToken,
           deviceName: info.deviceName,
           browser: info.browser,
           os: info.os,
+          clientIp: clientIp || undefined,
           isTrusted: Boolean(trustDevice),
         });
 
