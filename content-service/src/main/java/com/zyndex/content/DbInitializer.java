@@ -24,6 +24,7 @@ class DbInitializer implements CommandLineRunner {
                   updated_at DATETIME(6) NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                   uploaded_by BIGINT NOT NULL,
                   description LONGTEXT NULL,
+                  article_content LONGTEXT NULL,
                   author VARCHAR(190) NULL,
                   category VARCHAR(120) NOT NULL,
                   file_url VARCHAR(500) NULL,
@@ -39,6 +40,9 @@ class DbInitializer implements CommandLineRunner {
         } catch (Exception ignored) {}
         try {
             jdbc.execute("ALTER TABLE resources MODIFY COLUMN description LONGTEXT NULL");
+        } catch (Exception ignored) {}
+        try {
+            jdbc.execute("ALTER TABLE resources ADD COLUMN article_content LONGTEXT NULL");
         } catch (Exception ignored) {}
         jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS saved_resources (

@@ -448,7 +448,11 @@ class AuthController {
                         """, email, deviceToken.trim());
             }
         } catch (Exception ignored) {}
-        return user;
+        Map<String, Object> response = new java.util.LinkedHashMap<>(user);
+        try {
+            response.put("token", auth.signToken(user));
+        } catch (Exception ignored) {}
+        return response;
     }
 
     @PutMapping("/password")

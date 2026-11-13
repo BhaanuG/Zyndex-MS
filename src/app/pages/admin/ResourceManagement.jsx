@@ -37,6 +37,7 @@ const emptyResource = {
   resourceType: 'pdf',
   requiredPlan: 'FREE',
   description: '',
+  articleContent: '',
   file: null,
   currentFileUrl: '',
   currentFileName: '',
@@ -264,6 +265,7 @@ export default function ResourceManagement() {
       resourceType: '',
       requiredPlan: 'FREE',
       description: '',
+      articleContent: '',
       file: null,
     });
     setShowCreateModal(true);
@@ -289,6 +291,7 @@ export default function ResourceManagement() {
             ? 'article'
             : resource.resourceType || resource.type || 'pdf',
       description: resource.description,
+      articleContent: resource.articleContent || resource.description || '',
       file: null,
       currentFileUrl: resource.fileUrl || '',
       currentFileName: resource.fileName || '',
@@ -355,6 +358,9 @@ export default function ResourceManagement() {
       payload.append('resourceType', createResource.resourceType);
       payload.append('requiredPlan', createResource.requiredPlan || 'FREE');
       payload.append('description', createResource.description);
+      if (createResource.articleContent) {
+        payload.append('articleContent', createResource.articleContent);
+      }
       if (createResource.file) payload.append('file', createResource.file);
 
       const startTime = Date.now();
@@ -427,6 +433,9 @@ export default function ResourceManagement() {
       payload.append('resourceType', formResource.resourceType);
       payload.append('requiredPlan', formResource.requiredPlan || 'FREE');
       payload.append('description', formResource.description);
+      if (formResource.articleContent) {
+        payload.append('articleContent', formResource.articleContent);
+      }
       if (formResource.file) payload.append('file', formResource.file);
 
       const startTime = Date.now();
@@ -668,9 +677,27 @@ export default function ResourceManagement() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">{createResource.resourceType === 'article' ? 'Linked Article' : 'Description'}</label>
-                    {createResource.resourceType === 'article' ? <ArticleEditor value={createResource.description} onChange={(e) => setCreateResource((prev) => ({ ...prev, description: e.target.value }))} /> : <textarea name="description" value={createResource.description} onChange={(e) => setCreateResource((prev) => ({ ...prev, description: e.target.value }))} rows={5} className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none" required />}
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description (Card Summary)</label>
+                    <textarea 
+                      name="description" 
+                      value={createResource.description} 
+                      onChange={(e) => setCreateResource((prev) => ({ ...prev, description: e.target.value }))} 
+                      rows={3} 
+                      placeholder="Brief overview of the resource shown on search and category cards..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none" 
+                      required 
+                    />
                   </div>
+
+                  {createResource.resourceType === 'article' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Article Studio Content</label>
+                      <ArticleEditor 
+                        value={createResource.articleContent || ''} 
+                        onChange={(val) => setCreateResource((prev) => ({ ...prev, articleContent: val }))} 
+                      />
+                    </div>
+                  )}
                   {createResource.resourceType !== 'article' && (
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -805,9 +832,26 @@ export default function ResourceManagement() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">{formResource.resourceType === 'article' ? 'Linked Article' : 'Description'}</label>
-                    {formResource.resourceType === 'article' ? <ArticleEditor value={formResource.description} onChange={(e) => setFormResource({ ...formResource, description: e.target.value })} /> : <textarea value={formResource.description} onChange={(e) => setFormResource({ ...formResource, description: e.target.value })} rows={4} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-none text-sm" placeholder="Description" required />}
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Description (Card Summary)</label>
+                    <textarea 
+                      value={formResource.description} 
+                      onChange={(e) => setFormResource({ ...formResource, description: e.target.value })} 
+                      rows={3} 
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-none text-sm" 
+                      placeholder="Brief overview of the resource shown on search and category cards..." 
+                      required 
+                    />
                   </div>
+
+                  {formResource.resourceType === 'article' && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">Article Studio Content</label>
+                      <ArticleEditor 
+                        value={formResource.articleContent || ''} 
+                        onChange={(val) => setFormResource({ ...formResource, articleContent: val })} 
+                      />
+                    </div>
+                  )}
                   {formResource.resourceType !== 'article' && formResource.currentFileName && (
                     <div className="flex items-start gap-3 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-3">
                       <FileText className="size-4 mt-0.5 flex-shrink-0" />

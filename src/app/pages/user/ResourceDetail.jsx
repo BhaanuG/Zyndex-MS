@@ -352,13 +352,6 @@ export default function ResourceDetail() {
 
                     {/* Membership & Entitlement Status */}
                     <div className="flex items-center gap-2 flex-wrap pt-1">
-                      <span className="px-3 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs">
-                        <span className="size-1.5 rounded-full bg-blue-500" />
-                        Plan: {userPlanName}
-                      </span>
-                      <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1.5">
-                        {userTimeLeft}
-                      </span>
                       <span className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs ${
                         requiredTier === 0
                           ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
@@ -382,7 +375,7 @@ export default function ResourceDetail() {
                     <div className="article-reader-container bg-white rounded-2xl p-2 sm:p-6">
                       <div 
                         className="article-content text-slate-800 leading-relaxed font-serif text-[16px] sm:text-[17px] space-y-4"
-                        dangerouslySetInnerHTML={{ __html: resource.description || '' }}
+                        dangerouslySetInnerHTML={{ __html: resource.articleContent || resource.description || '' }}
                       />
                     </div>
                   </div>
@@ -427,8 +420,16 @@ export default function ResourceDetail() {
                     </div>
                     <div className="pt-2 flex justify-center gap-3">
                       <button
-                        onClick={() => navigate('/pricing')}
-                        className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl text-sm hover:from-orange-700 hover:to-red-700 shadow-md transition-all flex items-center gap-2"
+                        onClick={() => {
+                          if (user) {
+                            const safeName = user?.name ? encodeURIComponent(user.name.replace(/\s+/g, '-')) : 'user';
+                            const safeEmail = user?.email ? encodeURIComponent(user.email) : 'email';
+                            navigate(`/Zyndex/User/${safeName}/${safeEmail}/Profile/Billing/Pricing`);
+                          } else {
+                            navigate('/Zyndex/About/Pricing');
+                          }
+                        }}
+                        className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl text-sm hover:from-orange-700 hover:to-red-700 shadow-md transition-all flex items-center gap-2 cursor-pointer"
                       >
                         <ShieldCheck className="size-4" />
                         Upgrade Plan to Unlock

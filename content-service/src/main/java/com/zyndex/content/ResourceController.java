@@ -97,23 +97,44 @@ class ResourceController {
         String subject = field(form, "subject", "author");
         String resourceType = field(form, "resourceType", "type");
         String description = field(form, "description");
+        String articleContent = field(form, "articleContent", "content");
         String requiredPlan = form.getOrDefault("requiredPlan", "FREE");
         if (requiredPlan == null || requiredPlan.isBlank()) {
             requiredPlan = "FREE";
         }
         requiredPlan = requiredPlan.toUpperCase();
 
-        boolean isPdf = "pdf".equalsIgnoreCase(resourceType) || "guide".equalsIgnoreCase(resourceType);
-        if (blank(title) || blank(category) || blank(subject) || blank(resourceType) || blank(description) || (isPdf && (file == null || file.isEmpty()))) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, isPdf ? "All PDF fields and a file are required." : "All article fields are required.");
+        boolean isPdf = "pdf".equalsIgnoreCase(resourceType) || "guide".equalsIgnoreCase(resourceType) || "textbook".equalsIgnoreCase(resourceType);
+        boolean isArticle = "article".equalsIgnoreCase(resourceType) || "paper".equalsIgnoreCase(resourceType);
+
+        if (blank(title) || blank(category) || blank(subject) || blank(resourceType)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Title, category, author, and resource type are required.");
+        }
+        if (isPdf && (blank(description) || file == null || file.isEmpty())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Description and a PDF file are required.");
+        }
+        if (isArticle && blank(articleContent) && blank(description)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Article content is required.");
+        }
+
+        // For articles, if plain description is blank, synthesize one from the article text/content
+        if (isArticle) {
+            if (blank(articleContent)) {
+                articleContent = description;
+            }
+            if (blank(description)) {
+                // Strip HTML tags for the summary description card
+                String plain = articleContent.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+                description = plain.length() > 250 ? plain.substring(0, 247) + "..." : plain;
+            }
         }
 
         String fileUrl = file == null || file.isEmpty() ? null : storeFile(file);
         jdbc.update("""
                 INSERT INTO resources
-                (approved, downloads_count, rating, created_at, updated_at, uploaded_by, description, author, category, file_url, image_url, title, type, required_plan)
-                VALUES (1, 0, 0, NOW(), NOW(), ?, ?, ?, ?, ?, NULL, ?, ?, ?)
-                """, userId, description, subject, category, fileUrl, title, SqlSupport.dbType(resourceType), requiredPlan);
+                (approved, downloads_count, rating, created_at, updated_at, uploaded_by, description, article_content, author, category, file_url, image_url, title, type, required_plan)
+                VALUES (1, 0, 0, NOW(), NOW(), ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)
+                """, userId, description, articleContent, subject, category, fileUrl, title, SqlSupport.dbType(resourceType), requiredPlan);
         return Map.of("message", "Resource uploaded successfully.", "resourceId", jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class));
     }
 
@@ -134,18 +155,37 @@ class ResourceController {
         String subject = field(form, "subject", "author");
         String resourceType = field(form, "resourceType", "type");
         String description = field(form, "description");
+        String articleContent = field(form, "articleContent", "content");
         String requiredPlan = form.getOrDefault("requiredPlan", SqlSupport.str(rows.get(0).get("required_plan")));
         if (requiredPlan == null || requiredPlan.isBlank()) {
             requiredPlan = "FREE";
         }
         requiredPlan = requiredPlan.toUpperCase();
 
+        boolean isArticle = "article".equalsIgnoreCase(resourceType) || "paper".equalsIgnoreCase(resourceType);
+        if (isArticle) {
+            if (blank(articleContent)) {
+                articleContent = SqlSupport.str(rows.get(0).get("article_content"));
+            }
+            if (blank(articleContent)) {
+                articleContent = description;
+            }
+            if (blank(description)) {
+                String plain = articleContent.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+                description = plain.length() > 250 ? plain.substring(0, 247) + "..." : plain;
+            }
+        } else {
+            if (blank(articleContent)) {
+                articleContent = SqlSupport.str(rows.get(0).get("article_content"));
+            }
+        }
+
         String fileUrl = SqlSupport.str(rows.get(0).get("file_url"));
         if (file != null && !file.isEmpty()) {
             fileUrl = storeFile(file);
         }
-        jdbc.update("UPDATE resources SET description = ?, author = ?, category = ?, file_url = ?, title = ?, type = ?, required_plan = ?, updated_at = NOW() WHERE id = ?",
-                description, subject, category, fileUrl, title, SqlSupport.dbType(resourceType), requiredPlan, id);
+        jdbc.update("UPDATE resources SET description = ?, article_content = ?, author = ?, category = ?, file_url = ?, title = ?, type = ?, required_plan = ?, updated_at = NOW() WHERE id = ?",
+                description, articleContent, subject, category, fileUrl, title, SqlSupport.dbType(resourceType), requiredPlan, id);
         return Map.of("message", "Resource updated successfully.");
     }
 

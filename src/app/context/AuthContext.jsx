@@ -115,6 +115,9 @@ export const AuthProvider = ({ children }) => {
   const refreshUser = async () => {
     try {
       const currentUser = await authService.getCurrentUser();
+      if (currentUser?.token) {
+        localStorage.setItem('auth_token', currentUser.token);
+      }
       setUser(currentUser);
       setRole(currentUser.role);
       return currentUser;
@@ -280,6 +283,15 @@ export const AuthProvider = ({ children }) => {
     const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     activityEvents.forEach((evt) => window.addEventListener(evt, updateActivity, { passive: true }));
 
+    // Periodic heartbeat: Every 15 minutes, if user was active recently (< 15 mins), refresh the JWT session token
+    // This guarantees that an active user's session never abruptly dies at 2.5 hours
+    const tokenRefreshInterval = window.setInterval(() => {
+      const idleTime = Date.now() - lastActivityRef.current;
+      if (idleTime < 15 * 60 * 1000) {
+        refreshUser();
+      }
+    }, 15 * 60 * 1000);
+
     const checkInterval = window.setInterval(() => {
       const idleTime = Date.now() - lastActivityRef.current;
 
@@ -318,6 +330,7 @@ export const AuthProvider = ({ children }) => {
       activityEvents.forEach((evt) => window.removeEventListener(evt, updateActivity));
       window.removeEventListener('zyndex:session-continue', handleContinueSession);
       window.removeEventListener('zyndex:session-force-logout', handleForceLogout);
+      window.clearInterval(tokenRefreshInterval);
       window.clearInterval(checkInterval);
     };
   }, [user?.id, role]);

@@ -112,7 +112,7 @@ export default function UserHome() {
     async function loadHome() {
       const [categoryResult, featuredResult, favoritesResult, recentViewsResult] = await Promise.allSettled([
         resourceService.getCategories(),
-        resourceService.getFeaturedResources(12),
+        resourceService.getFeaturedResources(6),
         userService.getFavorites({ size: 100 }),
         userService.getRecentViews({ size: 12 }),
       ]);
@@ -125,7 +125,8 @@ export default function UserHome() {
       }
 
       if (featuredResult.status === 'fulfilled') {
-        setResources(Array.isArray(featuredResult.value) ? featuredResult.value : []);
+        const raw = Array.isArray(featuredResult.value) ? featuredResult.value : (featuredResult.value?.resources || []);
+        setResources(raw.slice(0, 6));
       } else {
         console.error('Failed to load featured resources:', featuredResult.reason);
         setResources([]);

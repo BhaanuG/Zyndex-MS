@@ -34,6 +34,7 @@ public class SqlSupport {
         resource.put("type", type);
         resource.put("resourceType", type);
         resource.put("description", first(row.get("description"), ""));
+        resource.put("articleContent", first(row.get("article_content"), ""));
         resource.put("fileName", fileUrl.isBlank() ? "" : Path.of(fileUrl).getFileName().toString());
         resource.put("fileUrl", fileUrl);
         resource.put("hasDownload", !fileUrl.isBlank());
