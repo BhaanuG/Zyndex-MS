@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router';
-import { BookOpen, Search, User, LogOut, ArrowLeft, X, Sparkles, CreditCard, Menu } from 'lucide-react';
+import { BookOpen, User, LogOut, ArrowLeft, Sparkles, CreditCard, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import MaintenanceCountdownBar from './MaintenanceCountdownBar';
 
@@ -9,10 +9,7 @@ export default function UserLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, getUrlSafeName, getUrlSafeEmail } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSearchResults, setShowSearchResults] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const searchRef = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -33,37 +30,6 @@ export default function UserLayout({ children }) {
   const userName = getUrlSafeName();
   const userEmail = getUrlSafeEmail();
   const baseUrl = `/Zyndex/User/${userName}/${userEmail}`;
-
-  // Close search dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSearchResults(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    setShowSearchResults(e.target.value.trim().length > 0);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`${baseUrl}/Search?q=${encodeURIComponent(searchQuery)}`);
-      setShowSearchResults(false);
-      setSearchQuery('');
-    }
-  };
-
-  const clearSearch = () => {
-    setSearchQuery('');
-    setShowSearchResults(false);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -133,71 +99,8 @@ export default function UserLayout({ children }) {
             })()}
           </div>
 
-          {/* Remove middle search bar from header on Home page if on Home */}
-          {!location.pathname.includes('/Home') ? (
-            <div className="flex-1 max-w-xs md:max-w-md lg:max-w-xl relative hidden md:block" ref={searchRef}>
-              <form onSubmit={handleSearchSubmit} className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  placeholder="Search resources..."
-                  className="w-full pl-10 pr-10 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={clearSearch}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="size-4" />
-                  </button>
-                )}
-              </form>
-
-              {/* Live Search Results Dropdown */}
-              <AnimatePresence>
-                {showSearchResults && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
-                  >
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-medium text-gray-700">Live Results</p>
-                        <p className="text-xs text-gray-500">Type to search...</p>
-                      </div>
-                      
-                      {searchQuery.length > 0 ? (
-                        <div className="space-y-2">
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="py-8 text-center text-gray-400"
-                          >
-                            <Search className="size-12 mx-auto mb-3 text-gray-300" />
-                            <p className="text-sm font-medium mb-1">No resources found</p>
-                            <p className="text-xs">Press Enter to search for "{searchQuery}"</p>
-                          </motion.div>
-                        </div>
-                      ) : (
-                        <div className="py-8 text-center text-gray-400">
-                          <Search className="size-12 mx-auto mb-3 text-gray-300" />
-                          <p className="text-xs">Start typing to see results</p>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
-            <div className="flex-1" />
-          )}
+          {/* Spacer between brand badge and navigation */}
+          <div className="flex-1" />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-4 lg:gap-5">
@@ -265,20 +168,6 @@ export default function UserLayout({ children }) {
               transition={{ duration: 0.2 }}
               className="md:hidden border-t border-gray-100 mt-3 pt-3 pb-2 space-y-2 bg-white"
             >
-              {/* Mobile Search Bar inside dropdown */}
-              {!location.pathname.includes('/Home') && (
-                <form onSubmit={handleSearchSubmit} className="relative px-2 mb-3">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder="Search resources..."
-                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </form>
-              )}
-
               <div className="flex flex-col space-y-1 px-2">
                 <Link
                   to={`${baseUrl}/Home`}

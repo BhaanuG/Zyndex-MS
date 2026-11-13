@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { Search, FlaskConical, Calculator, BookOpen, Landmark, Sparkles, TrendingUp, Heart, Brain, Cpu, Atom, Microscope } from 'lucide-react';
+import { Search, FlaskConical, Calculator, BookOpen, Landmark, Sparkles, TrendingUp, Heart, Brain, Cpu, Atom, Microscope, X, ArrowRight, Loader2 } from 'lucide-react';
 import UserLayout from '@/app/components/UserLayout';
 import { useAuth } from '@/app/context/AuthContext';
+import { TransitionLoader } from '@/app/components/PageTransitionWrapper';
 import resourceService from '@/services/api/resourceService';
 import userService from '@/services/api/userService';
 
@@ -27,11 +28,66 @@ const preferredCategoryOrder = ['AI', 'ML', 'Mathematics', 'Maths', 'Physics', '
 export default function UserHome() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [liveSearchResults, setLiveSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showLiveDropdown, setShowLiveDropdown] = useState(false);
+  const [isBookTransitioning, setIsBookTransitioning] = useState(false);
+  const searchContainerRef = useRef(null);
+  const searchDebounceRef = useRef(null);
+
   const [categories, setCategories] = useState([]);
   const [resources, setResources] = useState([]);
   const [recentViews, setRecentViews] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
   const { getUrlSafeName, getUrlSafeEmail, user } = useAuth();
+
+  // Close live search dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setShowLiveDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch live search results as user types (debounced 250ms)
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (trimmed.length === 0) {
+      setLiveSearchResults([]);
+      setIsSearching(false);
+      setShowLiveDropdown(false);
+      return;
+    }
+
+    setShowLiveDropdown(true);
+    setIsSearching(true);
+
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await resourceService.searchResources({ query: trimmed, size: 8 });
+        const list = Array.isArray(res) ? res : (res?.resources || []);
+        setLiveSearchResults(list);
+      } catch (err) {
+        console.error('Failed to perform live search:', err);
+        setLiveSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     async function loadHome() {
@@ -81,12 +137,27 @@ export default function UserHome() {
     navigate(`/Zyndex/User/${userName}/${userEmail}/Search?category=${encodeURIComponent(category)}`);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
+  const handleResourceClick = (resourceId) => {
+    setShowLiveDropdown(false);
+    setIsBookTransitioning(true);
+    const userName = getUrlSafeName();
+    const userEmail = getUrlSafeEmail();
+    setTimeout(() => {
+      navigate(`/Zyndex/User/${userName}/${userEmail}/Resource/${resourceId}`);
+    }, 5000);
+  };
+
+  const handleSeeAllResults = () => {
     if (!searchQuery.trim()) return;
+    setShowLiveDropdown(false);
     const userName = getUrlSafeName();
     const userEmail = getUrlSafeEmail();
     navigate(`/Zyndex/User/${userName}/${userEmail}/Search?query=${encodeURIComponent(searchQuery)}`);
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    handleSeeAllResults();
   };
 
   const toggleFavorite = async (e, resourceId) => {
@@ -149,28 +220,145 @@ export default function UserHome() {
               Explore our live collection of educational resources from the backend.
             </p>
 
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto flex gap-3">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
-                <input
-                  value={searchQuery}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSearchQuery(val);
-                    if (val.trim().length >= 2) {
-                      const userName = getUrlSafeName();
-                      const userEmail = getUrlSafeEmail();
-                      navigate(`/Zyndex/User/${userName}/${userEmail}/Search?query=${encodeURIComponent(val)}`);
-                    }
-                  }}
-                  placeholder="Search by title, author of resource, or keyword"
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl border border-orange-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-              </div>
-              <button type="submit" className="px-6 py-4 rounded-2xl bg-orange-600 text-white font-semibold hover:bg-orange-700 transition-colors">
-                Search
-              </button>
-            </form>
+            {/* Interactive Live Search Bar */}
+            <div className="max-w-2xl mx-auto relative z-30" ref={searchContainerRef}>
+              <form onSubmit={handleSearch} className="flex gap-3">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => {
+                      if (searchQuery.trim().length > 0) setShowLiveDropdown(true);
+                    }}
+                    placeholder="Search by title, author, or keyword (live search)..."
+                    className="w-full pl-12 pr-10 py-4 rounded-2xl border border-orange-200 bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 placeholder-gray-400 text-base transition-all"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setLiveSearchResults([]);
+                        setShowLiveDropdown(false);
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="size-5" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="px-6 py-4 rounded-2xl bg-orange-600 text-white font-semibold hover:bg-orange-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Search</span>
+                </button>
+              </form>
+
+              {/* Instant Live Search Results Overlay Dropdown */}
+              <AnimatePresence>
+                {showLiveDropdown && searchQuery.trim().length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-orange-100 overflow-hidden text-left"
+                  >
+                    {/* Header bar */}
+                    <div className="px-5 py-3.5 bg-gradient-to-r from-orange-50 to-amber-50/50 border-b border-orange-100/60 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-orange-900 uppercase tracking-wider">
+                        <Sparkles className="size-3.5 text-orange-500" />
+                        <span>Live Search Results</span>
+                      </div>
+                      {isSearching ? (
+                        <div className="flex items-center gap-1.5 text-xs text-orange-600 font-medium">
+                          <Loader2 className="size-3.5 animate-spin" />
+                          <span>Searching...</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500 font-medium">
+                          {liveSearchResults.length} {liveSearchResults.length === 1 ? 'result' : 'results'} found
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Results list */}
+                    <div className="max-h-96 overflow-y-auto divide-y divide-gray-100">
+                      {isSearching && liveSearchResults.length === 0 ? (
+                        <div className="p-8 text-center text-gray-400">
+                          <Loader2 className="size-8 text-orange-500 animate-spin mx-auto mb-2" />
+                          <p className="text-sm font-medium text-gray-600">Searching library resources...</p>
+                        </div>
+                      ) : liveSearchResults.length > 0 ? (
+                        liveSearchResults.map((item) => (
+                          <div
+                            key={item.id}
+                            onClick={() => handleResourceClick(item.id)}
+                            className="p-4 hover:bg-orange-50/60 transition-all cursor-pointer flex items-center justify-between gap-4 group"
+                          >
+                            <div className="flex items-start gap-3.5 min-w-0">
+                              <div className="size-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                                <BookOpen className="size-5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <h4 className="font-bold text-gray-900 group-hover:text-orange-600 transition-colors text-sm truncate">
+                                    {item.title}
+                                  </h4>
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 shrink-0">
+                                    {item.category || 'General'}
+                                  </span>
+                                  {item.type && (
+                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0 uppercase">
+                                      {item.type}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500 line-clamp-1 mb-1">
+                                  {item.description || 'No description provided.'}
+                                </p>
+                                <p className="text-[11px] text-gray-400 font-medium">
+                                  Author: <span className="text-gray-600">{item.author || item.subject || 'Academic Faculty'}</span>
+                                </p>
+                              </div>
+                            </div>
+                            <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-orange-600 group-hover:translate-x-1 transition-transform">
+                              <span>Open</span>
+                              <ArrowRight className="size-3.5" />
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-8 text-center text-gray-400">
+                          <BookOpen className="size-10 text-gray-300 mx-auto mb-2" />
+                          <p className="text-sm font-semibold text-gray-700 mb-1">No matching resources found</p>
+                          <p className="text-xs text-gray-500">
+                            No materials matched &ldquo;{searchQuery}&rdquo;. Try another keyword or author.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer link to full SearchResults page */}
+                    {liveSearchResults.length > 0 && (
+                      <div className="p-3 bg-gray-50/80 border-t border-gray-100 text-center">
+                        <button
+                          type="button"
+                          onClick={handleSeeAllResults}
+                          className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
+                        >
+                          <span>See all results for &ldquo;{searchQuery}&rdquo;</span>
+                          <ArrowRight className="size-3" />
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}>
@@ -323,6 +511,13 @@ export default function UserHome() {
           </motion.div>
         </div>
       </div>
+
+      {/* 5-second rotating book transition modal upon selecting a search item */}
+      <AnimatePresence>
+        {isBookTransitioning && (
+          <TransitionLoader duration={5000} message="Loading resource..." />
+        )}
+      </AnimatePresence>
     </UserLayout>
   );
 }
