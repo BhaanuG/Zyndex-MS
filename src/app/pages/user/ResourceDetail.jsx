@@ -26,8 +26,8 @@ const PLAN_NAMES = {
   STUDENT_BASIC: 'Student Basic',
   STUDENT_PLUS: 'Student Plus',
   RESEARCHER_PRO: 'PhD Scholar / Researcher',
-  UNIVERSITY: 'University',
-  ENTERPRISE: 'Enterprise / Institution',
+  UNIVERSITY: 'Academic Faculty & Educator',
+  ENTERPRISE: 'Distinguished Fellow & Scholar',
 };
 
 export default function ResourceDetail() {

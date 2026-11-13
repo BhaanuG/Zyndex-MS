@@ -24,8 +24,8 @@ const PLATFORM_PLANS = [
   { id: 'STUDENT_BASIC', name: 'Student Basic', badgeClass: 'bg-blue-100 text-blue-700' },
   { id: 'STUDENT_PLUS', name: 'Student Plus', badgeClass: 'bg-indigo-100 text-indigo-700' },
   { id: 'RESEARCHER_PRO', name: 'PhD Scholar / Researcher', badgeClass: 'bg-orange-100 text-orange-700 border border-orange-200' },
-  { id: 'UNIVERSITY', name: 'University', badgeClass: 'bg-purple-100 text-purple-700' },
-  { id: 'ENTERPRISE', name: 'Enterprise / Institution', badgeClass: 'bg-emerald-100 text-emerald-800 border border-emerald-200' },
+  { id: 'UNIVERSITY', name: 'Academic Faculty & Educator', badgeClass: 'bg-indigo-100 text-indigo-700 border border-indigo-200' },
+  { id: 'ENTERPRISE', name: 'Distinguished Fellow & Scholar', badgeClass: 'bg-purple-100 text-purple-800 border border-purple-200' },
 ];
 
 const emptyResource = {
@@ -576,8 +576,8 @@ export default function ResourceManagement() {
                           : resource.requiredPlan === 'RESEARCHER_PRO'
                           ? 'bg-orange-100 text-orange-700 border border-orange-200'
                           : resource.requiredPlan === 'UNIVERSITY'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                          : 'bg-purple-100 text-purple-800 border border-purple-200'
                       }`}>
                         {PLATFORM_PLANS.find(p => p.id === resource.requiredPlan)?.name || (resource.requiredPlan || 'FREE').replace('_', ' ')}
                       </span>

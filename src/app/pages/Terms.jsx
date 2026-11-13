@@ -132,7 +132,7 @@ export default function Terms() {
       content: [
         {
           subtitle: 'Transparent Pricing & UPI Protocol',
-          text: 'Zyndex offers individual scholar subscription tiers: Free / Demo (₹0/mo), Student Basic (₹199/mo), Student Plus (₹499/mo), PhD Scholar / Researcher (₹799/mo), Academic Faculty & Educator (₹999/mo), and Distinguished Fellow & Scholar (₹1,999/mo). Upgrades are paid in Indian Rupees (INR) via direct merchant UPI transfer presented in the dedicated checkout screen with 12-digit UTR reference validation. QR payment sessions expire strictly after 5 minutes, and subsequent UTR submission windows remain valid for 10 minutes before auto-expiring.'
+          text: 'Zyndex offers individual scholar subscription tiers: Free / Demo (₹0/mo), Student Basic (₹99/mo), Student Plus (₹199/mo), PhD Scholar / Researcher (₹499/mo), Academic Faculty & Educator (₹999/mo), and Distinguished Fellow & Scholar (₹1,999/mo). Upgrades are paid in Indian Rupees (INR) via direct merchant UPI transfer presented in the dedicated checkout screen with 12-digit UTR reference validation. QR payment sessions expire strictly after 5 minutes, and subsequent UTR submission windows remain valid for 10 minutes before auto-expiring.'
         },
         {
           subtitle: 'Active Plan Exclusivity Rule',

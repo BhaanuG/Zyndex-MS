@@ -81,7 +81,7 @@ export default function FAQ() {
     },
     {
       question: 'How do the new academic plans and visual plan badges work?',
-      answer: 'Zyndex offers specialized scholar tiers: Student Basic (₹199/mo), Student Plus (₹499/mo), PhD Scholar / Researcher (₹799/mo), Academic Faculty & Educator (₹999/mo), and Distinguished Fellow & Scholar (₹1,999/mo), alongside our Free tier. Each plan displays a distinct symbol and color badge beside your Zyndex logo: Circle "○" (Blue) for Student Basic, Stacked Diamonds "⬦" (Amber) for Student Plus, Four-Point Sparkle "✦" (Teal) for PhD Scholar, Hexagon with Core Dot "⬢" (Indigo) for Academic Faculty, and Sleek Infinity Loop "∞" (Purple) for Distinguished Fellow.',
+      answer: 'Zyndex offers specialized scholar tiers: Student Basic (₹99/mo), Student Plus (₹199/mo), PhD Scholar / Researcher (₹499/mo), Academic Faculty & Educator (₹999/mo), and Distinguished Fellow & Scholar (₹1,999/mo), alongside our Free tier. Each plan displays a distinct symbol and color badge beside your Zyndex logo: Circle "○" (Blue) for Student Basic, Stacked Diamonds "⬦" (Amber) for Student Plus, Four-Point Sparkle "✦" (Teal) for PhD Scholar, Hexagon with Core Dot "⬢" (Indigo) for Academic Faculty, and Sleek Infinity Loop "∞" (Purple) for Distinguished Fellow.',
     },
     {
       question: 'Can I purchase another plan while I have an active subscription?',

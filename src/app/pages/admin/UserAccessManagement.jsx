@@ -30,8 +30,8 @@ const PLATFORM_PLANS = [
   { id: 'STUDENT_BASIC', name: 'Student Basic' },
   { id: 'STUDENT_PLUS', name: 'Student Plus' },
   { id: 'RESEARCHER_PRO', name: 'PhD Scholar / Researcher' },
-  { id: 'UNIVERSITY', name: 'University' },
-  { id: 'ENTERPRISE', name: 'Enterprise / Institution' }
+  { id: 'UNIVERSITY', name: 'Academic Faculty & Educator' },
+  { id: 'ENTERPRISE', name: 'Distinguished Fellow & Scholar' }
 ];
 
 export default function UserAccessManagement() {
@@ -631,8 +631,8 @@ export default function UserAccessManagement() {
                               : user.subscriptionPlan === 'RESEARCHER_PRO'
                               ? 'bg-orange-100 text-orange-700 border border-orange-200'
                               : user.subscriptionPlan === 'UNIVERSITY'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                              : 'bg-purple-100 text-purple-800 border border-purple-200'
                           }`}>
                             {PLATFORM_PLANS.find(p => p.id === user.subscriptionPlan)?.name || (user.subscriptionPlan || 'FREE').replace('_', ' ')}
                           </span>

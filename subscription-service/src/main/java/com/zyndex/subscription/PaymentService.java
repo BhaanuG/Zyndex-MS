@@ -490,7 +490,7 @@ public class PaymentService {
             return;
         }
 
-        int durationDays = (planId.contains("UNIVERSITY") || planId.contains("ENTERPRISE")) ? 365 : 30;
+        int durationDays = 30; // All plans now billed monthly (30 days)
         String subscriptionId = "SUB_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 
         // 1. Update payment to SUCCESS
@@ -647,7 +647,7 @@ public class PaymentService {
             double amountRupees = amountPaise / 100.0;
             LocalDate startDate = LocalDate.now();
             LocalDate endDate = startDate.plusDays(durationDays);
-            String billingPeriod = durationDays > 30 ? "Annual (365 Days)" : "Monthly (30 Days)";
+            String billingPeriod = "Monthly (30 Days)";
 
             String content = String.format(
                     """

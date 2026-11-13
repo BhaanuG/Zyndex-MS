@@ -126,8 +126,8 @@ public class DbInitializer implements CommandLineRunner {
         seedPlan("STUDENT_BASIC", "Student Basic", "Online reading for individual students", 9900L, "MONTH");
         seedPlan("STUDENT_PLUS", "Student Plus", "Entire catalog with offline browser saving", 19900L, "MONTH");
         seedPlan("RESEARCHER_PRO", "PhD Scholar / Researcher", "Complete research collection and downloads", 49900L, "MONTH");
-        seedPlan("UNIVERSITY", "University", "Institutional campus-wide access", 10000000L, "YEAR");
-        seedPlan("ENTERPRISE", "Enterprise / Institution", "Organization-wide access with custom rules", 30000000L, "YEAR");
+        seedPlan("UNIVERSITY", "Academic Faculty & Educator", "Complete academic catalog for professors & academic mentors", 99900L, "MONTH");
+        seedPlan("ENTERPRISE", "Distinguished Fellow & Scholar", "Priority research access for postdoctoral fellows & senior researchers", 199900L, "MONTH");
     }
 
     private void addColumnIfNotExists(String tableName, String columnName, String columnDefinition) {
