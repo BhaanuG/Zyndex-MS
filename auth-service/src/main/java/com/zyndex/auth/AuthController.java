@@ -303,10 +303,7 @@ class AuthController {
             // Mark as untrusted instead of deleting so the login history remains visible in Security & Devices
             jdbc.update("UPDATE trusted_devices SET is_trusted = FALSE WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
         }
-        return Map.of("untrusted", true);
-    }
-
-        return Map.of("message", "Device trust removed successfully.");
+        return Map.of("message", "Device trust removed successfully.", "untrusted", true);
     }
 
     @GetMapping("/account-details")
