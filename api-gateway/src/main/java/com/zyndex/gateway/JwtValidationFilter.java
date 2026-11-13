@@ -184,10 +184,6 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
         return Keys.hmacShaKeyFor(key);
     }
 
-    protected Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus status) {
-        return onError(exchange, err, status.name(), status);
-    }
-
     private Mono<Void> onError(ServerWebExchange exchange, String err, String code, HttpStatus status) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(status);
