@@ -942,7 +942,7 @@ export default function AdminLogs() {
             {/* Admin Logs Table */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-gray-600">
+                <table className="w-full text-left text-sm text-gray-600 min-w-[880px]">
                   <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-500 border-b border-gray-100">
                     <tr>
                       <th className="px-6 py-3.5">Log ID</th>
@@ -1241,7 +1241,7 @@ export default function AdminLogs() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-gray-600">
+                <table className="w-full text-left text-sm text-gray-600 min-w-[850px]">
                   <thead className="bg-gray-50/80 text-xs uppercase font-semibold text-gray-500 border-b border-gray-100">
                     <tr>
                       <th className="px-6 py-3.5">Session</th>
@@ -1472,7 +1472,7 @@ export default function AdminLogs() {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-gray-600">
+                <table className="w-full text-left text-sm text-gray-600 min-w-[850px]">
                   <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-500 border-b border-gray-100">
                     <tr>
                       <th className="px-6 py-3.5">Log ID</th>

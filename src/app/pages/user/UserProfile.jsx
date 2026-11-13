@@ -848,7 +848,8 @@ export default function UserProfile() {
                       {payments.length === 0 ? (
                         <p className="text-sm text-slate-500 py-8 text-center">No payment transactions recorded.</p>
                       ) : (
-                        <table className="w-full text-sm text-left">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-left min-w-[640px]">
                           <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
                               <th className="py-3 px-4 font-semibold text-slate-600">Date</th>
@@ -926,6 +927,7 @@ export default function UserProfile() {
                             ))}
                           </tbody>
                         </table>
+                      </div>
                       )}
                     </div>
                   </div>

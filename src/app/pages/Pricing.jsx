@@ -829,7 +829,7 @@ export default function Pricing() {
                     {/* Payment Method Tabs */}
                     <div>
                       <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5 block">Select Payment Method</label>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <button
                           type="button"
                           onClick={() => setActivePaymentMethod('upi')}
@@ -1082,7 +1082,7 @@ export default function Pricing() {
                         )}
 
                         {upiSubOption === 'apps' && (
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <button
                               type="button"
                               onClick={() => handleAutoExecutePayment('UPI', { label: 'Google Pay' })}
@@ -1199,7 +1199,7 @@ export default function Pricing() {
                     {activePaymentMethod === 'netbanking' && (
                       <div className="space-y-4">
                         <label className="text-xs font-semibold text-slate-700 block">Popular Indian Banks</label>
-                        <div className="grid grid-cols-3 gap-2.5">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                           {[
                             { id: 'HDFC', name: 'HDFC Bank' },
                             { id: 'SBI', name: 'State Bank of India' },

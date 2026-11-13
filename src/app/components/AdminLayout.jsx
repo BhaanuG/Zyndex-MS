@@ -6,10 +6,19 @@ import { useAuth } from '../context/AuthContext';
 import logService from '@/services/api/logService';
 import MaintenanceCountdownBar from './MaintenanceCountdownBar';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/app/components/ui/resizable';
+import { useIsMobile } from '@/app/components/ui/use-mobile';
 
 export default function AdminLayout({ children }) {
+  const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
+
+  // Auto-close sidebar on mobile devices so it doesn't squish or overflow screen
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [isMobile]);
   const location = useLocation();
   const { user, logout, getUrlSafeName, getUrlSafeEmail, isPrimaryAdmin } = useAuth();
   const lastLoggedPathRef = useRef('');
@@ -240,14 +249,15 @@ export default function AdminLayout({ children }) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-30 shadow-2xs">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-4">
               <motion.button
                 onClick={() => setSidebarOpen(true)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Open sidebar"
               >
                 <Menu className="size-5" />
               </motion.button>
@@ -256,33 +266,33 @@ export default function AdminLayout({ children }) {
               {isProfilePage && (
                 <motion.button
                   onClick={() => navigate(`${baseUrl}/Dashboard`)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Home className="size-4" />
-                  Dashboard
+                  <span className="hidden xs:inline">Dashboard</span>
                 </motion.button>
               )}
               
               {showBackButton && !isProfilePage && (
                 <motion.button
                   onClick={handleBack}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <ArrowLeft className="size-4" />
-                  Back
+                  <span className="hidden xs:inline">Back</span>
                 </motion.button>
               )}
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.name || user?.username || 'Administrator'}</p>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-medium text-gray-900 truncate max-w-[150px]">{user?.name || user?.username || 'Administrator'}</p>
                 <p className="text-xs text-gray-500">Administrator</p>
               </div>
-              <div className="size-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-semibold">
+              <div className="size-8 sm:size-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shrink-0 shadow-2xs">
                 {(user?.name || user?.username || 'A').charAt(0).toUpperCase()}
               </div>
             </div>
@@ -290,7 +300,7 @@ export default function AdminLayout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-3 sm:p-6 overflow-y-auto w-full max-w-full">
           {children}
           <footer className="mt-12 py-6 border-t border-gray-200 text-center text-xs text-gray-500">
             © 2026 Zyndex • A ScholarSphere Digital Company • All rights reserved.
@@ -361,14 +371,15 @@ export default function AdminLayout({ children }) {
         <ResizablePanel defaultSize={80} minSize={50}>
           <div className="flex flex-col h-screen">
             {/* Top Bar */}
-            <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-4">
                   <motion.button
                     onClick={() => setSidebarOpen(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    aria-label="Close sidebar"
                   >
                     <X className="size-5" />
                   </motion.button>
@@ -377,33 +388,33 @@ export default function AdminLayout({ children }) {
                   {isProfilePage && (
                     <motion.button
                       onClick={() => navigate(`${baseUrl}/Dashboard`)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <Home className="size-4" />
-                      Dashboard
+                      <span className="hidden xs:inline">Dashboard</span>
                     </motion.button>
                   )}
                   
                   {showBackButton && !isProfilePage && (
                     <motion.button
                       onClick={handleBack}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <ArrowLeft className="size-4" />
-                      Back
+                      <span className="hidden xs:inline">Back</span>
                     </motion.button>
                   )}
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{user?.name || user?.username || 'Administrator'}</p>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-medium text-gray-900 truncate max-w-[150px]">{user?.name || user?.username || 'Administrator'}</p>
                     <p className="text-xs text-gray-500">Administrator</p>
                   </div>
-                  <div className="size-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-semibold">
+                  <div className="size-8 sm:size-10 bg-orange-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shrink-0 shadow-2xs">
                     {(user?.name || user?.username || 'A').charAt(0).toUpperCase()}
                   </div>
                 </div>
@@ -411,7 +422,7 @@ export default function AdminLayout({ children }) {
             </header>
 
             {/* Page Content */}
-            <main className="flex-1 p-6 overflow-y-auto bg-gray-50">
+            <main className="flex-1 p-3 sm:p-6 overflow-y-auto bg-gray-50 w-full max-w-full">
               {children}
               <footer className="mt-12 py-6 border-t border-gray-200 text-center text-xs text-gray-500">
                 © 2026 Zyndex • A ScholarSphere Digital Company • All rights reserved.

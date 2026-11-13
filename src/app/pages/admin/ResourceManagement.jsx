@@ -545,7 +545,7 @@ export default function ResourceManagement() {
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[760px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Title</th>
