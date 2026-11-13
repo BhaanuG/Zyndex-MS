@@ -517,7 +517,6 @@ class UserController {
         Map<String, Object> admin = auth.requirePrimaryAdmin(request);
         long adminId = AuthSupport.number(admin.get("id"));
         boolean enable = AuthSupport.bool(body.get("enabled"));
-        String actionType = AuthSupport.str(body.get("actionType")); // "SCHEDULE_START" | "FORCE_OFFICIAL_NOW" | "DEACTIVATE"
         
         boolean isCancelledBeforeTimer = false;
         if (enable) {
