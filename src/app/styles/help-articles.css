@@ -211,6 +211,75 @@
   font-weight: 600;
 }
 
+/* LinkedIn-Style Article Visual & Typography Enhancements */
+.article-cover-wrapper {
+  width: 100%;
+  margin-bottom: 2rem;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.article-cover-wrapper img {
+  width: 100%;
+  max-height: 460px;
+  object-fit: cover;
+  border-radius: 1rem;
+}
+
+.article-body-figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.article-body-figure img {
+  border-radius: 1rem;
+  max-height: 540px;
+  width: 100%;
+  object-fit: cover;
+  margin: 0 auto;
+}
+
+.article-body-figure figcaption {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.article-content blockquote {
+  border-left: 4px solid #f97316;
+  padding-left: 1.25rem;
+  margin: 1.5rem 0;
+  color: #334155;
+  font-style: italic;
+  font-size: 1.125rem;
+  background: #fff7ed/40;
+  border-radius: 0 0.75rem 0.75rem 0;
+  padding: 1rem 1.25rem;
+}
+
+.article-content pre {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  font-family: 'Fira Code', 'Roboto Mono', monospace;
+  font-size: 0.875rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.article-content a {
+  color: #ea580c;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.15s ease-in-out;
+}
+
+.article-content a:hover {
+  color: #c2410c;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .article-heading {

@@ -377,20 +377,31 @@ export default function ResourceDetail() {
                   </div>
                 </div>
 
-                <div className="prose max-w-none">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-3">Description</h2>
-                  {isArticle ? <div className="article-content text-gray-700" dangerouslySetInnerHTML={{ __html: resource.description || '' }} /> : <p className="text-gray-700">{resource.description}</p>}
-                  {resource.fileUrl?.includes('example.com') && (
-                    <p className="mt-4 text-sm text-amber-700">
-                      This is seeded demo metadata from the database. Upload a real PDF or article file from the admin panel to replace it with actual preview content.
-                    </p>
-                  )}
-                  {!isArticle && !resource.hasDownload && (
-                    <p className="mt-4 text-sm text-amber-700">
-                      This resource currently has description data only. Upload or attach a file from the admin panel to make it previewable.
-                    </p>
-                  )}
-                </div>
+                {isArticle ? (
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <div className="article-reader-container bg-white rounded-2xl p-2 sm:p-6">
+                      <div 
+                        className="article-content text-slate-800 leading-relaxed font-serif text-[16px] sm:text-[17px] space-y-4"
+                        dangerouslySetInnerHTML={{ __html: resource.description || '' }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="prose max-w-none mt-4">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3">Description</h2>
+                    <p className="text-gray-700">{resource.description}</p>
+                    {resource.fileUrl?.includes('example.com') && (
+                      <p className="mt-4 text-sm text-amber-700">
+                        This is seeded demo metadata from the database. Upload a real PDF or article file from the admin panel to replace it with actual preview content.
+                      </p>
+                    )}
+                    {!resource.hasDownload && (
+                      <p className="mt-4 text-sm text-amber-700">
+                        This resource currently has description data only. Upload or attach a file from the admin panel to make it previewable.
+                      </p>
+                    )}
+                  </div>
+                )}
               </motion.div>
 
               {!isArticle && <motion.div className="bg-white rounded-xl shadow-md p-8 mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

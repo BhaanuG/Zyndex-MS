@@ -5,6 +5,7 @@ import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
 import logService from '@/services/api/logService';
+import LinkedInArticleEditor from '@/app/components/LinkedInArticleEditor';
 
 const defaultCategories = [
   'AI',
@@ -42,53 +43,7 @@ const emptyResource = {
 };
 
 function ArticleEditor({ value, onChange }) {
-  const editorRef = useRef(null);
-
-  const apply = (command, commandValue = null) => {
-    editorRef.current?.focus();
-    document.execCommand(command, false, commandValue);
-    if (editorRef.current) onChange({ target: { value: editorRef.current.innerHTML } });
-  };
-
-  const toolbarButton = (command, commandValue = null, children) => (
-    <button
-      type="button"
-      onMouseDown={(event) => {
-        event.preventDefault();
-        if (command === 'createLink' || command === 'insertImage') {
-          const label = command === 'createLink' ? 'Article link URL' : 'Image URL';
-          const value = window.prompt(label);
-          if (value) apply(command, value);
-          return;
-        }
-        apply(command, commandValue);
-      }}
-      className="px-2.5 py-1.5 border border-gray-300 rounded hover:bg-white"
-    >
-      {children}
-    </button>
-  );
-
-  return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden">
-      <div className="flex flex-wrap gap-2 p-2 bg-gray-50 border-b border-gray-200">
-        {toolbarButton('bold', null, <strong>B</strong>)}
-        {toolbarButton('italic', null, <em>I</em>)}
-        {toolbarButton('formatBlock', 'h2', 'H2')}
-        {toolbarButton('insertUnorderedList', null, 'List')}
-        {toolbarButton('createLink', null, <LinkIcon className="size-4" />)}
-        {toolbarButton('insertImage', null, <ImageIcon className="size-4" />)}
-      </div>
-      <div
-        ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning
-        dangerouslySetInnerHTML={{ __html: value }}
-        onInput={(event) => onChange({ target: { value: event.currentTarget.innerHTML } })}
-        className="min-h-48 p-4 prose max-w-none focus:outline-none"
-      />
-    </div>
-  );
+  return <LinkedInArticleEditor value={value} onChange={onChange} />;
 }
 
 export default function ResourceManagement() {
@@ -602,7 +557,7 @@ export default function ResourceManagement() {
           <>
             <motion.div className="fixed inset-0 bg-black/50 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeCreateModal} />
             <motion.div className="fixed inset-0 flex items-center justify-center z-50 p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
-              <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full p-6 max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900">Add New Resource</h2>
                   <button onClick={closeCreateModal} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X className="size-5 text-gray-500" /></button>
@@ -731,7 +686,7 @@ export default function ResourceManagement() {
           <>
             <motion.div className="fixed inset-0 bg-black/50 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeEditModal} />
             <motion.div className="fixed inset-0 flex items-center justify-center z-50 p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
-              <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full p-6 max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900">Edit Resource</h2>
                   <button onClick={closeEditModal} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X className="size-5 text-gray-500" /></button>
