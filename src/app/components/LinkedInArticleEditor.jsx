@@ -296,10 +296,6 @@ export default function LinkedInArticleEditor({ value, onChange, placeholder = '
                 </button>
               )}
             </div>
-
-            <div className="text-[11px] text-slate-500 font-medium">
-              Supports High-Res PNG, JPG, WebP directly embedded into article.
-            </div>
           </div>
 
           {/* Full Rich Text Formatting Toolbar (Word / LinkedIn / Medium style) */}
@@ -526,15 +522,6 @@ export default function LinkedInArticleEditor({ value, onChange, placeholder = '
               lineHeight: '1.8'
             }}
           />
-
-          {/* Quick Helper Tips at bottom */}
-          <div className="bg-slate-50 px-4 py-2 border-t border-slate-200 text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
-            <span className="flex items-center gap-1">
-              <Sparkles className="size-3 text-orange-600" />
-              <span>Tip: Click <strong>Insert Image</strong> to embed pictures directly in between your text paragraphs.</span>
-            </span>
-            <span>Switch to <strong>Reader Preview</strong> above anytime to inspect final scholar presentation.</span>
-          </div>
         </>
       )}
 
