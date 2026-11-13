@@ -112,3 +112,68 @@ export function getCachedClientIp() {
   return '';
 }
 
+export function formatSessionDuration(seconds) {
+  const secs = Number(seconds) || 0;
+  if (secs <= 0) return 'Just started';
+  const hrs = Math.floor(secs / 3600);
+  const mins = Math.floor((secs % 3600) / 60);
+  const remainingSecs = secs % 60;
+
+  if (hrs > 0) {
+    return `${hrs} hr${hrs > 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
+  }
+  if (mins > 0) {
+    return `${mins} min${mins > 1 ? 's' : ''}`;
+  }
+  return `${remainingSecs} sec${remainingSecs > 1 ? 's' : ''}`;
+}
+
+export function formatDateTime(isoString) {
+  if (!isoString) return 'Active Now';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return String(isoString);
+    return d.toLocaleString('en-IN', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return String(isoString);
+  }
+}
+
+export function formatDateOnly(isoString) {
+  if (!isoString) return 'Today';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-IN', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  } catch (e) {
+    return '';
+  }
+}
+
+export function formatTimeOnly(isoString) {
+  if (!isoString) return 'Now';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return '';
+  }
+}
+
+

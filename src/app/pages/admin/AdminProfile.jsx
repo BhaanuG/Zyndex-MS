@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { User, Mail, Save, Shield, Edit, X, Trash2, Laptop, Smartphone, Globe, LogOut, Check, Radio } from 'lucide-react';
+import { User, Mail, Save, Shield, Edit, X, Trash2, Laptop, Smartphone, Globe, LogOut, Check, Radio, Info, ChevronDown, ChevronUp, History, Clock } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
 import DeleteAccountModal from '@/app/components/DeleteAccountModal';
-import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedClientIp } from '@/utils/deviceHelper';
+import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedClientIp, formatSessionDuration, formatDateTime, formatDateOnly, formatTimeOnly } from '@/utils/deviceHelper';
 
 export default function AdminProfile() {
   const { user, updateProfile, isPrimaryAdmin } = useAuth();
@@ -17,6 +17,7 @@ export default function AdminProfile() {
   const [sessionsData, setSessionsData] = useState({ currentIp: '127.0.0.1', devices: [], sessionTokenVersion: 1 });
   const [revokingSessions, setRevokingSessions] = useState(false);
   const [revokingDeviceId, setRevokingDeviceId] = useState(null);
+  const [expandedDeviceKey, setExpandedDeviceKey] = useState(null);
 
   const [sessionTelemetry, setSessionTelemetry] = useState({
     currentIp: '127.0.0.1',
@@ -338,79 +339,205 @@ export default function AdminProfile() {
 
                 {(() => {
                   const currentToken = localStorage.getItem('zyndex_device_token') || localStorage.getItem('device_token') || '';
-                  const otherDevices = (sessionsData.devices || []).filter((d) => !currentToken || d.device_token !== currentToken);
+                  const otherRaw = (sessionsData.devices || []).filter((d) => !currentToken || d.device_token !== currentToken);
+
+                  // Group other sessions by device identity (operating_system + browser + device_token)
+                  const groupsMap = new Map();
+                  otherRaw.forEach((sess) => {
+                    const key = sess.device_token || `${sess.operating_system}_${sess.browser}_${sess.device_name}`;
+                    if (!groupsMap.has(key)) {
+                      groupsMap.set(key, {
+                        key,
+                        deviceToken: sess.device_token,
+                        deviceName: sess.device_name || 'Recognized Device',
+                        browser: sess.browser || 'Browser',
+                        os: sess.operating_system || 'Device',
+                        latestSession: sess,
+                        sessions: []
+                      });
+                    }
+                    groupsMap.get(key).sessions.push(sess);
+                  });
+
+                  const deviceGroups = Array.from(groupsMap.values());
 
                   return (
                     <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-2xs divide-y divide-gray-100">
-                      {otherDevices.length > 0 ? (
-                        otherDevices.map((d) => (
-                          <div key={d.id} className="p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
-                            <div className="flex items-center gap-3.5 min-w-0">
-                              <div className="p-3 bg-slate-100 text-slate-600 rounded-2xl shrink-0">
-                                {String(d.operating_system || '').toLowerCase().includes('android') ||
-                                 String(d.operating_system || '').toLowerCase().includes('ios') ||
-                                 String(d.operating_system || '').toLowerCase().includes('phone') ||
-                                 String(d.device_name || '').toLowerCase().includes('mobile') ||
-                                 String(d.browser || '').toLowerCase().includes('mobile') ? (
-                                  <Smartphone className="size-6 text-slate-700" />
-                                ) : (
-                                  <Laptop className="size-6 text-slate-700" />
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <p className="text-sm font-bold text-gray-900 truncate">
-                                    {d.operating_system || 'Device'} &bull; {d.browser || 'Browser'}
-                                  </p>
-                                  {d.is_trusted ? (
-                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
-                                      Trusted 24h
-                                    </span>
-                                  ) : (
-                                    <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
-                                      Active Device
-                                    </span>
+                      {deviceGroups.length > 0 ? (
+                        deviceGroups.map((group) => {
+                          const d = group.latestSession;
+                          const isExpanded = expandedDeviceKey === group.key;
+                          const isMobile = String(d.operating_system || '').toLowerCase().includes('android') ||
+                                           String(d.operating_system || '').toLowerCase().includes('ios') ||
+                                           String(d.operating_system || '').toLowerCase().includes('phone') ||
+                                           String(d.device_name || '').toLowerCase().includes('mobile') ||
+                                           String(d.browser || '').toLowerCase().includes('mobile');
+                          const isActiveSession = Boolean(d.is_active !== false && d.is_active !== 0 && !d.logged_out_at);
+
+                          return (
+                            <div key={group.key} className="transition-colors">
+                              <div className="p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-slate-50/70">
+                                <div className="flex items-center gap-3.5 min-w-0">
+                                  <div className={`p-3 rounded-2xl shrink-0 ${isActiveSession ? 'bg-emerald-100/70 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                                    {isMobile ? (
+                                      <Smartphone className={`size-6 ${isActiveSession ? 'text-emerald-700' : 'text-slate-700'}`} />
+                                    ) : (
+                                      <Laptop className={`size-6 ${isActiveSession ? 'text-emerald-700' : 'text-slate-700'}`} />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <p className="text-sm font-bold text-gray-900 truncate">
+                                        {d.operating_system || 'Device'} &bull; {d.browser || 'Browser'}
+                                      </p>
+                                      {isActiveSession ? (
+                                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1">
+                                          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                          Active Now
+                                        </span>
+                                      ) : (
+                                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
+                                          Logged Out
+                                        </span>
+                                      )}
+                                      {d.is_trusted && (
+                                        <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full shrink-0">
+                                          Trusted 24h
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <p className="text-xs text-gray-500 font-medium mt-1">
+                                      IP: <span className="font-mono text-gray-700">{d.ip_address || '127.0.0.1'}</span> &bull; {d.device_name || 'Personal Device'}
+                                    </p>
+
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 font-medium mt-1.5">
+                                      <span className="inline-flex items-center gap-1">
+                                        <span className="text-slate-400 font-semibold">Latest Login:</span>
+                                        <span className="font-mono text-slate-800">
+                                          {formatDateTime(d.trusted_at)}
+                                        </span>
+                                      </span>
+                                      <span className="text-slate-300">•</span>
+                                      <span className="inline-flex items-center gap-1">
+                                        <span className="text-slate-400 font-semibold">Active Duration:</span>
+                                        <span className="font-mono text-indigo-700 font-semibold">
+                                          {formatSessionDuration(d.total_active_seconds || (d.trusted_at ? Math.max(0, Math.floor((Date.now() - new Date(d.trusted_at).getTime()) / 1000)) : 0))}
+                                        </span>
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {/* Info Button to expand session history logs */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setExpandedDeviceKey(isExpanded ? null : group.key)}
+                                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs border ${
+                                      isExpanded 
+                                        ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
+                                        : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                                    }`}
+                                    title="View device login session history"
+                                  >
+                                    <Info className="size-3.5 text-indigo-600" />
+                                    <span className="hidden sm:inline">Info ({group.sessions.length})</span>
+                                    {isExpanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                                  </button>
+
+                                  {isActiveSession && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRevokeDevice(d.id, `${d.operating_system} (${d.browser})`)}
+                                      disabled={revokingDeviceId === d.id}
+                                      className="px-3.5 py-2 bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-2xs"
+                                      title="Log out this device"
+                                    >
+                                      <Trash2 className="size-3.5" />
+                                      <span className="hidden sm:inline">{revokingDeviceId === d.id ? 'Logging out...' : 'Log out'}</span>
+                                    </button>
                                   )}
                                 </div>
-
-                                <p className="text-xs text-gray-500 font-medium mt-1">
-                                  IP: <span className="font-mono text-gray-700">{d.ip_address || '127.0.0.1'}</span> &bull; {d.device_name || 'Personal Computer'}
-                                </p>
-
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 font-medium mt-1.5">
-                                  <span className="inline-flex items-center gap-1">
-                                    <span className="text-slate-400 font-semibold">Logged In:</span>
-                                    <span className="font-mono text-slate-800">
-                                      {d.trusted_at ? new Date(d.trusted_at).toLocaleString('en-IN', {
-                                        month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true
-                                      }) : 'Active Login'}
-                                    </span>
-                                  </span>
-                                  <span className="text-slate-300">•</span>
-                                  <span className="inline-flex items-center gap-1">
-                                    <span className="text-slate-400 font-semibold">Session Status:</span>
-                                    <span className={`font-mono font-semibold ${d.is_trusted ? 'text-amber-700' : 'text-slate-700'}`}>
-                                      {d.is_trusted ? 'Trust Expires Midnight IST' : 'Active Session'}
-                                    </span>
-                                  </span>
-                                </div>
                               </div>
-                            </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => handleRevokeDevice(d.id, `${d.operating_system} (${d.browser})`)}
-                                disabled={revokingDeviceId === d.id}
-                                className="px-3.5 py-2 bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-2xs"
-                                title="Log out from this device"
-                              >
-                                <Trash2 className="size-3.5" />
-                                {revokingDeviceId === d.id ? 'Logging out...' : 'Log out'}
-                              </button>
+                              {/* Expandable Session Logs Drawer */}
+                              {isExpanded && (
+                                <div className="bg-slate-50/90 border-t border-slate-200/80 p-4 sm:p-5">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                      <History className="size-4 text-indigo-600" />
+                                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                        Session History & Activity Logs ({group.sessions.length} Recorded {group.sessions.length === 1 ? 'Login' : 'Logins'})
+                                      </h4>
+                                    </div>
+                                    <span className="text-[11px] text-slate-500 font-medium">Accurate live hardware telemetry</span>
+                                  </div>
+
+                                  <div className="space-y-2.5">
+                                    {group.sessions.map((sess, idx) => {
+                                      const isCurrentRowActive = Boolean(sess.is_active !== false && sess.is_active !== 0 && !sess.logged_out_at);
+                                      const startFormatted = formatTimeOnly(sess.trusted_at);
+                                      const endFormatted = isCurrentRowActive ? 'Active Now' : (sess.logged_out_at ? formatTimeOnly(sess.logged_out_at) : 'Expired');
+                                      const dateFormatted = formatDateOnly(sess.trusted_at);
+                                      const durationFormatted = formatSessionDuration(sess.total_active_seconds || (sess.trusted_at ? Math.max(0, Math.floor(((sess.logged_out_at ? new Date(sess.logged_out_at).getTime() : Date.now()) - new Date(sess.trusted_at).getTime()) / 1000)) : 0));
+
+                                      return (
+                                        <div
+                                          key={sess.id || idx}
+                                          className="bg-white border border-slate-200/70 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs"
+                                        >
+                                          <div className="flex items-start gap-3">
+                                            <div className={`p-2 rounded-lg mt-0.5 shrink-0 ${isCurrentRowActive ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
+                                              <Clock className="size-4" />
+                                            </div>
+                                            <div>
+                                              <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="font-bold text-slate-900">{dateFormatted}</span>
+                                                {isCurrentRowActive ? (
+                                                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                                    Active Now
+                                                  </span>
+                                                ) : (
+                                                  <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                                                    Logged Out
+                                                  </span>
+                                                )}
+                                                {sess.is_trusted && (
+                                                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                                                    Trusted 24h
+                                                  </span>
+                                                )}
+                                              </div>
+                                              <p className="text-[11px] text-slate-500 mt-1">
+                                                IP: <span className="font-mono text-slate-700">{sess.ip_address || '127.0.0.1'}</span> &bull; {sess.browser} on {sess.operating_system}
+                                              </p>
+                                            </div>
+                                          </div>
+
+                                          <div className="flex sm:flex-col sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 text-[11px] gap-1">
+                                            <div className="flex items-center gap-1.5">
+                                              <span className="text-slate-400 font-medium">Session:</span>
+                                              <span className="font-mono font-semibold text-slate-800">
+                                                {startFormatted} &rarr; {endFormatted}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                              <span className="text-slate-400 font-medium">Total Active:</span>
+                                              <span className="font-mono font-bold text-indigo-600">
+                                                {durationFormatted}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <div className="p-8 text-center text-gray-400">
                           <Globe className="size-8 mx-auto mb-2 text-gray-300" />

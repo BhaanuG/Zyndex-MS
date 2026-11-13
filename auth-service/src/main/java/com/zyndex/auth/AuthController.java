@@ -152,10 +152,19 @@ class AuthController {
                         ? java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).toLocalDate().plusDays(1).atStartOfDay(java.time.ZoneId.of("Asia/Kolkata")).toInstant()
                         : java.time.Instant.now().plus(30, java.time.temporal.ChronoUnit.DAYS);
 
-                jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
+                // Close previous active session for this device token and calculate its active seconds
                 jdbc.update("""
-                        INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at, is_trusted)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)
+                        UPDATE trusted_devices 
+                        SET is_active = FALSE,
+                            logged_out_at = NOW(),
+                            last_active_at = NOW(),
+                            total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
+                        WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_active = TRUE
+                        """, email, deviceToken);
+
+                jdbc.update("""
+                        INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at, is_trusted, is_active, last_active_at, total_active_seconds)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, TRUE, NOW(), 0)
                         """,
                         user.get("id"), email, deviceToken,
                         deviceName.isBlank() ? "Web Browser" : deviceName,
@@ -239,8 +248,15 @@ class AuthController {
         }
         long userId = AuthSupport.number(user.get("id"));
 
-        // Delete any existing device record for this token & email
-        jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
+        // Close previous active session for this device token and calculate its active seconds
+        jdbc.update("""
+                UPDATE trusted_devices 
+                SET is_active = FALSE,
+                    logged_out_at = NOW(),
+                    last_active_at = NOW(),
+                    total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
+                WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_active = TRUE
+                """, email, deviceToken);
 
         String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
         String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
@@ -259,8 +275,8 @@ class AuthController {
         java.sql.Timestamp expiryTimestamp = java.sql.Timestamp.from(expiryInstant);
 
         jdbc.update("""
-                INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at, is_trusted)
-                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)
+                INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at, is_trusted, is_active, last_active_at, total_active_seconds)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, TRUE, NOW(), 0)
                 """,
                 userId, email, deviceToken,
                 deviceName.isBlank() ? "Web Browser" : deviceName,
@@ -287,6 +303,8 @@ class AuthController {
             // Mark as untrusted instead of deleting so the login history remains visible in Security & Devices
             jdbc.update("UPDATE trusted_devices SET is_trusted = FALSE WHERE LOWER(email) = LOWER(?) AND device_token = ?", email, deviceToken);
         }
+        return Map.of("untrusted", true);
+    }
 
         return Map.of("message", "Device trust removed successfully.");
     }
@@ -378,14 +396,39 @@ class AuthController {
     }
 
     @PostMapping("/logout")
-    Map<String, Object> logout(HttpServletRequest request) {
+    Map<String, Object> logout(HttpServletRequest request, @RequestBody(required = false) Map<String, Object> body) {
         try {
             Map<String, Object> user = auth.user(request);
+            String clientProvidedIp = body != null ? AuthSupport.str(body.get("clientIp")) : request.getHeader("X-Client-IP");
+            String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
+            String deviceToken = body != null ? AuthSupport.str(body.get("deviceToken")).trim() : "";
+
             if (user != null) {
+                String email = AuthSupport.str(user.get("email")).trim().toLowerCase();
+                if (!deviceToken.isBlank()) {
+                    jdbc.update("""
+                            UPDATE trusted_devices 
+                            SET is_active = FALSE,
+                                logged_out_at = NOW(),
+                                last_active_at = NOW(),
+                                total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
+                            WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_active = TRUE
+                            """, email, deviceToken);
+                } else {
+                    jdbc.update("""
+                            UPDATE trusted_devices 
+                            SET is_active = FALSE,
+                                logged_out_at = NOW(),
+                                last_active_at = NOW(),
+                                total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
+                            WHERE LOWER(email) = LOWER(?) AND is_active = TRUE
+                            """, email);
+                }
+
                 jdbc.update(
                     "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
-                    "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'USER_LOGOUT', ?, 'User terminated session and logged out.', '127.0.0.1', 'SUCCESS')",
-                    user.get("email")
+                    "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'USER_LOGOUT', ?, 'User terminated session and logged out.', ?, 'SUCCESS')",
+                    user.get("email"), clientIp
                 );
             }
         } catch (Exception ignored) {}
@@ -397,6 +440,16 @@ class AuthController {
         Map<String, Object> user = auth.requireUser(request);
         try {
             jdbc.update("UPDATE users SET last_active_at = NOW() WHERE id = ?", user.get("id"));
+            String deviceToken = request.getHeader("X-Device-Token");
+            if (deviceToken != null && !deviceToken.isBlank()) {
+                String email = AuthSupport.str(user.get("email")).trim().toLowerCase();
+                jdbc.update("""
+                        UPDATE trusted_devices 
+                        SET last_active_at = NOW(),
+                            total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
+                        WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_active = TRUE
+                        """, email, deviceToken.trim());
+            }
         } catch (Exception ignored) {}
         return user;
     }

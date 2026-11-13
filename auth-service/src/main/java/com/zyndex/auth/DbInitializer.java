@@ -153,6 +153,18 @@ class DbInitializer implements CommandLineRunner {
         try {
             jdbc.execute("ALTER TABLE trusted_devices ADD COLUMN is_trusted BOOLEAN NOT NULL DEFAULT TRUE");
         } catch (Exception ignored) {}
+        try {
+            jdbc.execute("ALTER TABLE trusted_devices ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE");
+        } catch (Exception ignored) {}
+        try {
+            jdbc.execute("ALTER TABLE trusted_devices ADD COLUMN logged_out_at DATETIME(6) NULL");
+        } catch (Exception ignored) {}
+        try {
+            jdbc.execute("ALTER TABLE trusted_devices ADD COLUMN last_active_at DATETIME(6) NULL");
+        } catch (Exception ignored) {}
+        try {
+            jdbc.execute("ALTER TABLE trusted_devices ADD COLUMN total_active_seconds BIGINT NOT NULL DEFAULT 0");
+        } catch (Exception ignored) {}
         seedInitialLogsIfEmpty();
         ensureMainAdmin();
     }

@@ -37,8 +37,18 @@ public class MidnightDailySessionScheduler {
         log.info("[DAILY MIDNIGHT IST RESET] Executing daily cycle boundary check at: {}", nowIst);
 
         try {
-            // 1. Reset trust status for devices that reached midnight IST without deleting their session history
-            int resetTrustCount = jdbc.update("UPDATE trusted_devices SET is_trusted = FALSE WHERE (expires_at <= UTC_TIMESTAMP() OR expires_at <= NOW()) AND is_trusted = TRUE");
+            // 1. Reset trust status and active status for devices that reached midnight IST without deleting their session history
+            int resetTrustCount = jdbc.update("""
+                    UPDATE trusted_devices 
+                    SET is_trusted = FALSE,
+                        is_active = FALSE,
+                        logged_out_at = COALESCE(logged_out_at, NOW()),
+                        total_active_seconds = CASE 
+                            WHEN total_active_seconds > 0 THEN total_active_seconds 
+                            ELSE GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW())) 
+                        END
+                    WHERE (expires_at <= UTC_TIMESTAMP() OR expires_at <= NOW()) AND (is_trusted = TRUE OR is_active = TRUE)
+                    """);
             // Clean up truly expired device records (> 30 days old)
             int deletedOld = jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= DATE_SUB(NOW(), INTERVAL 30 DAY)");
             log.info("[DAILY MIDNIGHT IST RESET] Reset trust for {} devices, purged {} obsolete records.", resetTrustCount, deletedOld);

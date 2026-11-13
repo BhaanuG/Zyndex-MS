@@ -21,6 +21,14 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // Attach device token header if available so active heartbeat tracks session activity
+    try {
+      const devToken = localStorage.getItem('zyndex_device_token') || localStorage.getItem('device_token');
+      if (devToken) {
+        config.headers['X-Device-Token'] = devToken;
+      }
+    } catch (e) {}
+
     // Let the browser set the multipart boundary for FormData uploads, and disable request timeout for large file uploads.
     if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
       delete config.headers['Content-Type'];

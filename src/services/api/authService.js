@@ -98,11 +98,12 @@ const authService = {
 
   /**
    * Logout
+   * @param {Object} [logoutPayload] - { deviceToken, clientIp }
    * @returns {Promise<Object>} - { message }
    */
-  logout: async () => {
+  logout: async (logoutPayload = {}) => {
     try {
-      const response = await apiClient.post('/auth/logout');
+      const response = await apiClient.post('/auth/logout', logoutPayload);
       
       // Clear local storage
       localStorage.removeItem('auth_token');

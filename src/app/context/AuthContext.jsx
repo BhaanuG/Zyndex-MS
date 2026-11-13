@@ -174,7 +174,9 @@ export const AuthProvider = ({ children }) => {
     setIsLoggingOut(true);
     setTimeout(async () => {
       try {
-        await authService.logout();
+        const deviceToken = getOrCreateDeviceToken();
+        const clientIp = getCachedClientIp();
+        await authService.logout({ deviceToken, clientIp });
       } catch {
         // Frontend state should still clear on logout even if the request fails.
       } finally {
