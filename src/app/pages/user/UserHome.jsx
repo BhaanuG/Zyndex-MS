@@ -232,7 +232,7 @@ export default function UserHome() {
                     onFocus={() => {
                       if (searchQuery.trim().length > 0) setShowLiveDropdown(true);
                     }}
-                    placeholder="Search by title, author, or keyword (live search)..."
+                    placeholder="Search by title, author, or keyword..."
                     className="w-full pl-12 pr-10 py-4 rounded-2xl border border-orange-200 bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 placeholder-gray-400 text-base transition-all"
                   />
                   {searchQuery && (
