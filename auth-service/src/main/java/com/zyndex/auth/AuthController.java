@@ -209,8 +209,9 @@ class AuthController {
         }
 
         // Check if device is trusted, marked as is_trusted = true, and not expired
+        // Note: expires_at is stored in UTC via JDBC driver, so compare against UTC_TIMESTAMP() to ensure exact midnight IST alignment
         var rows = jdbc.queryForList(
-                "SELECT id, expires_at FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_trusted = TRUE AND expires_at > NOW() LIMIT 1",
+                "SELECT id, expires_at FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_trusted = TRUE AND (expires_at > UTC_TIMESTAMP() OR expires_at > NOW()) LIMIT 1",
                 email, deviceToken
         );
 

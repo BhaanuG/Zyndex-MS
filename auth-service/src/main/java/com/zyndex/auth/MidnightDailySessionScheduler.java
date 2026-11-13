@@ -38,7 +38,7 @@ public class MidnightDailySessionScheduler {
 
         try {
             // 1. Reset trust status for devices that reached midnight IST without deleting their session history
-            int resetTrustCount = jdbc.update("UPDATE trusted_devices SET is_trusted = FALSE WHERE expires_at <= NOW() AND is_trusted = TRUE");
+            int resetTrustCount = jdbc.update("UPDATE trusted_devices SET is_trusted = FALSE WHERE (expires_at <= UTC_TIMESTAMP() OR expires_at <= NOW()) AND is_trusted = TRUE");
             // Clean up truly expired device records (> 30 days old)
             int deletedOld = jdbc.update("DELETE FROM trusted_devices WHERE expires_at <= DATE_SUB(NOW(), INTERVAL 30 DAY)");
             log.info("[DAILY MIDNIGHT IST RESET] Reset trust for {} devices, purged {} obsolete records.", resetTrustCount, deletedOld);
