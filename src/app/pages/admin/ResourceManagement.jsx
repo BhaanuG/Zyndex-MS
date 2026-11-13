@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download } from 'lucide-react';
+import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Clock, CheckCircle } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
@@ -68,9 +68,15 @@ export default function ResourceManagement() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStats, setUploadStats] = useState({ loaded: 0, total: 0 });
+  const [uploadStartTime, setUploadStartTime] = useState(null);
+  const [uploadEtaSeconds, setUploadEtaSeconds] = useState(null);
+  const [uploadSpeed, setUploadSpeed] = useState('');
   const [updatingResource, setUpdatingResource] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
   const [updateStats, setUpdateStats] = useState({ loaded: 0, total: 0 });
+  const [updateStartTime, setUpdateStartTime] = useState(null);
+  const [updateEtaSeconds, setUpdateEtaSeconds] = useState(null);
+  const [updateSpeed, setUpdateSpeed] = useState('');
   const [previewResource, setPreviewResource] = useState(null);
   const [previewToken, setPreviewToken] = useState('');
   const [previewBlobUrl, setPreviewBlobUrl] = useState('');
@@ -322,11 +328,23 @@ export default function ResourceManagement() {
     return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
   };
 
+  const formatDuration = (seconds) => {
+    if (seconds === null || seconds === undefined || !isFinite(seconds) || seconds < 0) return 'Calculating...';
+    if (seconds < 60) return `${Math.round(seconds)}s remaining`;
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
+    return `${mins}m ${secs}s remaining`;
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setUploading(true);
     setUploadProgress(0);
-    setUploadStats({ loaded: 0, total: createResource.file ? createResource.file.size : 0 });
+    const initialTotal = createResource.file ? createResource.file.size : 0;
+    setUploadStats({ loaded: 0, total: initialTotal });
+    setUploadStartTime(Date.now());
+    setUploadEtaSeconds(null);
+    setUploadSpeed('');
     setCreateStatus('');
 
     try {
@@ -339,12 +357,27 @@ export default function ResourceManagement() {
       payload.append('description', createResource.description);
       if (createResource.file) payload.append('file', createResource.file);
 
+      const startTime = Date.now();
       await resourceService.uploadResource(payload, (progressEvent) => {
         const total = progressEvent.total || (createResource.file ? createResource.file.size : 0);
         const loaded = progressEvent.loaded || 0;
         const percent = total > 0 ? Math.min(100, Math.round((loaded * 100) / total)) : 0;
         setUploadProgress(percent);
         setUploadStats({ loaded, total });
+
+        // Calculate average upload speed and ETA
+        const elapsedSec = (Date.now() - startTime) / 1000;
+        if (elapsedSec > 0.4 && loaded > 0) {
+          const bytesPerSec = loaded / elapsedSec;
+          setUploadSpeed(`${formatBytes(bytesPerSec)}/s`);
+          if (total > loaded) {
+            const remainingBytes = total - loaded;
+            const eta = remainingBytes / bytesPerSec;
+            setUploadEtaSeconds(eta);
+          } else {
+            setUploadEtaSeconds(0);
+          }
+        }
       });
 
       setCreateStatus('Resource uploaded successfully.');
@@ -362,9 +395,17 @@ export default function ResourceManagement() {
 
       closeCreateModal();
     } catch (error) {
-      setCreateStatus(error.message || 'Upload failed.');
+      const errorMsg = error.response?.data?.message || error.message || 'Upload failed.';
+      setModalMessage({
+        title: 'Upload Failed',
+        text: errorMsg,
+        buttonText: 'OK'
+      });
+      setCreateStatus(errorMsg);
     } finally {
       setUploading(false);
+      setUploadEtaSeconds(null);
+      setUploadSpeed('');
     }
   };
 
@@ -372,7 +413,11 @@ export default function ResourceManagement() {
     e.preventDefault();
     setUpdatingResource(true);
     setUpdateProgress(0);
-    setUpdateStats({ loaded: 0, total: formResource.file ? formResource.file.size : 0 });
+    const initialTotal = formResource.file ? formResource.file.size : 0;
+    setUpdateStats({ loaded: 0, total: initialTotal });
+    setUpdateStartTime(Date.now());
+    setUpdateEtaSeconds(null);
+    setUpdateSpeed('');
 
     try {
       const payload = new FormData();
@@ -384,12 +429,26 @@ export default function ResourceManagement() {
       payload.append('description', formResource.description);
       if (formResource.file) payload.append('file', formResource.file);
 
+      const startTime = Date.now();
       await resourceService.updateResource(formResource.id, payload, (progressEvent) => {
         const total = progressEvent.total || (formResource.file ? formResource.file.size : 0);
         const loaded = progressEvent.loaded || 0;
         const percent = total > 0 ? Math.min(100, Math.round((loaded * 100) / total)) : 0;
         setUpdateProgress(percent);
         setUpdateStats({ loaded, total });
+
+        const elapsedSec = (Date.now() - startTime) / 1000;
+        if (elapsedSec > 0.4 && loaded > 0) {
+          const bytesPerSec = loaded / elapsedSec;
+          setUpdateSpeed(`${formatBytes(bytesPerSec)}/s`);
+          if (total > loaded) {
+            const remainingBytes = total - loaded;
+            const eta = remainingBytes / bytesPerSec;
+            setUpdateEtaSeconds(eta);
+          } else {
+            setUpdateEtaSeconds(0);
+          }
+        }
       });
 
       closeEditModal();
@@ -405,13 +464,16 @@ export default function ResourceManagement() {
         status: 'SUCCESS'
       }).catch(() => {});
     } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to update resource.';
       setModalMessage({
         title: 'Update Failed',
-        text: error.message || 'Failed to update resource.',
+        text: errorMsg,
         buttonText: 'OK'
       });
     } finally {
       setUpdatingResource(false);
+      setUpdateEtaSeconds(null);
+      setUpdateSpeed('');
     }
   };
 
@@ -644,13 +706,13 @@ export default function ResourceManagement() {
 
                   {/* Real-time Upload Progress Indicator */}
                   {uploading && (
-                    <div className="p-4 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2">
+                    <div className="p-4 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2.5">
                       <div className="flex items-center justify-between text-xs font-bold text-orange-950">
                         <span className="flex items-center gap-1.5">
                           <span className="size-2 rounded-full bg-orange-600 animate-ping inline-block" />
                           Uploading Resource...
                         </span>
-                        <span>{uploadProgress}%</span>
+                        <span className="text-sm font-extrabold text-orange-600">{uploadProgress}%</span>
                       </div>
                       <div className="w-full bg-orange-200/80 rounded-full h-2.5 overflow-hidden">
                         <div
@@ -658,9 +720,19 @@ export default function ResourceManagement() {
                           style={{ width: `${uploadProgress}%` }}
                         />
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-orange-800 font-medium">
+                      <div className="flex flex-wrap items-center justify-between text-[11px] text-orange-800 font-medium gap-1">
                         <span>Transferred: {formatBytes(uploadStats.loaded)} / {formatBytes(uploadStats.total || (createResource.file?.size || 0))}</span>
-                        <span>{uploadProgress === 100 ? 'Processing & saving on server...' : 'Live upload stream'}</span>
+                        <div className="flex items-center gap-3">
+                          {uploadSpeed && (
+                            <span className="font-semibold text-orange-900 bg-orange-100/70 px-1.5 py-0.5 rounded">
+                              {uploadSpeed}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1 text-slate-700 font-semibold">
+                            <Clock className="size-3 text-orange-600" />
+                            {uploadProgress === 100 ? 'Finalizing on server...' : formatDuration(uploadEtaSeconds)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -775,13 +847,13 @@ export default function ResourceManagement() {
                   )}
 
                   {updatingResource && (
-                    <div className="p-4 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2">
+                    <div className="p-4 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2.5">
                       <div className="flex items-center justify-between text-xs font-bold text-orange-950">
                         <span className="flex items-center gap-1.5">
                           <span className="size-2 rounded-full bg-orange-600 animate-ping inline-block" />
                           Uploading Replacement...
                         </span>
-                        <span>{updateProgress}%</span>
+                        <span className="text-sm font-extrabold text-orange-600">{updateProgress}%</span>
                       </div>
                       <div className="w-full bg-orange-200/80 rounded-full h-2.5 overflow-hidden">
                         <div
@@ -789,9 +861,19 @@ export default function ResourceManagement() {
                           style={{ width: `${updateProgress}%` }}
                         />
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-orange-800 font-medium">
+                      <div className="flex flex-wrap items-center justify-between text-[11px] text-orange-800 font-medium gap-1">
                         <span>Transferred: {formatBytes(updateStats.loaded)} / {formatBytes(updateStats.total || (formResource.file?.size || 0))}</span>
-                        <span>{updateProgress === 100 ? 'Finalizing update on server...' : 'Live upload stream'}</span>
+                        <div className="flex items-center gap-3">
+                          {updateSpeed && (
+                            <span className="font-semibold text-orange-900 bg-orange-100/70 px-1.5 py-0.5 rounded">
+                              {updateSpeed}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1 text-slate-700 font-semibold">
+                            <Clock className="size-3 text-orange-600" />
+                            {updateProgress === 100 ? 'Finalizing update on server...' : formatDuration(updateEtaSeconds)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )}

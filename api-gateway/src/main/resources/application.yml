@@ -10,6 +10,8 @@ management:
 spring:
   application:
     name: api-gateway
+  codec:
+    max-in-memory-size: 1000MB
   cloud:
     gateway:
       httpclient:
