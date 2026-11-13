@@ -41,6 +41,25 @@ export default function UserHome() {
   const [favoriteIds, setFavoriteIds] = useState([]);
   const { getUrlSafeName, getUrlSafeEmail, user } = useAuth();
 
+  const isArticleResource = (resource) => {
+    const t = String(resource?.type || resource?.resourceType || '').toLowerCase();
+    return t === 'article' || t === 'paper' || !resource?.fileUrl;
+  };
+
+  const getCleanDescription = (resource) => {
+    const raw = resource?.description || '';
+    if (!raw) return 'No description provided.';
+    if (isArticleResource(resource) || raw.includes('<')) {
+      const plain = raw.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+      return plain || 'Academic article publication.';
+    }
+    return raw;
+  };
+
+  const getDisplayType = (resource) => {
+    return isArticleResource(resource) ? 'ARTICLE' : (resource?.type || 'PDF').toUpperCase();
+  };
+
   // Close live search dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -311,14 +330,16 @@ export default function UserHome() {
                                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 shrink-0">
                                     {item.category || 'General'}
                                   </span>
-                                  {item.type && (
-                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0 uppercase">
-                                      {item.type}
-                                    </span>
-                                  )}
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shrink-0 ${
+                                    isArticleResource(item) 
+                                      ? 'bg-amber-100 text-amber-900 border border-amber-200' 
+                                      : 'bg-gray-100 text-gray-600'
+                                  }`}>
+                                    {getDisplayType(item)}
+                                  </span>
                                 </div>
                                 <p className="text-xs text-gray-500 line-clamp-1 mb-1">
-                                  {item.description || 'No description provided.'}
+                                  {getCleanDescription(item)}
                                 </p>
                                 <p className="text-[11px] text-gray-400 font-medium">
                                   Author: <span className="text-gray-600">{item.author || item.subject || 'Academic Faculty'}</span>
@@ -435,11 +456,18 @@ export default function UserHome() {
                         <Heart className={`size-4 ${favoriteIds.includes(resource.id) ? 'fill-current' : ''}`} />
                       </button>
                       <h3 className="font-bold text-gray-900 mb-2 text-lg">{resource.title}</h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-3">{resource.description}</p>
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
                       <p className="text-sm text-gray-500 mb-4">Author of Resource: {resource.author || resource.subject}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-500 font-medium px-2.5 py-1 bg-gray-100 rounded-lg">{resource.category}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
+                            isArticleResource(resource)
+                              ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {getDisplayType(resource)}
+                          </span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             !resource.requiredPlan || resource.requiredPlan === 'FREE'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -488,11 +516,18 @@ export default function UserHome() {
                         <Heart className={`size-4 ${favoriteIds.includes(resource.id) ? 'fill-current' : ''}`} />
                       </button>
                       <h3 className="font-bold text-gray-900 mb-2 text-lg">{resource.title}</h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-3">{resource.description}</p>
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
                       <p className="text-sm text-gray-500 mb-4">Author of Resource: {resource.author || resource.subject}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-500 font-medium px-2.5 py-1 bg-gray-100 rounded-lg">{resource.category}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
+                            isArticleResource(resource)
+                              ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {getDisplayType(resource)}
+                          </span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             !resource.requiredPlan || resource.requiredPlan === 'FREE'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'

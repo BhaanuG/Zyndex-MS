@@ -56,6 +56,25 @@ export default function SearchResults() {
     loadResults();
   }, [category, query, selectedType, selectedSort]);
 
+  const isArticleResource = (resource) => {
+    const t = String(resource?.type || resource?.resourceType || '').toLowerCase();
+    return t === 'article' || t === 'paper' || !resource?.fileUrl;
+  };
+
+  const getCleanDescription = (resource) => {
+    const raw = resource?.description || '';
+    if (!raw) return 'No description provided.';
+    if (isArticleResource(resource) || raw.includes('<')) {
+      const plain = raw.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+      return plain || 'Academic article publication.';
+    }
+    return raw;
+  };
+
+  const getDisplayType = (resource) => {
+    return isArticleResource(resource) ? 'ARTICLE' : (resource?.type || 'PDF').toUpperCase();
+  };
+
   const title = category
     ? `${category.charAt(0).toUpperCase() + category.slice(1)} Resources`
     : query
@@ -141,12 +160,18 @@ export default function SearchResults() {
                     </button>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{resource.title}</h3>
-                  <p className="text-gray-600 mb-4">{resource.description}</p>
+                  <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
                       <span className="font-medium text-gray-700">{resource.category}</span>
-                      <span>Author: {resource.subject}</span>
-                      <span className="uppercase text-xs font-semibold">{resource.type}</span>
+                      <span>Author: {resource.subject || resource.author}</span>
+                      <span className={`uppercase text-xs font-bold px-2 py-0.5 rounded-md ${
+                        isArticleResource(resource) 
+                          ? 'bg-amber-100/80 text-amber-900 border border-amber-200' 
+                          : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {getDisplayType(resource)}
+                      </span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         !resource.requiredPlan || resource.requiredPlan === 'FREE'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'

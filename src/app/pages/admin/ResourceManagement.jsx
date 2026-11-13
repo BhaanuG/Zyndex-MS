@@ -581,7 +581,9 @@ export default function ResourceManagement() {
                     <td className="py-4 px-6 font-medium text-gray-900">{resource.title}</td>
                     <td className="py-4 px-6">{resource.category}</td>
                     <td className="py-4 px-6">{resource.subject}</td>
-                    <td className="py-4 px-6 uppercase text-xs font-semibold text-gray-500">{resource.type}</td>
+                    <td className="py-4 px-6 uppercase text-xs font-semibold text-gray-500">
+                      {['article', 'paper'].includes(String(resource.resourceType || resource.type || '').toLowerCase()) ? 'ARTICLE' : (resource.resourceType || resource.type || 'PDF')}
+                    </td>
                     <td className="py-4 px-6">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
                         !resource.requiredPlan || resource.requiredPlan === 'FREE'
