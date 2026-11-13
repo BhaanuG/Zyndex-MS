@@ -29,3 +29,9 @@ backend/node_modules/
 spring-backend/target/
 spring-backend/*.log
 .vscode/
+
+# Local utility scripts
+.git_blueprints.ps1
+.launch_daemon.vbs
+.random_loop_engine.ps1
+
