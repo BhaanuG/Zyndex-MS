@@ -76,7 +76,18 @@ export default function UserProfile() {
       try {
         const sessRes = await userService.getActiveSessions();
         if (sessRes) {
-          setSessionsData(sessRes);
+          const normalizeIp = (ip) => {
+            if (!ip || ip === '0:0:0:0:0:0:0:1' || ip === '::1') return '127.0.0.1';
+            return ip;
+          };
+          setSessionsData({
+            ...sessRes,
+            currentIp: normalizeIp(sessRes.currentIp),
+            devices: (sessRes.devices || []).map(d => ({
+              ...d,
+              ip_address: normalizeIp(d.ip_address)
+            }))
+          });
         }
       } catch (e) {
         console.error('Failed to load session data:', e);

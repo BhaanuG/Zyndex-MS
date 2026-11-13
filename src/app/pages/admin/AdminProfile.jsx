@@ -41,9 +41,21 @@ export default function AdminProfile() {
       try {
         const sessRes = await userService.getActiveSessions();
         if (sessRes) {
-          setSessionsData(sessRes);
+          const normalizeIp = (ip) => {
+            if (!ip || ip === '0:0:0:0:0:0:0:1' || ip === '::1') return '127.0.0.1';
+            return ip;
+          };
+          const cleanSessions = {
+            ...sessRes,
+            currentIp: normalizeIp(sessRes.currentIp),
+            devices: (sessRes.devices || []).map(d => ({
+              ...d,
+              ip_address: normalizeIp(d.ip_address)
+            }))
+          };
+          setSessionsData(cleanSessions);
           setSessionTelemetry({
-            currentIp: sessRes.currentIp || '127.0.0.1',
+            currentIp: cleanSessions.currentIp || '127.0.0.1',
             tokenIssuedAt: new Date().toLocaleTimeString(),
             browserFingerprint: `${navigator.userAgent.includes('Chrome') ? 'Google Chrome' : 'Standard Web Browser'} (${navigator.platform || 'Desktop'})`,
             securityVersion: `v${sessRes.sessionTokenVersion || 1}`

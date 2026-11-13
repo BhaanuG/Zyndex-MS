@@ -67,6 +67,24 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest.Builder requestBuilder = request.mutate();
         requestBuilder.header("X-Gateway-Secret", gatewaySecret);
 
+        // Resolve client real IP from gateway remote address or existing forwarded header
+        String clientIp = null;
+        if (request.getRemoteAddress() != null && request.getRemoteAddress().getAddress() != null) {
+            clientIp = request.getRemoteAddress().getAddress().getHostAddress();
+            // Normalize IPv6 loopback
+            if ("0:0:0:0:0:0:0:1".equals(clientIp) || "::1".equals(clientIp)) {
+                clientIp = "127.0.0.1";
+            }
+        }
+        String existingForwarded = request.getHeaders().getFirst("X-Forwarded-For");
+        if (existingForwarded != null && !existingForwarded.isBlank() && !"unknown".equalsIgnoreCase(existingForwarded)) {
+            clientIp = existingForwarded.split(",")[0].trim();
+        }
+        if (clientIp != null && !clientIp.isBlank()) {
+            requestBuilder.header("X-Forwarded-For", clientIp);
+            requestBuilder.header("X-Real-IP", clientIp);
+        }
+
         if (request.getHeaders().containsKey("X-User-Id")) {
             requestBuilder.headers(headers -> headers.remove("X-User-Id"));
         }

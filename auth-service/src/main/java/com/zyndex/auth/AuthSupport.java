@@ -38,6 +38,9 @@ public class AuthSupport {
         if (request == null) return "127.0.0.1";
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
         }
         if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
@@ -54,7 +57,14 @@ public class AuthSupport {
         } else if (ip.contains(",")) {
             ip = ip.split(",")[0].trim();
         }
-        return (ip != null && !ip.isBlank()) ? ip : "127.0.0.1";
+        if (ip == null || ip.isBlank()) {
+            return "127.0.0.1";
+        }
+        // Normalize IPv6 loopback addresses to clear, readable IPv4 loopback
+        if ("0:0:0:0:0:0:0:1".equals(ip.trim()) || "::1".equals(ip.trim())) {
+            return "127.0.0.1";
+        }
+        return ip.trim();
     }
 
     public Map<String, Object> findUserByEmail(String email) {
