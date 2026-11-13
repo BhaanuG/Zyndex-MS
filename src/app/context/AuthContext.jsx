@@ -130,7 +130,8 @@ export const AuthProvider = ({ children }) => {
           new CustomEvent('zyndex:session-expired', {
             detail: {
               role: savedRole,
-              reason: err.message || (err?.status === 503 ? 'The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.' : 'Your session was terminated by an administrator. Please log in again.')
+              reason: err.message || (err?.status === 503 ? 'The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.' : 'Your session was terminated. Please log in again.'),
+              code: err?.code
             }
           })
         );

@@ -1,6 +1,7 @@
 package com.zyndex.gateway;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,7 +116,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
             if (isPublic) {
                 return chain.filter(exchange);
             }
-            return onError(exchange, "Authorization token is missing", HttpStatus.UNAUTHORIZED);
+            return onError(exchange, "Authorization token is missing", "TOKEN_MISSING", HttpStatus.UNAUTHORIZED);
         }
 
         try {
@@ -135,11 +136,16 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
 
+        } catch (ExpiredJwtException eje) {
+            if (isPublic) {
+                return chain.filter(exchange);
+            }
+            return onError(exchange, "Your session has expired due to 2 hours and 30 minutes window limit. Please log in again to continue.", "SESSION_EXPIRED", HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             if (isPublic) {
                 return chain.filter(exchange);
             }
-            return onError(exchange, "Invalid or expired authorization token", HttpStatus.UNAUTHORIZED);
+            return onError(exchange, "Invalid or expired authorization token", "INVALID_TOKEN", HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -179,6 +185,10 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus status) {
+        return onError(exchange, err, status.name(), status);
+    }
+
+    private Mono<Void> onError(ServerWebExchange exchange, String err, String code, HttpStatus status) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(status);
         response.getHeaders().add(HttpHeaders.CONTENT_TYPE, "application/json");
@@ -186,7 +196,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
         String timestamp = java.time.Instant.now().toString();
         String body = String.format(
             "{\"timestamp\":\"%s\",\"status\":%d,\"error\":\"%s\",\"code\":\"%s\",\"message\":\"%s\",\"path\":\"%s\"}",
-            timestamp, status.value(), status.getReasonPhrase(), status.name(), err, path
+            timestamp, status.value(), status.getReasonPhrase(), code, err, path
         );
         return response.writeWith(Mono.just(response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8))));
     }

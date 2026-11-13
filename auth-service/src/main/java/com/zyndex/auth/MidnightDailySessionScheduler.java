@@ -48,7 +48,7 @@ public class MidnightDailySessionScheduler {
             long primaryAdminId = adminRows.isEmpty() ? 0L : AuthSupport.number(adminRows.get(0).get("id"));
 
             int updatedSessions = jdbc.update(
-                    "UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?",
+                    "UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'MIDNIGHT_DAILY_RESET', last_active_at = NULL WHERE id != ?",
                     primaryAdminId
             );
             log.info("[DAILY MIDNIGHT IST RESET] Successfully incremented session version for {} non-primary accounts.", updatedSessions);

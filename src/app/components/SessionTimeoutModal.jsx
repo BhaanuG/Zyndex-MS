@@ -61,42 +61,81 @@ export default function SessionTimeoutModal() {
     window.location.href = loginPath;
   };
 
-  const isMaintenance = modalData.reason && modalData.reason.toLowerCase().includes('maintenance');
-  const isMultiDevice = modalData.reason && (
-    modalData.reason.toLowerCase().includes('another device') || 
-    modalData.reason.toLowerCase().includes('in use on another') ||
-    modalData.reason.toLowerCase().includes('active and in use') ||
-    modalData.reason.toLowerCase().includes('using some where') ||
-    modalData.reason.toLowerCase().includes('session with the email')
-  );
-  const isInactivity = modalData.reason && (
+  const isMaintenance = (modalData.reason && modalData.reason.toLowerCase().includes('maintenance')) ||
+    modalData.code === 'MAINTENANCE_ACTIVE';
+
+  const isRoleChanged = (modalData.reason && modalData.reason.toLowerCase().includes('role')) ||
+    modalData.code === 'ROLE_CHANGED';
+
+  const isMidnightReset = (modalData.reason && (
+    modalData.reason.toLowerCase().includes('12:00 am') ||
+    modalData.reason.toLowerCase().includes('midnight') ||
+    modalData.reason.toLowerCase().includes('daily session has ended')
+  )) || modalData.code === 'DAILY_SESSION_EXPIRED';
+
+  const isSessionRevoked = (modalData.reason && (
+    modalData.reason.toLowerCase().includes('revoked from your active devices') ||
+    modalData.reason.toLowerCase().includes('session was revoked')
+  )) || modalData.code === 'SESSION_REVOKED';
+
+  const isInactivityOrWindow = (modalData.reason && (
     modalData.reason.toLowerCase().includes('inactivity') || 
     modalData.reason.toLowerCase().includes('2 hours and 30 minutes') ||
+    modalData.reason.toLowerCase().includes('2 hr 30 min') ||
+    modalData.reason.toLowerCase().includes('window limit') ||
     modalData.reason.toLowerCase().includes('timed out') ||
     modalData.reason.toLowerCase().includes('time outed')
-  );
-  const isTerminated = modalData.reason && (
-    modalData.reason.toLowerCase().includes('terminated') || 
-    modalData.reason.toLowerCase().includes('involuntary') ||
-    modalData.reason.toLowerCase().includes('perimeter')
+  )) || modalData.code === 'SESSION_EXPIRED';
+
+  const isMultiDevice = !isInactivityOrWindow && !isMidnightReset && !isRoleChanged && !isMaintenance && !isSessionRevoked && (
+    modalData.code === 'SUPERSEDED_BY_NEW_LOGIN' ||
+    (modalData.reason && (
+      modalData.reason.toLowerCase().includes('another device') || 
+      modalData.reason.toLowerCase().includes('in use on another') ||
+      modalData.reason.toLowerCase().includes('active and in use') ||
+      modalData.reason.toLowerCase().includes('superseded by another') ||
+      modalData.reason.toLowerCase().includes('using some where') ||
+      modalData.reason.toLowerCase().includes('session with the email')
+    ))
   );
 
-  let headerTitle = 'Session Terminated';
-  let headerSubtitle = 'Administrator / Inactivity Action';
-  let calloutTitle = 'Session Notification';
+  const isTerminated = !isInactivityOrWindow && !isMultiDevice && (
+    modalData.code === 'ADMIN_TERMINATED' ||
+    (modalData.reason && (
+      modalData.reason.toLowerCase().includes('terminated') || 
+      modalData.reason.toLowerCase().includes('involuntary') ||
+      modalData.reason.toLowerCase().includes('perimeter')
+    ))
+  );
+
+  let headerTitle = 'Session Expired';
+  let headerSubtitle = 'Authentication Required';
+  let calloutTitle = 'Session Notice';
 
   if (isMaintenance) {
     headerTitle = 'Platform Under Maintenance';
     headerSubtitle = 'Scheduled System Maintenance in Progress';
     calloutTitle = 'Maintenance Notice';
+  } else if (isInactivityOrWindow) {
+    headerTitle = 'Session Time-Out';
+    headerSubtitle = '2 hr 30 min Protection Window Expired';
+    calloutTitle = 'Session Window Limit';
+  } else if (isMidnightReset) {
+    headerTitle = 'Daily Cycle Completed';
+    headerSubtitle = '12:00 AM IST Midnight Security Reset';
+    calloutTitle = 'Daily Security Reset';
+  } else if (isRoleChanged) {
+    headerTitle = 'Permissions Updated';
+    headerSubtitle = 'Account Role Elevation / Transition';
+    calloutTitle = 'Role & Permissions Notice';
+  } else if (isSessionRevoked) {
+    headerTitle = 'Session Revoked';
+    headerSubtitle = 'Security & Device Management Action';
+    calloutTitle = 'Device Revocation Alert';
   } else if (isMultiDevice) {
     headerTitle = 'Signed in on Another Device';
     headerSubtitle = 'Active Session Concurrent Protection';
     calloutTitle = 'Account Security Alert';
-  } else if (isInactivity) {
-    headerTitle = 'Session Time-Out';
-    headerSubtitle = '2 hr 30 min Inactivity Protection Triggered';
-    calloutTitle = 'Inactivity Protection';
   } else if (isTerminated) {
     headerTitle = 'Access Terminated';
     headerSubtitle = 'Administrative Perimeter Action';
@@ -140,7 +179,7 @@ export default function SessionTimeoutModal() {
             </div>
 
             <p className="text-xs text-slate-500 leading-normal px-1 text-center font-normal">
-              {modalData.reason?.includes('another device') 
+              {isMultiDevice 
                 ? `Automatic logout in ${countdown}s for account security.`
                 : isMaintenance ? 'The platform is currently undergoing maintenance. Please check back shortly.' : `Automatic redirect in ${countdown}s. Please authenticate again when ready.`}
             </p>

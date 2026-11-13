@@ -132,7 +132,7 @@ class AuthController {
         String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
         try {
             // Increment session_token_version to invalidate any previous active sessions on other devices
-            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NOW() WHERE id = ?", user.get("id"));
+            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'SUPERSEDED_BY_NEW_LOGIN', last_active_at = NOW() WHERE id = ?", user.get("id"));
             // Fetch updated version to stamp on new JWT
             Map<String, Object> updatedUser = auth.findUserById(AuthSupport.number(user.get("id")));
             if (updatedUser != null) {

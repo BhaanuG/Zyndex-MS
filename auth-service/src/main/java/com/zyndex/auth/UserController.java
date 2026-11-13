@@ -264,7 +264,7 @@ class UserController {
             // When an admin changes the user's role (e.g. ADMIN -> STUDENT/user or vice versa),
             // increment session_token_version so obsolete tokens with the wrong role/permissions
             // are immediately invalidated and the user is prompted to authenticate with their new role.
-            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'ROLE_CHANGED', last_active_at = NULL WHERE id = ?", userId);
 
             String adminName = request.getHeader("X-User-Name");
             if (adminName == null || adminName.isBlank()) adminName = "Main Administrator";
@@ -302,7 +302,7 @@ class UserController {
         boolean roleEmailSent = false;
         if (!oldRole.equalsIgnoreCase(newRole)) {
             // Invalidate existing sessions immediately so the user can switch to their new portal cleanly
-            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'ROLE_CHANGED', last_active_at = NULL WHERE id = ?", userId);
 
             String name = String.valueOf(AuthSupport.first(existingUser.get("username"), AuthSupport.first(existingUser.get("name"), "User")));
             String email = AuthSupport.str(existingUser.get("email"));
@@ -414,7 +414,7 @@ class UserController {
         if (target == null) throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
 
         // Mark user as terminated, increment session token version and clear last_active_at
-        jdbc.update("UPDATE users SET is_terminated = true, session_token_version = session_token_version + 1, last_active_at = NULL WHERE id = ?", userId);
+        jdbc.update("UPDATE users SET is_terminated = true, session_token_version = session_token_version + 1, session_invalidation_reason = 'ADMIN_TERMINATED', last_active_at = NULL WHERE id = ?", userId);
 
         String targetName = String.valueOf(AuthSupport.first(target.get("name"), target.get("username")));
         String targetEmail = String.valueOf(target.get("email"));
@@ -464,7 +464,7 @@ class UserController {
         String adminEmail = String.valueOf(admin.get("email"));
 
         // Terminate all sessions except the primary admin's own session
-        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?", adminId);
+        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'ADMIN_FORCE_LOGOUT_ALL', last_active_at = NULL WHERE id != ?", adminId);
 
         try {
             jdbc.update("""
@@ -637,7 +637,7 @@ class UserController {
         long adminId = adminRows.isEmpty() ? 0L : AuthSupport.number(adminRows.get(0).get("id"));
 
         // Immediately revoke all other active sessions across the platform
-        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, last_active_at = NULL WHERE id != ?", adminId);
+        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'MAINTENANCE_ACTIVE', last_active_at = NULL WHERE id != ?", adminId);
 
         // Broadcast email: Zyndex is now officially in maintenance
         new Thread(() -> {
@@ -818,7 +818,7 @@ class UserController {
         String currentToken = body != null ? AuthSupport.str(body.get("currentDeviceToken")) : "";
 
         // Increment version to invalidate all other JWTs
-        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1 WHERE id = ?", userId);
+        jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'USER_REVOKED_OTHER_SESSIONS' WHERE id = ?", userId);
 
         // Delete all devices except current if provided
         if (!currentToken.isBlank()) {

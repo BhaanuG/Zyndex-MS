@@ -220,7 +220,20 @@ public class AuthSupport {
                 int claimV = Integer.parseInt(String.valueOf(tokenVer));
                 int dbV = user.get("session_token_version") != null ? (int) number(user.get("session_token_version")) : 1;
                 if (claimV < dbV) {
-                    throw new ApiException(HttpStatus.UNAUTHORIZED, "The session with the email ID " + userEmail + " is currently active and in use on another device or browser. To maintain account integrity, this session will now be closed.");
+                    String invalidationReason = str(user.get("session_invalidation_reason"));
+                    if ("MIDNIGHT_DAILY_RESET".equalsIgnoreCase(invalidationReason)) {
+                        throw new ApiException(HttpStatus.UNAUTHORIZED, "DAILY_SESSION_EXPIRED", "Your 24-hour daily session has ended at 12:00 AM IST (midnight reset). Please log in again to continue.");
+                    } else if ("ADMIN_TERMINATED".equalsIgnoreCase(invalidationReason) || "ADMIN_FORCE_LOGOUT_ALL".equalsIgnoreCase(invalidationReason)) {
+                        throw new ApiException(HttpStatus.FORBIDDEN, "ADMIN_TERMINATED", "Your session was terminated by an administrator. Please authenticate again when ready.");
+                    } else if ("ROLE_CHANGED".equalsIgnoreCase(invalidationReason)) {
+                        throw new ApiException(HttpStatus.UNAUTHORIZED, "ROLE_CHANGED", "Your platform role or permissions have been updated by an administrator. Please log in again to apply your new access tier.");
+                    } else if ("MAINTENANCE_ACTIVE".equalsIgnoreCase(invalidationReason)) {
+                        throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAINTENANCE_ACTIVE", "The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.");
+                    } else if ("USER_REVOKED_OTHER_SESSIONS".equalsIgnoreCase(invalidationReason)) {
+                        throw new ApiException(HttpStatus.UNAUTHORIZED, "SESSION_REVOKED", "This session was revoked from your active devices management settings. Please log in again.");
+                    } else {
+                        throw new ApiException(HttpStatus.UNAUTHORIZED, "SUPERSEDED_BY_NEW_LOGIN", "The session with the email ID " + userEmail + " is currently active and in use on another device or browser. To maintain account integrity, this session will now be closed.");
+                    }
                 }
             }
         }

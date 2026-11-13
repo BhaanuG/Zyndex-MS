@@ -122,12 +122,13 @@ apiClient.interceptors.response.use(
 
             // Dispatch global event so SessionTimeoutModal pops up gracefully
             if (typeof window !== 'undefined') {
-              const reasonMsg = parsedError.message || 'Your session was terminated by an administrator. Please authenticate again when ready.';
+              const reasonMsg = parsedError.message || 'Your session has ended. Please log in again to continue.';
               window.dispatchEvent(
                 new CustomEvent('zyndex:session-expired', {
                   detail: {
                     role,
-                    reason: reasonMsg
+                    reason: reasonMsg,
+                    code: parsedError.code
                   }
                 })
               );
