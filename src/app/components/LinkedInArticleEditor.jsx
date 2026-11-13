@@ -263,9 +263,9 @@ export default function LinkedInArticleEditor({ value, onChange, placeholder = '
         </div>
       </div>
 
-      {activeTab === 'write' && (
-        <>
-          {/* Cover Photo / Header Banner Upload Bar */}
+      {/* Write View (Always rendered in DOM, toggled via CSS hidden to preserve DOM elements and selections) */}
+      <div className={activeTab === 'write' ? 'block' : 'hidden'}>
+        {/* Cover Photo / Header Banner Upload Bar */}
           <div className="bg-gradient-to-r from-orange-50/60 via-amber-50/40 to-slate-50 px-4 py-3 border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <input
@@ -522,17 +522,16 @@ export default function LinkedInArticleEditor({ value, onChange, placeholder = '
               lineHeight: '1.8'
             }}
           />
-        </>
-      )}
+        </div>
 
       {/* Reader Preview Tab (Renders exact layout seen by scholars) */}
       {activeTab === 'preview' && (
         <div className="p-6 sm:p-10 bg-slate-50/50 min-h-[420px] max-h-[700px] overflow-y-auto">
           <div className="max-w-3xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-sm border border-slate-200">
-            {editorRef.current?.innerHTML ? (
+            {(value || editorRef.current?.innerHTML) ? (
               <div 
                 className="article-content prose prose-slate max-w-none"
-                dangerouslySetInnerHTML={{ __html: editorRef.current.innerHTML }} 
+                dangerouslySetInnerHTML={{ __html: value || editorRef.current?.innerHTML || '' }} 
               />
             ) : (
               <div className="py-16 text-center text-slate-400">
