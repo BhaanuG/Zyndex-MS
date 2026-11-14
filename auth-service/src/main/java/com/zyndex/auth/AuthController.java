@@ -169,11 +169,30 @@ class AuthController {
             if (existingUser != null) {
                 user = auth.sanitizeUser(existingUser);
             }
-            // Update last_active_at without bumping session_token_version so multiple devices can stay logged in simultaneously
-            jdbc.update("UPDATE users SET last_active_at = NOW() WHERE id = ?", user.get("id"));
+
+            // Enforce single-active-session policy:
+            // When user or admin logs in on a new device/browser, bump session_token_version to invalidate prior active sessions
+            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'SUPERSEDED_BY_NEW_LOGIN', last_active_at = NOW() WHERE id = ?", user.get("id"));
+
+            // Refresh sanitized user with updated session_token_version
+            Map<String, Object> freshUser = auth.findUserById(AuthSupport.number(user.get("id")));
+            if (freshUser != null) {
+                user = auth.sanitizeUser(freshUser);
+            }
 
             // If device info provided in login request, record/update device session in trusted_devices table
             String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();
+
+            // Mark all prior active sessions for this account as logged out / inactive
+            jdbc.update("""
+                    UPDATE trusted_devices 
+                    SET is_active = FALSE,
+                        logged_out_at = NOW(),
+                        last_active_at = NOW(),
+                        total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
+                    WHERE LOWER(email) = LOWER(?) AND is_active = TRUE
+                    """, email);
+
             if (!deviceToken.isBlank()) {
                 String deviceName = AuthSupport.str(body.get("deviceName")).trim();
                 String browser = AuthSupport.str(body.get("browser")).trim();
@@ -184,16 +203,6 @@ class AuthController {
                 java.time.Instant expiryInstant = isTrusted
                         ? java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).toLocalDate().plusDays(1).atStartOfDay(java.time.ZoneId.of("Asia/Kolkata")).toInstant()
                         : java.time.Instant.now().plus(30, java.time.temporal.ChronoUnit.DAYS);
-
-                // Close previous active session for this device token and calculate its active seconds
-                jdbc.update("""
-                        UPDATE trusted_devices 
-                        SET is_active = FALSE,
-                            logged_out_at = NOW(),
-                            last_active_at = NOW(),
-                            total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
-                        WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_active = TRUE
-                        """, email, deviceToken);
 
                 jdbc.update("""
                         INSERT INTO trusted_devices (user_id, email, device_token, device_name, browser, operating_system, ip_address, trusted_at, expires_at, is_trusted, is_active, last_active_at, total_active_seconds)

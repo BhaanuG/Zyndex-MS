@@ -372,7 +372,10 @@ export default function AdminProfile() {
                                            String(d.operating_system || '').toLowerCase().includes('phone') ||
                                            String(d.device_name || '').toLowerCase().includes('mobile') ||
                                            String(d.browser || '').toLowerCase().includes('mobile');
-                          const isActiveSession = Boolean(d.is_active !== false && d.is_active !== 0 && !d.logged_out_at);
+                          const isFresh = d.last_active_at 
+                            ? (Date.now() - new Date(d.last_active_at).getTime()) <= 90000 
+                            : (d.trusted_at ? (Date.now() - new Date(d.trusted_at).getTime()) <= 90000 : false);
+                          const isActiveSession = Boolean(d.is_active !== false && d.is_active !== 0 && !d.logged_out_at && isFresh);
 
                           return (
                             <div key={group.key} className="transition-colors">
