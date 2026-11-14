@@ -306,15 +306,19 @@ class UserController {
                     "UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'ROLE_CHANGED', last_active_at = NULL WHERE id = ?",
                     userId);
 
+            final String targetName = name;
+            final String targetEmail = email;
+            final String targetOldRole = oldRole;
+            final String targetNewRole = role;
             String adminName = request.getHeader("X-User-Name");
             if (adminName == null || adminName.isBlank())
                 adminName = "Main Administrator";
             final String finalAdminName = adminName;
-            String timestamp = java.time.LocalDateTime.now()
+            final String timestamp = java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             java.util.concurrent.CompletableFuture.runAsync(() -> {
                 try {
-                    accountEmailService.sendRoleChangedEmail(name, email, oldRole, role, finalAdminName, timestamp);
+                    accountEmailService.sendRoleChangedEmail(targetName, targetEmail, targetOldRole, targetNewRole, finalAdminName, timestamp);
                 } catch (Exception ex) {
                     System.err.println("[ASYNC ROLE EMAIL ERROR] " + ex.getMessage());
                 }
@@ -323,9 +327,11 @@ class UserController {
         }
 
         if (!password.isBlank()) {
+            final String targetName = name;
+            final String targetEmail = email;
             java.util.concurrent.CompletableFuture.runAsync(() -> {
                 try {
-                    accountEmailService.sendPasswordChangedEmail(name, email);
+                    accountEmailService.sendPasswordChangedEmail(targetName, targetEmail);
                 } catch (Exception ex) {
                     System.err.println("[ASYNC PWD EMAIL ERROR] " + ex.getMessage());
                 }
@@ -368,15 +374,19 @@ class UserController {
             String name = String.valueOf(AuthSupport.first(existingUser.get("username"),
                     AuthSupport.first(existingUser.get("name"), "User")));
             String email = AuthSupport.str(existingUser.get("email"));
+            final String targetName = name;
+            final String targetEmail = email;
+            final String targetOldRole = oldRole;
+            final String targetNewRole = newRole;
             String adminName = request.getHeader("X-User-Name");
             if (adminName == null || adminName.isBlank())
                 adminName = "Main Administrator";
             final String finalAdminName = adminName;
-            String timestamp = java.time.LocalDateTime.now()
+            final String timestamp = java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             java.util.concurrent.CompletableFuture.runAsync(() -> {
                 try {
-                    accountEmailService.sendRoleChangedEmail(name, email, oldRole, newRole, finalAdminName,
+                    accountEmailService.sendRoleChangedEmail(targetName, targetEmail, targetOldRole, targetNewRole, finalAdminName,
                             timestamp);
                 } catch (Exception ex) {
                     System.err.println("[ASYNC ROLE EMAIL ERROR] " + ex.getMessage());
