@@ -334,52 +334,144 @@ public class AuthSupport {
         user.put("createdAt", row.get("created_at"));
         user.put("updatedAt", row.get("updated_at"));
 
-        // Fetch active plan subscription from access-service
+        // Fetch active plan subscription directly from database with zero latency
         user.put("subscriptionPlan", "FREE");
         user.put("subscriptionExpiresAt", null);
+        boolean planResolved = false;
+
+        // 1. Direct query against subscriptions table (supports both zyndex_subscription schema and zyndex_db fallback)
         try {
-            String accessUrl = "http://access-service/api/access/entitlements/user/" + id;
-            java.util.List<Map<String, Object>> entitlements = restTemplate.getForObject(accessUrl, java.util.List.class);
-            if (entitlements != null) {
-                for (Map<String, Object> entitlement : entitlements) {
-                    long resId = entitlement.get("resource_id") != null ? ((Number) entitlement.get("resource_id")).longValue() : 0;
-                    String status = String.valueOf(entitlement.get("status"));
-                    if (resId == 0 && "ACTIVE".equalsIgnoreCase(status)) {
-                        Object expObj = entitlement.get("expires_at");
-                        boolean isExpired = false;
-                        if (expObj != null) {
+            java.util.List<Map<String, Object>> subs = jdbc.queryForList(
+                    "SELECT plan_id, end_date FROM subscriptions WHERE user_id = ? AND status = 'ACTIVE' ORDER BY id DESC LIMIT 1",
+                    id);
+            if (subs.isEmpty()) {
+                subs = jdbc.queryForList(
+                        "SELECT plan_id, end_date FROM zyndex_subscription.subscriptions WHERE user_id = ? AND status = 'ACTIVE' ORDER BY id DESC LIMIT 1",
+                        id);
+            }
+            if (!subs.isEmpty()) {
+                Map<String, Object> sub = subs.get(0);
+                String planId = str(sub.get("plan_id"));
+                Object endDate = sub.get("end_date");
+                boolean isExpired = false;
+                if (endDate != null) {
+                    try {
+                        java.time.Instant expInstant = null;
+                        if (endDate instanceof java.sql.Timestamp) {
+                            expInstant = ((java.sql.Timestamp) endDate).toInstant();
+                        } else if (endDate instanceof java.time.LocalDateTime) {
+                            expInstant = ((java.time.LocalDateTime) endDate).toInstant(java.time.ZoneOffset.UTC);
+                        } else if (endDate instanceof java.time.Instant) {
+                            expInstant = (java.time.Instant) endDate;
+                        } else {
+                            String expiryText = String.valueOf(endDate);
                             try {
-                                java.time.Instant expInstant = null;
-                                if (expObj instanceof java.sql.Timestamp) {
-                                    expInstant = ((java.sql.Timestamp) expObj).toInstant();
-                                } else if (expObj instanceof java.time.LocalDateTime) {
-                                    expInstant = ((java.time.LocalDateTime) expObj).toInstant(java.time.ZoneOffset.UTC);
-                                } else if (expObj instanceof java.time.Instant) {
-                                    expInstant = (java.time.Instant) expObj;
-                                } else {
-                                    String expiryText = String.valueOf(expObj);
-                                    try {
-                                        expInstant = java.time.Instant.parse(expiryText);
-                                    } catch (java.time.format.DateTimeParseException ignored) {
-                                        expInstant = java.time.LocalDateTime.parse(expiryText.replace(' ', 'T'))
-                                                .toInstant(java.time.ZoneOffset.UTC);
-                                    }
-                                }
-                                if (expInstant != null && java.time.Instant.now().isAfter(expInstant)) {
-                                    isExpired = true;
-                                }
-                            } catch (Exception ignored) {}
+                                expInstant = java.time.Instant.parse(expiryText);
+                            } catch (java.time.format.DateTimeParseException ignored) {
+                                expInstant = java.time.LocalDateTime.parse(expiryText.replace(' ', 'T'))
+                                        .toInstant(java.time.ZoneOffset.UTC);
+                            }
                         }
-                        if (!isExpired) {
-                            user.put("subscriptionPlan", entitlement.get("permission"));
-                            user.put("subscriptionExpiresAt", entitlement.get("expires_at"));
-                            break;
+                        if (expInstant != null && java.time.Instant.now().isAfter(expInstant)) {
+                            isExpired = true;
+                        }
+                    } catch (Exception ignored) {}
+                }
+                if (!isExpired && !planId.isBlank()) {
+                    user.put("subscriptionPlan", planId);
+                    user.put("subscriptionExpiresAt", endDate);
+                    planResolved = true;
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // 2. Fallback to access_entitlements if not found in subscriptions table
+        if (!planResolved) {
+            try {
+                java.util.List<Map<String, Object>> entRows = jdbc.queryForList(
+                        "SELECT permission, expires_at FROM access_entitlements WHERE user_id = ? AND (resource_id IS NULL OR resource_id = 0) AND status = 'ACTIVE' ORDER BY id DESC LIMIT 1",
+                        id);
+                if (!entRows.isEmpty()) {
+                    Map<String, Object> ent = entRows.get(0);
+                    String permission = str(ent.get("permission"));
+                    Object expObj = ent.get("expires_at");
+                    boolean isExpired = false;
+                    if (expObj != null) {
+                        try {
+                            java.time.Instant expInstant = null;
+                            if (expObj instanceof java.sql.Timestamp) {
+                                expInstant = ((java.sql.Timestamp) expObj).toInstant();
+                            } else if (expObj instanceof java.time.LocalDateTime) {
+                                expInstant = ((java.time.LocalDateTime) expObj).toInstant(java.time.ZoneOffset.UTC);
+                            } else if (expObj instanceof java.time.Instant) {
+                                expInstant = (java.time.Instant) expObj;
+                            } else {
+                                String expiryText = String.valueOf(expObj);
+                                try {
+                                    expInstant = java.time.Instant.parse(expiryText);
+                                } catch (java.time.format.DateTimeParseException ignored) {
+                                    expInstant = java.time.LocalDateTime.parse(expiryText.replace(' ', 'T'))
+                                            .toInstant(java.time.ZoneOffset.UTC);
+                                }
+                            }
+                            if (expInstant != null && java.time.Instant.now().isAfter(expInstant)) {
+                                isExpired = true;
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                    if (!isExpired && !permission.isBlank()) {
+                        user.put("subscriptionPlan", permission);
+                        user.put("subscriptionExpiresAt", expObj);
+                        planResolved = true;
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        // 3. Fallback via REST access-service if needed
+        if (!planResolved) {
+            try {
+                String accessUrl = "http://access-service/api/access/entitlements/user/" + id;
+                java.util.List<Map<String, Object>> entitlements = restTemplate.getForObject(accessUrl, java.util.List.class);
+                if (entitlements != null) {
+                    for (Map<String, Object> entitlement : entitlements) {
+                        long resId = entitlement.get("resource_id") != null ? ((Number) entitlement.get("resource_id")).longValue() : 0;
+                        String status = String.valueOf(entitlement.get("status"));
+                        if (resId == 0 && "ACTIVE".equalsIgnoreCase(status)) {
+                            Object expObj = entitlement.get("expires_at");
+                            boolean isExpired = false;
+                            if (expObj != null) {
+                                try {
+                                    java.time.Instant expInstant = null;
+                                    if (expObj instanceof java.sql.Timestamp) {
+                                        expInstant = ((java.sql.Timestamp) expObj).toInstant();
+                                    } else if (expObj instanceof java.time.LocalDateTime) {
+                                        expInstant = ((java.time.LocalDateTime) expObj).toInstant(java.time.ZoneOffset.UTC);
+                                    } else if (expObj instanceof java.time.Instant) {
+                                        expInstant = (java.time.Instant) expObj;
+                                    } else {
+                                        String expiryText = String.valueOf(expObj);
+                                        try {
+                                            expInstant = java.time.Instant.parse(expiryText);
+                                        } catch (java.time.format.DateTimeParseException ignored) {
+                                            expInstant = java.time.LocalDateTime.parse(expiryText.replace(' ', 'T'))
+                                                    .toInstant(java.time.ZoneOffset.UTC);
+                                        }
+                                    }
+                                    if (expInstant != null && java.time.Instant.now().isAfter(expInstant)) {
+                                        isExpired = true;
+                                    }
+                                } catch (Exception ignored) {}
+                            }
+                            if (!isExpired) {
+                                user.put("subscriptionPlan", entitlement.get("permission"));
+                                user.put("subscriptionExpiresAt", entitlement.get("expires_at"));
+                                break;
+                            }
                         }
                     }
                 }
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to fetch entitlements in sanitizeUser: " + e.getMessage());
+            } catch (Exception ignored) {}
         }
 
         return user;
