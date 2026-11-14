@@ -13,3 +13,4 @@ eureka:
 
 zyndex:
   upload-dir: target/test-uploads
+  main-admin-email: bhaanusai07@gmail.com

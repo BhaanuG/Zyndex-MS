@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import DOMPurify from 'dompurify';
 import { Search, BookOpen, HelpCircle, UserCircle, MessageSquare, ChevronDown, ChevronRight, FileText, X, ArrowLeft, Clock, ThumbsUp, ThumbsDown, Shield, Lightbulb, Wrench, Grid3x3, List, Layers } from 'lucide-react';
 import PublicLayout from '@/app/components/PublicLayout';
 import '../styles/help-articles.css';
@@ -1578,7 +1579,7 @@ export default function HelpCenter() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                         className="article-content prose prose-orange max-w-none"
-                        dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedArticle.content) }}
                       />
 
                       {/* Feedback Section */}

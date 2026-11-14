@@ -5,6 +5,7 @@ import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
 import logService from '@/services/api/logService';
+import DOMPurify from 'dompurify';
 import LinkedInArticleEditor from '@/app/components/LinkedInArticleEditor';
 
 const defaultCategories = [
@@ -87,7 +88,8 @@ export default function ResourceManagement() {
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.15);
   const pdfCanvasRef = useRef(null);
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
+  const getProtocol = () => (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:');
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `${getProtocol()}//${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
 
   const openPreviewModal = async (resource) => {
     setPreviewResource(resource);
@@ -1080,7 +1082,7 @@ export default function ResourceManagement() {
                   ) : previewResource?.description && !previewResource.fileUrl ? (
                     <div className="bg-white p-6 rounded-xl border border-gray-200 max-w-2xl w-full prose max-w-none">
                       <h4 className="font-bold text-gray-900 mb-2">Description / Article Content:</h4>
-                      <div dangerouslySetInnerHTML={{ __html: previewResource.description }} />
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewResource.articleContent || previewResource.description || '') }} />
                     </div>
                   ) : (
                     <div className="text-center py-12">

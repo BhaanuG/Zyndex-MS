@@ -24,6 +24,11 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
+      default-filters:
+        - SetResponseHeader=X-Content-Type-Options, nosniff
+        - SetResponseHeader=X-Frame-Options, SAMEORIGIN
+        - SetResponseHeader=X-XSS-Protection, 1; mode=block
+        - SetResponseHeader=Referrer-Policy, strict-origin-when-cross-origin
       routes:
         - id: content-user-service
           uri: lb://CONTENT-SERVICE

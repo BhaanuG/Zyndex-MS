@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { 
   Bold, Italic, Underline, Strikethrough, Heading1, Heading2, Heading3, 
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight, AlignJustify,
@@ -742,7 +743,7 @@ export default function LinkedInArticleEditor({ value, onChange, placeholder = '
             {(value || editorRef.current?.innerHTML) ? (
               <div 
                 className="article-content prose prose-slate max-w-none"
-                dangerouslySetInnerHTML={{ __html: value || editorRef.current?.innerHTML || '' }} 
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value || editorRef.current?.innerHTML || '') }} 
               />
             ) : (
               <div className="py-16 text-center text-slate-400">

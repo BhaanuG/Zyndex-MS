@@ -46,6 +46,7 @@
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
     "date-fns": "3.6.0",
+    "dompurify": "^3.4.17",
     "embla-carousel-react": "8.6.0",
     "input-otp": "1.4.2",
     "lucide-react": "0.487.0",
@@ -76,7 +77,7 @@
     "@vitejs/plugin-react": "4.7.0",
     "tailwindcss": "4.1.12",
     "typescript": "^7.0.2",
-    "vite": "6.3.5"
+    "vite": "^6.4.6"
   },
   "peerDependencies": {
     "react": "18.3.1",

@@ -55,8 +55,8 @@ class AccessControllerTest {
         when(jdbc.queryForObject(any(String.class), eq(Integer.class), eq(1L), eq(2L), eq("READ")))
                 .thenReturn(0);
 
-        Map<String, Object> res = controller.check(1L, 2L, "READ", "user", "", "", "FREE");
+        Map<String, Object> res = controller.check(1L, 2L, "READ", "user", "Physics", "TEXTBOOK", "STUDENT_BASIC");
         assertThat(res.get("authorized")).isEqualTo(false);
-        assertThat(res.get("reason")).asString().contains("requires a Student Basic or higher subscription plan");
+        assertThat(res.get("reason")).asString().contains("locked for your current plan");
     }
 }

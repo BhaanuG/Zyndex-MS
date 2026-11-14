@@ -88,9 +88,11 @@ public class SubscriptionController {
         String previousPlan = currentPlan(userId);
         jdbc.update("UPDATE subscriptions SET status = 'REVOKED' WHERE user_id = ? AND status = 'ACTIVE'", userId);
         String subscriptionId = "ADMIN_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        java.sql.Timestamp nowTs = new java.sql.Timestamp(System.currentTimeMillis());
+        java.sql.Timestamp endTs = new java.sql.Timestamp(System.currentTimeMillis() + (long) durationDays * 24L * 60L * 60L * 1000L);
         jdbc.update(
-                "INSERT INTO subscriptions (id, user_id, plan_id, status, start_date, end_date, auto_renew) VALUES (?, ?, ?, 'ACTIVE', NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), FALSE)",
-                subscriptionId, userId, planId, durationDays);
+                "INSERT INTO subscriptions (id, user_id, plan_id, status, start_date, end_date, auto_renew) VALUES (?, ?, ?, 'ACTIVE', ?, ?, FALSE)",
+                subscriptionId, userId, planId, nowTs, endTs);
 
         Map<String, Object> subscription = jdbc.queryForMap(
                 "SELECT s.id, s.user_id, s.plan_id, s.status, s.start_date, s.end_date, p.name AS plan_name, p.billing_interval "
@@ -263,35 +265,6 @@ public class SubscriptionController {
         }
 
         return paymentService.confirmSimulatedPayment(userId, paymentId);
-    }
-
-    @PostMapping("/webhook")
-    public Map<String, Object> handleWebhook(
-            HttpServletRequest request,
-            @RequestHeader(name = "X-Gateway-Signature", required = false) String signature,
-            @RequestHeader(name = "X-Gateway-Signature-V2", required = false) String signatureV2,
-            @RequestHeader(name = "X-Gateway-Timestamp", required = false) String timestamp,
-            @RequestHeader(name = "X-Gateway-Delivery-Id", required = false) String deliveryId,
-            @RequestHeader(name = "X-Gateway-Event", required = false) String eventHeader,
-            @RequestHeader(name = "X-Razorpay-Signature", required = false) String rzpSignature) {
-
-        try {
-            byte[] rawBytes = request.getInputStream().readAllBytes();
-            String effectiveSignature = (signature != null && !signature.isBlank()) ? signature : rzpSignature;
-
-            return paymentService.processWebhook(
-                    rawBytes,
-                    effectiveSignature,
-                    signatureV2,
-                    timestamp,
-                    deliveryId,
-                    eventHeader
-            );
-        } catch (ApiException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Webhook processing failed: " + e.getMessage());
-        }
     }
 
     private void syncAccessSubscription(Long userId, String planId, int durationDays) {

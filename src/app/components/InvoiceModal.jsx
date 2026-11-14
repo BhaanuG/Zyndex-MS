@@ -186,8 +186,8 @@ export default function InvoiceModal({ isOpen, onClose, invoiceData }) {
             </div>
 
             {/* Line Items Table */}
-            <div>
-              <table className="w-full text-left text-xs border-collapse">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse min-w-[500px]">
                 <thead>
                   <tr className="border-b-2 border-slate-200 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
                     <th className="py-3 px-2">Description / Subscription Plan</th>

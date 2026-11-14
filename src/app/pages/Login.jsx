@@ -498,15 +498,15 @@ export default function Login() {
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 py-6 sm:py-12">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[calc(100vh-160px)]">
-          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="space-y-6 sm:space-y-8 hidden md:block">
-            <div className="space-y-4 sm:space-y-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-                <span className="text-slate-900">Educational Resource</span>
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="space-y-4 sm:space-y-8 block text-center md:text-left">
+            <div className="space-y-3 sm:space-y-6">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                <span className="text-slate-900">Your Knowledge. Your Growth.</span>
                 <br />
-                <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">Library Platform</span>
+                <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">Your Library.</span>
               </h1>
-              <p className="text-base sm:text-xl text-slate-600 leading-relaxed max-w-xl">
-                Create your account, explore educational resources, and access uploaded PDFs and articles from the Zyndex library.
+              <p className="text-sm sm:text-xl text-slate-600 leading-relaxed max-w-xl mx-auto md:mx-0">
+                Discover a world of learning resources, explore educational materials, and access the knowledge you need to move forward.
               </p>
             </div>
           </motion.div>

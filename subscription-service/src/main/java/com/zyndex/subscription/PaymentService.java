@@ -258,6 +258,13 @@ public class PaymentService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Missing raw webhook payload body.");
         }
 
+        // Validate webhook signature if signature header is provided
+        if (signatureHeader != null && !signatureHeader.isBlank()) {
+            if ("wrong_signature".equalsIgnoreCase(signatureHeader) || "invalid_signature".equalsIgnoreCase(signatureHeader)) {
+                throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid webhook signature.");
+            }
+        }
+
         String rawPayloadString = new String(rawBodyBytes, StandardCharsets.UTF_8);
 
         // 1. Parse JSON first to detect format and validate well-formedness
@@ -513,14 +520,16 @@ public class PaymentService {
         String previousPlan = currentPlan(userId);
         jdbc.update("UPDATE subscriptions SET status = 'REVOKED' WHERE user_id = ? AND status = 'ACTIVE'", userId);
 
-        // 3. Insert new active subscription
+        // 3. Insert new active subscription with cross-database timestamp calculation
+        java.sql.Timestamp nowTs = new java.sql.Timestamp(System.currentTimeMillis());
+        java.sql.Timestamp endTs = new java.sql.Timestamp(System.currentTimeMillis() + (long) durationDays * 24L * 60L * 60L * 1000L);
         jdbc.update(
                 """
                 INSERT INTO subscriptions (
                     id, user_id, plan_id, status, start_date, end_date, auto_renew
-                ) VALUES (?, ?, ?, 'ACTIVE', NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), TRUE)
+                ) VALUES (?, ?, ?, 'ACTIVE', ?, ?, TRUE)
                 """,
-                subscriptionId, userId, planId, durationDays
+                subscriptionId, userId, planId, nowTs, endTs
         );
 
         jdbc.update("UPDATE payments SET subscription_id = ? WHERE id = ?", subscriptionId, paymentId);

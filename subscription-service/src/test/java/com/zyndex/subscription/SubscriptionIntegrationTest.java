@@ -62,9 +62,10 @@ public class SubscriptionIntegrationTest {
     @Test
     public void testPaymentStatus() throws Exception {
         String paymentId = "PAY_TEST_STATUS";
+        java.sql.Timestamp futureTime = java.sql.Timestamp.from(java.time.Instant.now().plusSeconds(3600));
         jdbc.update("INSERT INTO payments (id, user_id, gateway, gateway_payment_id, gateway_order_id, gateway_qr_id, amount_paise, payment_method, status, expires_at, plan_id) " +
-                "VALUES (?, 123, 'SIMULATED', 'PAY_TEST_STATUS', 'ORD_TEST_STATUS', 'qr_status', 19900, 'UPI', 'PENDING', DATE_ADD(NOW(), INTERVAL 1 HOUR), 'STUDENT_PLUS')",
-                paymentId);
+                "VALUES (?, 123, 'SIMULATED', 'PAY_TEST_STATUS', 'ORD_TEST_STATUS', 'qr_status', 19900, 'UPI', 'PENDING', ?, 'STUDENT_PLUS')",
+                paymentId, futureTime);
 
         // Payment status endpoint returns correct state
         mockMvc.perform(get("/api/subscriptions/payment-status/" + paymentId)
@@ -77,12 +78,14 @@ public class SubscriptionIntegrationTest {
     @Test
     public void testWebhookIdempotencyAndVerification() throws Exception {
         // Create pending payment
+        java.sql.Timestamp futureTime = java.sql.Timestamp.from(java.time.Instant.now().plusSeconds(3600));
         jdbc.update("INSERT INTO payments (id, user_id, gateway, gateway_payment_id, gateway_order_id, gateway_qr_id, amount_paise, payment_method, status, expires_at, plan_id) " +
-                "VALUES ('PAY_ID', 123, 'SIMULATED', 'pay_real', 'order_real', 'qr_real', 19900, 'UPI', 'PENDING', DATE_ADD(NOW(), INTERVAL 1 HOUR), 'STUDENT_PLUS')");
+                "VALUES ('PAY_ID', 123, 'SIMULATED', 'pay_real', 'order_real', 'qr_real', 19900, 'UPI', 'PENDING', ?, 'STUDENT_PLUS')",
+                futureTime);
 
         // Invalid signature rejected
         mockMvc.perform(post("/api/subscriptions/webhook")
-                .header("X-Razorpay-Signature", "wrong_signature")
+                .header("X-Gateway-Signature", "wrong_signature")
                 .header("X-Gateway-Secret", GATEWAY_SECRET)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"event\":\"order.paid\",\"id\":\"evt_1\",\"payload\":{\"payment\":{\"entity\":{\"id\":\"pay_real\",\"amount\":19900,\"currency\":\"INR\",\"order_id\":\"order_real\"}}}}"))

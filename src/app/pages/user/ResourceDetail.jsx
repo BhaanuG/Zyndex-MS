@@ -4,6 +4,7 @@ import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft,
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { useParams, useNavigate } from 'react-router';
+import DOMPurify from 'dompurify';
 import UserLayout from '@/app/components/UserLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
@@ -50,7 +51,8 @@ export default function ResourceDetail() {
   const [pdfScale, setPdfScale] = useState(1.15);
   const pdfCanvasRef = useRef(null);
   const hasTrackedView = useRef(false);
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
+  const getProtocol = () => (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:');
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `${getProtocol()}//${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
 
   const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
   const isSubExpired = user?.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) < new Date() : false;
@@ -375,7 +377,7 @@ export default function ResourceDetail() {
                     <div className="article-reader-container bg-white rounded-2xl p-2 sm:p-6">
                       <div 
                         className="article-content text-slate-800 leading-relaxed font-serif text-[16px] sm:text-[17px] space-y-4"
-                        dangerouslySetInnerHTML={{ __html: resource.articleContent || resource.description || '' }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resource.articleContent || resource.description || '') }}
                       />
                     </div>
                   </div>

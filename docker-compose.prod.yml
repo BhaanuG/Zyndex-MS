@@ -6,6 +6,7 @@ services:
     image: mysql:8.4
     container_name: zyndex-mysql
     restart: always
+    command: --innodb-buffer-pool-size=128M --innodb-log-buffer-size=16M --max-connections=100
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-zyndex_secure_root_password_2026}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-zyndex_db}
@@ -29,7 +30,7 @@ services:
       context: .
       dockerfile: Dockerfile.service
       args:
-        JAR_FILE: eureka-server/target/eureka-server-0.0.1-SNAPSHOT.jar
+        JAR_FILE: eureka-server/target/eureka-server-1.0.0.jar
     container_name: zyndex-eureka
     restart: always
     ports:
@@ -50,7 +51,7 @@ services:
       context: .
       dockerfile: Dockerfile.service
       args:
-        JAR_FILE: auth-service/target/auth-service-0.0.1-SNAPSHOT.jar
+        JAR_FILE: auth-service/target/auth-service-1.0.0.jar
     container_name: zyndex-auth
     restart: always
     depends_on:
@@ -66,12 +67,12 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       JWT_SECRET: ${JWT_SECRET:-zyndex_super_secret_hmac_sha256_key_with_at_least_32_characters}
       GATEWAY_SECRET: ${GATEWAY_SECRET:-zyndex_internal_mesh_secret_token_2026}
-      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME:-}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_HOST: ${MAIL_HOST:-${OTP_SMTP_HOST:-smtp.gmail.com}}
+      MAIL_PORT: ${MAIL_PORT:-${OTP_SMTP_PORT:-587}}
+      MAIL_USERNAME: ${MAIL_USERNAME:-${OTP_SMTP_USER:-}}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-${OTP_SMTP_PASS:-}}
       OTP_MAIL_FROM: ${OTP_MAIL_FROM:-Bhaanugali@gmail.com}
-      JAVA_OPTS: "-XX:+UseSerialGC -Xms128m -Xmx384m"
+      JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx256m"
     networks:
       - zyndex-network
 
@@ -83,7 +84,7 @@ services:
       context: .
       dockerfile: Dockerfile.service
       args:
-        JAR_FILE: content-service/target/content-service-0.0.1-SNAPSHOT.jar
+        JAR_FILE: content-service/target/content-service-1.0.0.jar
     container_name: zyndex-content
     restart: always
     depends_on:
@@ -98,7 +99,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-zyndex_secure_root_password_2026}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       GATEWAY_SECRET: ${GATEWAY_SECRET:-zyndex_internal_mesh_secret_token_2026}
-      JAVA_OPTS: "-XX:+UseSerialGC -Xms128m -Xmx512m"
+      JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx320m"
     networks:
       - zyndex-network
 
@@ -110,7 +111,7 @@ services:
       context: .
       dockerfile: Dockerfile.service
       args:
-        JAR_FILE: access-service/target/access-service-0.0.1-SNAPSHOT.jar
+        JAR_FILE: access-service/target/access-service-1.0.0.jar
     container_name: zyndex-access
     restart: always
     depends_on:
@@ -137,7 +138,7 @@ services:
       context: .
       dockerfile: Dockerfile.service
       args:
-        JAR_FILE: usage-service/target/usage-service-0.0.1-SNAPSHOT.jar
+        JAR_FILE: usage-service/target/usage-service-1.0.0.jar
     container_name: zyndex-usage
     restart: always
     depends_on:
@@ -164,7 +165,7 @@ services:
       context: .
       dockerfile: Dockerfile.service
       args:
-        JAR_FILE: subscription-service/target/subscription-service-0.0.1-SNAPSHOT.jar
+        JAR_FILE: subscription-service/target/subscription-service-1.0.0.jar
     container_name: zyndex-subscription
     restart: always
     depends_on:
@@ -179,12 +180,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-zyndex_secure_root_password_2026}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       GATEWAY_SECRET: ${GATEWAY_SECRET:-zyndex_internal_mesh_secret_token_2026}
-      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME:-}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_HOST: ${MAIL_HOST:-${OTP_SMTP_HOST:-smtp.gmail.com}}
+      MAIL_PORT: ${MAIL_PORT:-${OTP_SMTP_PORT:-587}}
+      MAIL_USERNAME: ${MAIL_USERNAME:-${OTP_SMTP_USER:-}}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-${OTP_SMTP_PASS:-}}
       ADMIN_NOTIFICATION_EMAIL: ${ADMIN_NOTIFICATION_EMAIL:-Bhaanugali@gmail.com}
-      JAVA_OPTS: "-XX:+UseSerialGC -Xms128m -Xmx384m"
+      JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx256m"
     networks:
       - zyndex-network
 
@@ -196,7 +197,7 @@ services:
       context: .
       dockerfile: Dockerfile.service
       args:
-        JAR_FILE: api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar
+        JAR_FILE: api-gateway/target/api-gateway-1.0.0.jar
     container_name: zyndex-gateway
     restart: always
     depends_on:
@@ -208,7 +209,7 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       JWT_SECRET: ${JWT_SECRET:-zyndex_super_secret_hmac_sha256_key_with_at_least_32_characters}
       GATEWAY_SECRET: ${GATEWAY_SECRET:-zyndex_internal_mesh_secret_token_2026}
-      JAVA_OPTS: "-XX:+UseSerialGC -Xms128m -Xmx384m"
+      JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx256m"
     networks:
       - zyndex-network
 

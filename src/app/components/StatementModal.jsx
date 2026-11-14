@@ -137,8 +137,8 @@ export default function StatementModal({ isOpen, onClose, userData, payments = [
             {/* Transaction Log Table */}
             <div>
               <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">All Recorded Transactions</h3>
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="border border-slate-200 rounded-xl overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse min-w-[620px]">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr className="text-slate-500 uppercase text-[10px] font-bold">
                       <th className="py-2.5 px-3">Date</th>
