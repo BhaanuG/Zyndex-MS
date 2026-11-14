@@ -739,7 +739,7 @@ class ResourceController {
     }
 
     /**
-     * Lossless PDF stream compression and optimization using Apache PDFBox
+     * Lossless PDF stream compression and optimization using Apache PDFBox 3.x
      */
     private void compressPdf(Path source, Path destination) throws IOException {
         try (org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.Loader.loadPDF(source.toFile())) {
@@ -748,8 +748,8 @@ class ResourceController {
                 java.util.Iterator<org.apache.pdfbox.pdmodel.common.PDStream> streams = page.getContentStreams();
                 while (streams != null && streams.hasNext()) {
                     org.apache.pdfbox.pdmodel.common.PDStream stream = streams.next();
-                    if (stream != null && stream.getFilters() == null || stream.getFilters().isEmpty()) {
-                        stream.addCompression();
+                    if (stream != null && (stream.getFilters() == null || stream.getFilters().isEmpty())) {
+                        stream.setFilters(java.util.List.of(org.apache.pdfbox.cos.COSName.FLATE_DECODE));
                     }
                 }
             }
