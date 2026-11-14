@@ -276,6 +276,26 @@ export default function PaymentPage() {
     navigate(utrPageUrl);
   };
 
+  const handleCancelPayment = async () => {
+    const targetPaymentId = paymentData?.paymentId || paymentData?.id;
+    if (!targetPaymentId) {
+      navigate(billingProfilePath);
+      return;
+    }
+    setCancelling(true);
+    try {
+      await subscriptionService.cancelPayment(targetPaymentId);
+      setPaymentData(prev => prev ? ({ ...prev, status: 'CANCELLED' }) : null);
+      navigate(billingProfilePath);
+    } catch (err) {
+      console.error('Failed to cancel payment:', err);
+      // Navigate back anyway so user is never stuck
+      navigate(billingProfilePath);
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const handleSubmitUtr = async (e) => {
     if (e) e.preventDefault();
     const cleanUtr = utrNumber.trim();

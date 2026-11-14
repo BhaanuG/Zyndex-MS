@@ -128,6 +128,18 @@ const subscriptionService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  deleteAdminPayment: async (paymentId, reason = '') => {
+    try {
+      const response = await apiClient.post(`/subscriptions/admin/payments/${paymentId}/verify`, {
+        action: 'DELETE',
+        note: reason || 'Deleted by administrator from payment manager'
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 

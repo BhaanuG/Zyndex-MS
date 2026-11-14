@@ -4,7 +4,7 @@ import {
   CreditCard, Search, Download, CheckCircle2, XCircle, Clock, 
   AlertTriangle, Filter, RefreshCw, Check, X, ShieldAlert, 
   FileSpreadsheet, ArrowUpDown, ChevronDown, User, Calendar, 
-  Hash, DollarSign, Layers, ExternalLink, HelpCircle, Eye
+  Hash, DollarSign, Layers, ExternalLink, HelpCircle, Eye, Trash2
 } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
@@ -47,14 +47,46 @@ export default function AdminPayments() {
 
   useEffect(() => {
     fetchPayments();
-    // Live auto-polling every 5 seconds so incoming and hold payments update automatically
+    // Live auto-polling every 1 second so incoming, hold, and deleted payments update immediately
     const pollTimer = setInterval(() => {
       fetchPayments(true);
-    }, 5000);
+    }, 1000);
     return () => clearInterval(pollTimer);
   }, []);
 
   const [viewModalPayment, setViewModalPayment] = useState(null);
+  const [deleteModalPayment, setDeleteModalPayment] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeletePayment = async (payment) => {
+    if (!payment) return;
+    setDeleting(true);
+    try {
+      const res = await subscriptionService.deleteAdminPayment(payment.id, 'Removed by admin from payment manager');
+      logService.createLog({
+        service: 'ADMIN-PORTAL',
+        level: 'WARN',
+        action: 'ADMIN_PAYMENT_DELETE',
+        actorEmail: user?.email || 'admin@zyndex.com',
+        details: `Administrator deleted payment: ${payment.id} for user ${payment.user_email || payment.user_name}`,
+        status: 'SUCCESS'
+      }).catch(() => {});
+
+      setAlert({
+        message: res.message || 'Payment deleted successfully.',
+        type: 'success'
+      });
+      setDeleteModalPayment(null);
+      await fetchPayments();
+    } catch (err) {
+      setAlert({
+        message: err.message || 'Failed to delete payment.',
+        type: 'error'
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Direct action execution (Accept & Not Received execute without extra popup modal)
   const handleDirectAction = async (payment, action) => {
@@ -551,9 +583,16 @@ export default function AdminPayments() {
                               >
                                 <Eye className="size-3.5 text-slate-600" />
                               </button>
+                              <button
+                                onClick={() => setDeleteModalPayment(p)}
+                                className="p-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all cursor-pointer border border-rose-200"
+                                title="Delete payment"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
                             </div>
                           ) : p.status === 'CANCELLED' || !p.utr ? (
-                            /* Cancelled by user in QR page, or UTR not entered yet: Show Eye icon only */
+                            /* Cancelled by user in QR page, or UTR not entered yet: Show Eye & Delete icon */
                             <div className="flex items-center justify-center gap-1.5">
                               <button
                                 onClick={() => setViewModalPayment(p)}
@@ -563,9 +602,16 @@ export default function AdminPayments() {
                                 <Eye className="size-3.5 text-slate-600" />
                                 <span>Details</span>
                               </button>
+                              <button
+                                onClick={() => setDeleteModalPayment(p)}
+                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all cursor-pointer border border-rose-200"
+                                title="Delete payment"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
                             </div>
                           ) : (
-                            /* User entered UTR: Accept & Not Received are direct one-click; Decline opens reason popup */
+                            /* User entered UTR: Accept & Not Received are direct one-click; Decline opens reason popup; Delete button available */
                             <div className="flex items-center justify-center gap-1.5 flex-wrap max-w-xs mx-auto">
                               {/* Accept directly */}
                               <button
@@ -607,6 +653,15 @@ export default function AdminPayments() {
                                 title="View details"
                               >
                                 <Eye className="size-3.5" />
+                              </button>
+
+                              {/* Delete button */}
+                              <button
+                                onClick={() => setDeleteModalPayment(p)}
+                                className="p-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all cursor-pointer border border-rose-200"
+                                title="Delete payment"
+                              >
+                                <Trash2 className="size-3.5" />
                               </button>
                             </div>
                           )}
@@ -887,6 +942,53 @@ export default function AdminPayments() {
                           <span>Decline & Send Email</span>
                         </>
                       )}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {deleteModalPayment && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setDeleteModalPayment(null)}
+                className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden"
+              >
+                <div className="p-6">
+                  <div className="size-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+                    <Trash2 className="size-6" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Delete Payment Record?</h3>
+                  <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+                    Are you sure you want to delete payment <span className="font-mono font-bold text-slate-800">{deleteModalPayment.id}</span> ({deleteModalPayment.user_email || deleteModalPayment.user_name})? This will permanently remove the record and instantly synchronize across the admin portal and the user's billing history.
+                  </p>
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setDeleteModalPayment(null)}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={() => handleDeletePayment(deleteModalPayment)}
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {deleting ? <RefreshCw className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+                      <span>{deleting ? 'Deleting...' : 'Confirm Delete'}</span>
                     </button>
                   </div>
                 </div>

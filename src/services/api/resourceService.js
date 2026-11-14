@@ -241,6 +241,19 @@ const resourceService = {
       throw error;
     }
   },
+
+  /**
+   * Get live cloud storage and VM health metrics
+   * @returns {Promise<Object>}
+   */
+  getStorageStats: async () => {
+    try {
+      const response = await apiClient.get('/resources/storage');
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default resourceService;

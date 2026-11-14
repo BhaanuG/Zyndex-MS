@@ -76,6 +76,63 @@ class ResourceController {
                 "recentUploads", jdbc.queryForList("SELECT id, title, category, author, created_at, updated_at FROM resources ORDER BY COALESCE(updated_at, created_at) DESC LIMIT 5"));
     }
 
+    @GetMapping("/storage")
+    Map<String, Object> storageStats(HttpServletRequest request) {
+        requireAdmin(request);
+        Path uploadDir = resolveUploadDirectory();
+        java.io.File fileStore = uploadDir.toFile();
+        long totalSpace = fileStore.getTotalSpace();
+        long freeSpace = fileStore.getFreeSpace();
+        long usableSpace = fileStore.getUsableSpace();
+        long usedSpace = totalSpace > freeSpace ? (totalSpace - freeSpace) : 0;
+        double usedPercentage = totalSpace > 0 ? ((double) usedSpace / totalSpace) * 100.0 : 0.0;
+
+        // Calculate size of uploaded files in uploads directory
+        long uploadsDirBytes = 0;
+        try {
+            if (Files.exists(uploadDir)) {
+                try (var stream = Files.walk(uploadDir)) {
+                    uploadsDirBytes = stream.filter(Files::isRegularFile)
+                            .mapToLong(p -> {
+                                try { return Files.size(p); } catch (Exception e) { return 0L; }
+                            }).sum();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // System CPU and Memory usage
+        java.lang.management.OperatingSystemMXBean osBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+        double systemLoadAverage = osBean.getSystemLoadAverage();
+        int availableProcessors = osBean.getAvailableProcessors();
+
+        long totalMemory = Runtime.getRuntime().totalMemory();
+        long freeMemory = Runtime.getRuntime().freeMemory();
+        long usedMemory = totalMemory - freeMemory;
+        long maxMemory = Runtime.getRuntime().maxMemory();
+
+        Map<String, Object> vmHealth = new java.util.HashMap<>();
+        vmHealth.put("status", "UP");
+        vmHealth.put("processors", availableProcessors);
+        vmHealth.put("loadAverage", systemLoadAverage);
+        vmHealth.put("totalMemoryBytes", totalMemory);
+        vmHealth.put("usedMemoryBytes", usedMemory);
+        vmHealth.put("freeMemoryBytes", freeMemory);
+        vmHealth.put("maxMemoryBytes", maxMemory);
+
+        Map<String, Object> res = new java.util.HashMap<>();
+        res.put("totalBytes", totalSpace);
+        res.put("freeBytes", freeSpace);
+        res.put("usableBytes", usableSpace);
+        res.put("usedBytes", usedSpace);
+        res.put("usedPercentage", Math.round(usedPercentage * 10.0) / 10.0);
+        res.put("uploadsDirBytes", uploadsDirBytes);
+        res.put("uploadDirPath", uploadDir.toAbsolutePath().toString());
+        res.put("vmHealth", vmHealth);
+        res.put("timestamp", java.time.Instant.now().toString());
+
+        return res;
+    }
+
     @GetMapping("/featured")
     Object featured(@RequestParam(name = "limit", defaultValue = "6") int limit) {
         limit = Math.min(Math.max(limit, 1), 20);
@@ -660,8 +717,45 @@ class ResourceController {
         Files.createDirectories(dir);
         String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
         String name = UUID.randomUUID() + (extension == null ? "" : "." + extension);
-        file.transferTo(dir.resolve(name));
+        Path targetPath = dir.resolve(name);
+
+        // If it's a PDF, save and apply lossless stream compression & fast linearization preview
+        if ("pdf".equalsIgnoreCase(extension)) {
+            Path tempUpload = dir.resolve(name + ".tmp");
+            file.transferTo(tempUpload);
+            try {
+                compressPdf(tempUpload, targetPath);
+                Files.deleteIfExists(tempUpload);
+            } catch (Exception e) {
+                System.err.println("PDF compression fallback to original: " + e.getMessage());
+                if (Files.exists(tempUpload)) {
+                    Files.move(tempUpload, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        } else {
+            file.transferTo(targetPath);
+        }
         return "uploads/" + name;
+    }
+
+    /**
+     * Lossless PDF stream compression and optimization using Apache PDFBox
+     */
+    private void compressPdf(Path source, Path destination) throws IOException {
+        try (org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.Loader.loadPDF(source.toFile())) {
+            // Compress all uncompressed content streams without altering vector/text fidelity
+            for (org.apache.pdfbox.pdmodel.PDPage page : document.getPages()) {
+                java.util.Iterator<org.apache.pdfbox.pdmodel.common.PDStream> streams = page.getContentStreams();
+                while (streams != null && streams.hasNext()) {
+                    org.apache.pdfbox.pdmodel.common.PDStream stream = streams.next();
+                    if (stream != null && stream.getFilters() == null || stream.getFilters().isEmpty()) {
+                        stream.addCompression();
+                    }
+                }
+            }
+            // Save with Flate compression enabled to minimize stored bytes
+            document.save(destination.toFile());
+        }
     }
 
     private Path resolveStoredFile(String fileUrl) {

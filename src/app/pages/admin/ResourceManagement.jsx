@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Clock, CheckCircle } from 'lucide-react';
+import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Clock, CheckCircle, HardDrive, Database, Activity, Cpu } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
@@ -93,7 +93,43 @@ export default function ResourceManagement() {
   const getProtocol = () => (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:');
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `${getProtocol()}//${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
 
-  const openPreviewModal = async (resource) => {
+  const [storageStats, setStorageStats] = useState({
+    totalBytes: 0,
+    freeBytes: 0,
+    usedBytes: 0,
+    usedPercentage: 0,
+    uploadsDirBytes: 0,
+    vmHealth: null
+  });
+
+  const loadStorageStats = async () => {
+    try {
+      const stats = await resourceService.getStorageStats();
+      if (stats && stats.totalBytes) {
+        setStorageStats(stats);
+      }
+    } catch (e) {
+      // Quiet background failure so UI remains responsive
+    }
+  };
+
+  useEffect(() => {
+    loadStorageStats();
+    // Live update every single second
+    const timer = setInterval(() => {
+      loadStorageStats();
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatStorageSize = (bytes) => {
+    if (!bytes || bytes <= 0) return '0 MB';
+    const gb = bytes / (1024 * 1024 * 1024);
+    if (gb >= 1) return `${gb.toFixed(2)} GB`;
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(1)} MB`;
+  };
+    const openPreviewModal = async (resource) => {
     setPreviewResource(resource);
     setPreviewError('');
     setPreviewBlobUrl('');
@@ -404,6 +440,7 @@ export default function ResourceManagement() {
       setCreateStatus('Resource uploaded successfully.');
       await loadResources(searchTerm);
       await loadCategories();
+      await loadStorageStats();
 
       logService.createLog({
         service: 'ADMIN-PORTAL',
@@ -586,18 +623,41 @@ export default function ResourceManagement() {
             <h1 className="text-2xl font-semibold text-gray-900">Resource Management</h1>
             <p className="text-gray-600 mt-1">Create, edit, gate by plan tier, and delete PDFs/articles. Showing {filteredAndSortedResources.length} of {resources.length} resources.</p>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={exportResourcesToCsv}
-              className="size-10 flex items-center justify-center bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm shrink-0 cursor-pointer"
-              title="Download Resources (CSV)"
-            >
-              <Download className="size-4 text-gray-600" />
-            </button>
-            <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors">
-              <Plus className="size-5" />
-              Add New Resource
-            </button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={exportResourcesToCsv}
+                className="size-10 flex items-center justify-center bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm shrink-0 cursor-pointer"
+                title="Download Resources (CSV)"
+              >
+                <Download className="size-4 text-gray-600" />
+              </button>
+              <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors cursor-pointer shadow-sm">
+                <Plus className="size-5" />
+                Add New Resource
+              </button>
+            </div>
+
+            {/* Live Cloud Storage Indicator Widget (Updates every second) */}
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200/90 rounded-xl shadow-xs text-xs">
+              <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              <HardDrive className="size-3.5 text-slate-500" />
+              <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                <span className="text-slate-500">Cloud Storage:</span>
+                <span className="font-bold text-slate-900">{formatStorageSize(storageStats.freeBytes)} free</span>
+                <span className="text-slate-400">/</span>
+                <span className="text-slate-500">{formatStorageSize(storageStats.totalBytes)}</span>
+              </div>
+              <div className="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden border border-slate-200">
+                <div 
+                  className={`h-full transition-all duration-500 ${
+                    storageStats.usedPercentage > 85 ? 'bg-rose-500' : storageStats.usedPercentage > 70 ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${Math.min(100, Math.max(2, storageStats.usedPercentage))}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-slate-400 font-mono">({storageStats.usedPercentage}% used)</span>
+            </div>
           </div>
         </motion.div>
 
