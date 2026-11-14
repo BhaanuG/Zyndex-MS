@@ -79,10 +79,10 @@ services:
       OTP_SMTP_PORT: ${OTP_SMTP_PORT:-587}
       OTP_SMTP_USER: ${OTP_SMTP_USER:-}
       OTP_SMTP_PASS: ${OTP_SMTP_PASS:-}
-      OTP_MAIL_FROM: ${OTP_MAIL_FROM:-lmno1432@gmail.com}
-      MAIN_ADMIN_EMAIL: ${MAIN_ADMIN_EMAIL:-Bhaanugali@gmail.com}
-      MAIN_ADMIN_PASSWORD: ${MAIN_ADMIN_PASSWORD:-Admin@123}
-      MAIN_ADMIN_NAME: ${MAIN_ADMIN_NAME:-G Bhaanu Sai}
+      OTP_MAIL_FROM: ${OTP_MAIL_FROM:-noreply@zyndex.com}
+      MAIN_ADMIN_EMAIL: ${MAIN_ADMIN_EMAIL:-admin@zyndex.com}
+      MAIN_ADMIN_PASSWORD: ${MAIN_ADMIN_PASSWORD:-}
+      MAIN_ADMIN_NAME: ${MAIN_ADMIN_NAME:-Platform Administrator}
       JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx256m"
     networks:
       - zyndex-network
@@ -195,7 +195,7 @@ services:
       MAIL_PORT: ${MAIL_PORT:-${OTP_SMTP_PORT:-587}}
       MAIL_USERNAME: ${MAIL_USERNAME:-${OTP_SMTP_USER:-}}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-${OTP_SMTP_PASS:-}}
-      ADMIN_NOTIFICATION_EMAIL: ${ADMIN_NOTIFICATION_EMAIL:-Bhaanugali@gmail.com}
+      ADMIN_NOTIFICATION_EMAIL: ${ADMIN_NOTIFICATION_EMAIL:-admin@zyndex.com}
       JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx256m"
     networks:
       - zyndex-network

@@ -201,7 +201,7 @@ function runProcess(name, command, args, cwd, delay = 0) {
                     ...process.env,
                     DB_PORT: process.env.DB_PORT || '3306',
                     DB_USER: process.env.DB_USER || 'root',
-                    DB_PASSWORD: process.env.DB_PASSWORD || '1987'
+                    DB_PASSWORD: process.env.DB_PASSWORD || ''
                 },
                 shell: true
             });

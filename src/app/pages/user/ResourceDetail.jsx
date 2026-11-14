@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import * as pdfWorkerModule from 'pdfjs-dist/build/pdf.worker.min.mjs';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { useParams, useNavigate } from 'react-router';
 import DOMPurify from 'dompurify';
 import UserLayout from '@/app/components/UserLayout';
@@ -11,7 +12,11 @@ import resourceService from '@/services/api/resourceService';
 import feedbackService from '@/services/api/feedbackService';
 import userService from '@/services/api/userService';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+// Ensure the worker message handler is registered on globalThis so fake worker fallback always succeeds synchronously
+if (typeof globalThis !== 'undefined' && pdfWorkerModule?.WorkerMessageHandler) {
+  globalThis.pdfjsWorker = { WorkerMessageHandler: pdfWorkerModule.WorkerMessageHandler };
+}
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 const PLAN_TIERS = {
   FREE: 0,

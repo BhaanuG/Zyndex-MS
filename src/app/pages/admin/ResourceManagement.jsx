@@ -168,16 +168,13 @@ export default function ResourceManagement() {
     let isCancelled = false;
     let loadingTask = null;
 
-    import('pdfjs-dist/legacy/build/pdf.mjs').then((pdfjsLib) => {
+    Promise.all([
+      import('pdfjs-dist/build/pdf.mjs'),
+      import('pdfjs-dist/build/pdf.worker.min.mjs')
+    ]).then(([pdfjsLib, workerModule]) => {
       if (isCancelled) return;
-      // Provide fallback standard worker to avoid module MIME type rejection in web containers
-      try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
-          import.meta.url
-        ).toString();
-      } catch (e) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+      if (typeof globalThis !== 'undefined' && workerModule?.WorkerMessageHandler) {
+        globalThis.pdfjsWorker = { WorkerMessageHandler: workerModule.WorkerMessageHandler };
       }
 
       loadingTask = pdfjsLib.getDocument({
