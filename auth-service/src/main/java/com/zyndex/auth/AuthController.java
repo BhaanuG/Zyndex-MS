@@ -164,13 +164,13 @@ class AuthController {
         String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
         String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
         try {
-            // Increment session_token_version to invalidate any previous active sessions on other devices
-            jdbc.update("UPDATE users SET session_token_version = session_token_version + 1, session_invalidation_reason = 'SUPERSEDED_BY_NEW_LOGIN', last_active_at = NOW() WHERE id = ?", user.get("id"));
-            // Fetch updated version to stamp on new JWT
-            Map<String, Object> updatedUser = auth.findUserById(AuthSupport.number(user.get("id")));
-            if (updatedUser != null) {
-                user = auth.sanitizeUser(updatedUser);
+            // Check if user session already exists in DB
+            Map<String, Object> existingUser = auth.findUserById(AuthSupport.number(user.get("id")));
+            if (existingUser != null) {
+                user = auth.sanitizeUser(existingUser);
             }
+            // Update last_active_at without bumping session_token_version so multiple devices can stay logged in simultaneously
+            jdbc.update("UPDATE users SET last_active_at = NOW() WHERE id = ?", user.get("id"));
 
             // If device info provided in login request, record/update device session in trusted_devices table
             String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();

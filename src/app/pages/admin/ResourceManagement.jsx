@@ -51,6 +51,8 @@ function ArticleEditor({ value, onChange }) {
 export default function ResourceManagement() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [sortBy, setSortBy] = useState('newest');
   const [resources, setResources] = useState([]);
   const [modalMessage, setModalMessage] = useState(null);
   const [categories, setCategories] = useState(defaultCategories);
@@ -546,13 +548,38 @@ export default function ResourceManagement() {
     URL.revokeObjectURL(url);
   };
 
+  const filteredAndSortedResources = resources.filter((resource) => {
+    if (selectedCategory !== 'ALL' && (resource.category || '').trim().toLowerCase() !== selectedCategory.toLowerCase()) {
+      return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === 'newest') {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    }
+    if (sortBy === 'oldest') {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeA - timeB;
+    }
+    if (sortBy === 'title_asc') {
+      return (a.title || '').localeCompare(b.title || '');
+    }
+    if (sortBy === 'title_desc') {
+      return (b.title || '').localeCompare(a.title || '');
+    }
+    return 0;
+  });
+
   return (
     <AdminLayout>
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Resource Management</h1>
-            <p className="text-gray-600 mt-1">Create, edit, gate by plan tier, and delete PDFs/articles. Showing {resources.length} resources.</p>
+            <p className="text-gray-600 mt-1">Create, edit, gate by plan tier, and delete PDFs/articles. Showing {filteredAndSortedResources.length} of {resources.length} resources.</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -569,12 +596,40 @@ export default function ResourceManagement() {
           </div>
         </motion.div>
 
-        <form onSubmit={(e) => { e.preventDefault(); loadResources(searchTerm); }} className="bg-white rounded-xl shadow-md p-4 flex items-center gap-4">
+        <form onSubmit={(e) => { e.preventDefault(); loadResources(searchTerm); }} className="bg-white rounded-xl shadow-md p-4 flex flex-col md:flex-row items-stretch md:items-center gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
-            <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search resources..." className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg" />
+            <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search resources..." className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
           </div>
-          <button type="submit" className="px-4 py-2.5 bg-orange-600 text-white rounded-lg">Search</button>
+          <button type="submit" className="px-5 py-2.5 bg-orange-600 text-white rounded-lg font-semibold text-sm hover:bg-orange-700 transition-colors shrink-0">Search</button>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Category Filter Dropdown */}
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-medium bg-white text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-xs"
+              title="Filter resources by Category"
+            >
+              <option value="ALL">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+
+            {/* Sort Order Dropdown */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-medium bg-white text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-xs"
+              title="Sort resources order"
+            >
+              <option value="newest">Last Added (Newest)</option>
+              <option value="oldest">First Added (Oldest)</option>
+              <option value="title_asc">Title (A-Z)</option>
+              <option value="title_desc">Title (Z-A)</option>
+            </select>
+          </div>
         </form>
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -591,9 +646,9 @@ export default function ResourceManagement() {
                 </tr>
               </thead>
               <tbody>
-                {resources.length === 0 ? (
-                  <tr><td colSpan="6" className="text-center py-16 text-gray-400">No resources found.</td></tr>
-                ) : resources.map((resource) => (
+                {filteredAndSortedResources.length === 0 ? (
+                  <tr><td colSpan="6" className="text-center py-16 text-gray-400">No resources found matching criteria.</td></tr>
+                ) : filteredAndSortedResources.map((resource) => (
                   <tr key={resource.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
                     <td className="py-4 px-6 font-medium text-gray-900">{resource.title}</td>
                     <td className="py-4 px-6">{resource.category}</td>
