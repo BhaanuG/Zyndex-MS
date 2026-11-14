@@ -110,6 +110,20 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-zyndex_secure_root_password_2026}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       GATEWAY_SECRET: ${GATEWAY_SECRET:-zyndex_internal_mesh_secret_token_2026}
+      MAIL_HOST: ${MAIL_HOST:-${OTP_SMTP_HOST:-smtp.gmail.com}}
+      MAIL_PORT: ${MAIL_PORT:-${OTP_SMTP_PORT:-587}}
+      MAIL_USERNAME: ${MAIL_USERNAME:-${OTP_SMTP_USER:-}}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-${OTP_SMTP_PASS:-}}
+      SPRING_MAIL_HOST: ${OTP_SMTP_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${OTP_SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${OTP_SMTP_USER:-}
+      SPRING_MAIL_PASSWORD: ${OTP_SMTP_PASS:-}
+      OTP_SMTP_HOST: ${OTP_SMTP_HOST:-smtp.gmail.com}
+      OTP_SMTP_PORT: ${OTP_SMTP_PORT:-587}
+      OTP_SMTP_USER: ${OTP_SMTP_USER:-}
+      OTP_SMTP_PASS: ${OTP_SMTP_PASS:-}
+      OTP_MAIL_FROM: ${OTP_MAIL_FROM:-noreply@zyndex.com}
+      MAIN_ADMIN_EMAIL: ${MAIN_ADMIN_EMAIL:-admin@zyndex.com}
       JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx320m"
     networks:
       - zyndex-network

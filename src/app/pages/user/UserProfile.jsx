@@ -6,6 +6,7 @@ import UserLayout from '@/app/components/UserLayout';
 import InvoiceModal from '@/app/components/InvoiceModal';
 import StatementModal from '@/app/components/StatementModal';
 import DeleteAccountModal from '@/app/components/DeleteAccountModal';
+import DeviceInfoModal from '@/app/components/DeviceInfoModal';
 import { generateSingleInvoiceHtml, openPrintableDocument } from '@/utils/invoiceGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { useAuth } from '@/app/context/AuthContext';
@@ -34,7 +35,7 @@ export default function UserProfile() {
   const [sessionsData, setSessionsData] = useState({ currentIp: '127.0.0.1', devices: [] });
   const [revokingSessions, setRevokingSessions] = useState(false);
   const [revokingDeviceId, setRevokingDeviceId] = useState(null);
-  const [expandedDeviceKey, setExpandedDeviceKey] = useState(null);
+  const [selectedDeviceInfo, setSelectedDeviceInfo] = useState(null);
 
   const [profileData, setProfileData] = useState({ 
     name: '', 
@@ -603,20 +604,15 @@ export default function UserProfile() {
                                     </div>
 
                                     <div className="flex items-center gap-2 shrink-0">
-                                      {/* Info Button to expand session history logs */}
+                                      {/* Info Button to open detailed telemetry & session history modal */}
                                       <button
                                         type="button"
-                                        onClick={() => setExpandedDeviceKey(isExpanded ? null : group.key)}
-                                        className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs border ${
-                                          isExpanded 
-                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
-                                            : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
-                                        }`}
-                                        title="View device login session history"
+                                        onClick={() => setSelectedDeviceInfo(group)}
+                                        className="px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs border bg-white border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-indigo-600 hover:border-indigo-200"
+                                        title="View device telemetry & security information"
                                       >
                                         <Info className="size-3.5 text-indigo-600" />
                                         <span className="hidden sm:inline">Info ({group.sessions.length})</span>
-                                        {isExpanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
                                       </button>
 
                                       {isActiveSession && (
@@ -633,81 +629,6 @@ export default function UserProfile() {
                                       )}
                                     </div>
                                   </div>
-
-                                  {/* Expandable Session Logs Drawer */}
-                                  {isExpanded && (
-                                    <div className="bg-slate-50/90 border-t border-slate-200/80 p-4 sm:p-5">
-                                      <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                          <History className="size-4 text-indigo-600" />
-                                          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                                            Session History & Activity Logs ({group.sessions.length} Recorded {group.sessions.length === 1 ? 'Login' : 'Logins'})
-                                          </h4>
-                                        </div>
-                                        <span className="text-[11px] text-slate-500 font-medium">Accurate live hardware telemetry</span>
-                                      </div>
-
-                                      <div className="space-y-2.5">
-                                        {group.sessions.map((sess, idx) => {
-                                          const isCurrentRowActive = Boolean(sess.is_active !== false && sess.is_active !== 0 && !sess.logged_out_at);
-                                          const startFormatted = formatTimeOnly(sess.trusted_at);
-                                          const endFormatted = isCurrentRowActive ? 'Active Now' : (sess.logged_out_at ? formatTimeOnly(sess.logged_out_at) : 'Expired');
-                                          const dateFormatted = formatDateOnly(sess.trusted_at);
-                                          const durationFormatted = formatSessionDuration(sess.total_active_seconds || (sess.trusted_at ? Math.max(0, Math.floor(((sess.logged_out_at ? new Date(sess.logged_out_at).getTime() : Date.now()) - new Date(sess.trusted_at).getTime()) / 1000)) : 0));
-
-                                          return (
-                                            <div
-                                              key={sess.id || idx}
-                                              className="bg-white border border-slate-200/70 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs"
-                                            >
-                                              <div className="flex items-start gap-3">
-                                                <div className={`p-2 rounded-lg mt-0.5 shrink-0 ${isCurrentRowActive ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
-                                                  <Clock className="size-4" />
-                                                </div>
-                                                <div>
-                                                  <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="font-bold text-slate-900">{dateFormatted}</span>
-                                                    {isCurrentRowActive ? (
-                                                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                                                        Active Now
-                                                      </span>
-                                                    ) : (
-                                                      <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
-                                                        Logged Out
-                                                      </span>
-                                                    )}
-                                                    {sess.is_trusted && (
-                                                      <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
-                                                        Trusted 24h
-                                                      </span>
-                                                    )}
-                                                  </div>
-                                                  <p className="text-[11px] text-slate-500 mt-1">
-                                                    IP: <span className="font-mono text-slate-700">{sess.ip_address || '127.0.0.1'}</span> &bull; {sess.browser} on {sess.operating_system}
-                                                  </p>
-                                                </div>
-                                              </div>
-
-                                              <div className="flex sm:flex-col sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 text-[11px] gap-1">
-                                                <div className="flex items-center gap-1.5">
-                                                  <span className="text-slate-400 font-medium">Session:</span>
-                                                  <span className="font-mono font-semibold text-slate-800">
-                                                    {startFormatted} &rarr; {endFormatted}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5">
-                                                  <span className="text-slate-400 font-medium">Total Active:</span>
-                                                  <span className="font-mono font-bold text-indigo-600">
-                                                    {durationFormatted}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
                               );
                             })
@@ -960,6 +881,13 @@ export default function UserProfile() {
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         user={user}
+      />
+
+      {/* Hardware Telemetry & Security Information Modal */}
+      <DeviceInfoModal
+        isOpen={Boolean(selectedDeviceInfo)}
+        onClose={() => setSelectedDeviceInfo(null)}
+        deviceGroup={selectedDeviceInfo}
       />
     </UserLayout>
   );
