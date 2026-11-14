@@ -709,8 +709,8 @@ export default function AdminLogs() {
     }
   };
 
-  const totalSystemPages = Math.ceil(systemTotal / systemPageSize) || 1;
-  const totalAdminPages = Math.ceil(adminLogsTotal / systemPageSize) || 1;
+  const totalSystemPages = Math.ceil(systemTotal / pageSize) || 1;
+  const totalAdminPages = Math.ceil(adminLogsTotal / pageSize) || 1;
 
   return (
     <AdminLayout>

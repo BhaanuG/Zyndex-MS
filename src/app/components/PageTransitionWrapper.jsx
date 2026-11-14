@@ -277,11 +277,13 @@ export default function PageTransitionWrapper({ children, duration = 5000 }) {
         {isTransitioning && <TransitionLoader key="loader" duration={duration} />}
       </AnimatePresence>
       
-      {!isTransitioning && (
-        <div>
-          {children}
-        </div>
-      )}
+      {/* 
+        Keep children mounted during transition so React and next-page effects (API fetches, data hydration)
+        execute immediately behind the transition loader without any delay or lagging!
+      */}
+      <div className={isTransitioning ? 'invisible pointer-events-none' : ''}>
+        {children}
+      </div>
     </>
   );
 }
