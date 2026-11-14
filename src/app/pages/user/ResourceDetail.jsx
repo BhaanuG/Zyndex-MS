@@ -85,27 +85,30 @@ export default function ResourceDetail() {
     async function loadResource() {
       setLoadingResource(true);
       try {
-        const [resResponse, favResult, tokResult] = await Promise.allSettled([
-          resourceService.getResourceById(id),
-          userService.getFavorites({ size: 100 }),
-          resourceService.getPreviewToken(id),
-        ]);
-
+        // Fetch resource metadata first so page details render instantly without waiting for favorites or preview tokens
+        const resData = await resourceService.getResourceById(id);
         if (isCancelled) return;
-
-        if (resResponse.status === 'fulfilled' && resResponse.value) {
-          setResource(resResponse.value);
+        if (resData) {
+          setResource(resData);
+          setLoadingResource(false);
         } else {
           setResource(null);
+          setLoadingResource(false);
         }
 
-        if (favResult.status === 'fulfilled') {
-          setIsFavorite((favResult.value.resources || []).some((item) => item.id === Number(id)));
-        }
-
-        if (tokResult.status === 'fulfilled') {
-          setPreviewToken(tokResult.value.token || '');
-        }
+        // Secondary background fetches for preview token and favorite status
+        Promise.allSettled([
+          userService.getFavorites({ size: 100 }),
+          resourceService.getPreviewToken(id),
+        ]).then(([favResult, tokResult]) => {
+          if (isCancelled) return;
+          if (favResult.status === 'fulfilled') {
+            setIsFavorite((favResult.value.resources || []).some((item) => item.id === Number(id)));
+          }
+          if (tokResult.status === 'fulfilled') {
+            setPreviewToken(tokResult.value.token || '');
+          }
+        });
 
         // Track resource view only once per resource visit
         if (!hasTrackedView.current) {
@@ -116,9 +119,10 @@ export default function ResourceDetail() {
         }
       } catch (error) {
         console.error('Failed to load resource:', error);
-        if (!isCancelled) setResource(null);
-      } finally {
-        if (!isCancelled) setLoadingResource(false);
+        if (!isCancelled) {
+          setResource(null);
+          setLoadingResource(false);
+        }
       }
     }
 

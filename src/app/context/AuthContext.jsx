@@ -19,14 +19,27 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user_data');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem('user_data');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
   });
   const [role, setRole] = useState(() => {
-    const savedUser = localStorage.getItem('user_data');
-    return savedUser ? JSON.parse(savedUser)?.role || null : null;
+    try {
+      const savedUser = localStorage.getItem('user_data');
+      return savedUser ? JSON.parse(savedUser)?.role || null : null;
+    } catch {
+      return null;
+    }
   });
-  const [authReady, setAuthReady] = useState(false);
+  // If we already have a cached token and user in localStorage, auth is ready immediately for instant page render
+  const [authReady, setAuthReady] = useState(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const savedUser = typeof window !== 'undefined' ? localStorage.getItem('user_data') : null;
+    return !token || !!savedUser;
+  });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
