@@ -126,16 +126,28 @@ export default function AdminLayout({ children }) {
         else if (lower.includes('tab') || lower.includes('logs') || lower.includes('metrics') || lower.includes('reading') || lower.includes('audit')) intent = 'Switched dashboard audit view / tab';
         else if (lower.includes('reload') || lower.includes('refresh')) intent = 'Triggered real-time dataset reload';
 
+        const targetContext = button.getAttribute('data-target-user')
+          || button.getAttribute('data-target-resource')
+          || button.closest('[data-target-user]')?.getAttribute('data-target-user')
+          || button.closest('[data-target-resource]')?.getAttribute('data-target-resource')
+          || '';
+        const contextDetail = targetContext ? ` [Target: ${targetContext}]` : '';
         actionTitle = `ADMIN_CLICK_${text.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase().slice(0, 30)}`;
-        actionDesc = `Administrator (${user.name || user.email}) ${intent} by clicking button "${text.slice(0, 60)}" on the ${pageName} page [Element: <button>, Timestamp: ${new Date().toISOString()}]`;
+        actionDesc = `Administrator (${user.name || user.email}) ${intent} by clicking button "${text.slice(0, 60)}"${contextDetail} on the ${pageName} page`;
       } else if (select) {
-        const selectName = select.getAttribute('name') || select.id || 'Dropdown';
+        const selectName = select.getAttribute('name') || select.getAttribute('aria-label') || select.id || 'Dropdown';
         const selectedOptionText = select.options[select.selectedIndex]?.text || select.value;
-        clickKey = `sel_${selectName}_${selectedOptionText}`;
+        const targetContext = select.getAttribute('data-target-user')
+          || select.getAttribute('data-target-resource')
+          || select.closest('[data-target-user]')?.getAttribute('data-target-user')
+          || select.closest('[data-target-resource]')?.getAttribute('data-target-resource')
+          || '';
+        clickKey = `sel_${selectName}_${selectedOptionText}_${targetContext}`;
         if (now - lastClickTimeRef.current < 1000 && lastClickKeyRef.current === clickKey) return;
 
         actionTitle = `ADMIN_SELECT_${selectName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase().slice(0, 25)}`;
-        actionDesc = `Administrator (${user.name || user.email}) selected option "${selectedOptionText}" from dropdown [${selectName}] on ${pageName} page`;
+        const contextDetail = targetContext ? ` for [${targetContext}]` : '';
+        actionDesc = `Administrator (${user.name || user.email}) updated ${selectName} to "${selectedOptionText}"${contextDetail} on ${pageName} page`;
       } else if (link) {
         const text = link.innerText?.trim() || link.getAttribute('title') || link.getAttribute('href') || 'Navigation';
         const href = link.getAttribute('href') || 'link';

@@ -722,6 +722,8 @@ export default function UserAccessManagement() {
                         <label className="block text-xs font-semibold text-gray-600">Platform Role</label>
                       </div>
                       <select
+                        name="Platform Role"
+                        data-target-user={`${formUser.name} (${formUser.email})`}
                         value={formUser.role}
                         onChange={(e) => setFormUser({ ...formUser, role: e.target.value })}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
@@ -733,7 +735,13 @@ export default function UserAccessManagement() {
                   )}
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">User Type</label>
-                    <select value={formUser.userType} onChange={(e) => setFormUser({ ...formUser, userType: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm">
+                    <select
+                      name="Academic User Type"
+                      data-target-user={`${formUser.name} (${formUser.email})`}
+                      value={formUser.userType}
+                      onChange={(e) => setFormUser({ ...formUser, userType: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                    >
                       <option>Student</option><option>Teacher / Educator</option><option>Researcher</option><option>Professional</option><option>General Reader</option><option>Other</option>
                     </select>
                   </div>
@@ -752,6 +760,8 @@ export default function UserAccessManagement() {
                     <div>
                       <label className="block text-xs font-semibold text-gray-600 mb-1">Account Status</label>
                       <select
+                        name="Account Status"
+                        data-target-user={`${formUser.name} (${formUser.email})`}
                         value={formUser.active ? 'active' : 'inactive'}
                         onChange={(e) => setFormUser({ ...formUser, active: e.target.value === 'active' })}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
@@ -766,6 +776,8 @@ export default function UserAccessManagement() {
                   <div className="pt-2 border-t border-gray-100">
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Subscription Plan (Optional)</label>
                     <select
+                      name="Subscription Plan"
+                      data-target-user={`${formUser.name} (${formUser.email})`}
                       value={formUser.subscriptionPlan}
                       onChange={(e) => setFormUser({ ...formUser, subscriptionPlan: e.target.value })}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-orange-50/40 focus:bg-white"

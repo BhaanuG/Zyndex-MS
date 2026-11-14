@@ -240,53 +240,38 @@ export default function ResourceDetail() {
   const isPdfPreview = /\.pdf($|\?)/i.test(resource?.fileUrl || '') || /\.pdf($|\?)/i.test(resource?.fileName || '');
   const isArticle = ['paper', 'article'].includes(String(resource?.type || '').toLowerCase()) || ['paper', 'article'].includes(String(resource?.resourceType || '').toLowerCase());
 
+  const [downloadProgress, setDownloadProgress] = useState(0);
+
   useEffect(() => {
     if (!previewUrlWithVersion || !isPdfPreview) return undefined;
 
-    let objectUrl = '';
-    const controller = new AbortController();
-    setPreviewBlobUrl('');
-    setPreviewError('');
-
-    fetch(previewUrlWithVersion, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
-      },
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          const body = await response.text();
-          throw new Error(body || `Preview request failed with HTTP ${response.status}.`);
-        }
-        return response.blob();
-      })
-      .then((blob) => {
-        objectUrl = URL.createObjectURL(blob);
-        setPreviewBlobUrl(objectUrl);
-      })
-      .catch((error) => {
-        if (error.name !== 'AbortError') {
-          setPreviewError(error.message || 'Unable to load the PDF preview.');
-        }
-      });
-
-    return () => {
-      controller.abort();
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [previewUrlWithVersion, isPdfPreview]);
-
-  useEffect(() => {
-    if (!previewBlobUrl) return undefined;
-
     let loadingTask;
     let cancelled = false;
+    let fallbackBlobUrl = '';
     setPdfDocument(null);
     setPdfPage(1);
     setPdfPageCount(0);
+    setPreviewError('');
+    setDownloadProgress(0);
 
-    loadingTask = pdfjsLib.getDocument({ url: previewBlobUrl });
+    const token = localStorage.getItem('auth_token') || '';
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    loadingTask = pdfjsLib.getDocument({
+      url: previewUrlWithVersion,
+      httpHeaders: headers,
+      withCredentials: false,
+      cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/cmaps/',
+      cMapPacked: true,
+      standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/standard_fonts/',
+    });
+
+    loadingTask.onProgress = ({ loaded, total }) => {
+      if (total > 0) {
+        setDownloadProgress(Math.min(99, Math.round((loaded / total) * 100)));
+      }
+    };
+
     loadingTask.promise
       .then((document) => {
         if (cancelled) {
@@ -295,16 +280,47 @@ export default function ResourceDetail() {
         }
         setPdfDocument(document);
         setPdfPageCount(document.numPages);
+        setDownloadProgress(100);
       })
       .catch((error) => {
-        if (!cancelled) setPreviewError(error.message || 'Unable to decode the PDF preview.');
+        if (cancelled) return;
+        // Fallback: fetch as blob and decode if direct range streaming encounters worker restrictions
+        fetch(previewUrlWithVersion, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const body = await res.text();
+              throw new Error(body || `Preview request failed with HTTP ${res.status}.`);
+            }
+            return res.blob();
+          })
+          .then((blob) => {
+            fallbackBlobUrl = URL.createObjectURL(blob);
+            const fallbackTask = pdfjsLib.getDocument({ url: fallbackBlobUrl });
+            return fallbackTask.promise.then((doc) => {
+              if (cancelled) {
+                doc.destroy();
+                return;
+              }
+              setPdfDocument(doc);
+              setPdfPageCount(doc.numPages);
+              setDownloadProgress(100);
+            });
+          })
+          .catch((err) => {
+            if (!cancelled) setPreviewError(err.message || 'Unable to decode the PDF preview.');
+          });
       });
 
     return () => {
       cancelled = true;
-      loadingTask?.destroy();
+      try {
+        loadingTask?.destroy();
+      } catch (e) {}
+      if (fallbackBlobUrl) URL.revokeObjectURL(fallbackBlobUrl);
     };
-  }, [previewBlobUrl]);
+  }, [previewUrlWithVersion, isPdfPreview]);
 
   useEffect(() => {
     if (!pdfDocument || !pdfCanvasRef.current) return undefined;
@@ -468,7 +484,7 @@ export default function ResourceDetail() {
                       </button>
                     </div>
                   </div>
-                ) : previewUrl && isPdfPreview && previewBlobUrl && pdfDocument ? (
+                ) : previewUrl && isPdfPreview && pdfDocument ? (
                   <div className="overflow-hidden rounded-xl border border-gray-200 bg-neutral-800" onContextMenu={(event) => event.preventDefault()}>
                     <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-900 px-4 py-2.5 text-white select-none">
                       <div className="flex items-center gap-2">
@@ -521,9 +537,12 @@ export default function ResourceDetail() {
                     </button>
                   </div>
                 ) : previewUrl && isPdfPreview ? (
-                  <div className="border border-gray-200 rounded-xl p-6 bg-gray-50 flex items-center justify-center gap-3">
-                    <div className="size-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-gray-700 text-sm font-medium">Loading secure PDF preview...</p>
+                  <div className="border border-gray-200 rounded-xl p-8 bg-gray-50 flex flex-col items-center justify-center gap-2">
+                    <div className="size-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-gray-800 text-sm font-semibold">
+                      {downloadProgress > 0 ? `Streaming PDF Document (${downloadProgress}%)...` : 'Loading secure PDF preview...'}
+                    </p>
+                    <p className="text-xs text-gray-500">Preparing high-definition pages for viewing</p>
                   </div>
                 ) : previewUrl ? (
                   <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">

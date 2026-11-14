@@ -64,8 +64,26 @@ public class LogController {
         String countQuery = "SELECT COUNT(*) FROM system_logs " + whereSql;
         Long total = jdbc.queryForObject(countQuery, Long.class, params.toArray());
 
+        String sort = query.getOrDefault("sort", "").trim();
+        String orderByClause = " ORDER BY id DESC ";
+        if ("timestamp_asc".equalsIgnoreCase(sort) || "time_asc".equalsIgnoreCase(sort)) {
+            orderByClause = " ORDER BY id ASC ";
+        } else if ("level_desc".equalsIgnoreCase(sort) || "severity".equalsIgnoreCase(sort)) {
+            orderByClause = " ORDER BY FIELD(level, 'ERROR', 'WARN', 'INFO', 'SUCCESS'), id DESC ";
+        } else if ("level_asc".equalsIgnoreCase(sort)) {
+            orderByClause = " ORDER BY FIELD(level, 'SUCCESS', 'INFO', 'WARN', 'ERROR'), id DESC ";
+        } else if ("latency_desc".equalsIgnoreCase(sort) || "slowest".equalsIgnoreCase(sort)) {
+            orderByClause = " ORDER BY response_time_ms DESC, id DESC ";
+        } else if ("latency_asc".equalsIgnoreCase(sort) || "fastest".equalsIgnoreCase(sort)) {
+            orderByClause = " ORDER BY response_time_ms ASC, id DESC ";
+        } else if ("service_asc".equalsIgnoreCase(sort)) {
+            orderByClause = " ORDER BY service ASC, id DESC ";
+        } else if ("actor_asc".equalsIgnoreCase(sort)) {
+            orderByClause = " ORDER BY actor_email ASC, id DESC ";
+        }
+
         String dataQuery = "SELECT id, DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') AS formatted_time, timestamp, service, level, action, actor_email, details, ip_address, status, response_time_ms " +
-                " FROM system_logs " + whereSql + " ORDER BY id DESC LIMIT ? OFFSET ?";
+                " FROM system_logs " + whereSql + orderByClause + " LIMIT ? OFFSET ?";
         
         List<Object> dataParams = new ArrayList<>(params);
         dataParams.add(page.get("size"));

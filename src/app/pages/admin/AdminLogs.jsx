@@ -127,6 +127,7 @@ export default function AdminLogs() {
   const [systemPage, setSystemPage] = useState(0);
   const [availableServices, setAvailableServices] = useState(SERVICES);
   const [pageSize, setPageSize] = useState(10); // 10, 25, 50, 100, 250, 500, 1000
+  const [sortBy, setSortBy] = useState('timestamp_desc');
 
   // Filters & Search
   const [serviceFilter, setServiceFilter] = useState('ALL');
@@ -346,16 +347,18 @@ export default function AdminLogs() {
     }
   };
 
-  const fetchAdminLogs = async (page = 0, overrideLevel = null, overridePageSize = null) => {
+  const fetchAdminLogs = async (page = 0, overrideLevel = null, overridePageSize = null, overrideSort = null) => {
     try {
       const activeLevel = overrideLevel !== null ? overrideLevel : adminLevelFilter;
       const activeSize = overridePageSize !== null ? overridePageSize : pageSize;
+      const activeSort = overrideSort !== null ? overrideSort : sortBy;
       const response = await logService.getLogs({
         page,
         size: activeSize,
         category: 'admin',
         level: activeLevel === 'ALL' ? '' : activeLevel,
         search: adminSearchTerm,
+        sort: activeSort,
       });
 
       startTransition(() => {
@@ -371,11 +374,12 @@ export default function AdminLogs() {
     }
   };
 
-  const fetchSystemLogs = async (page = 0, overrideLevel = null, overrideService = null, overridePageSize = null) => {
+  const fetchSystemLogs = async (page = 0, overrideLevel = null, overrideService = null, overridePageSize = null, overrideSort = null) => {
     try {
       const activeLevel = overrideLevel !== null ? overrideLevel : levelFilter;
       const activeService = overrideService !== null ? overrideService : serviceFilter;
       const activeSize = overridePageSize !== null ? overridePageSize : pageSize;
+      const activeSort = overrideSort !== null ? overrideSort : sortBy;
       const response = await logService.getLogs({
         page,
         size: activeSize,
@@ -383,6 +387,7 @@ export default function AdminLogs() {
         service: activeService === 'ALL' ? '' : activeService,
         level: activeLevel === 'ALL' ? '' : activeLevel,
         search: searchTerm,
+        sort: activeSort,
       });
 
       startTransition(() => {
@@ -414,11 +419,11 @@ export default function AdminLogs() {
 
   useEffect(() => {
     fetchSystemLogs(0);
-  }, [serviceFilter, levelFilter, pageSize]);
+  }, [serviceFilter, levelFilter, pageSize, sortBy]);
 
   useEffect(() => {
     fetchAdminLogs(0);
-  }, [adminLevelFilter, pageSize]);
+  }, [adminLevelFilter, pageSize, sortBy]);
 
   // Live auto-refresh polling every 10 seconds for real-time responsiveness
   // Preserves active filter and page selections without resetting to overall view
@@ -942,6 +947,27 @@ export default function AdminLogs() {
               </div>
 
               <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
+                  <span className="text-gray-500 font-medium">Sort:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      fetchAdminLogs(0, null, null, e.target.value);
+                    }}
+                    className="bg-transparent font-bold text-gray-800 outline-none cursor-pointer"
+                  >
+                    <option value="timestamp_desc">Sort: Newest First</option>
+                    <option value="timestamp_asc">Sort: Oldest First</option>
+                    <option value="level_desc">Sort: Severity (Errors First)</option>
+                    <option value="level_asc">Sort: Severity (Success First)</option>
+                    <option value="latency_desc">Sort: Slowest Latency</option>
+                    <option value="latency_asc">Sort: Fastest Latency</option>
+                    <option value="service_asc">Sort: Service Name (A-Z)</option>
+                    <option value="actor_asc">Sort: Actor Email (A-Z)</option>
+                  </select>
+                </div>
+
                 <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
                   <span className="text-gray-500 font-medium">Rows:</span>
                   <select
@@ -1482,6 +1508,27 @@ export default function AdminLogs() {
               </div>
 
               <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
+                  <span className="text-gray-500 font-medium">Sort:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      fetchAdminLogs(0, null, null, e.target.value);
+                    }}
+                    className="bg-transparent font-bold text-gray-800 outline-none cursor-pointer"
+                  >
+                    <option value="timestamp_desc">Sort: Newest First</option>
+                    <option value="timestamp_asc">Sort: Oldest First</option>
+                    <option value="level_desc">Sort: Severity (Errors First)</option>
+                    <option value="level_asc">Sort: Severity (Success First)</option>
+                    <option value="latency_desc">Sort: Slowest Latency</option>
+                    <option value="latency_asc">Sort: Fastest Latency</option>
+                    <option value="service_asc">Sort: Service Name (A-Z)</option>
+                    <option value="actor_asc">Sort: Actor Email (A-Z)</option>
+                  </select>
+                </div>
+
                 <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
                   <span className="text-gray-500 font-medium">Rows:</span>
                   <select

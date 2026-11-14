@@ -22,6 +22,7 @@ export const logService = {
       level: params.level || '',
       search: params.search || '',
       category: params.category || '',
+      sort: params.sort || '',
     };
     return await apiClient.get('/logs', { params: queryParams });
   },

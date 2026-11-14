@@ -340,7 +340,8 @@ class ResourceController {
 
         return ResponseEntity.ok()
                 .contentType(contentTypeForFile(file.getFileName().toString()))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFileName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFileName() + "\"")
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .body(new FileSystemResource(file));
     }
 
@@ -595,12 +596,14 @@ class ResourceController {
 
     private long fetchViewCount(long resourceId) {
         try {
-            String url = "http://usage-service/api/usage/views/count?resourceId=" + resourceId;
-            Long count = restTemplate.getForObject(url, Long.class);
-            return count != null ? count : 0;
-        } catch (Exception e) {
-            return 0;
-        }
+            Long count = jdbc.queryForObject("SELECT COUNT(*) FROM zyndex_usage.resource_views WHERE resource_id = ?", Long.class, resourceId);
+            if (count != null) return count;
+        } catch (Exception ignored) {}
+        try {
+            Long count = jdbc.queryForObject("SELECT COUNT(*) FROM resource_views WHERE resource_id = ?", Long.class, resourceId);
+            if (count != null) return count;
+        } catch (Exception ignored) {}
+        return 0;
     }
 
     private Map<String, Object> fetchUserProfile(long userId) {
