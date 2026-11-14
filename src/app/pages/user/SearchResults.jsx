@@ -6,6 +6,7 @@ import UserLayout from '@/app/components/UserLayout';
 import resourceService from '@/services/api/resourceService';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
+import { getPlanName, getPlanBadgeClass } from '@/utils/planHelper';
 
 export default function SearchResults() {
   const navigate = useNavigate();
@@ -172,12 +173,8 @@ export default function SearchResults() {
                       }`}>
                         {getDisplayType(resource)}
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        !resource.requiredPlan || resource.requiredPlan === 'FREE'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-orange-50 text-orange-700 border border-orange-200'
-                      }`}>
-                        {!resource.requiredPlan || resource.requiredPlan === 'FREE' ? 'Free' : (resource.requiredPlan).replace('_', ' ')}
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getPlanBadgeClass(resource.requiredPlan)}`}>
+                        {getPlanName(resource.requiredPlan)}
                       </span>
                     </div>
                     <span className="text-orange-600 font-medium text-sm">View</span>

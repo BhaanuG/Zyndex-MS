@@ -7,6 +7,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { TransitionLoader } from '@/app/components/PageTransitionWrapper';
 import resourceService from '@/services/api/resourceService';
 import userService from '@/services/api/userService';
+import { getPlanName, getPlanBadgeClass } from '@/utils/planHelper';
 
 const categoryIcons = {
   ai: { icon: Brain, gradient: 'from-fuchsia-500 to-rose-500', bgColor: 'bg-fuchsia-100' },
@@ -23,7 +24,20 @@ const categoryIcons = {
   history: { icon: Landmark, gradient: 'from-orange-500 to-red-500', bgColor: 'bg-orange-100' },
 };
 
-const preferredCategoryOrder = ['AI', 'ML', 'Mathematics', 'Maths', 'Physics', 'Chemistry', 'Computer Science', 'Biology', 'Economics', 'History', 'Literature'];
+const preferredCategoryOrder = ['AI', 'ML', 'Computer Science', 'Physics', 'Chemistry', 'Mathematics', 'Economics', 'History', 'Literature', 'Biology'];
+
+const STANDARD_CATEGORIES = [
+  { name: 'AI', description: 'Artificial intelligence paradigms, neural networks, and prompt engineering' },
+  { name: 'ML', description: 'Machine learning fundamentals, predictive algorithms, and deep learning' },
+  { name: 'Computer Science', description: 'Data structures, algorithms, computational theory, and systems' },
+  { name: 'Physics', description: 'Classical mechanics, quantum physics, thermodynamics, and optics' },
+  { name: 'Chemistry', description: 'Organic chemistry, inorganic compounds, and chemical thermodynamics' },
+  { name: 'Mathematics', description: 'Linear algebra, multivariable calculus, probability, and statistics' },
+  { name: 'Economics', description: 'Microeconomics, macroeconomics, financial markets, and econometrics' },
+  { name: 'History', description: 'World history, civilizations, political revolutions, and developments' },
+  { name: 'Literature', description: 'World literature, literary theory, classical texts, and poetry' },
+  { name: 'Biology', description: 'Cell biology, genetics, evolutionary biology, and physiology' },
+];
 
 export default function UserHome() {
   const navigate = useNavigate();
@@ -195,31 +209,25 @@ export default function UserHome() {
     }
   };
 
-  const categoryCards = [...categories]
-    .sort((a, b) => {
-      const aIndex = preferredCategoryOrder.findIndex((name) => name.toLowerCase() === a.name.toLowerCase());
-      const bIndex = preferredCategoryOrder.findIndex((name) => name.toLowerCase() === b.name.toLowerCase());
-      const normalizedA = aIndex === -1 ? Number.MAX_SAFE_INTEGER : aIndex;
-      const normalizedB = bIndex === -1 ? Number.MAX_SAFE_INTEGER : bIndex;
-
-      if (normalizedA !== normalizedB) {
-        return normalizedA - normalizedB;
-      }
-
-      return a.name.localeCompare(b.name);
-    })
-    .map((category) => {
-    const key = category.name.toLowerCase();
+  const categoryCards = STANDARD_CATEGORIES.map((standardCat) => {
+    // Find matching category from backend count results if available
+    const matchedBackend = categories.find(
+      (c) => (c?.name || '').trim().toLowerCase() === standardCat.name.toLowerCase()
+    );
+    const countNum = matchedBackend?.count ? Number(matchedBackend.count) : 0;
+    const key = standardCat.name.toLowerCase();
     const theme = categoryIcons[key] || categoryIcons.history;
-      return {
-        ...category,
-        title: category.name,
-        icon: theme.icon,
-        gradient: theme.gradient,
-        bgColor: theme.bgColor,
-        count: `${category.count} resources`,
-      };
-    });
+
+    return {
+      name: standardCat.name,
+      title: standardCat.name,
+      description: standardCat.description,
+      icon: theme.icon,
+      gradient: theme.gradient,
+      bgColor: theme.bgColor,
+      count: countNum > 0 ? `${countNum} resource${countNum === 1 ? '' : 's'}` : 'Explore resources',
+    };
+  });
 
   return (
     <UserLayout>
@@ -469,12 +477,8 @@ export default function UserHome() {
                           }`}>
                             {getDisplayType(resource)}
                           </span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            !resource.requiredPlan || resource.requiredPlan === 'FREE'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-orange-50 text-orange-700 border border-orange-200'
-                          }`}>
-                            {!resource.requiredPlan || resource.requiredPlan === 'FREE' ? 'Free' : (resource.requiredPlan).replace('_', ' ')}
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getPlanBadgeClass(resource.requiredPlan)}`}>
+                            {getPlanName(resource.requiredPlan)}
                           </span>
                         </div>
                         <span className="text-sm text-orange-600 font-bold">Viewed</span>
@@ -529,12 +533,8 @@ export default function UserHome() {
                           }`}>
                             {getDisplayType(resource)}
                           </span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            !resource.requiredPlan || resource.requiredPlan === 'FREE'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-orange-50 text-orange-700 border border-orange-200'
-                          }`}>
-                            {!resource.requiredPlan || resource.requiredPlan === 'FREE' ? 'Free' : (resource.requiredPlan).replace('_', ' ')}
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getPlanBadgeClass(resource.requiredPlan)}`}>
+                            {getPlanName(resource.requiredPlan)}
                           </span>
                         </div>
                         <span className="text-sm text-orange-600 font-bold">View</span>
