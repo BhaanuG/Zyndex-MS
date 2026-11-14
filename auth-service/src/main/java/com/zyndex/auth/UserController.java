@@ -309,13 +309,27 @@ class UserController {
             String adminName = request.getHeader("X-User-Name");
             if (adminName == null || adminName.isBlank())
                 adminName = "Main Administrator";
+            final String finalAdminName = adminName;
             String timestamp = java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            roleEmailSent = accountEmailService.sendRoleChangedEmail(name, email, oldRole, role, adminName, timestamp);
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    accountEmailService.sendRoleChangedEmail(name, email, oldRole, role, finalAdminName, timestamp);
+                } catch (Exception ex) {
+                    System.err.println("[ASYNC ROLE EMAIL ERROR] " + ex.getMessage());
+                }
+            });
+            roleEmailSent = true;
         }
 
         if (!password.isBlank()) {
-            accountEmailService.sendPasswordChangedEmail(name, email);
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    accountEmailService.sendPasswordChangedEmail(name, email);
+                } catch (Exception ex) {
+                    System.err.println("[ASYNC PWD EMAIL ERROR] " + ex.getMessage());
+                }
+            });
         }
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -357,10 +371,18 @@ class UserController {
             String adminName = request.getHeader("X-User-Name");
             if (adminName == null || adminName.isBlank())
                 adminName = "Main Administrator";
+            final String finalAdminName = adminName;
             String timestamp = java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            roleEmailSent = accountEmailService.sendRoleChangedEmail(name, email, oldRole, newRole, adminName,
-                    timestamp);
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    accountEmailService.sendRoleChangedEmail(name, email, oldRole, newRole, finalAdminName,
+                            timestamp);
+                } catch (Exception ex) {
+                    System.err.println("[ASYNC ROLE EMAIL ERROR] " + ex.getMessage());
+                }
+            });
+            roleEmailSent = true;
         }
 
         return Map.of("message", "User role updated successfully.", "roleEmailSent", roleEmailSent);
@@ -818,17 +840,23 @@ class UserController {
         if (user == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
         }
-        accountEmailService.sendPlanUpgradeEmail(
-                AuthSupport.str(user.get("username")),
-                AuthSupport.str(user.get("email")),
-                AuthSupport.str(body.get("previousPlan")),
-                AuthSupport.str(body.get("newPlan")),
-                body.get("activationDate"),
-                body.get("validUntil"),
-                AuthSupport.str(body.get("orderId")),
-                AuthSupport.str(body.get("utr")),
-                AuthSupport.str(body.get("paymentTime")),
-                AuthSupport.str(body.get("status")));
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                accountEmailService.sendPlanUpgradeEmail(
+                        AuthSupport.str(user.get("username")),
+                        AuthSupport.str(user.get("email")),
+                        AuthSupport.str(body.get("previousPlan")),
+                        AuthSupport.str(body.get("newPlan")),
+                        body.get("activationDate"),
+                        body.get("validUntil"),
+                        AuthSupport.str(body.get("orderId")),
+                        AuthSupport.str(body.get("utr")),
+                        AuthSupport.str(body.get("paymentTime")),
+                        AuthSupport.str(body.get("status")));
+            } catch (Exception ex) {
+                System.err.println("[ASYNC PLAN UPGRADE EMAIL ERROR] " + ex.getMessage());
+            }
+        });
         return Map.of("notificationEmailSent", true);
     }
 

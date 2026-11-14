@@ -40,9 +40,7 @@ public class LogController {
         List<Object> params = new ArrayList<>();
 
         if ("admin".equalsIgnoreCase(category)) {
-            whereSql.append(" AND service = 'ADMIN-PORTAL' ");
-        } else if ("system".equalsIgnoreCase(category)) {
-            whereSql.append(" AND service != 'ADMIN-PORTAL' ");
+            whereSql.append(" AND (service = 'ADMIN-PORTAL' OR action LIKE 'ADMIN_%' OR actor_email LIKE '%admin%' OR actor_email = 'Bhaanugali@gmail.com' OR actor_email IN (SELECT email FROM users WHERE role = 'ADMIN' OR is_primary_admin = 1)) ");
         }
 
         if (!service.isBlank() && !"ALL".equalsIgnoreCase(service)) {
@@ -78,9 +76,9 @@ public class LogController {
         // Compute summary counts scoped strictly to current category or query
         String scopeCondition = "";
         if ("admin".equalsIgnoreCase(category)) {
-            scopeCondition = " WHERE service = 'ADMIN-PORTAL' ";
+            scopeCondition = " WHERE (service = 'ADMIN-PORTAL' OR action LIKE 'ADMIN_%' OR actor_email LIKE '%admin%' OR actor_email = 'Bhaanugali@gmail.com' OR actor_email IN (SELECT email FROM users WHERE role = 'ADMIN' OR is_primary_admin = 1)) ";
         } else if ("system".equalsIgnoreCase(category)) {
-            scopeCondition = " WHERE service != 'ADMIN-PORTAL' ";
+            scopeCondition = "";
         }
 
         // Single aggregated SQL query to compute all summary counts in 1 roundtrip

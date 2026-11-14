@@ -126,7 +126,7 @@ export default function AdminLogs() {
   const [systemTotal, setSystemTotal] = useState(0);
   const [systemPage, setSystemPage] = useState(0);
   const [availableServices, setAvailableServices] = useState(SERVICES);
-  const systemPageSize = 20;
+  const [pageSize, setPageSize] = useState(10); // 10, 25, 50, 100, 250, 500, 1000
 
   // Filters & Search
   const [serviceFilter, setServiceFilter] = useState('ALL');
@@ -346,12 +346,13 @@ export default function AdminLogs() {
     }
   };
 
-  const fetchAdminLogs = async (page = 0, overrideLevel = null) => {
+  const fetchAdminLogs = async (page = 0, overrideLevel = null, overridePageSize = null) => {
     try {
       const activeLevel = overrideLevel !== null ? overrideLevel : adminLevelFilter;
+      const activeSize = overridePageSize !== null ? overridePageSize : pageSize;
       const response = await logService.getLogs({
         page,
-        size: systemPageSize,
+        size: activeSize,
         category: 'admin',
         level: activeLevel === 'ALL' ? '' : activeLevel,
         search: adminSearchTerm,
@@ -370,13 +371,14 @@ export default function AdminLogs() {
     }
   };
 
-  const fetchSystemLogs = async (page = 0, overrideLevel = null, overrideService = null) => {
+  const fetchSystemLogs = async (page = 0, overrideLevel = null, overrideService = null, overridePageSize = null) => {
     try {
       const activeLevel = overrideLevel !== null ? overrideLevel : levelFilter;
       const activeService = overrideService !== null ? overrideService : serviceFilter;
+      const activeSize = overridePageSize !== null ? overridePageSize : pageSize;
       const response = await logService.getLogs({
         page,
-        size: systemPageSize,
+        size: activeSize,
         category: 'system',
         service: activeService === 'ALL' ? '' : activeService,
         level: activeLevel === 'ALL' ? '' : activeLevel,
@@ -412,11 +414,11 @@ export default function AdminLogs() {
 
   useEffect(() => {
     fetchSystemLogs(0);
-  }, [serviceFilter, levelFilter]);
+  }, [serviceFilter, levelFilter, pageSize]);
 
   useEffect(() => {
     fetchAdminLogs(0);
-  }, [adminLevelFilter]);
+  }, [adminLevelFilter, pageSize]);
 
   // Live auto-refresh polling every 10 seconds for real-time responsiveness
   // Preserves active filter and page selections without resetting to overall view
@@ -940,6 +942,22 @@ export default function AdminLogs() {
               </div>
 
               <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
+                  <span className="text-gray-500 font-medium">Rows:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      const newSize = Number(e.target.value);
+                      setPageSize(newSize);
+                    }}
+                    className="bg-transparent font-bold text-gray-800 outline-none cursor-pointer"
+                  >
+                    {[10, 25, 50, 100, 250, 500, 1000].map((num) => (
+                      <option key={num} value={num}>{num} / page</option>
+                    ))}
+                  </select>
+                </div>
+
                 <select
                   value={adminLevelFilter}
                   onChange={(e) => {
@@ -1464,6 +1482,22 @@ export default function AdminLogs() {
               </div>
 
               <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
+                  <span className="text-gray-500 font-medium">Rows:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      const newSize = Number(e.target.value);
+                      setPageSize(newSize);
+                    }}
+                    className="bg-transparent font-bold text-gray-800 outline-none cursor-pointer"
+                  >
+                    {[10, 25, 50, 100, 250, 500, 1000].map((num) => (
+                      <option key={num} value={num}>{num} / page</option>
+                    ))}
+                  </select>
+                </div>
+
                 <select
                   value={serviceFilter}
                   onChange={(e) => {

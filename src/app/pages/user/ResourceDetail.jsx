@@ -470,16 +470,33 @@ export default function ResourceDetail() {
                   </div>
                 ) : previewUrl && isPdfPreview && previewBlobUrl && pdfDocument ? (
                   <div className="overflow-hidden rounded-xl border border-gray-200 bg-neutral-800" onContextMenu={(event) => event.preventDefault()}>
-                    <div className="flex items-center justify-between gap-3 bg-neutral-900 px-4 py-2 text-white select-none">
+                    <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-900 px-4 py-2.5 text-white select-none">
                       <div className="flex items-center gap-2">
-                        <button type="button" disabled={pdfPage <= 1} onClick={() => setPdfPage((page) => Math.max(1, page - 1))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40" aria-label="Previous page" title="Previous page"><ChevronLeft className="size-5" /></button>
-                        <span className="min-w-20 text-center text-sm">{pdfPage} / {pdfPageCount}</span>
-                        <button type="button" disabled={pdfPage >= pdfPageCount} onClick={() => setPdfPage((page) => Math.min(pdfPageCount, page + 1))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
+                        <button type="button" disabled={pdfPage <= 1} onClick={() => setPdfPage((page) => Math.max(1, page - 1))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Previous page" title="Previous page"><ChevronLeft className="size-5" /></button>
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm bg-neutral-800 px-2.5 py-1 rounded-lg border border-neutral-700">
+                          <span>Page</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={pdfPageCount}
+                            value={pdfPage}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              if (!isNaN(val) && val >= 1 && val <= pdfPageCount) {
+                                setPdfPage(val);
+                              }
+                            }}
+                            className="w-12 text-center bg-neutral-950 text-white rounded border border-neutral-600 py-0.5 text-xs font-bold focus:outline-none focus:border-orange-500"
+                            title="Enter page number to jump directly"
+                          />
+                          <span className="text-neutral-400">of {pdfPageCount}</span>
+                        </div>
+                        <button type="button" disabled={pdfPage >= pdfPageCount} onClick={() => setPdfPage((page) => Math.min(pdfPageCount, page + 1))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button type="button" disabled={pdfScale <= 0.8} onClick={() => setPdfScale((scale) => Math.max(0.8, Number((scale - 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40" aria-label="Zoom out" title="Zoom out"><Minus className="size-4" /></button>
-                        <span className="w-12 text-center text-xs">{Math.round(pdfScale * 100)}%</span>
-                        <button type="button" disabled={pdfScale >= 2} onClick={() => setPdfScale((scale) => Math.min(2, Number((scale + 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40" aria-label="Zoom in" title="Zoom in"><Plus className="size-4" /></button>
+                        <button type="button" disabled={pdfScale <= 0.8} onClick={() => setPdfScale((scale) => Math.max(0.8, Number((scale - 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom out" title="Zoom out"><Minus className="size-4" /></button>
+                        <span className="w-12 text-center text-xs font-semibold">{Math.round(pdfScale * 100)}%</span>
+                        <button type="button" disabled={pdfScale >= 2} onClick={() => setPdfScale((scale) => Math.min(2, Number((scale + 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom in" title="Zoom in"><Plus className="size-4" /></button>
                       </div>
                     </div>
                     <div className="relative max-h-[720px] overflow-auto bg-neutral-700 p-4">

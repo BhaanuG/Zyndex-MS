@@ -8,7 +8,7 @@ import java.util.Map;
 public class SqlSupport {
     public Map<String, Integer> page(Map<String, String> query) {
         int page = Math.max(parseInt(query.get("page"), 0), 0);
-        int size = Math.min(Math.max(parseInt(query.get("size"), 10), 1), 100);
+        int size = Math.min(Math.max(parseInt(query.get("size"), 10), 1), 1000);
         return Map.of("page", page, "size", size, "offset", page * size);
     }
 
