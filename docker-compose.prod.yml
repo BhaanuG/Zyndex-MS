@@ -71,7 +71,15 @@ services:
       MAIL_PORT: ${MAIL_PORT:-${OTP_SMTP_PORT:-587}}
       MAIL_USERNAME: ${MAIL_USERNAME:-${OTP_SMTP_USER:-}}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-${OTP_SMTP_PASS:-}}
-      OTP_MAIL_FROM: ${OTP_MAIL_FROM:-Bhaanugali@gmail.com}
+      SPRING_MAIL_HOST: ${OTP_SMTP_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${OTP_SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${OTP_SMTP_USER:-}
+      SPRING_MAIL_PASSWORD: ${OTP_SMTP_PASS:-}
+      OTP_SMTP_HOST: ${OTP_SMTP_HOST:-smtp.gmail.com}
+      OTP_SMTP_PORT: ${OTP_SMTP_PORT:-587}
+      OTP_SMTP_USER: ${OTP_SMTP_USER:-}
+      OTP_SMTP_PASS: ${OTP_SMTP_PASS:-}
+      OTP_MAIL_FROM: ${OTP_MAIL_FROM:-${OTP_SMTP_USER:-Bhaanugali@gmail.com}}
       JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx256m"
     networks:
       - zyndex-network
