@@ -437,10 +437,29 @@ export default function ResourceManagement() {
         }
       });
 
-      setCreateStatus('Resource uploaded successfully.');
-      await loadResources(searchTerm);
-      await loadCategories();
-      await loadStorageStats();
+      // Close modal and reset form immediately upon success
+      closeCreateModal();
+      setCreateResource({
+        title: '',
+        category: '',
+        subject: '',
+        requiredPlan: 'FREE',
+        resourceType: 'pdf',
+        description: '',
+        articleContent: '',
+        file: null,
+      });
+
+      setModalMessage({
+        title: 'Resource Uploaded',
+        text: 'The resource has been uploaded successfully and is now live.',
+        buttonText: 'OK'
+      });
+
+      // Refresh listings in background
+      loadResources(searchTerm);
+      loadCategories();
+      loadStorageStats();
 
       logService.createLog({
         service: 'ADMIN-PORTAL',
@@ -450,8 +469,6 @@ export default function ResourceManagement() {
         details: `Administrator uploaded new resource: ${createResource.title} (Category: ${createResource.category}, Type: ${createResource.resourceType}, Plan: ${createResource.requiredPlan || 'FREE'})`,
         status: 'SUCCESS'
       }).catch(() => {});
-
-      closeCreateModal();
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Upload failed.';
       setModalMessage({
