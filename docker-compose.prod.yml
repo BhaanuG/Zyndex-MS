@@ -79,7 +79,10 @@ services:
       OTP_SMTP_PORT: ${OTP_SMTP_PORT:-587}
       OTP_SMTP_USER: ${OTP_SMTP_USER:-}
       OTP_SMTP_PASS: ${OTP_SMTP_PASS:-}
-      OTP_MAIL_FROM: ${OTP_MAIL_FROM:-${OTP_SMTP_USER:-Bhaanugali@gmail.com}}
+      OTP_MAIL_FROM: ${OTP_MAIL_FROM:-lmno1432@gmail.com}
+      MAIN_ADMIN_EMAIL: ${MAIN_ADMIN_EMAIL:-Bhaanugali@gmail.com}
+      MAIN_ADMIN_PASSWORD: ${MAIN_ADMIN_PASSWORD:-Admin@123}
+      MAIN_ADMIN_NAME: ${MAIN_ADMIN_NAME:-G Bhaanu Sai}
       JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx256m"
     networks:
       - zyndex-network

@@ -501,9 +501,15 @@ export default function Login() {
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="space-y-4 sm:space-y-8 block text-center md:text-left">
             <div className="space-y-3 sm:space-y-6">
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-                <span className="text-slate-900">Your Knowledge. Your Growth.</span>
-                <br />
-                <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">Your Library.</span>
+                <span className="block text-slate-900">
+                  Your <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">Knowledge.</span>
+                </span>
+                <span className="block text-slate-900">
+                  Your <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">Growth.</span>
+                </span>
+                <span className="block text-slate-900">
+                  Your <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">Library.</span>
+                </span>
               </h1>
               <p className="text-sm sm:text-xl text-slate-600 leading-relaxed max-w-xl mx-auto md:mx-0">
                 Discover a world of learning resources, explore educational materials, and access the knowledge you need to move forward.
