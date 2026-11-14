@@ -540,7 +540,6 @@ export default function UserProfile() {
                           {deviceGroups.length > 0 ? (
                             deviceGroups.map((group) => {
                               const d = group.latestSession;
-                              const isExpanded = expandedDeviceKey === group.key;
                               const isMobile = String(d.operating_system || '').toLowerCase().includes('android') ||
                                                String(d.operating_system || '').toLowerCase().includes('ios') ||
                                                String(d.operating_system || '').toLowerCase().includes('phone') ||
