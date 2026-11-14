@@ -240,7 +240,7 @@ export default function Login() {
           return;
         }
 
-        const trimmedName = name.trim();
+        const formattedName = trimmedName ? trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase() : '';
         const trimmedEmail = email.trim();
 
         // Password complexity validation
@@ -261,7 +261,7 @@ export default function Login() {
 
         // Register directly since OTP is verified on page!
         await authService.register({
-          name: trimmedName,
+          name: formattedName,
           email: trimmedEmail,
           password,
           role: 'user',
@@ -581,13 +581,13 @@ export default function Login() {
                           value={name}
                           onChange={(e) => {
                             const val = e.target.value;
-                            // Automatically capitalize the first letter of each word
-                            const formatted = val.replace(/(?:^|\s)\S/g, (match) => match.toUpperCase());
+                            // Only first letter capitalized, remaining letters strictly lowercase
+                            const formatted = val ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() : '';
                             setName(formatted);
                             setError('');
                             setSuccessMessage('');
                           }}
-                          placeholder="Enter your full name"
+                          placeholder="Enter your name (e.g. John)"
                           className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
                           required
                         />

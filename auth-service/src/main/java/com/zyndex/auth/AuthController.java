@@ -44,6 +44,10 @@ class AuthController {
         if (name.isBlank() || email.isBlank() || password.isBlank() || userType.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Name, email, password, and user type are required.");
         }
+        // Ensure name has first letter capitalized and remaining letters in lowercase
+        String trimmedName = name.trim();
+        String formattedName = trimmedName.substring(0, 1).toUpperCase() + (trimmedName.length() > 1 ? trimmedName.substring(1).toLowerCase() : "");
+        name = formattedName;
         if ("Other".equalsIgnoreCase(userType) && profession.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Please enter your profession.");
         }
