@@ -17,6 +17,10 @@ spring:
       httpclient:
         connect-timeout: 30000
         response-timeout: 600s
+        pool:
+          type: ELASTIC
+          max-idle-time: 15s
+          max-life-time: 60s
       globalcors:
         cors-configurations:
           '[/**]':

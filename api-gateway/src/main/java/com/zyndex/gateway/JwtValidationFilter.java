@@ -48,6 +48,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
             "/api/feedback/contact",
             "/api/resources/categories",
             "/api/resources/featured",
+            "/api/resources/storage",
             "/api/resources/search",
             "/api/subscriptions/plans",
             "/api/subscriptions/webhook",

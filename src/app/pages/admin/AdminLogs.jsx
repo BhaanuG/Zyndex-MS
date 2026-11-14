@@ -156,7 +156,7 @@ export default function AdminLogs() {
 
   useEffect(() => {
     fetchVmTelemetry();
-    const vmInterval = setInterval(fetchVmTelemetry, 1000);
+    const vmInterval = setInterval(fetchVmTelemetry, 3000);
     return () => clearInterval(vmInterval);
   }, []);
 

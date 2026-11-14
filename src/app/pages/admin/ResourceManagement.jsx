@@ -115,10 +115,10 @@ export default function ResourceManagement() {
 
   useEffect(() => {
     loadStorageStats();
-    // Live update every single second
+    // Live update smoothly every 3 seconds to preserve server performance
     const timer = setInterval(() => {
       loadStorageStats();
-    }, 1000);
+    }, 3000);
     return () => clearInterval(timer);
   }, []);
 

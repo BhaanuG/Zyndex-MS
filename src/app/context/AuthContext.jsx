@@ -104,7 +104,8 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } catch (err) {
-        if (err?.status === 401 || err?.status === 403 || err?.status === 503) {
+        // Do NOT log out on network transient failures or gateway 503s!
+        if (err?.status === 401 || (err?.status === 403 && (err?.message?.toLowerCase().includes('terminate') || err?.message?.toLowerCase().includes('session')))) {
           const savedRole = role || user?.role || 'user';
           localStorage.removeItem('auth_token');
           localStorage.removeItem('user_data');
@@ -114,7 +115,7 @@ export const AuthProvider = ({ children }) => {
             new CustomEvent('zyndex:session-expired', {
               detail: {
                 role: savedRole,
-                reason: err.message || (err?.status === 503 ? 'The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.' : 'Your session was terminated. Please log in again.'),
+                reason: err.message || 'Your session was terminated. Please log in again.',
                 code: err?.code
               }
             })
@@ -175,8 +176,8 @@ export const AuthProvider = ({ children }) => {
       setRole(currentUser.role);
       return currentUser;
     } catch (err) {
-      // If getCurrentUser failed with 401/403/503 or inactive account or maintenance, apiClient already handles or we clear here
-      if (err?.status === 401 || err?.status === 403 || err?.status === 503 || err?.message?.toLowerCase().includes('maintenance') || err?.message?.toLowerCase().includes('logged out') || err?.message?.toLowerCase().includes('session')) {
+      // If getCurrentUser failed with 401 or explicit termination, clear session
+      if (err?.status === 401 || (err?.status === 403 && (err?.message?.toLowerCase().includes('terminate') || err?.message?.toLowerCase().includes('session')))) {
         const savedRole = role || user?.role || 'user';
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
@@ -186,7 +187,7 @@ export const AuthProvider = ({ children }) => {
           new CustomEvent('zyndex:session-expired', {
             detail: {
               role: savedRole,
-              reason: err.message || (err?.status === 503 ? 'The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.' : 'Your session was terminated. Please log in again.'),
+              reason: err.message || 'Your session was terminated. Please log in again.',
               code: err?.code
             }
           })

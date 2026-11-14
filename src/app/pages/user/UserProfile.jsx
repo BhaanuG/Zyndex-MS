@@ -191,7 +191,7 @@ export default function UserProfile() {
   useEffect(() => {
     if (getActiveTabFromPath() === 'billing') {
       loadBillingData();
-      // Live sync every second for user billing & payment history
+      // Live sync smoothly every 4 seconds for user billing & payment history
       const timer = setInterval(() => {
         subscriptionService.getPayments().then(res => {
           if (Array.isArray(res)) setPayments(res);
@@ -199,7 +199,7 @@ export default function UserProfile() {
         subscriptionService.getMe().then(sub => {
           if (sub) setActiveSub(sub);
         }).catch(() => {});
-      }, 1000);
+      }, 4000);
       return () => clearInterval(timer);
     }
   }, [location.pathname]);
