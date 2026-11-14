@@ -125,6 +125,8 @@ services:
       OTP_MAIL_FROM: ${OTP_MAIL_FROM:-noreply@zyndex.com}
       MAIN_ADMIN_EMAIL: ${MAIN_ADMIN_EMAIL:-admin@zyndex.com}
       JAVA_OPTS: "-XX:+UseSerialGC -Xss256k -Xms96m -Xmx320m"
+    volumes:
+      - ./backend/uploads:/app/backend/uploads
     networks:
       - zyndex-network
 
