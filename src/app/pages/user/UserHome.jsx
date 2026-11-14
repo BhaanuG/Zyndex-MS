@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { Search, FlaskConical, Calculator, BookOpen, Landmark, Sparkles, TrendingUp, Heart, Brain, Cpu, Atom, Microscope, X, ArrowRight, Loader2 } from 'lucide-react';
+import { Search, FlaskConical, Calculator, BookOpen, Landmark, Sparkles, TrendingUp, Heart, Brain, Cpu, Atom, Microscope, X, ArrowRight, Loader2, Coins, BookText, ScrollText } from 'lucide-react';
 import UserLayout from '@/app/components/UserLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import { TransitionLoader } from '@/app/components/PageTransitionWrapper';
@@ -18,10 +18,10 @@ const categoryIcons = {
   chemistry: { icon: FlaskConical, gradient: 'from-orange-500 to-amber-500', bgColor: 'bg-orange-100' },
   'computer science': { icon: BookOpen, gradient: 'from-slate-700 to-slate-500', bgColor: 'bg-slate-100' },
   biology: { icon: Microscope, gradient: 'from-lime-500 to-emerald-500', bgColor: 'bg-lime-100' },
-  economics: { icon: Landmark, gradient: 'from-amber-500 to-orange-500', bgColor: 'bg-amber-100' },
+  economics: { icon: Coins, gradient: 'from-amber-500 to-orange-500', bgColor: 'bg-amber-100' },
   science: { icon: FlaskConical, gradient: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-100' },
-  literature: { icon: BookOpen, gradient: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-100' },
-  history: { icon: Landmark, gradient: 'from-orange-500 to-red-500', bgColor: 'bg-orange-100' },
+  literature: { icon: BookText, gradient: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-100' },
+  history: { icon: ScrollText, gradient: 'from-orange-500 to-red-500', bgColor: 'bg-orange-100' },
 };
 
 const preferredCategoryOrder = ['AI', 'ML', 'Computer Science', 'Physics', 'Chemistry', 'Mathematics', 'Economics', 'History', 'Literature', 'Biology'];
@@ -422,8 +422,7 @@ export default function UserHome() {
                         <Icon className="size-8 text-white" />
                       </div>
                       <h3 className="font-bold text-gray-900 mb-2 text-lg">{category.title}</h3>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">Explore curated materials for {category.title}.</p>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mt-4">
                         <p className="text-xs text-gray-500 font-medium">{category.count}</p>
                         <span className="text-orange-600 font-semibold text-sm">Explore</span>
                       </div>

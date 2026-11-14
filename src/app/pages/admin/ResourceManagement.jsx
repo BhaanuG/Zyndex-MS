@@ -170,12 +170,21 @@ export default function ResourceManagement() {
 
     import('pdfjs-dist/legacy/build/pdf.mjs').then((pdfjsLib) => {
       if (isCancelled) return;
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
-        import.meta.url
-      ).toString();
+      // Provide fallback standard worker to avoid module MIME type rejection in web containers
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+          'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+          import.meta.url
+        ).toString();
+      } catch (e) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+      }
 
-      loadingTask = pdfjsLib.getDocument({ url: previewBlobUrl });
+      loadingTask = pdfjsLib.getDocument({
+        url: previewBlobUrl,
+        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/cmaps/',
+        cMapPacked: true,
+      });
       loadingTask.promise
         .then((doc) => {
           if (isCancelled) return;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link } from 'react-router';
-import { Brain, Cpu, Binary, Atom, FlaskConical, Calculator, Landmark, BookOpen, Microscope, ArrowRight, X, Sparkles, Lock } from 'lucide-react';
+import { Brain, Cpu, Binary, Atom, FlaskConical, Calculator, Landmark, BookOpen, Microscope, ArrowRight, X, Sparkles, Lock, Coins, BookText, ScrollText } from 'lucide-react';
 import PublicLayout from '@/app/components/PublicLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import { setRedirectIntent } from '@/utils/redirectHelper';
@@ -58,21 +58,21 @@ export default function BrowseCategory() {
     {
       title: 'Economics',
       description: 'Microeconomics, macroeconomics, fiscal policy, financial markets, econometrics, and behavioral economics',
-      icon: Landmark,
+      icon: Coins,
       gradient: 'from-amber-600 to-orange-600',
       bgGradient: 'from-amber-50 to-orange-50',
     },
     {
       title: 'History',
       description: 'World history, civilizations, political revolutions, historiography, and modern global developments',
-      icon: Landmark,
+      icon: ScrollText,
       gradient: 'from-amber-700 to-red-700',
       bgGradient: 'from-amber-50 to-red-50',
     },
     {
       title: 'Literature',
       description: 'World literature, literary theory, classical texts, poetry, comparative linguistics, and critical prose',
-      icon: BookOpen,
+      icon: BookText,
       gradient: 'from-violet-500 to-purple-600',
       bgGradient: 'from-violet-50 to-purple-50',
     },
