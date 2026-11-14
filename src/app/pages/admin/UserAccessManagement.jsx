@@ -274,7 +274,7 @@ export default function UserAccessManagement() {
   };
 
   useEffect(() => {
-    const interval = window.setInterval(() => loadUsers(searchTerm), 10000);
+    const interval = window.setInterval(() => loadUsers(searchTerm), 5000);
     return () => window.clearInterval(interval);
   }, [searchTerm]);
 

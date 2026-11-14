@@ -455,6 +455,14 @@ class AuthController {
                             """, email);
                 }
 
+                // Check if any other active trusted devices remain; if none, clear last_active_at
+                Integer remainingActive = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND is_active = TRUE",
+                        Integer.class, email);
+                if (remainingActive == null || remainingActive == 0) {
+                    jdbc.update("UPDATE users SET last_active_at = NULL WHERE id = ?", user.get("id"));
+                }
+
                 jdbc.update(
                     "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
                     "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'USER_LOGOUT', ?, 'User terminated session and logged out.', ?, 'SUCCESS')",

@@ -99,31 +99,29 @@ class UserController {
         var page = sql.page(query);
         String search = "%" + AuthSupport.str(query.get("search")) + "%";
         var rows = jdbc.queryForList(
-                "SELECT * FROM users WHERE username LIKE ? OR email LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                """
+                SELECT u.*,
+                       (u.last_active_at IS NOT NULL 
+                        AND TIMESTAMPDIFF(SECOND, u.last_active_at, NOW()) <= 60 
+                        AND EXISTS (SELECT 1 FROM trusted_devices td WHERE td.user_id = u.id AND td.is_active = TRUE)) AS is_online_calc
+                FROM users u
+                WHERE u.username LIKE ? OR u.email LIKE ?
+                ORDER BY u.created_at DESC
+                LIMIT ? OFFSET ?
+                """,
                 search, search, page.get("size"), page.get("offset"));
         long total = jdbc.queryForObject("SELECT COUNT(*) FROM users WHERE username LIKE ? OR email LIKE ?", Long.class,
                 search, search);
         return sql.pageResult("users", rows.stream().map(row -> {
             Map<String, Object> sanitized = auth.sanitizeUser(row);
             Object lastActiveObj = row.get("last_active_at");
+            Object isOnlineCalcObj = row.get("is_online_calc");
             boolean isOnline = false;
-            if (lastActiveObj != null) {
-                try {
-                    java.time.Instant lastActiveInstant = null;
-                    if (lastActiveObj instanceof java.sql.Timestamp) {
-                        lastActiveInstant = ((java.sql.Timestamp) lastActiveObj).toInstant();
-                    } else if (lastActiveObj instanceof java.time.LocalDateTime) {
-                        lastActiveInstant = ((java.time.LocalDateTime) lastActiveObj)
-                                .toInstant(java.time.ZoneOffset.UTC);
-                    } else if (lastActiveObj instanceof java.time.Instant) {
-                        lastActiveInstant = (java.time.Instant) lastActiveObj;
-                    }
-                    if (lastActiveInstant != null) {
-                        // Considered actively online if seen within last 15 minutes
-                        isOnline = java.time.Duration.between(lastActiveInstant, java.time.Instant.now())
-                                .toMinutes() <= 15;
-                    }
-                } catch (Exception ignored) {
+            if (isOnlineCalcObj != null) {
+                if (isOnlineCalcObj instanceof Boolean) {
+                    isOnline = (Boolean) isOnlineCalcObj;
+                } else if (isOnlineCalcObj instanceof Number) {
+                    isOnline = ((Number) isOnlineCalcObj).intValue() > 0;
                 }
             }
             return Map.ofEntries(

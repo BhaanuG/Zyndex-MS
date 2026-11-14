@@ -70,7 +70,47 @@ export const AuthProvider = ({ children }) => {
     if (!user || !localStorage.getItem('auth_token')) return undefined;
     // Background heartbeat every 15 seconds to check maintenance mode
     const interval = window.setInterval(async () => {
-      // If not primary admin, check if maintenance mode has officially started
+      // 1. Live profile & subscription synchronization every 5 seconds
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUser(prev => {
+            if (!prev) return currentUser;
+            // Update plan, role, and active status lively
+            if (prev.subscriptionPlan !== currentUser.subscriptionPlan ||
+                prev.subscriptionExpiresAt !== currentUser.subscriptionExpiresAt ||
+                prev.role !== currentUser.role ||
+                prev.active !== currentUser.active) {
+              return { ...prev, ...currentUser };
+            }
+            return prev;
+          });
+          if (currentUser.role) setRole(currentUser.role);
+          if (currentUser.token) {
+            localStorage.setItem('auth_token', currentUser.token);
+          }
+        }
+      } catch (err) {
+        if (err?.status === 401 || err?.status === 403 || err?.status === 503) {
+          const savedRole = role || user?.role || 'user';
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_data');
+          setUser(null);
+          setRole(null);
+          window.dispatchEvent(
+            new CustomEvent('zyndex:session-expired', {
+              detail: {
+                role: savedRole,
+                reason: err.message || (err?.status === 503 ? 'The platform is currently under scheduled maintenance mode. Kindly check back later or contact the main administrator.' : 'Your session was terminated. Please log in again.'),
+                code: err?.code
+              }
+            })
+          );
+          return;
+        }
+      }
+
+      // 2. If not primary admin, check if maintenance mode has officially started
       if (!user.isPrimaryAdmin) {
         try {
           const res = await userService.getMaintenanceMode();
@@ -105,7 +145,7 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (ignored) {}
       }
-    }, 15000);
+    }, 5000);
 
     return () => {
       window.clearInterval(interval);

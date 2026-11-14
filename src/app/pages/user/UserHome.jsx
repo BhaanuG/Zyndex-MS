@@ -163,6 +163,8 @@ export default function UserHome() {
     }
 
     loadHome();
+    const interval = window.setInterval(loadHome, 5000);
+    return () => window.clearInterval(interval);
   }, []);
 
   const handleCategoryClick = (category) => {

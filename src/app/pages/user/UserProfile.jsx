@@ -112,6 +112,8 @@ export default function UserProfile() {
       }
     }
     loadSessionData();
+    const interval = window.setInterval(loadSessionData, 5000);
+    return () => window.clearInterval(interval);
   }, [user?.id]);
 
   const handleRevokeOtherSessions = async () => {

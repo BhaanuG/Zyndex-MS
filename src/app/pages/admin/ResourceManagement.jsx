@@ -262,9 +262,14 @@ export default function ResourceManagement() {
   };
 
   useEffect(() => {
-    loadResources();
+    loadResources(searchTerm);
     loadCategories();
-  }, []);
+    const interval = window.setInterval(() => {
+      loadResources(searchTerm);
+      loadCategories();
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, [searchTerm]);
 
   const openCreateModal = () => {
     setCreateStatus('');

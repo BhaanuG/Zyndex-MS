@@ -93,7 +93,7 @@ export default function AdminDashboard() {
     }
 
     loadDashboard();
-    const livePolling = setInterval(loadDashboard, 4000);
+    const livePolling = setInterval(loadDashboard, 5000);
     return () => clearInterval(livePolling);
   }, [baseUrl]);
 

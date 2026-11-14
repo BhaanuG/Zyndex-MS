@@ -13,20 +13,24 @@ export default function FeedbackReview() {
   const [actionSuccess, setActionSuccess] = useState('');
   const [actionError, setActionError] = useState('');
 
-  const loadFeedback = async () => {
+  const loadFeedback = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const response = await feedbackService.getAllFeedback();
       setFeedbacks(response.feedback || []);
     } catch (error) {
       console.error('Failed to load feedback:', error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadFeedback();
+    const interval = window.setInterval(() => {
+      loadFeedback(true);
+    }, 5000);
+    return () => window.clearInterval(interval);
   }, []);
 
   const handleDelete = async (feedbackId) => {

@@ -47,10 +47,10 @@ export default function AdminPayments() {
 
   useEffect(() => {
     fetchPayments();
-    // Live auto-polling every 6 seconds so incoming and hold payments update automatically
+    // Live auto-polling every 5 seconds so incoming and hold payments update automatically
     const pollTimer = setInterval(() => {
       fetchPayments(true);
-    }, 6000);
+    }, 5000);
     return () => clearInterval(pollTimer);
   }, []);
 
