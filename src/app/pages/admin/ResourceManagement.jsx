@@ -93,6 +93,7 @@ export default function ResourceManagement() {
   const getProtocol = () => (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:');
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `${getProtocol()}//${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
 
+  const [storageModalOpen, setStorageModalOpen] = useState(false);
   const [storageStats, setStorageStats] = useState({
     totalBytes: 0,
     freeBytes: 0,
@@ -656,7 +657,11 @@ export default function ResourceManagement() {
             </div>
 
             {/* Live Cloud Storage Indicator Widget (Updates every second) */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200/90 rounded-xl shadow-xs text-xs">
+            <div
+              onClick={() => setStorageModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200/90 rounded-xl shadow-xs text-xs cursor-pointer hover:border-orange-300 hover:shadow-sm transition-all"
+              title="Click to view detailed Cloud Storage Manager"
+            >
               <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
               <HardDrive className="size-3.5 text-slate-500" />
               <div className="flex items-center gap-1.5 font-medium text-slate-700">
@@ -1247,6 +1252,154 @@ export default function ResourceManagement() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {/* Cloud Storage Manager Detailed Modal */}
+        {storageModalOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/60 z-50 backdrop-blur-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setStorageModalOpen(false)}
+            />
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center z-50 p-4"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <div
+                className="bg-white rounded-3xl shadow-2xl max-w-xl w-full border border-slate-100 overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="p-6 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 text-white flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl">
+                      <HardDrive className="size-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black tracking-tight">Cloud Storage Manager</h3>
+                      <p className="text-xs text-orange-100 mt-0.5">Live file system allocation & space breakdown</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setStorageModalOpen(false)}
+                    className="size-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <X className="size-5" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 space-y-6">
+                  {/* Primary Storage Capacity Bar */}
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                      <span>Total Allocation: {formatStorageSize(storageStats.totalBytes)}</span>
+                      <span className="text-orange-600">{storageStats.usedPercentage}% In Use</span>
+                    </div>
+
+                    <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          storageStats.usedPercentage > 85
+                            ? 'bg-rose-500'
+                            : storageStats.usedPercentage > 70
+                            ? 'bg-amber-500'
+                            : 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                        }`}
+                        style={{ width: `${Math.min(100, Math.max(2, storageStats.usedPercentage))}%` }}
+                      />
+                    </div>
+
+                    <div className="flex justify-between items-center text-[11px] text-slate-500 pt-1">
+                      <span>Used: <strong className="text-slate-800">{formatStorageSize(storageStats.usedBytes)}</strong></span>
+                      <span>Available: <strong className="text-emerald-700">{formatStorageSize(storageStats.freeBytes)}</strong></span>
+                    </div>
+                  </div>
+
+                  {/* 3 Metrics Cards */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-2xl text-center">
+                      <span className="text-[10px] font-bold text-emerald-800 uppercase block tracking-wider">Free Space</span>
+                      <span className="text-lg font-black text-emerald-950 mt-1 block">
+                        {formatStorageSize(storageStats.freeBytes)}
+                      </span>
+                      <span className="text-[10px] text-emerald-700 font-medium">Ready for uploads</span>
+                    </div>
+
+                    <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl text-center">
+                      <span className="text-[10px] font-bold text-amber-800 uppercase block tracking-wider">Uploads Store</span>
+                      <span className="text-lg font-black text-amber-950 mt-1 block">
+                        {formatStorageSize(storageStats.uploadsDirBytes)}
+                      </span>
+                      <span className="text-[10px] text-amber-700 font-medium">PDFs & media</span>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
+                      <span className="text-[10px] font-bold text-slate-700 uppercase block tracking-wider">System Files</span>
+                      <span className="text-lg font-black text-slate-900 mt-1 block">
+                        {formatStorageSize(Math.max(0, (storageStats.usedBytes || 0) - (storageStats.uploadsDirBytes || 0)))}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-medium">OS & containers</span>
+                    </div>
+                  </div>
+
+                  {/* Detailed Storage Breakdown List */}
+                  <div className="space-y-2 text-xs">
+                    <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Storage Distribution Details</h4>
+                    <div className="bg-slate-50 rounded-2xl p-3 divide-y divide-slate-200/80 border border-slate-200">
+                      <div className="flex items-center justify-between py-2 text-slate-700">
+                        <span className="font-medium flex items-center gap-2">
+                          <span className="size-2 rounded-full bg-emerald-500 inline-block" />
+                          Available Free Cloud Storage
+                        </span>
+                        <span className="font-mono font-bold text-emerald-700">{formatStorageSize(storageStats.freeBytes)}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2 text-slate-700">
+                        <span className="font-medium flex items-center gap-2">
+                          <span className="size-2 rounded-full bg-amber-500 inline-block" />
+                          Platform Uploads Directory
+                        </span>
+                        <span className="font-mono font-bold text-amber-700">{formatStorageSize(storageStats.uploadsDirBytes)}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2 text-slate-700">
+                        <span className="font-medium flex items-center gap-2">
+                          <span className="size-2 rounded-full bg-slate-500 inline-block" />
+                          Root Filesystem Path
+                        </span>
+                        <span className="font-mono text-slate-600 text-[11px]">{storageStats.uploadDirPath || '/app/backend/uploads'}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2 text-slate-700">
+                        <span className="font-medium flex items-center gap-2">
+                          <span className="size-2 rounded-full bg-blue-500 inline-block" />
+                          Total Disk Volume
+                        </span>
+                        <span className="font-mono font-bold text-slate-900">{formatStorageSize(storageStats.totalBytes)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-slate-500 text-xs">
+                    <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Live telemetry synchronized</span>
+                  </div>
+                  <button
+                    onClick={() => setStorageModalOpen(false)}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+
         {modalMessage && (
           <>
             <motion.div

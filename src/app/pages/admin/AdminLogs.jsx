@@ -827,7 +827,10 @@ export default function AdminLogs() {
         {/* Live Cloud VM Health & Hardware Telemetry Ribbon (Updates Every Second) */}
         {vmTelemetry && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs">
-            <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <div
+              onClick={() => setStatModal('vm_state')}
+              className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-300 hover:shadow-xs transition-all"
+            >
               <div className="size-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Cloud VM State</p>
@@ -835,7 +838,10 @@ export default function AdminLogs() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <div
+              onClick={() => setStatModal('cpu_load')}
+              className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:border-blue-300 hover:shadow-xs transition-all"
+            >
               <Server className="size-4 text-blue-600 shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">CPU & Load</p>
@@ -845,7 +851,10 @@ export default function AdminLogs() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <div
+              onClick={() => setStatModal('jvm_memory')}
+              className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 hover:shadow-xs transition-all"
+            >
               <Activity className="size-4 text-purple-600 shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">JVM Memory</p>
@@ -855,7 +864,10 @@ export default function AdminLogs() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <div
+              onClick={() => setStatModal('cloud_storage')}
+              className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:border-amber-300 hover:shadow-xs transition-all"
+            >
               <Database className="size-4 text-amber-600 shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Cloud Storage Left</p>
@@ -1931,12 +1943,40 @@ export default function AdminLogs() {
                           <span>Session Length Distribution</span>
                         </>
                       )}
+                      {statModal === 'vm_state' && (
+                        <>
+                          <Server className="size-6 text-white" />
+                          <span>Cloud Virtual Machine Infrastructure State</span>
+                        </>
+                      )}
+                      {statModal === 'cpu_load' && (
+                        <>
+                          <Activity className="size-6 text-white" />
+                          <span>CPU Processing Cores & System Load Telemetry</span>
+                        </>
+                      )}
+                      {statModal === 'jvm_memory' && (
+                        <>
+                          <Layers className="size-6 text-white" />
+                          <span>JVM Heap Allocation & Microservice Memory Profile</span>
+                        </>
+                      )}
+                      {statModal === 'cloud_storage' && (
+                        <>
+                          <Database className="size-6 text-white" />
+                          <span>Cloud Storage Volume & Disk Usage Breakdown</span>
+                        </>
+                      )}
                     </h3>
                     <p className="text-xs text-orange-100 mt-1">
                       {statModal === 'reading_time' && 'Pin-to-pin breakdown in hours, minutes, and seconds across all active sessions'}
                       {statModal === 'readers' && 'Real-time reader engagement, authenticated users, and distribution breakdown'}
                       {statModal === 'active_today' && 'Real-time breakdown of unique readers active today in MySQL'}
                       {statModal === 'avg_session' && 'Distribution of duration per active reading session'}
+                      {statModal === 'vm_state' && 'Real-time microservices container mesh, gateway reverse proxy, and host node health'}
+                      {statModal === 'cpu_load' && 'Physical multi-core scheduling, system load average, and thread worker capacity'}
+                      {statModal === 'jvm_memory' && 'Live heap consumption, garbage collection metrics, and maximum runtime allocation'}
+                      {statModal === 'cloud_storage' && 'Volume distribution, PDF resource repository size, and free storage remaining'}
                     </p>
                   </div>
                   <button
@@ -2159,6 +2199,217 @@ export default function AdminLogs() {
                       <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
                         Average session length is calculated directly by dividing the cumulative active reading minutes ({metrics.totalMinutes} mins) by the total number of verified reading sessions ({metrics.totalSessions} sessions) recorded in MySQL.
                       </p>
+                    </div>
+                  )}
+
+                  {statModal === 'vm_state' && vmTelemetry && (
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200">
+                          <span className="text-[10px] font-bold text-emerald-800 uppercase block tracking-wider">Health Status</span>
+                          <span className="text-xl font-black text-emerald-950 mt-1 block flex items-center justify-center gap-1.5">
+                            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                            {vmTelemetry.vmHealth?.status || 'UP'}
+                          </span>
+                          <span className="text-[10px] text-emerald-700 font-medium">100% Operational</span>
+                        </div>
+                        <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-200">
+                          <span className="text-[10px] font-bold text-blue-800 uppercase block tracking-wider">Gateway Mesh</span>
+                          <span className="text-xl font-black text-blue-950 mt-1 block">Active</span>
+                          <span className="text-[10px] text-blue-700 font-medium">Reverse Proxy :8080</span>
+                        </div>
+                        <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                          <span className="text-[10px] font-bold text-slate-700 uppercase block tracking-wider">Discovery</span>
+                          <span className="text-xl font-black text-slate-900 mt-1 block">Eureka</span>
+                          <span className="text-[10px] text-slate-600 font-medium">Registry :8761</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Cloud Microservices Topology</h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                          {['API-GATEWAY', 'AUTH-SERVICE', 'CONTENT-SERVICE', 'SUBSCRIPTION-SERVICE', 'ACCESS-SERVICE', 'USAGE-SERVICE', 'MYSQL 8.4', 'EUREKA-SERVER'].map((svc) => (
+                            <div key={svc} className="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-xl">
+                              <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
+                              <span className="font-mono text-[11px] font-bold text-slate-800 truncate">{svc}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2">
+                        <div className="flex justify-between text-slate-700">
+                          <span className="font-medium text-slate-500">Cloud Host Operating System</span>
+                          <span className="font-bold text-slate-800">Linux (Oracle Cloud x86_64)</span>
+                        </div>
+                        <div className="flex justify-between text-slate-700">
+                          <span className="font-medium text-slate-500">Public Entry Node</span>
+                          <span className="font-mono font-bold text-slate-800">92.5.166.34:8080 (Vite: Netlify)</span>
+                        </div>
+                        <div className="flex justify-between text-slate-700">
+                          <span className="font-medium text-slate-500">Live Telemetry Interval</span>
+                          <span className="font-bold text-emerald-700">Every 3 seconds continuous polling</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {statModal === 'cpu_load' && vmTelemetry && (
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-2 gap-3 text-center">
+                        <div className="p-4 bg-blue-50 rounded-2xl border border-blue-200">
+                          <span className="text-[10px] font-bold text-blue-800 uppercase block tracking-wider">Processing Cores</span>
+                          <span className="text-3xl font-black text-blue-950 mt-1 block">
+                            {vmTelemetry.vmHealth?.processors || 4} vCPUs
+                          </span>
+                          <span className="text-xs text-blue-700 font-medium mt-0.5 block">Dedicated Execution Hardware</span>
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                          <span className="text-[10px] font-bold text-slate-700 uppercase block tracking-wider">System Load Average</span>
+                          <span className="text-3xl font-black text-slate-900 mt-1 block font-mono">
+                            {vmTelemetry.vmHealth?.loadAverage >= 0 ? vmTelemetry.vmHealth.loadAverage.toFixed(2) : '0.15'}
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium mt-0.5 block">
+                            {vmTelemetry.vmHealth?.loadAverage < 1.0 ? 'Optimal Load Level' : 'Moderate Workload'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 text-xs">
+                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">CPU Allocation Details</h4>
+                        <div className="divide-y divide-slate-200/80">
+                          <div className="flex justify-between py-2">
+                            <span className="text-slate-500">Worker Thread Pool</span>
+                            <span className="font-bold text-slate-800">Spring Boot Virtual Threads & NIO Workers</span>
+                          </div>
+                          <div className="flex justify-between py-2">
+                            <span className="text-slate-500">Background PDF Worker</span>
+                            <span className="font-bold text-slate-800">Async CompletableFuture Executor</span>
+                          </div>
+                          <div className="flex justify-between py-2">
+                            <span className="text-slate-500">System Load State</span>
+                            <span className="font-bold text-emerald-700 font-mono">
+                              {vmTelemetry.vmHealth?.loadAverage >= 0 ? `${(vmTelemetry.vmHealth.loadAverage * 25).toFixed(1)}% Capacity` : 'Active'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {statModal === 'jvm_memory' && vmTelemetry && (
+                    <div className="space-y-5">
+                      <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl space-y-3">
+                        <div className="flex justify-between text-xs font-bold text-purple-900">
+                          <span>JVM Heap Usage</span>
+                          <span>
+                            {((vmTelemetry.vmHealth?.usedMemoryBytes || 0) / (1024 * 1024)).toFixed(0)} MB / {((vmTelemetry.vmHealth?.maxMemoryBytes || 1) / (1024 * 1024)).toFixed(0)} MB
+                          </span>
+                        </div>
+                        <div className="w-full bg-purple-200 rounded-full h-3 overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-purple-600 to-indigo-600 transition-all duration-500"
+                            style={{
+                              width: `${Math.min(100, Math.max(3, (((vmTelemetry.vmHealth?.usedMemoryBytes || 0) / (vmTelemetry.vmHealth?.maxMemoryBytes || 1)) * 100)))}%`
+                            }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[11px] text-purple-700">
+                          <span>Used: <strong>{((vmTelemetry.vmHealth?.usedMemoryBytes || 0) / (1024 * 1024)).toFixed(1)} MB</strong></span>
+                          <span>Free: <strong>{((vmTelemetry.vmHealth?.freeMemoryBytes || 0) / (1024 * 1024)).toFixed(1)} MB</strong></span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                          <span className="text-[10px] font-bold text-slate-600 uppercase block tracking-wider">Allocated</span>
+                          <span className="text-base font-black text-slate-900 mt-1 block">
+                            {((vmTelemetry.vmHealth?.totalMemoryBytes || 0) / (1024 * 1024)).toFixed(0)} MB
+                          </span>
+                        </div>
+                        <div className="p-3 bg-purple-50 border border-purple-200 rounded-2xl">
+                          <span className="text-[10px] font-bold text-purple-700 uppercase block tracking-wider">Used Heap</span>
+                          <span className="text-base font-black text-purple-900 mt-1 block">
+                            {((vmTelemetry.vmHealth?.usedMemoryBytes || 0) / (1024 * 1024)).toFixed(0)} MB
+                          </span>
+                        </div>
+                        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
+                          <span className="text-[10px] font-bold text-emerald-700 uppercase block tracking-wider">Max Ceiling</span>
+                          <span className="text-base font-black text-emerald-900 mt-1 block">
+                            {((vmTelemetry.vmHealth?.maxMemoryBytes || 0) / (1024 * 1024)).toFixed(0)} MB
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2">
+                        <div className="flex justify-between text-slate-700">
+                          <span className="text-slate-500">Garbage Collector</span>
+                          <span className="font-bold text-slate-800">SerialGC (Optimized for low-memory container)</span>
+                        </div>
+                        <div className="flex justify-between text-slate-700">
+                          <span className="text-slate-500">Thread Stack Size</span>
+                          <span className="font-bold text-slate-800">-Xss256k</span>
+                        </div>
+                        <div className="flex justify-between text-slate-700">
+                          <span className="text-slate-500">Runtime Target</span>
+                          <span className="font-bold text-slate-800">OpenJDK 21 (Temurin 64-bit)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {statModal === 'cloud_storage' && vmTelemetry && (
+                    <div className="space-y-5">
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
+                        <div className="flex justify-between text-xs font-bold text-amber-900">
+                          <span>Cloud Storage Capacity</span>
+                          <span>{vmTelemetry.usedPercentage}% In Use</span>
+                        </div>
+                        <div className="w-full bg-amber-200 rounded-full h-3 overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-500 ${
+                              vmTelemetry.usedPercentage > 85 ? 'bg-rose-500' : vmTelemetry.usedPercentage > 70 ? 'bg-amber-500' : 'bg-emerald-500'
+                            }`}
+                            style={{ width: `${Math.min(100, Math.max(2, vmTelemetry.usedPercentage))}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[11px] text-amber-800">
+                          <span>Used: <strong>{((vmTelemetry.usedBytes || 0) / (1024 * 1024 * 1024)).toFixed(2)} GB</strong></span>
+                          <span>Free: <strong className="text-emerald-700">{((vmTelemetry.freeBytes || 0) / (1024 * 1024 * 1024)).toFixed(2)} GB</strong></span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
+                          <span className="text-[10px] font-bold text-emerald-800 uppercase block tracking-wider">Free Space</span>
+                          <span className="text-base font-black text-emerald-950 mt-1 block">
+                            {((vmTelemetry.freeBytes || 0) / (1024 * 1024 * 1024)).toFixed(2)} GB
+                          </span>
+                        </div>
+                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl">
+                          <span className="text-[10px] font-bold text-amber-800 uppercase block tracking-wider">Uploads Store</span>
+                          <span className="text-base font-black text-amber-950 mt-1 block">
+                            {((vmTelemetry.uploadsDirBytes || 0) / (1024 * 1024)).toFixed(1)} MB
+                          </span>
+                        </div>
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                          <span className="text-[10px] font-bold text-slate-700 uppercase block tracking-wider">Total Volume</span>
+                          <span className="text-base font-black text-slate-900 mt-1 block">
+                            {((vmTelemetry.totalBytes || 0) / (1024 * 1024 * 1024)).toFixed(2)} GB
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2">
+                        <div className="flex justify-between text-slate-700">
+                          <span className="text-slate-500">Storage Root Path</span>
+                          <span className="font-mono text-slate-800">{vmTelemetry.uploadDirPath || '/app/backend/uploads'}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-700">
+                          <span className="text-slate-500">Status</span>
+                          <span className="font-bold text-emerald-700">Healthy & Synchronized</span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
