@@ -62,6 +62,15 @@ class AuthController {
 
         jdbc.update("INSERT INTO users (created_at, email, password, username, role, user_type, profession, college_name, university_name) VALUES (NOW(), ?, ?, ?, 'STUDENT', ?, ?, ?, ?)",
                 email, auth.passwordEncoder.encode(password), name, userType, profession, collegeName.isBlank() ? null : collegeName, universityName.isBlank() ? null : universityName);
+        try {
+            jdbc.update(
+                "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'USER_REGISTERED', ?, ?, '127.0.0.1', 'SUCCESS')",
+                email,
+                String.format("New student/reader account created: %s <%s> (User Type: %s, College/University: %s). OTP verified.",
+                    name, email, userType, collegeName.isBlank() ? (universityName.isBlank() ? "N/A" : universityName) : collegeName)
+            );
+        } catch (Exception ignored) {}
         Map<String, Object> user = auth.sanitizeUser(auth.findUserByEmail(email));
         try {
             accountEmailService.sendSignupConfirmationEmail(name, email, "Free / Demo", "No expiry");
@@ -93,6 +102,19 @@ class AuthController {
         }
         Map<String, Object> dbUser = auth.findUserByEmail(email);
         if (dbUser == null) {
+            String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
+            String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
+            try {
+                jdbc.update(
+                    "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                    "VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'LOGIN_FAILED_UNREGISTERED', ?, ?, ?, 'FAILED')",
+                    email,
+                    String.format("Unregistered user attempted login to platform (Role requested: %s). Account does not exist on Zyndex.",
+                        role.isBlank() ? "user" : role),
+                    clientIp
+                );
+            } catch (Exception ignored) {}
+
             String roleSpecificNotFound = "admin".equalsIgnoreCase(role)
                     ? "This email is not registered as an administrator. Please check your credentials or request admin access."
                     : "This email is not registered for user access. Please create an account or verify your email.";
@@ -110,6 +132,17 @@ class AuthController {
         }
 
         if (!auth.passwordEncoder.matches(password, AuthSupport.str(dbUser.get("password")))) {
+            String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
+            String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
+            try {
+                jdbc.update(
+                    "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                    "VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'LOGIN_FAILED_WRONG_PASSWORD', ?, ?, ?, 'FAILED')",
+                    email,
+                    String.format("Failed login attempt for account %s: Incorrect password provided.", email),
+                    clientIp
+                );
+            } catch (Exception ignored) {}
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Entered wrong password. Please try again or reset your password.");
         }
 

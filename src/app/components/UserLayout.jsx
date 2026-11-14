@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router';
-import { BookOpen, User, LogOut, ArrowLeft, Sparkles, CreditCard, Menu } from 'lucide-react';
+import { BookOpen, User, LogOut, ArrowLeft, Sparkles, CreditCard, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';

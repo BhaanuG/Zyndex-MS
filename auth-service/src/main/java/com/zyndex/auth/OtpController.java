@@ -123,6 +123,16 @@ class OtpController {
 
         // If email was dispatched successfully
         if (emailDispatched) {
+            try {
+                auth.jdbc.update(
+                    "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                    "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'OTP_DISPATCHED', ?, ?, '127.0.0.1', 'SUCCESS')",
+                    email,
+                    String.format("4-digit security OTP generated and dispatched to %s via SMTP (Role: %s, Purpose: %s, Validity: 120s)",
+                        email, role, purpose.isBlank() ? "AUTHENTICATION" : purpose)
+                );
+            } catch (Exception ignored) {}
+
             Map<String, Object> resp = new HashMap<>();
             resp.put("message", "OTP sent successfully to " + email);
             resp.put("expiresInSeconds", OTP_TTL_SECONDS);
@@ -137,6 +147,15 @@ class OtpController {
         // Fallback for development mode if email sending failed or email is not configured
         if (properties.exposeOtpInDevelopment()) {
             System.out.println("[OTP LOG] Generated OTP for email=" + email + ", role=" + role + " -> " + otp + " (Email dispatch skipped or failed: " + emailError + ")");
+            try {
+                auth.jdbc.update(
+                    "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                    "VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'OTP_DISPATCHED_DEV', ?, ?, '127.0.0.1', 'SENT_FALLBACK')",
+                    email,
+                    String.format("4-digit OTP generated in dev mode for %s (Role: %s, Purpose: %s)",
+                        email, role, purpose.isBlank() ? "AUTHENTICATION" : purpose)
+                );
+            } catch (Exception ignored) {}
             return Map.of(
                     "message", "OTP generated (Development Mode).",
                     "expiresInSeconds", OTP_TTL_SECONDS,
@@ -165,10 +184,26 @@ class OtpController {
         String recordKey = role.isBlank() ? findKey(email) : key(email, role);
         OtpRecord record = recordKey == null ? null : otps.get(recordKey);
         if (record == null) {
+            try {
+                auth.jdbc.update(
+                    "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                    "VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'OTP_NOT_FOUND', ?, ?, '127.0.0.1', 'FAILED')",
+                    email,
+                    String.format("User %s attempted OTP verification but code was not found or already used. Role: %s.", email, role)
+                );
+            } catch (Exception ignored) {}
             throw new ApiException(HttpStatus.NOT_FOUND, "Verification code not found or already used. Please request a new OTP.");
         }
         if (Instant.now().isAfter(record.expiresAt)) {
             otps.remove(recordKey);
+            try {
+                auth.jdbc.update(
+                    "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                    "VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'OTP_EXPIRED', ?, ?, '127.0.0.1', 'FAILED')",
+                    email,
+                    String.format("User %s entered expired verification OTP. Role: %s.", email, role)
+                );
+            } catch (Exception ignored) {}
             throw new ApiException(HttpStatus.BAD_REQUEST, "Verification code has expired (validity is 120 seconds). Please request a new OTP.");
         }
         if (record.attempts >= 5) {
@@ -178,6 +213,15 @@ class OtpController {
         if (!record.otp.equals(otp)) {
             record.attempts += 1;
             int remainingAttempts = 5 - record.attempts;
+            try {
+                auth.jdbc.update(
+                    "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                    "VALUES (NOW(), 'AUTH-SERVICE', 'WARN', 'OTP_FAILED_INVALID_CODE', ?, ?, '127.0.0.1', 'FAILED')",
+                    email,
+                    String.format("User %s entered wrong OTP (%s). %d attempt%s remaining. Role: %s.",
+                        email, otp, remainingAttempts, remainingAttempts == 1 ? "" : "s", role)
+                );
+            } catch (Exception ignored) {}
             if (record.attempts >= 5) {
                 otps.remove(recordKey);
                 throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many incorrect attempts. For security reasons, this OTP has been invalidated. Please request a new OTP.");
@@ -186,6 +230,14 @@ class OtpController {
         }
         otps.remove(recordKey);
         verifiedOtps.put(recordKey, Instant.now().plusSeconds(OTP_TTL_SECONDS));
+        try {
+            auth.jdbc.update(
+                "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
+                "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'OTP_VERIFIED', ?, ?, '127.0.0.1', 'SUCCESS')",
+                email,
+                String.format("User %s successfully verified 4-digit OTP for role: %s.", email, role)
+            );
+        } catch (Exception ignored) {}
         return Map.of("message", "OTP verified successfully.");
     }
 
