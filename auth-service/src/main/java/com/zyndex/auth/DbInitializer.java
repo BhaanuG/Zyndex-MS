@@ -174,20 +174,17 @@ class DbInitializer implements CommandLineRunner {
     }
 
     private void ensureMainAdmin() {
-        String query = "SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1";
+        String query = "SELECT id, password FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1";
         var rows = jdbc.queryForList(query, properties.mainAdminEmail());
-        Long id = null;
         if (!rows.isEmpty()) {
-            Object val = rows.get(0).values().iterator().next();
-            id = val == null ? null : ((Number) val).longValue();
+            // Main Admin already exists in DB - do NOT overwrite their custom/updated password on restart!
+            // Only ensure role and is_primary_admin flags are maintained.
+            jdbc.update("UPDATE users SET role = 'ADMIN', is_primary_admin = 1 WHERE LOWER(email) = LOWER(?)", properties.mainAdminEmail());
+            return;
         }
 
         String passwordHash = passwordEncoder.encode(properties.mainAdminPassword());
-        if (id != null) {
-            jdbc.update("UPDATE users SET role = 'ADMIN', password = ? WHERE id = ?", passwordHash, id);
-            return;
-        }
-        jdbc.update("INSERT INTO users (created_at, email, password, username, role) VALUES (NOW(), ?, ?, ?, 'ADMIN')",
+        jdbc.update("INSERT INTO users (created_at, email, password, username, role, is_primary_admin) VALUES (NOW(), ?, ?, ?, 'ADMIN', 1)",
                 properties.mainAdminEmail(), passwordHash, properties.mainAdminName());
     }
 }

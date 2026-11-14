@@ -268,6 +268,9 @@ export default function ResourceDetail() {
       cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/cmaps/',
       cMapPacked: true,
       standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/standard_fonts/',
+      rangeChunkSize: 65536,
+      disableAutoFetch: true,
+      disableStream: false,
     });
 
     loadingTask.onProgress = ({ loaded, total }) => {

@@ -95,13 +95,19 @@ export default function SessionTimeoutModal() {
 
   const isMultiDevice = !isInactivityOrWindow && !isMidnightReset && !isRoleChanged && !isMaintenance && !isSessionRevoked && (
     modalData.code === 'SUPERSEDED_BY_NEW_LOGIN' ||
+    modalData.code === 'INVALID_TOKEN' ||
     (modalData.reason && (
       modalData.reason.toLowerCase().includes('another device') || 
       modalData.reason.toLowerCase().includes('in use on another') ||
       modalData.reason.toLowerCase().includes('active and in use') ||
-      modalData.reason.toLowerCase().includes('superseded by another') ||
+      modalData.reason.toLowerCase().includes('superseded') ||
       modalData.reason.toLowerCase().includes('using some where') ||
-      modalData.reason.toLowerCase().includes('session with the email')
+      modalData.reason.toLowerCase().includes('session with the email') ||
+      modalData.reason.toLowerCase().includes('protect your account') ||
+      modalData.reason.toLowerCase().includes('change your password') ||
+      modalData.reason.toLowerCase().includes('unauthorized') ||
+      modalData.reason.toLowerCase().includes('token access') ||
+      modalData.reason.toLowerCase().includes('invalid or expired authorization token')
     ))
   );
 
@@ -179,7 +185,9 @@ export default function SessionTimeoutModal() {
                 <p className="font-bold text-sm text-[#78350f] mb-1">
                   {calloutTitle}
                 </p>
-                <p>{modalData.reason}</p>
+                <p>{isMultiDevice && (modalData.reason?.toLowerCase().includes('unauthorized') || modalData.reason?.toLowerCase().includes('invalid'))
+                  ? 'Your account was accessed from another device. If you wish to continue using this session, please log in again. If this login was not made by you, please change your password immediately to protect your account.'
+                  : modalData.reason}</p>
                 <p className="mt-1 text-slate-500 font-medium">We apologize for the inconvenience.</p>
               </div>
             </div>

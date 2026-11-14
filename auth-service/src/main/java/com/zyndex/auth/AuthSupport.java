@@ -243,11 +243,9 @@ public class AuthSupport {
         }
 
         // Validate session token version against DB version to terminate superseded / force-logged-out sessions
-        // Primary Administrator is exempt from single-session version invalidation to allow multi-tab / multi-device management without abrupt logouts
         String userEmail = str(user.get("email"));
-        boolean isPrimaryAdminUser = userEmail.equalsIgnoreCase(properties.mainAdminEmail());
 
-        if (!isPrimaryAdminUser && tokenClaims != null) {
+        if (tokenClaims != null) {
             Object tokenVer = tokenClaims.get("v");
             if (tokenVer != null) {
                 int claimV = Integer.parseInt(String.valueOf(tokenVer));
@@ -265,7 +263,7 @@ public class AuthSupport {
                     } else if ("USER_REVOKED_OTHER_SESSIONS".equalsIgnoreCase(invalidationReason)) {
                         throw new ApiException(HttpStatus.UNAUTHORIZED, "SESSION_REVOKED", "This session was revoked from your active devices management settings. Please log in again.");
                     } else {
-                        throw new ApiException(HttpStatus.UNAUTHORIZED, "SUPERSEDED_BY_NEW_LOGIN", "The session with the email ID " + userEmail + " is currently active and in use on another device or browser. To maintain account integrity, this session will now be closed.");
+                        throw new ApiException(HttpStatus.UNAUTHORIZED, "SUPERSEDED_BY_NEW_LOGIN", "The session for " + userEmail + " is currently logged in on another device. If you want to continue on this device, please log in again. If this was not done by you, please change your password immediately to protect your account.");
                     }
                 }
             }
