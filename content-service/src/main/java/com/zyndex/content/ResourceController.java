@@ -719,21 +719,22 @@ class ResourceController {
         String name = UUID.randomUUID() + (extension == null ? "" : "." + extension);
         Path targetPath = dir.resolve(name);
 
-        // If it's a PDF, save and apply lossless stream compression & fast linearization preview
+        // Save file immediately so upload responds instantly
+        file.transferTo(targetPath);
+
+        // If it's a PDF, run stream compression asynchronously in the background so HTTP client never times out
         if ("pdf".equalsIgnoreCase(extension)) {
-            Path tempUpload = dir.resolve(name + ".tmp");
-            file.transferTo(tempUpload);
-            try {
-                compressPdf(tempUpload, targetPath);
-                Files.deleteIfExists(tempUpload);
-            } catch (Exception e) {
-                System.err.println("PDF compression fallback to original: " + e.getMessage());
-                if (Files.exists(tempUpload)) {
-                    Files.move(tempUpload, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    Path tempCompressed = dir.resolve(name + ".cmp");
+                    compressPdf(targetPath, tempCompressed);
+                    if (Files.exists(tempCompressed) && Files.size(tempCompressed) > 0) {
+                        Files.move(tempCompressed, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Async PDF compression skipped: " + e.getMessage());
                 }
-            }
-        } else {
-            file.transferTo(targetPath);
+            });
         }
         return "uploads/" + name;
     }
