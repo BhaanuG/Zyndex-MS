@@ -40,6 +40,9 @@ export default function SessionTimeoutModal() {
           clearInterval(timer);
           const isAdmin = modalData.role === 'admin';
           const loginPath = isAdmin ? '/Zyndex/Admin/Log-In' : '/Zyndex/User/Log-In';
+          try {
+            sessionStorage.setItem('zyndex_session_notice', modalData.reason || 'Your session was logged out due to inactivity.');
+          } catch (e) {}
           setModalData(null);
           window.location.href = loginPath;
           return 0;
@@ -57,6 +60,9 @@ export default function SessionTimeoutModal() {
   const loginPath = isAdmin ? '/Zyndex/Admin/Log-In' : '/Zyndex/User/Log-In';
 
   const handleRedirect = () => {
+    try {
+      sessionStorage.setItem('zyndex_session_notice', modalData.reason || 'Your session was logged out due to inactivity.');
+    } catch (e) {}
     setModalData(null);
     window.location.href = loginPath;
   };

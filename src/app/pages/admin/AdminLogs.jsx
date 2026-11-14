@@ -65,6 +65,30 @@ const LEVELS = ['ALL', 'INFO', 'WARN', 'ERROR', 'SUCCESS'];
 // 30 minutes inactivity gap between reading sessions to segment distinct sessions
 const SESSION_GAP_MS = 30 * 60 * 1000;
 
+/**
+ * Format timestamp in 12-hour format with AM/PM in IST (Indian Standard Time)
+ * Example output: "14 Nov 2026, 09:27:05 AM"
+ */
+const formatTimestampIST = (rawDate) => {
+  if (!rawDate) return 'N/A';
+  try {
+    const d = new Date(rawDate);
+    if (isNaN(d.getTime())) return String(rawDate);
+    return d.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return String(rawDate);
+  }
+};
+
 export default function AdminLogs() {
   const { isPrimaryAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('reading'); // 'reading' | 'system' | 'admin'
@@ -973,7 +997,7 @@ export default function AdminLogs() {
                         >
                           <td className="px-6 py-3.5 font-mono text-xs text-gray-400">#{log.id}</td>
                           <td className="px-6 py-3.5 whitespace-nowrap font-mono text-xs text-gray-700 font-semibold">
-                            {log.timestamp}
+                            {formatTimestampIST(log.timestamp)}
                           </td>
                           <td className="px-6 py-3.5 whitespace-nowrap">
                             <span className="font-semibold text-xs text-slate-800">
@@ -1311,9 +1335,7 @@ export default function AdminLogs() {
                             </td>
 
                             <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-gray-500">
-                              {session.endTime ? new Date(session.endTime).toLocaleString('en-IN', {
-                                year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                              }) : 'Just now'}
+                              {session.endTime ? formatTimestampIST(session.endTime) : 'Just now'}
                             </td>
 
                             <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -1503,7 +1525,7 @@ export default function AdminLogs() {
                         >
                           <td className="px-6 py-3.5 font-mono text-xs text-gray-400">#{log.id}</td>
                           <td className="px-6 py-3.5 whitespace-nowrap font-mono text-xs text-gray-500">
-                            {new Date(log.timestamp).toLocaleString()}
+                            {formatTimestampIST(log.timestamp)}
                           </td>
                           <td className="px-6 py-3.5 whitespace-nowrap">
                             <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
@@ -1645,9 +1667,7 @@ export default function AdminLogs() {
                     <div className="flex items-center justify-between py-1.5 border-b border-slate-200/60">
                       <span className="font-bold text-slate-500 uppercase tracking-wider">Exact Recorded Timestamp:</span>
                       <span className="font-mono text-slate-800 text-xs">
-                        {selectedSession.endTime ? new Date(selectedSession.endTime).toLocaleString('en-IN', {
-                          year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-                        }) : 'Just now'}
+                        {selectedSession.endTime ? formatTimestampIST(selectedSession.endTime) : 'Just now'}
                       </span>
                     </div>
 
@@ -2201,7 +2221,7 @@ export default function AdminLogs() {
                             Service: <span className="font-bold text-slate-800">{selectedLog.service}</span>
                           </div>
                           <div className="text-[11px] text-slate-500 font-mono">
-                            Time: <span className="font-bold text-slate-800">{selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString('en-IN') : 'N/A'}</span>
+                            Time: <span className="font-bold text-slate-800">{selectedLog.timestamp ? formatTimestampIST(selectedLog.timestamp) : 'N/A'}</span>
                           </div>
                         </div>
                       </div>
@@ -2236,7 +2256,7 @@ export default function AdminLogs() {
 
                   <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                     <span className="text-[11px] text-slate-500 font-mono">
-                      Logged at: {selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString('en-IN') : 'Just now'}
+                      Logged at: {selectedLog.timestamp ? formatTimestampIST(selectedLog.timestamp) : 'Just now'}
                     </span>
                     <button
                       onClick={() => setSelectedLog(null)}

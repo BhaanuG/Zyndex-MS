@@ -46,6 +46,16 @@ export default function Login() {
   const [terminatedMessage, setTerminatedMessage] = useState('');
   const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(true);
+  const [sessionExpiredNotice, setSessionExpiredNotice] = useState(() => {
+    try {
+      const notice = sessionStorage.getItem('zyndex_session_notice');
+      if (notice) {
+        sessionStorage.removeItem('zyndex_session_notice');
+        return notice;
+      }
+    } catch (e) {}
+    return '';
+  });
 
   useEffect(() => {
     // Check maintenance status
@@ -526,6 +536,26 @@ export default function Login() {
                   {isSignUpMode ? 'Create your Zyndex user account with your name, email, and password.' : 'Sign in with your Zyndex account.'}
                 </p>
               </div>
+
+              {/* Session Inactivity Logout Pop-up Notification */}
+              {sessionExpiredNotice && (
+                <div className="mb-6 p-4 bg-amber-50 border border-amber-300 rounded-2xl shadow-sm text-amber-900 text-xs sm:text-sm flex items-start gap-3 relative animate-fadeIn">
+                  <div className="p-2 bg-amber-100 rounded-xl text-amber-700 shrink-0">
+                    <Clock className="size-5" />
+                  </div>
+                  <div className="flex-1 pr-6">
+                    <p className="font-bold text-amber-950 mb-0.5">Session Terminated</p>
+                    <p className="text-amber-800 leading-relaxed font-medium">{sessionExpiredNotice}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSessionExpiredNotice('')}
+                    className="absolute top-3 right-3 text-amber-500 hover:text-amber-800 p-1 rounded-lg transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              )}
 
               <div className="relative mb-8 p-1 bg-slate-100 rounded-2xl">
                 <motion.div className={`absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-xl shadow-md ${activeTab === 'user' ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gradient-to-br from-blue-600 to-indigo-600'}`} animate={{ x: activeTab === 'user' ? '0.25rem' : 'calc(100% + 0.25rem)' }} transition={{ type: 'spring', stiffness: 400, damping: 35 }} />
