@@ -41,6 +41,7 @@ export default function ResourceDetail() {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
   const [resource, setResource] = useState(null);
+  const [loadingResource, setLoadingResource] = useState(true);
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [feedback, setFeedback] = useState('');
@@ -80,26 +81,30 @@ export default function ResourceDetail() {
   }, []);
 
   useEffect(() => {
+    let isCancelled = false;
     async function loadResource() {
+      setLoadingResource(true);
       try {
-        const response = await resourceService.getResourceById(id);
-        setResource(response);
-
-        const [favoriteResult, tokenResult] = await Promise.allSettled([
+        const [resResponse, favResult, tokResult] = await Promise.allSettled([
+          resourceService.getResourceById(id),
           userService.getFavorites({ size: 100 }),
           resourceService.getPreviewToken(id),
         ]);
 
-        if (favoriteResult.status === 'fulfilled') {
-          setIsFavorite((favoriteResult.value.resources || []).some((item) => item.id === Number(id)));
+        if (isCancelled) return;
+
+        if (resResponse.status === 'fulfilled' && resResponse.value) {
+          setResource(resResponse.value);
         } else {
-          console.error('Failed to load favourites:', favoriteResult.reason);
+          setResource(null);
         }
 
-        if (tokenResult.status === 'fulfilled') {
-          setPreviewToken(tokenResult.value.token || '');
-        } else {
-          console.error('Failed to load preview token:', tokenResult.reason);
+        if (favResult.status === 'fulfilled') {
+          setIsFavorite((favResult.value.resources || []).some((item) => item.id === Number(id)));
+        }
+
+        if (tokResult.status === 'fulfilled') {
+          setPreviewToken(tokResult.value.token || '');
         }
 
         // Track resource view only once per resource visit
@@ -111,11 +116,16 @@ export default function ResourceDetail() {
         }
       } catch (error) {
         console.error('Failed to load resource:', error);
-        setResource(null);
+        if (!isCancelled) setResource(null);
+      } finally {
+        if (!isCancelled) setLoadingResource(false);
       }
     }
 
     loadResource();
+    return () => {
+      isCancelled = true;
+    };
   }, [id]);
 
   useEffect(() => {
@@ -323,7 +333,22 @@ export default function ResourceDetail() {
     <UserLayout>
       <div className="py-4 sm:py-8 px-3 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          {!resource ? (
+          {loadingResource ? (
+            <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 sm:p-12 animate-pulse space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <div className="h-8 bg-slate-200 rounded-xl w-3/4 mb-4"></div>
+              <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+              </div>
+              <div className="h-24 bg-slate-100 rounded-xl w-full"></div>
+              <div className="h-48 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center">
+                <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
+                  <div className="size-5 rounded-full border-2 border-orange-500 border-t-transparent animate-spin"></div>
+                  <span>Loading resource preview & details...</span>
+                </div>
+              </div>
+            </motion.div>
+          ) : !resource ? (
             <motion.div className="bg-white rounded-xl shadow-md p-10 sm:p-16 text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <FileText className="size-16 mx-auto mb-4 text-gray-300" />
               <p className="text-lg font-medium mb-2">Resource not found</p>

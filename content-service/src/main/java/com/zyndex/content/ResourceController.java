@@ -305,9 +305,19 @@ class ResourceController {
             throw new ApiException(HttpStatus.NOT_FOUND, "Resource file is missing from the server.");
         }
 
-        // If there's a page limit restriction, slice the PDF
+        // If there's a page limit restriction, slice the PDF (with disk cache for instant streaming)
         if (accessDetails != null && accessDetails.containsKey("pageLimit") && file.getFileName().toString().toLowerCase().endsWith(".pdf")) {
             int pageLimit = Integer.parseInt(String.valueOf(accessDetails.get("pageLimit")));
+            String originalName = file.getFileName().toString();
+            Path cachedSlice = file.resolveSibling(originalName.replace(".pdf", "_preview_" + pageLimit + ".pdf"));
+
+            if (Files.exists(cachedSlice)) {
+                return ResponseEntity.ok()
+                        .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cachedSlice.getFileName() + "\"")
+                        .body(new FileSystemResource(cachedSlice));
+            }
+
             try (org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.Loader.loadPDF(file.toFile())) {
                 int pageCount = document.getNumberOfPages();
                 if (pageCount > pageLimit) {
@@ -315,11 +325,11 @@ class ResourceController {
                         for (int i = 0; i < pageLimit; i++) {
                             sliced.addPage(document.getPage(i));
                         }
-                        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-                        sliced.save(out);
+                        sliced.save(cachedSlice.toFile());
                         return ResponseEntity.ok()
                                 .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
-                                .body(out.toByteArray());
+                                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cachedSlice.getFileName() + "\"")
+                                .body(new FileSystemResource(cachedSlice));
                     }
                 }
             } catch (Exception e) {
