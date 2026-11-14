@@ -12,13 +12,28 @@ import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedCl
 const OTP_EXPIRY_SECONDS = 120;
 const OTP_REQUEST_SESSION_KEY = 'mail_otp_request_state';
 
-// 6 Distinct geometric shapes for verification formation:
-const BASE_SHAPES = ['circle', 'triangle', 'square', 'rectangle', 'diamond', 'hexagon'];
+// 10 Distinct geometric shapes for verification formation:
+const BASE_SHAPES = [
+  'circle',
+  'triangle',
+  'square',
+  'rectangle',
+  'diamond',
+  'hexagon',
+  'cross',
+  'hourglass',
+  'oval',
+  'trapezoid'
+];
 
 function generateJumbledSequence() {
-  const shuffled = [...BASE_SHAPES].sort(() => Math.random() - 0.5);
-  // Guarantee at least 3 distinct shapes in jumbled order
-  return shuffled.slice(0, 3);
+  // Fisher-Yates shuffle to guarantee completely different order every time
+  const array = [...BASE_SHAPES];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 export default function MailOtpVerification() {
@@ -50,7 +65,7 @@ export default function MailOtpVerification() {
   const filledCount = digits.filter((d) => d !== '').length;
   const isAllFilled = filledCount === 4;
 
-  // Step through shapes: fast move to shape, hold for 1.5s (1500ms), then move to next shape
+  // Step through shapes continuously while verifying or navigating
   useEffect(() => {
     if (!isAnimatingShapes) {
       setCurrentShapeIndex(0);
@@ -59,7 +74,7 @@ export default function MailOtpVerification() {
 
     const interval = setInterval(() => {
       setCurrentShapeIndex((prev) => (prev + 1) % shapeSequence.length);
-    }, 1500);
+    }, 700);
 
     return () => clearInterval(interval);
   }, [isAnimatingShapes, shapeSequence.length]);
@@ -327,8 +342,8 @@ export default function MailOtpVerification() {
     setVerifyState(null);
 
     const startTime = Date.now();
-    // Guarantee that at least 3 distinct shape formations finish displaying with 1.5s per shape (~4500ms)
-    const MINIMUM_SHAPE_CYCLES_MS = 4600;
+    // Guarantee at least 3 distinct shape transitions (3 * 700ms = 2100ms)
+    const MINIMUM_SHAPE_CYCLES_MS = 2100;
 
     try {
       const pendingAuth = JSON.parse(sessionStorage.getItem('pending_auth') || 'null');
@@ -345,12 +360,13 @@ export default function MailOtpVerification() {
       // Await network verification while the shapes continue morphing
       await verifyPromise;
 
-      // Ensure minimum 3 full shape transformations occur before transitioning (1.5s hold per shape)
+      // Ensure minimum 3 full shape transformations occur before turning green
       const elapsed = Date.now() - startTime;
       if (elapsed < MINIMUM_SHAPE_CYCLES_MS) {
         await new Promise((resolve) => setTimeout(resolve, MINIMUM_SHAPE_CYCLES_MS - elapsed));
       }
 
+      // Turn numbers green upon success; DO NOT stop isAnimatingShapes - let it keep morphing until redirect
       setVerifyState('success');
 
       if (pendingAuth.isSignUp) {
@@ -459,11 +475,11 @@ export default function MailOtpVerification() {
       setTimeout(() => {
         const targetDestination = resolveAuthRedirectPath(userData);
         navigate(targetDestination, { replace: true });
-      }, 900);
+      }, 1000);
     } catch (submitError) {
       const elapsed = Date.now() - startTime;
-      if (elapsed < 1200) {
-        await new Promise((resolve) => setTimeout(resolve, 1200 - elapsed));
+      if (elapsed < 1000) {
+        await new Promise((resolve) => setTimeout(resolve, 1000 - elapsed));
       }
       setVerifyState('error');
       setIsAnimatingShapes(false);
@@ -516,6 +532,30 @@ export default function MailOtpVerification() {
         if (index === 1) return { x: 44, y: -26 };
         if (index === 2) return { x: 44, y: 26 };
         return { x: -44, y: 26 };
+
+      case 'cross':
+        if (index === 0) return { x: 0, y: -50 };
+        if (index === 1) return { x: 50, y: 0 };
+        if (index === 2) return { x: 0, y: 50 };
+        return { x: -50, y: 0 };
+
+      case 'hourglass':
+        if (index === 0) return { x: -42, y: -42 };
+        if (index === 1) return { x: 42, y: -42 };
+        if (index === 2) return { x: -42, y: 42 };
+        return { x: 42, y: 42 };
+
+      case 'oval':
+        if (index === 0) return { x: -56, y: 0 };
+        if (index === 1) return { x: -18, y: -36 };
+        if (index === 2) return { x: 18, y: 36 };
+        return { x: 56, y: 0 };
+
+      case 'trapezoid':
+        if (index === 0) return { x: -26, y: -38 };
+        if (index === 1) return { x: 26, y: -38 };
+        if (index === 2) return { x: 50, y: 38 };
+        return { x: -50, y: 38 };
 
       default:
         return { x: (index - 1.5) * 54, y: 0 };
