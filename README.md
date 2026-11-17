@@ -2052,13 +2052,13 @@ Statistics were calculated using a native filesystem audit executed across all s
 | :--- | :--- | :--- |
 | **Total Source Files** | **215 Files** | Application-owned source, configuration, template, and schema manifests |
 | **Total Folders / Directories** | **42 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **57,601 Lines** | Formatted newline-delimited source code lines |
+| **Total Lines of Code (LOC)** | **57,689 Lines** | Formatted newline-delimited source code lines |
 | **Total Word Count** | **215,965 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,665,323 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,431,735 Characters** | 53.72% of total character stream |
+| **Overall Character Count** | **2,663,017 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,431,735 Characters** | 53.76% of total character stream |
 | **Digits & Numbers (`0-9`)** | **64,378 Characters** | 2.42% of total character stream |
-| **Symbols, Operators & Punctuation** | **355,329 Characters** | 13.33% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **813,881 Characters** | 30.54% of total character stream (indentation, newlines) |
+| **Symbols, Operators & Punctuation** | **355,329 Characters** | 13.34% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **811,575 Characters** | 30.48% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
@@ -2068,12 +2068,12 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,765 Lines** | **44,138 Words** | **555,762 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,019 Lines** | **16,413 Words** | **178,732 Chars** |
 | **`.json`** | Package & Dependency Manifests | **2 Files** | **6,156 Lines** | **11,741 Words** | **189,488 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,935 Lines** | **30,208 Words** | **253,150 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **3,023 Lines** | **30,208 Words** | **250,844 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **909 Lines** | **2,039 Words** | **21,091 Chars** |
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **713 Lines** | **1,387 Words** | **22,294 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
-| **Overall Total** | **Full Stack Application** | **215 Files** | **57,601 Lines** | **215,965 Words** | **2,665,323 Chars** |
+| **Overall Total** | **Full Stack Application** | **215 Files** | **57,689 Lines** | **215,965 Words** | **2,663,017 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
@@ -2096,35 +2096,59 @@ To assist open-source contributors, university faculty, scholars, and technical 
 
 ### 18.1 Frontend & Application Layer Acronyms
 - **SPA (Single-Page Application)**: An application rendering paradigm where the master HTML shell (`index.html`) is delivered once. As scholars navigate between distinct views (such as the 10-category catalog, dynamic PDF reader, or administrative analytics consoles), client-side routing dynamically renders components in **0 milliseconds** without triggering full browser reloads or blank white screens.
+
 - **UI (User Interface)**: The visual, interactive presentation layer (buttons, menus, cards, forms, color palettes, and typography) that scholars and administrators see and interact with on screen.
+
 - **UX (User Experience)**: The overarching holistic feel, ergonomics, efficiency, and cognitive ease of navigating through the platform, ensuring low friction and zero distraction during academic research.
+
 - **JSX (JavaScript XML)**: A syntax extension for JavaScript that allows developers to write HTML-like markup directly within React component code, combined with dynamic logic.
+
 - **DOM (Document Object Model)**: The tree-structured in-memory representation of a webpage constructed by the browser, manipulated dynamically by React's Virtual DOM reconciliation engine.
+
 - **ARIA (Accessible Rich Internet Applications)**: A set of accessibility attributes and roles defined by the W3C that supplement HTML to ensure screen readers (such as NVDA, JAWS, and VoiceOver) accurately interpret custom UI components.
+
 - **WCAG (Web Content Accessibility Guidelines)**: Global accessibility benchmarks published by the W3C. Zyndex conforms to **WCAG 2.1 Level AA**, maintaining a minimum 4.5:1 text-to-background contrast ratio and comprehensive keyboard navigability.
+
 - **CSS (Cascading Style Sheets)**: The stylesheet language used to format visual presentations. Zyndex utilizes **Tailwind CSS**, a utility-first styling engine with customized tokenized design palettes.
 
 ### 18.2 Backend & Distributed Architecture Acronyms
 - **API (Application Programming Interface)**: A formal set of HTTP REST endpoints, data protocols, and JSON schemas through which the frontend web client communicates with backend microservices.
+
 - **REST (Representational State Transfer)**: A stateless, resource-oriented architectural style for distributed web services utilizing standard HTTP verbs (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`).
+
 - **JWT (JSON Web Token)**: An open standard (RFC 7519) compact, URL-safe security token. Signed with HMAC-SHA256, it encapsulates user identity, email, and role claims statelessly without requiring server-side session memory.
+
 - **HMAC (Hash-based Message Authentication Code)**: A cryptographic authentication mechanism combining a cryptographic hash function (SHA-256) with a secret signing key to ensure data integrity and authenticity.
+
 - **RBAC (Role-Based Access Control)**: An enterprise security approach that restricts endpoint access based on assigned user privileges (`STUDENT` vs `REGULAR_ADMIN` vs `MAIN_ADMIN`).
+
 - **OTP (One-Time Password)**: A 4-digit temporary cryptographic verification code generated via `java.security.SecureRandom` and dispatched through TLS-encrypted email relays with a strict 120-second validity window.
+
 - **TTL (Time-To-Live)**: The exact lifespan or expiration window assigned to temporary data payloads, such as the 120-second expiration on email verification OTPs and 2-minute UPI payment hold windows.
+
 - **CORS (Cross-Origin Resource Sharing)**: A browser security mechanism controlled via HTTP headers that dictates whether client scripts hosted on one origin (`https://zyndex.netlify.app`) can access resources on a separate backend origin (`http://92.5.166.34:8080`).
+
 - **LOC (Lines of Code)**: The quantitative count of newline-delimited source code lines across all application-owned files, used for codebase benchmarking and complexity analysis.
 
 ### 18.3 Networking, Database & Protocol Acronyms
 - **HTTP / HTTPS (Hypertext Transfer Protocol / Secure)**: The foundational application-level communication protocols used for transmitting distributed hypermedia over the web, secured via TLS encryption.
+
 - **TLS / SSL (Transport Layer Security / Secure Sockets Layer)**: Cryptographic network protocols designed to provide end-to-end communication security and confidentiality over the internet.
+
 - **SMTP (Simple Mail Transfer Protocol)**: The standard push protocol used for transmitting outgoing email messages from the backend authentication service to the recipient's mail provider.
+
 - **JDBC (Java Database Connectivity)**: An industry-standard Java API that enables microservices to execute SQL queries, manage database transactions, and map result sets from relational database engines (MySQL).
+
 - **SQL (Structured Query Language)**: The standardized domain-specific language used for querying, managing, and manipulating structured relational data within MySQL.
+
 - **DDL (Data Definition Language)**: A subset of SQL statements (`CREATE TABLE`, `ALTER TABLE`, `DROP TABLE`) used to define and modify database structures and table schemas.
+
 - **ACID (Atomicity, Consistency, Isolation, Durability)**: A suite of standard database properties that guarantee reliable processing of financial and administrative transactions within MySQL.
+
 - **UTR (Unique Transaction Reference)**: A 12-digit numeric reference code issued by Indian commercial banks upon completing a UPI transaction, used by Zyndex for manual and automated payment reconciliation.
+
 - **UPI (Unified Payments Interface)**: An instant, real-time payment system developed by the National Payments Corporation of India (NPCI) enabling peer-to-peer and merchant mobile checkout.
+
 - **QR Code (Quick Response Code)**: A two-dimensional matrix barcode containing encoded payment metadata (`upi://pay?pa=...`), scanned by mobile camera applications for instantaneous checkout settlement.
 
 ---
@@ -2158,21 +2182,27 @@ To make Zyndex easily understandable for students, educators, developers, resear
 
 ### 20.1 Single-Page Application (SPA) vs. Multi-Page Experience
 - **Real-World Analogy**: Think of a traditional multi-page website like ordering a brand new physical book every single time you want to read the next chapter—the postal service has to deliver a whole new cover, spine, and packaging each time (a full screen flash and page reload). An SPA is like having a digital e-reader tablet already sitting in your hands: the physical device and glass screen stay right where they are, and turning the page simply repaints the text in a fraction of a second.
+
 - **How It Works in Plain English**: A Single-Page Application does **not** mean that Zyndex is a website with only one page. Zyndex is a massive, multi-page academic library platform featuring more than 20 distinct screens (User Home, Academic Catalog, PDF Document Reader, Pricing Plans, Payment Checkout, Administrative Telemetry Hubs, and User Management). 
+
 - **Application in Zyndex**: When a user first opens `https://zyndex.netlify.app`, their web browser downloads the core application frame (`index.html`), stylesheet themes, and the React script bundle once. From that moment onward, when a student clicks from their Home screen to view an Artificial Intelligence textbook or an administrator navigates to the live payment approval console, the client-side router (`react-router-dom`) swaps the content on screen **instantaneously (0 milliseconds)**. No full page reloads occur, no white screens flash, and the user enjoys a smooth, desktop-like app experience while the browser URL bar updates naturally and allows direct bookmarking and link sharing.
 
 ---
 
 ### 20.2 Cloud Virtual Machine (Cloud VM) & Virtualized Compute
 - **Real-World Analogy**: Imagine a massive high-rise apartment building. Instead of every tenant having to construct their own physical foundation, roof, and brick walls on a separate plot of land, the building is carved up into independent, secure apartments. Each apartment has its own locked front door, dedicated rooms, electricity meters, and plumbing, completely isolated from its neighbors.
+
 - **How It Works in Plain English**: A Cloud Virtual Machine (Cloud VM) is a software-defined computer that runs inside a large physical data center server owned by cloud infrastructure providers. It behaves exactly like a standalone physical desktop or server running Linux (Ubuntu), with its own dedicated virtual processor cores (vCPUs), system RAM, virtual hard drives (NVMe/SSD storage), and public IP address.
+
 - **Application in Zyndex**: Zyndex’s backend microservices and databases run on a dedicated Linux Cloud Virtual Machine instance (accessible at `92.5.166.34`). The VM provides an isolated, reliable environment where all 7 Spring Boot microservices, the Eureka discovery service, and MySQL database engines run continuously 24 hours a day, 7 days a week, processing student reading requests, executing security checks, and tracking telemetry without requiring local developer hardware to be kept powered on.
 
 ---
 
 ### 20.3 Microservices Architecture: Decentralized Modular Services
 - **Real-World Analogy**: In a small bakery run by one person (a "monolith"), that single baker must take customer orders, bake breads, frost cakes, ring up cash registers, wash dishes, and sweep floors. If the baker gets sick or overwhelmed at the cash register, the entire bakery shuts down. In a modern corporate hospital (a "microservices" system), specialized departments operate independently: radiology handles scans, the pharmacy dispenses medicine, billing prints invoices, and surgery performs operations. If billing experiences a printer jam, surgeons can still save lives uninterrupted.
+
 - **How It Works in Plain English**: Instead of building one enormous, tangled computer program where a single coding mistake could crash the entire application, microservices divide the software into separate, self-contained mini-applications. Each service owns its own specific business responsibility and communicates with other services over standardized web calls (HTTP REST).
+
 - **Application in Zyndex**: Zyndex is split across 7 specialized microservices:
   1. **`auth-service` (Port 8081)**: Manages student and faculty identities, registration, password cryptography, and OTP email dispatch.
   2. **`content-service` (Port 8082)**: Manages academic textbooks, research papers, category directories, metadata, and PDF storage.
@@ -2186,207 +2216,265 @@ To make Zyndex easily understandable for students, educators, developers, resear
 
 ### 20.4 API Gateway: The Security Perimeter & Reverse Proxy
 - **Real-World Analogy**: Think of an international airport security checkpoint. Passengers are not allowed to wander freely onto the tarmac or knock directly on the cockpit doors of parked airplanes. Everyone must enter through the main terminal lobby, pass through security scanning gates, verify their boarding passes and passports, and then be directed to their specific boarding gate.
+
 - **How It Works in Plain English**: An API Gateway is a specialized reverse proxy server that sits between the outside internet (users' phones and laptops) and the internal backend services. It acts as the single public entry point (`http://92.5.166.34:8080`). All requests pass through it first, allowing the gateway to verify authentication, block unauthorized intruders, enforce rate limits, and securely route requests to the correct internal microservice.
+
 - **Application in Zyndex**: Zyndex uses **Spring Cloud Gateway**. When a scholar requests a textbook, their browser sends a request to the Gateway on Port 8080. The gateway's `JwtValidationFilter` inspects the user's digital security token, extracts their user identity and role (`STUDENT` vs `ADMIN`), stamps an internal cryptographic secret (`X-Gateway-Secret`), and forwards the clean request to `content-service` on Port 8082. Downstream microservices reject any traffic that attempts to bypass the gateway.
 
 ---
 
 ### 20.5 Non-Blocking Reactive Event Loops (Project Reactor & Netty)
 - **Real-World Analogy**: Imagine a traditional restaurant where each waiter is assigned to one customer. The waiter takes the order, walks to the kitchen, and stands completely motionless waiting 20 minutes for the chef to cook before carrying the plate to the table. That restaurant needs 100 waiters for 100 customers! A reactive restaurant works like a busy coffee shop with a single barista: the barista takes your order, gives you a numbered receipt, immediately takes the next person's order, and calls out order numbers as coffees finish brewing.
+
 - **How It Works in Plain English**: Traditional web servers use a "thread-per-request" model where a thread sits idle and frozen while waiting for a database query or network response to complete. Reactive programming uses a non-blocking event-driven loop. A small handful of worker threads manage thousands of active network connections simultaneously, switching tasks whenever data is waiting to be processed.
+
 - **Application in Zyndex**: Zyndex’s API Gateway is powered by **Netty** and **Spring WebFlux / Project Reactor**. Because it does not block threads during network I/O, the gateway can handle thousands of concurrent student requests, continuous telemetry updates, and payment polls with minimal CPU and memory consumption.
 
 ---
 
 ### 20.6 Dynamic Service Discovery: Netflix Eureka
 - **Real-World Analogy**: Imagine an emergency dispatch center. When police cars, ambulances, and fire trucks start their shifts, they don't have hardcoded street corners assigned forever; they radio in to the central dispatcher: *"Ambulance 4 is online at Sector 9."* When a 911 call comes in, the dispatcher consults the live board and routes the call to the nearest available unit.
+
 - **How It Works in Plain English**: In distributed cloud systems, services are frequently restarted, updated, or moved to different network ports. Hardcoding IP addresses and port numbers into application code causes systems to break whenever an address changes. A Service Registry is a live directory where services register themselves automatically when they start up.
+
 - **Application in Zyndex**: Zyndex uses **Netflix Eureka (Port 8761)**. When `auth-service` boots up, it broadcasts a registration signal to Eureka. When the API Gateway needs to send a login request to `auth-service`, it asks Eureka for the live address. Microservices send heartbeat signals every 30 seconds to confirm they are healthy; if a service stops responding, Eureka automatically removes it from the directory so traffic is not routed to a dead node.
 
 ---
 
 ### 20.7 In-Memory PDF Slicing & Digital Rights Management (Apache PDFBox)
 - **Real-World Analogy**: Imagine visiting a museum archive that holds rare, multi-million-dollar historical manuscripts. The archivists do not hand you the complete original 800-page book to take home. Instead, they produce a high-resolution photocopy of just the first 10 preview pages, bind them in a temporary booklet, and let you inspect them in the viewing gallery. The remaining 790 pages never leave the vault.
+
 - **How It Works in Plain English**: Digital Rights Management (DRM) protects academic authors and publishers from unauthorized book piracy and redistribution. Traditional websites often hide pages using frontend CSS tricks (like blurring pages or hiding them with Javascript), but tech-savvy users can easily open the browser developer tools and download the full PDF. True security requires server-side slicing.
+
 - **Application in Zyndex**: Zyndex integrates **Apache PDFBox 3.0** inside `content-service`. When a free-tier student opens an academic textbook that requires a paid subscription, the server reads the source document, creates an in-memory document clone in Java heap RAM, extracts strictly the first 10 pages, and streams only those 10 pages over HTTP. The remaining pages are never transmitted across the network, making it physically impossible for unauthorized users to rip full textbooks from browser network logs.
 
 ---
 
 ### 20.8 Stateless Authentication: JSON Web Tokens (JWT) & JJWT
 - **Real-World Analogy**: Think of a wristband issued at an international music festival. Once the box office verifies your ID and ticket, they fasten a tamper-proof wristband with a holographic seal around your wrist. From that moment on, security guards at all 10 concert stages simply look at your wristband and holographic seal to let you through. They don't have to call the main ticket booth or search through a central filing cabinet of 50,000 attendee records every single time you enter a tent.
+
 - **How It Works in Plain English**: In traditional web systems, the server saves every logged-in user in its own memory or database (a "session"). As user volume scales into tens of thousands, server memory fills up. Stateless authentication replaces server-stored sessions with a digitally signed cryptographic token (a JSON Web Token). The token contains the user's ID, role, and expiration timestamp. Because it is signed with a secret key known only to the backend, the server can instantly verify that the token is authentic without checking a database.
+
 - **Application in Zyndex**: Zyndex uses **JJWT (Java JWT)** with the **HMAC-SHA256** cryptographic algorithm. Upon successful login, `auth-service` generates a signed token and delivers it to the browser. Every subsequent request includes this token in the `Authorization: Bearer <token>` header. The API Gateway validates the token signature in sub-millisecond time and permits authorized requests to pass through.
 
 ---
 
 ### 20.9 Multi-Device Session Invalidation & Token Versioning
 - **Real-World Analogy**: Imagine checking into a luxury hotel and receiving a plastic keycard for Room 402. If you lose your card or believe someone made a copy, you visit the front desk. The clerk issues you a new card programmed with "Key Version 2". The door lock on Room 402 now recognizes Version 2, and the old Version 1 card immediately stops working anywhere in the hotel.
+
 - **How It Works in Plain English**: Because JWT tokens are stateless, revoking access before a token naturally expires is a classic computer science challenge. Token versioning solves this by attaching an integer version counter (`session_token_version`) to the user's database profile and embedding that same version number inside each newly issued JWT.
+
 - **Application in Zyndex**: In Zyndex’s security and active devices management console (`/Zyndex/User/.../Profile`), a student can review all active devices currently logged into their account. If they click **"Log Out Other Devices"**, `auth-service` increments the database counter (`session_token_version = session_token_version + 1`) and issues a new token to the current browser. When the other phone or laptop attempts its next action, the gateway checks its token version, detects that it is outdated, returns an HTTP 401 Unauthorized status, and displays a session termination modal that automatically logs the unauthorized device out.
 
 ---
 
 ### 20.10 Password Security: Cryptographic BCrypt Hashing with Adaptive Salt
 - **Real-World Analogy**: Imagine putting an important document into an industrial blender. You can easily blend an apple and strawberry into a smoothie in 5 seconds, but no human on earth can un-blend the smoothie and reconstruct the original fresh fruit piece by piece. Furthermore, adding a unique pinch of salt to every smoothie guarantees that even two smoothies made from the same fruit taste distinctly different.
+
 - **How It Works in Plain English**: Plaintext passwords must never be stored in a database. Hashing is a one-way mathematical function that converts any password into a fixed-length scramble of letters and numbers. A "salt" is a randomly generated secret string added to the password before hashing, which prevents attackers from using precomputed lookup tables (Rainbow Tables) to reverse-engineer common passwords.
+
 - **Application in Zyndex**: Zyndex uses **Spring Security’s BCryptPasswordEncoder** with an adaptive work factor of 10 rounds (`2^10 = 1024` key expansion iterations). When a student creates an account with password `Password123!`, Zyndex converts it into a 60-character cryptographic hash like `$2a$10$wT7R...`. Even if an unauthorized party were to gain raw access to the database, they could never read or decode the original passwords.
 
 ---
 
 ### 20.11 Email Verification & Cryptographic OTPs via SMTP Relays
 - **Real-World Analogy**: When setting up a secure bank locker, the bank manager sends an SMS or email with a 4-digit code that is valid for only 2 minutes. If you enter the code immediately, the locker unlocks. If you wait 2 minutes and 1 second, the code disintegrates and becomes useless paper.
+
 - **How It Works in Plain English**: One-Time Passwords (OTPs) provide out-of-band verification to guarantee that a user genuinely owns the email address they registered with. The code is generated using cryptographically secure random number generators and stored temporarily with a strict Time-To-Live (TTL) expiration window.
+
 - **Application in Zyndex**: Zyndex’s `auth-service` utilizes Java’s `java.security.SecureRandom` to generate a 4-digit numeric verification OTP. The code is stored in an in-memory concurrent map with a strict 120-second countdown timer. Simultaneously, the server dispatches a formatted HTML verification email to the user's inbox through an SMTP mail relay. If the scholar inputs the matching 4 digits within 120 seconds, their account is verified; if the timer expires or if 5 incorrect guesses are made, the code is purged instantly to prevent brute-force attacks.
 
 ---
 
 ### 20.12 Unified Payments Interface (UPI) QR Intent & Manual Bank UTR Reconciliation
 - **Real-World Analogy**: When buying coffee at a local market in India, you scan the merchant's QR code with your mobile banking app (Google Pay, PhonePe, or Paytm) and confirm payment. The bank sends you a confirmation receipt containing a 12-digit reference number. You show that 12-digit number to the cashier, who verifies the settlement against their register and hands you your order.
+
 - **How It Works in Plain English**: The Unified Payments Interface (UPI) is a real-time instant payment protocol developed by the National Payments Corporation of India (NPCI). Instead of requiring users to enter sensitive 16-digit credit card numbers, CVVs, and expiry dates, UPI encodes transaction details into a standardized URI (`upi://pay?pa=...&am=199&cu=INR`). The customer’s bank issues a unique 12-digit numeric audit code called a Unique Transaction Reference (UTR) for every completed transfer.
+
 - **Application in Zyndex**: When a scholar upgrades to **Student Plus** or **PhD Researcher**, Zyndex generates a dynamic checkout session with an authentic UPI QR code, displayed alongside an analog clock with moving hour/minute/second hands and a digital countdown timer (5 minutes for QR scanning, 10 minutes for UTR entry). The student completes payment in their mobile banking app, enters the 12-digit bank UTR reference into Zyndex, and clicks **"Verify Payment"**. The transaction enters a `REVIEW_REQUIRED` state and appears on the administrator's live payment ledger (`/Zyndex/Admin/.../Payments`). The admin verifies the settlement in their commercial banking portal and clicks **"Confirm & Verify"**, instantly upgrading the student's access tier, provisioning their subscription in `access-service`, dispatching an upgrade confirmation email, and generating a printable GST Tax Invoice.
 
 ---
 
 ### 20.13 High-Frequency Client Telemetry & Analytics Heartbeats
 - **Real-World Analogy**: Think of a modern fitness smartwatch. It doesn't only record that you started running at 8:00 AM and finished at 9:00 AM; every few seconds, it pulses an optical sensor to measure your heart rate, pace, and oxygen levels, compiling a smooth real-time performance graph of your entire workout.
+
 - **How It Works in Plain English**: In an educational platform, merely knowing that a student clicked "Open" on a textbook does not tell instructors or administrators if the student actually read the book or closed the tab after 5 seconds. Telemetry heartbeats are lightweight background network pings sent by the web browser at regular intervals while a student is actively reading.
+
 - **Application in Zyndex**: When a reader opens a textbook in Zyndex's interactive PDF viewer, an active reading timer begins. Every 15 seconds, the browser dispatches a silent background heartbeat to `usage-service` (`POST /api/usage/duration`). The backend logs the active engagement seconds, correlates reading history by subject category, and pushes the data to the administrative telemetry hub (`AdminLogs.jsx`). Administrators can view real-time **Recharts** visualizations displaying total reading hours, minutes, and seconds broken down across academic disciplines (AI, Physics, Economics, etc.).
 
 ---
 
 ### 20.14 Relational Database Schemas & ACID Transaction Boundaries
 - **Real-World Analogy**: Imagine buying a house. You cannot transfer ownership of the deed if the buyer's check bounces, and the bank cannot wire the funds if the seller refuses to sign the contract. The entire purchase must succeed together as one indivisible unit, or the entire transaction is rolled back and canceled so neither party loses money.
+
 - **How It Works in Plain English**: A Relational Database Management System (RDBMS) organizes information into structured tables with rows and columns, linked together by foreign keys. ACID is an acronym representing the four non-negotiable guarantees of reliable data processing:
   - **Atomicity**: Either all operations in a transaction succeed, or none of them do (no half-saved records).
   - **Consistency**: Data must always obey defined business rules, foreign keys, and unique constraints.
   - **Isolation**: Concurrent transactions running at the exact same moment do not interfere with or corrupt each other.
   - **Durability**: Once a transaction is committed, the data is permanently written to physical disk and will survive power failures.
+
 - **Application in Zyndex**: Zyndex uses **MySQL 8.4 LTS** with the **InnoDB storage engine**. Each microservice connects to its own isolated database schema (`zyndex_auth`, `zyndex_content`, `zyndex_access`, `zyndex_usage`, and `zyndex_subscription`). When an administrator approves a subscription payment, `subscription-service` wraps the operation in an ACID transaction boundary: it marks the payment as `SUCCESS`, revokes old subscriptions, inserts the new active plan, calls `access-service` to grant entitlements, and logs an audit record. If any step fails, the entire transaction is cleanly rolled back to prevent inconsistent financial state.
 
 ---
 
 ### 20.15 High-Performance Database Connection Pooling (HikariCP)
 - **Real-World Analogy**: Imagine an airport taxi stand. If every incoming passenger had to wait for a brand new taxi to be manufactured at a car factory, delivered, registered, and fueled before getting a ride, the airport would be in complete gridlock. Instead, a fleet of 10 ready-to-drive taxis sits running in the taxi queue; a passenger hops in, takes their ride, and the taxi returns to the queue ready for the next person.
+
 - **How It Works in Plain English**: Establishing a brand new network connection to a database is an expensive computing operation that involves TCP handshakes, authentication, SSL negotiation, and memory allocation. A connection pool creates and maintains a warm pool of active database connections in memory, loaning them out to application threads for milliseconds and reclaiming them the moment a query completes.
+
 - **Application in Zyndex**: Each Spring Boot microservice uses **HikariCP**, the fastest and most lightweight connection pooling library in the Java ecosystem. Microservices execute queries in single-digit milliseconds without overwhelming MySQL with hundreds of short-lived connection requests.
 
 ---
 
 ### 20.16 Zero-Trust Inter-Service Perimeter Security (`X-Gateway-Secret`)
 - **Real-World Analogy**: Imagine an intelligence agency building where diplomats and visitors are only permitted into the ground-floor reception area. To enter the high-security subterranean offices where sensitive operations occur, staff members must wear a coded badge with a secret daily frequency signature that only the security desk can imprint. Anyone walking through an internal corridor without that specific signature is immediately apprehended.
+
 - **How It Works in Plain English**: In a microservice ecosystem, internal services (like `content-service` or `subscription-service`) should never be directly accessible from the outside internet. Even if an attacker learns the internal port number of a microservice, the service should reject requests that did not originate from the trusted API Gateway.
+
 - **Application in Zyndex**: Zyndex enforces an internal cryptographic header secret: `X-Gateway-Secret`. When incoming web traffic arrives at the API Gateway, the gateway validates the user's credentials and injects this internal secret header before forwarding the request downstream. Every microservice includes an interceptor that validates this header; any direct request sent straight to port 8081, 8082, 8083, 8084, or 8085 without the gateway secret is immediately rejected with an HTTP 403 Forbidden status.
 
 ---
 
 ### 20.17 Responsive Component Design & Utility-First Styling (Tailwind CSS)
 - **Real-World Analogy**: Traditional custom CSS is like hiring a tailor to hand-sew every single shirt, pants, and button from scratch for every customer—it is slow, difficult to maintain consistently, and creates massive wardrobes of duplicate cloth. Tailwind CSS is like having an organized modular box of standardized, high-quality precision Lego bricks (e.g., standard lengths, snap connectors, and colors) that can be assembled instantly into any structure with guaranteed visual alignment.
+
 - **How It Works in Plain English**: Instead of writing thousands of lines of custom CSS stylesheets with arbitrary pixel values and inconsistent colors, utility-first CSS provides a standardized dictionary of pre-configured design classes (such as `p-4` for padding, `rounded-xl` for border radius, and `text-sm` for font size). These classes are applied directly inside React JSX markup.
+
 - **Application in Zyndex**: Zyndex’s entire visual interface is styled using **Tailwind CSS**. Its color palette features deep academic hues engineered for visual comfort during extended reading sessions: Deep Slate (`#0f172a`), Scholar Amber (`#ea580c`), and Emerald Verification (`#10b981`). Furthermore, Tailwind’s responsive prefixes (`sm:`, `md:`, `lg:`, `xl:`) ensure that catalog cards, reader canvases, and administrative payment tables scale seamlessly from mobile smartphones to ultra-wide desktop monitors without horizontal overflow or broken layouts.
 
 ---
 
 ### 20.18 Accessibility Standards Compliance (WCAG 2.1 AA & ARIA)
 - **Real-World Analogy**: When an architect designs a university lecture hall, they do not only build stairs; they include wheelchair ramps, tactile paving for visual impairments, high-contrast door signs, and audio induction loops for hearing aids. This ensures that every scholar, regardless of physical ability, has equal access to knowledge.
+
 - **How It Works in Plain English**: Web accessibility ensures that digital platforms can be navigated, understood, and operated by people with disabilities, including those who rely on screen reader software (such as NVDA, JAWS, or VoiceOver) or keyboard-only navigation. The Web Content Accessibility Guidelines (WCAG) 2.1 Level AA are the global international standard for web accessibility.
+
 - **Application in Zyndex**: Zyndex conforms to **WCAG 2.1 Level AA** standards across all public, student, and administrator interfaces. The platform maintains a strict minimum **4.5:1 color contrast ratio** between text and background elements, provides comprehensive ARIA labels (`aria-label`, `aria-expanded`, `role="dialog"`) on interactive controls, implements visible focus rings for keyboard tab traversal, and features an accessible PDF document reader that allows scholars with assistive technologies to comfortably navigate literature.
 
 ---
 
 ### 20.19 Interactive Data Visualization with SVG Primitives (Recharts)
 - **Real-World Analogy**: Looking at a raw spreadsheet containing 10,000 rows of numbers is like staring at static on an old television—it is exhausting and impossible to spot trends. A weather forecast map translates those millions of air pressure and temperature readings into intuitive blue rain clouds and orange sun icons that anyone can understand in two seconds.
+
 - **How It Works in Plain English**: Rather than forcing platform administrators to read through endless raw database rows of reading times, data visualization engines calculate mathematical coordinates and generate responsive, interactive Scalable Vector Graphics (SVG) directly inside the browser.
+
 - **Application in Zyndex**: Zyndex embeds **Recharts** inside the administrative telemetry hub (`AdminLogs.jsx`). Reading durations and session frequency counts are compiled into interactive Area Charts, Bar Charts, and Category Donut Gauges. Administrators can hover over any chart node to inspect tooltips showing exact student counts, reading durations in hours and minutes, and historical engagement trends across academic subjects without writing complex SQL queries.
 
 ---
 
 ### 20.20 Lightning-Fast Frontend Compilation & Development (Vite 6)
 - **Real-World Analogy**: Older web development tools worked like printing an entire newspaper daily—even if a journalist changed a single comma in an article, the factory had to stop, re-ink the printing press, and reprint all 100 pages from scratch. Modern Vite works like a digital news ticker: only the specific sentence that changed is refreshed on screen in milliseconds without reprinting the rest of the newspaper.
+
 - **How It Works in Plain English**: Traditional web bundlers (like Webpack) bundle every JavaScript file into a massive file before running. Vite leverages native browser ES Modules (ESM) to serve source files on-demand during development and utilizes **Rollup** and **esbuild** for high-speed production bundling.
+
 - **Application in Zyndex**: Zyndex uses **Vite 6** to build its 99 React components and application utilities. Local cold-start server initialization completes in under **300 milliseconds**, and Hot Module Replacement (HMR) updates components on the developer screen instantaneously upon saving. Production builds compile cleanly in less than 13 seconds.
 
 ---
 
 ### 20.21 Zero-Trust Client-Side Input Sanitization (DOMPurify)
 - **Real-World Analogy**: Think of a bank teller counter equipped with bulletproof glass and a secure pass-through tray. Before any package or document submitted by a customer is brought into the bank vault, it passes through an automated scanner that removes and incinerates any hidden blades, toxins, or explosives, ensuring only safe paper enters the building.
+
 - **How It Works in Plain English**: Cross-Site Scripting (XSS) is a severe web vulnerability where malicious users submit hidden `<script>` tags or malicious HTML into text boxes (such as book feedback or profile bios). If a website renders this text without cleaning it, the malicious script executes inside other users' browsers, potentially stealing their private login tokens. DOMPurify scans HTML strings and strips away dangerous tags, script attributes, and JavaScript URLs.
+
 - **Application in Zyndex**: In `FeedbackReview.jsx` and `ResourceDetail.jsx`, students submit reviews, suggestions, and feedback. Zyndex runs all user-generated text through **DOMPurify** before rendering reviews in the administrative moderation portal or displaying system notices, ensuring no unauthorized script execution can compromise user accounts.
 
 ---
 
 ### 20.22 In-Browser Hardware-Accelerated PDF Rendering (PDF.js / `pdfjs-dist`)
 - **Real-World Analogy**: Rather than forcing a student to install a bulky, proprietary 500-megabyte PDF viewer software program on their laptop just to read a class chapter, the digital library embeds a lightweight, high-resolution optical microscope directly into their browser window, rendering text crisp and clear on any screen size.
+
 - **How It Works in Plain English**: Developed by Mozilla, PDF.js is a community-standard JavaScript library that parses and renders Portable Document Format (PDF) files directly onto HTML5 `<canvas>` elements inside the web browser without requiring external plugins or Adobe Acrobat installations.
+
 - **Application in Zyndex**: Zyndex incorporates `pdfjs-dist` inside the student reading canvas (`ResourceDetail.jsx`). When `content-service` streams an authorized textbook stream or 10-page evaluation slice, `pdfjs-dist` dynamically renders the pages with vector-sharp font rendering, page-zoom controls, thumbnail navigation, and smooth scrolling on both mobile phones and desktop displays.
 
 ---
 
 ### 20.23 Enterprise Operational Liveness & Health Probes (Spring Boot Actuator)
 - **Real-World Analogy**: Modern passenger aircraft are equipped with thousands of internal avionics sensors continuously checking engine temperature, fuel line pressure, and wing flap hydraulics. The flight computer doesn't wait for an engine to sputter mid-flight; it displays continuous green status lights on the cockpit dashboard to guarantee that every system is operating within safe parameters.
+
 - **How It Works in Plain English**: In distributed enterprise architectures, operations engineers and automated orchestration tools need a standardized way to check if a service is healthy, alive, and ready to receive traffic. Spring Boot Actuator provides built-in production-ready endpoints (`/actuator/health`, `/actuator/metrics`, `/actuator/info`) that expose system telemetry without writing custom monitoring code.
+
 - **Application in Zyndex**: Each of Zyndex's Spring Boot microservices includes `spring-boot-starter-actuator`. The Eureka service mesh continuously pings these health endpoints to verify service responsiveness. Furthermore, cloud monitoring dashboards query Actuator metrics to track JVM heap utilization, active thread counts, and HTTP throughput in real time.
 
 ---
 
 ### 20.24 Centralized HTTP Interceptor Pipelines (Axios Interceptors)
 - **Real-World Analogy**: Imagine an executive courier service where every outgoing letter must have the company's official wax seal and security clearance stamp pressed onto the envelope before leaving the mailroom, and every returning delivery must be inspected by security for expired visitor passes before delivery to the desk. Instead of having every employee manually stamp their own letters, the central mailroom clerk handles it automatically for all outbound mail.
+
 - **How It Works in Plain English**: When a frontend web application communicates with backend APIs, developers should not manually paste authentication headers into every single button click or network fetch across 99 different components. An HTTP Interceptor is a centralized pipeline that automatically catches outgoing requests and incoming responses to apply global logic.
+
 - **Application in Zyndex**: Implemented in [`src/services/api/apiClient.js`](file:///d:/Zyndex/src/services/api/apiClient.js), Zyndex configures Axios request interceptors that automatically pull the active JWT from `localStorage` and attach the `Authorization: Bearer <token>` header to all outgoing requests. Additionally, response interceptors catch any incoming HTTP 401 Unauthorized errors (such as an expired session or account invalidation) and trigger automated logout and navigation redirects across the entire application without repetitive component-level code.
 
 ---
 
 ### 20.25 Declarative Server-Side Request Validation (Jakarta Bean Validation)
 - **Real-World Analogy**: When submitting a passport application at a government consulate, the intake clerk will not forward your paperwork to the national security vault if you left your date of birth blank, provided an invalid 3-digit phone number, or wrote a fake name. The application is rejected at the front desk immediately, saving valuable investigative resources.
+
 - **How It Works in Plain English**: Web applications must never assume that incoming data is clean or valid. Jakarta Bean Validation provides standardized declarative annotations (such as `@NotNull`, `@NotBlank`, `@Email`, `@Size(min=8)`) attached directly to Java Data Transfer Objects (DTOs). When a request hits a controller annotated with `@Valid`, Spring automatically inspects the payload and rejects malformed inputs before database logic executes.
+
 - **Application in Zyndex**: In `auth-service`, `subscription-service`, and `content-service`, incoming JSON bodies—such as user registration requests, OTP submissions, and UTR payment references—are validated with Bean Validation. If an invalid email format or empty UTR is submitted, Spring halts execution immediately and returns a clean, structured HTTP 400 Bad Request error.
 
 ---
 
 ### 20.26 Cross-Origin Security Perimeter (CORS Architecture)
 - **Real-World Analogy**: Imagine a prestigious university library that issues digital passes exclusively to its registered students on the official campus portal. If an unauthorized third-party commercial website tries to create an iframe window and steal the university's private book repository to show on their own ad-supported site, the university security guard inspects the calling website's address and firmly slams the digital shutter closed.
+
 - **How It Works in Plain English**: Cross-Origin Resource Sharing (CORS) is a browser security protocol enforced by web browsers. By default, browsers prevent scripts running on one origin (e.g., `https://zyndex.netlify.app`) from sending requests to a completely different backend domain or IP address (e.g., `http://92.5.166.34:8080`) unless the backend explicitly responds with permission headers (`Access-Control-Allow-Origin`).
+
 - **Application in Zyndex**: Zyndex’s API Gateway configures a unified CORS filter. It permits authenticated requests originating from the trusted Netlify frontend domain and local development ports (`http://localhost:5173`), while strictly denying unauthorized external origins from accessing internal student data or payment channels.
 
 ---
 
 ### 20.27 Declarative Animation & Physics-Based Micro-Interactions (Framer Motion)
 - **Real-World Analogy**: In a well-crafted physical luxury watch, opening the caseback or winding the crown provides smooth, dampened mechanical feedback rather than a jarring, abrupt snap. Similarly, modern software feels intuitive and trustworthy when visual elements glide gracefully into place rather than popping in and out like a glitch.
+
 - **How It Works in Plain English**: Framer Motion is a production-grade animation library for React that simplifies building fluid micro-interactions, layout transitions, and gesture controls using declarative spring physics rather than rigid, hardcoded CSS keyframe timers.
+
 - **Application in Zyndex**: Throughout the Zyndex interface, Framer Motion animates modal dialog popups, page transition crossfades (`PageTransitionWrapper`), interactive reading progress bars, and OTP countdown rings. These micro-interactions mirror the exact animation curves and timing tokens originally prototyped in the Figma design system.
 
 ---
 
 ### 20.28 Accessible Headless Component Primitives (Radix UI)
 - **Real-World Analogy**: Think of high-end architectural door hinges and mortise locks. They do not dictate what wood or color the door must be—you can paint the door royal navy or academic gold—but the internal mechanical hinge guarantees that the door swings smoothly, latches securely, and meets all municipal commercial fire exit safety codes.
+
 - **How It Works in Plain English**: "Headless" UI libraries provide complete interactive logic, focus traps, keyboard accessibility, and ARIA state management without imposing any visual styling. This allows developers to style components freely with Tailwind CSS while guaranteeing 100% compliance with screen readers and assistive technologies.
+
 - **Application in Zyndex**: Zyndex utilizes Radix UI primitives for dialog modals, dropdown menus, context menus, tooltips, accordions, and tabs across both the student reader and administrator dashboards. When an administrator opens the payment verification modal, Radix UI automatically traps keyboard focus inside the modal, sets `aria-modal="true"`, and restores focus to the trigger button when dismissed.
 
 ---
 
 ### 20.29 Real-Time Non-Intrusive Notification Engine (Sonner)
 - **Real-World Analogy**: In an automobile, when you turn on the high beams or engage cruise control, a subtle, clean indicator light illuminates on the dashboard edge without blocking the windshield or distracting the driver from the road ahead.
+
 - **How It Works in Plain English**: Traditional browser alert dialogs (`window.alert()`) freeze the browser, interrupt user reading, and provide a jarring user experience. Modern toast notification engines render non-intrusive, stackable status cards that slide into the corner of the screen and automatically fade away after a few seconds.
+
 - **Application in Zyndex**: Zyndex incorporates **Sonner** to provide instant, polished feedback across all actions: confirming when a 12-digit UTR is submitted for review, alerting scholars when an OTP countdown is nearing expiration, and confirming successful textbook uploads or metadata edits.
 
 ---
 
 ### 20.30 Visual Anti-Automation Defense: Canvas Dynamic CAPTCHA
 - **Real-World Analogy**: At the entrance of an exclusive scholarly society, the security officer asks visitors to read a handwritten signature code scrawled on a textured slate chalkboard. A human eye can effortlessly decipher the letters despite chalk dust and irregular angles, but an automated robotic camera without human context cannot read the text.
+
 - **How It Works in Plain English**: Automated credential stuffing bots frequently attempt to guess administrator passwords by bombarding login forms with thousands of stolen credential pairs per minute. A Completely Automated Public Turing test to tell Computers and Humans Apart (CAPTCHA) presents a visual puzzle that is trivial for humans to solve but computationally difficult for bots to automate.
+
 - **Application in Zyndex**: In the administrative login portal (`Login.jsx`), Zyndex renders an in-browser HTML5 Canvas CAPTCHA. It generates randomized alphanumeric strings distorted with mathematical trigonometric wave curves, random color variations, and intersecting noise lines. The challenge is generated client-side without sending user tracking data to external third-party ad networks (unlike Google reCAPTCHA), preserving strict student privacy while defending admin endpoints against brute-force attacks.
 
 ---
 
 ### 20.31 Scalable SVG Vector Iconography System (Lucide React)
 - **Real-World Analogy**: International road signs (like Stop, Yield, or Speed Limit signs) use standardized, universal geometric symbols rather than complex written essays. A driver can instantly recognize a sign from 500 feet away regardless of the language they speak.
+
 - **How It Works in Plain English**: Vector icons are drawn using mathematical coordinate lines (Scalable Vector Graphics) rather than fixed pixel grids (PNGs or JPEGs). This guarantees that an icon remains razor-sharp and crystal clear whether displayed as a tiny 16-pixel badge on a smartphone or a massive 128-pixel emblem on a 4K desktop monitor, while maintaining an exceptionally tiny file footprint.
+
 - **Application in Zyndex**: Zyndex incorporates **Lucide React** to provide consistent visual iconography across the entire user experience: academic subject icons (Atom for Physics, Brain for AI, TrendingUp for Economics), document format badges (FileText for PDFs, BookOpen for EPUBs), payment status indicators (CheckCircle2 for verified, Clock for pending review), and administrative action toggles.
 
 ---
 
 ### 20.32 Automated Financial Ledger & Telemetry Export (Apache POI & Excel)
 - **Real-World Analogy**: At the close of each academic term, a university registrar or bursar must present financial audit ledgers to university trustees and chartered accountants. Instead of manually retyping thousands of student transaction records by hand, the head librarian pushes one button, and an official, pre-formatted multi-column financial spreadsheet workbook is produced instantly.
+
 - **How It Works in Plain English**: While web applications display data cleanly in interactive HTML tables, financial accountants and institutional auditors require standardized spreadsheet formats (`.xlsx` or `.csv`) that can be opened in Microsoft Excel, Google Sheets, or institutional ERP accounting software for formula auditing and tax compliance.
+
 - **Application in Zyndex**: In the live payments administration portal (`AdminPayments.jsx`), Zyndex provides a **1-Click Excel Export** feature. When clicked, the platform extracts the active payment transactions, formats user identities, plans, amounts in rupees, 12-digit bank UTR numbers, payment statuses, and verification timestamps into clean tabular spreadsheets ready for institutional accounting, tax reconciliation, and audit archiving.
 
 ---
