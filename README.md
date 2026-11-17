@@ -1305,14 +1305,20 @@ Zyndex implements a hardened, poly-service microservices architecture. Communica
 
 ## 8. Frontend Architecture & Page-by-Page Reference
 
-The Zyndex frontend is a Single-Page Application (SPA) built using **React 18.3.1**, **Vite 6.0.5**, **Tailwind CSS 3.4.17**, **Framer Motion**, and **Recharts**.
+The Zyndex frontend is a Single-Page Application (SPA) built using **React 18.3.1**, **Vite 6.4.6**, **Tailwind CSS**, **Framer Motion**, and **Recharts**.
 
-### 8.1 Architecture & State Management
+### 8.1 Design Philosophy: From Hand-Crafted Layouts to the Figma Design System
+The visual foundation of Zyndex began with intensive hand-crafted wireframing and ergonomic interface sketches focused on scholar productivity. After completing the initial hand-crafted design phase, the **Figma Design System** served as the central design blueprint to translate those conceptual sketches into a cohesive, production-grade User Interface (UI) and intuitive User Experience (UX):
+- **Component Tokenization**: Spacing scales, radii, elevations, and high-contrast Slate & Amber palettes were systematized in Figma before implementation in Tailwind CSS.
+- **Micro-Interactions & State Clarity**: Modal focus traps, reading progress meters, dynamic OTP count-down timers, and multi-step checkout dialogs were prototyped in Figma to ensure cognitive friction remained near zero for academic readers.
+- **Visual Consistency Across Portals**: Maintained strict visual continuity across Student Reading Hubs and Enterprise Administrative Consoles.
+
+### 8.2 Architecture & State Management
 - **HTTP Client**: Implemented in [`src/services/api/apiClient.js`](file:///d:/Zyndex/src/services/api/apiClient.js) using an Axios instance with a 30-second timeout. Intercepts outgoing requests to attach `Authorization: Bearer <auth_token>` from `localStorage` and automatically handles multipart headers for `FormData` file uploads.
 - **Authentication State**: Managed via [`src/app/context/AuthContext.jsx`](file:///d:/Zyndex/src/app/context/AuthContext.jsx). Exposes `user`, `token`, `login()`, `logout()`, `refreshUser()`, and `isAuthenticated`.
 - **Routing & Guards**: Managed in [`src/app/routes.jsx`](file:///d:/Zyndex/src/app/routes.jsx) using React Router v7. Route protection is enforced via [`src/app/components/ProtectedRoute.jsx`](file:///d:/Zyndex/src/app/components/ProtectedRoute.jsx), redirecting unauthenticated users to `/Zyndex/User/Log-In` or denying non-admin accounts access to administrative screens.
 
-### 8.2 Complete Page Catalog
+### 8.3 Complete Page Catalog
 
 | Page Component | Route Path | Access Level | Primary Purpose & Key Features |
 | :
@@ -2031,13 +2037,13 @@ Statistics were calculated using a native filesystem audit executed across all s
 | :--- | :--- | :--- |
 | **Total Source Files** | **215 Files** | Application-owned source, configuration, template, and schema manifests |
 | **Total Folders / Directories** | **42 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **57,314 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **208,635 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,612,766 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,390,463 Characters** | 53.22% of total character stream |
-| **Digits & Numbers (`0-9`)** | **63,865 Characters** | 2.44% of total character stream |
-| **Symbols, Operators & Punctuation** | **352,272 Characters** | 13.48% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **806,166 Characters** | 30.86% of total character stream (indentation, newlines) |
+| **Total Lines of Code (LOC)** | **57,320 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **208,770 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,613,803 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,391,308 Characters** | 53.23% of total character stream |
+| **Digits & Numbers (`0-9`)** | **63,863 Characters** | 2.44% of total character stream |
+| **Symbols, Operators & Punctuation** | **352,324 Characters** | 13.48% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **806,308 Characters** | 30.85% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
@@ -2047,12 +2053,12 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,765 Lines** | **44,138 Words** | **555,762 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,019 Lines** | **16,413 Words** | **178,732 Chars** |
 | **`.json`** | Package & Dependency Manifests | **2 Files** | **6,156 Lines** | **11,741 Words** | **189,488 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,648 Lines** | **22,878 Words** | **200,593 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,654 Lines** | **23,013 Words** | **201,630 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **909 Lines** | **2,039 Words** | **21,091 Chars** |
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **713 Lines** | **1,387 Words** | **22,294 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
-| **Overall Total** | **Full Stack Application** | **215 Files** | **57,314 Lines** | **208,635 Words** | **2,612,766 Chars** |
+| **Overall Total** | **Full Stack Application** | **215 Files** | **57,320 Lines** | **208,770 Words** | **2,613,803 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
