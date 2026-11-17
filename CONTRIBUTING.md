@@ -42,9 +42,10 @@ All contributors, reviewers, and maintainers participating in the Zyndex project
 
 The Zyndex codebase adheres to senior production software engineering standards:
 
-- **Zero-Warning Compilation**: Every Java microservice must compile cleanly without raw types, unused imports, or suppressed compiler warnings.
-- **Strict Separation of Concerns**: Controllers handle HTTP ingress only; domain logic is strictly isolated in dedicated `@Service` classes; persistence interactions are confined to `@Repository` classes or explicit Spring JDBC mappers.
-- **Stateless Microservice Boundaries**: Microservices communicate over HTTP with inter-service authentication enforced by a shared gateway secret (`X-Gateway-Secret`). No service shares thread pools, internal caches, or session memory with another.
+- **Zero-Warning Compilation**: Every Java microservice must compile cleanly without raw types, unused imports, or suppressed compiler warnings. Frontend code must pass Vite production build checks with zero bundling errors.
+- **Strict Separation of Concerns**: Controllers handle HTTP ingress only; domain logic is strictly isolated in dedicated `@Service` classes; persistence interactions are confined to Spring Data JPA repositories or explicit Spring `JdbcTemplate` mappers.
+- **Stateless Microservice Boundaries**: Microservices communicate over HTTP via Eureka discovery. Inter-service authentication is enforced by a shared gateway secret (`X-Gateway-Secret`). Direct unauthorized calls bypass attempts are rejected with HTTP 403 Forbidden.
+- **Asynchronous Long-Running Operations**: Any CPU-intensive operation (such as PDFBox stream deflation, thumbnail generation, or batch report creation) must run asynchronously via `CompletableFuture` or dedicated background executors to guarantee sub-second HTTP responses and avoid proxy timeouts.
 - **Fail-Safe Defensive Programming**: Validate every payload boundary. Null checks, boundary conditions, and cryptographic seeds must be deterministic and robust against edge-case anomalies.
 - **Documentation Parity**: Whenever modifying a database table, service endpoint, or frontend component, you must update the corresponding section in [README.md](README.md), [SECURITY.md](SECURITY.md), or [ACCESSIBILITY.md](ACCESSIBILITY.md).
 
@@ -54,12 +55,12 @@ The Zyndex codebase adheres to senior production software engineering standards:
 
 Zyndex operates as an orchestration of 7 autonomous backend services coordinated by an API Gateway and Eureka Registry, with an independent single-page web client:
 
-| Subsystem | Service Name | Port | Framework / Tech Stack | Primary Responsibilities |
+| Subsystem | Service Name | Internal Port | Framework / Tech Stack | Primary Responsibilities |
 | :--- | :--- | :---: | :--- | :--- |
-| **Discovery** | `eureka-server` | `8761` | Spring Cloud Netflix Eureka | Dynamic service registration, instance heartbeats, and cluster health discovery. |
+| **Discovery Registry** | `eureka-server` | `8761` | Spring Cloud Netflix Eureka | Dynamic service registration, instance heartbeats, and cluster health discovery. |
 | **Edge Gateway** | `api-gateway` | `8080` | Spring Cloud Gateway (Netty) | Reverse proxy routing, global CORS filtering, rate limiting, and stateless HMAC-SHA256 JWT validation. |
 | **Identity & Auth** | `auth-service` | `8081` | Spring Boot 3.4.2, Spring Security 6, JJWT | User registration, 4-digit TLS email OTP, 24-hour trusted device management, BCrypt hashing, and role claims. |
-| **Content Repository** | `content-service` | `8082` | Spring Boot 3.4.2, Apache PDFBox | Resource cataloging, multi-category indexing, file upload processing, and zero-leakage in-memory 10-page preview slicing. |
+| **Content Repository** | `content-service` | `8082` | Spring Boot 3.4.2, Apache PDFBox | Resource cataloging, multi-category indexing, file upload processing, async compression, and in-memory 10-page preview slicing. |
 | **Access Governance** | `access-service` | `8083` | Spring Boot 3.4.2, Spring Data JPA | Tiered entitlement enforcement, reading quotas, download allowance tracking, and single-use download token issuance. |
 | **Usage Telemetry** | `usage-service` | `8084` | Spring Boot 3.4.2, Spring JDBC | 15-second heartbeat ingestion, reading session calculation, live reader telemetry aggregation, and administrative log streams. |
 | **Subscription Billing** | `subscription-service` | `8085` | Spring Boot 3.4.2, JavaMail | Multi-tier plan definitions, dynamic UPI intent URI generation, 12-digit bank UTR reconciliation, and 2-minute verification hold workflows. |
@@ -71,7 +72,7 @@ Zyndex operates as an orchestration of 7 autonomous backend services coordinated
 
 ### Prerequisites
 - **Java Development Kit**: OpenJDK 21 LTS (`java -version`).
-- **Node.js**: v18.x or v20.x LTS (`node -v`).
+- **Node.js**: v18.x, v20.x, or v22.x LTS (`node -v`).
 - **Package Manager**: npm v9+ or v10+ (`npm -v`).
 - **Database Server**: MySQL 8.0 or MySQL 8.4 LTS running on port `3306`.
 - **Git**: v2.40+ (`git --version`).
@@ -86,11 +87,17 @@ cd Zyndex-MS
 npm install
 
 # 3. Compile all backend microservices
+./mvnw clean test-compile
+# On Windows PowerShell:
 .\mvnw.cmd clean test-compile
 ```
 
 ### Environment Configuration
-Create a local `.env` file in the root directory (never commit secrets to version control):
+Copy the provided `.env.example` file to create your local `.env` file (never commit secrets to version control):
+```bash
+cp .env.example .env
+```
+Ensure the following variables match your local environment:
 ```env
 SPRING_PROFILES_ACTIVE=dev
 MYSQL_HOST=localhost
@@ -98,107 +105,111 @@ MYSQL_PORT=3306
 MYSQL_USER=root
 MYSQL_PASSWORD=your_local_password
 JWT_SECRET=your_32_byte_minimum_secure_hmac_sha256_secret_key_here
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your_email@gmail.com
-MAIL_PASSWORD=your_app_password
-GATEWAY_SECRET=your_inter_service_shared_secret_string
+GATEWAY_SECRET=zyndex_internal_mesh_secret_token_2026
+VITE_API_BASE_URL=http://localhost:8080/api
+```
+
+### Running Locally
+To launch all microservices and frontend concurrently:
+```bash
+# Run multi-service orchestrator
+node start-all.js
+```
+Or start individual microservices using the Maven wrapper:
+```bash
+.\mvnw.cmd -pl eureka-server spring-boot:run
+.\mvnw.cmd -pl api-gateway spring-boot:run
+.\mvnw.cmd -pl auth-service spring-boot:run
+.\mvnw.cmd -pl content-service spring-boot:run
+.\mvnw.cmd -pl access-service spring-boot:run
+.\mvnw.cmd -pl usage-service spring-boot:run
+.\mvnw.cmd -pl subscription-service spring-boot:run
+npm run dev
 ```
 
 ---
 
 ## 5. Git Workflow, Branching & Conventional Commits
 
-### Branching Strategy
-- `main`: Production-ready, zero-defect release branch. Directly deployed to Render.
-- `feat/feature-name`: For new features and capabilities (e.g., `feat/pdf-bookmark-export`).
-- `fix/bug-description`: For defect fixes (e.g., `fix/utr-retry-validation`).
-- `docs/topic-name`: For technical documentation refinements (e.g., `docs/architecture-expansion`).
+We follow a strict **Trunk-Based / Feature-Branch Workflow**:
 
-### Conventional Commit Conventions
-All commit messages must follow the standard Angular/Conventional Commits specification:
-```
-<type>(<scope>): <concise imperative description>
+1. Always branch off the latest `main` branch.
+2. Branch naming convention:
+   - `feat/feature-name` (e.g., `feat/pdf-bookmark-sync`)
+   - `fix/issue-description` (e.g., `fix/utr-reconciliation-rounding`)
+   - `perf/optimization-target` (e.g., `perf/pdfbox-in-memory-deflate`)
+   - `docs/documentation-update` (e.g., `docs/update-codebase-metrics`)
+3. Commits must follow the **Conventional Commits** specification:
+   ```text
+   <type>(<scope>): <short imperative description>
 
-[optional body explaining technical motivation and architecture impact]
-```
-
-**Permitted Types**:
-- `feat`: New user-facing or API capability.
-- `fix`: Patch resolving a bug or defect.
-- `docs`: Documentation updates or additions.
-- `refactor`: Structural code cleanup without changing functional behavior.
-- `test`: Addition or refactoring of unit or integration test suites.
-- `chore`: Build scripts, dependencies, or configuration adjustments.
+   [optional body explaining motivation and technical approach]
+   [optional footer referencing issue numbers, e.g., Closes #42]
+   ```
+   **Allowed Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `security`.
 
 ---
 
 ## 6. Compilation, Build Verification & Quality Assurance
 
-Before opening any Pull Request or committing changes, execute the full local verification pipeline:
+Before submitting a pull request, run the complete verification suite locally:
 
-### 1. Frontend Build Verification
 ```bash
+# 1. Verify frontend build
 npm run build
-```
-*Expected Result*: Vite builds all 2,750+ modules in under 30 seconds into `dist/` with `dist/_redirects` intact and zero runtime errors.
 
-### 2. Backend Compilation Verification
-```bash
-.\mvnw.cmd clean test-compile
-```
-*Expected Result*: Maven reactor builds all 8 modules (`zyndex-parent`, `eureka-server`, `api-gateway`, `auth-service`, `content-service`, `access-service`, `usage-service`, `subscription-service`) with `BUILD SUCCESS` and zero compilation errors.
+# 2. Verify backend microservices compilation and tests
+.\mvnw.cmd clean test
 
-### 3. Static Code Analysis & Warning Check
-Ensure the IDE Problems view is completely clear of:
-- Raw types (e.g., unparameterized `Map` or `List`).
-- Unused imports or fields.
-- Dead code paths.
+# 3. Check for security vulnerabilities in dependencies
+npm audit
+```
+
+Pull requests with broken builds, failing unit tests, or unhandled compiler warnings will not be merged.
 
 ---
 
 ## 7. Submitting Issues & Feature RFCs
 
 ### Bug Reports
-Before submitting an issue, search closed issues to verify it hasn't been resolved. Include:
-1. Exact component or microservice affected.
-2. Step-by-step reproduction sequence.
-3. Expected system state vs. actual observed output.
-4. Error logs, stack traces, and browser console output.
+When reporting a bug, use our GitHub issue templates and provide:
+- Exact steps to reproduce the issue.
+- Expected behavior vs. actual behavior.
+- Relevant log output (sanitized to remove credentials, passwords, or JWTs).
+- Environment details (OS, Browser version, Java version, Node version).
 
-### Feature RFCs
-Feature proposals should clearly articulate the academic or architectural value:
-1. **Academic Problem**: What institutional or research workflow does this enhance?
-2. **Proposed Solution**: API signature, database schema change, and UI interaction model.
-3. **Security Implications**: Entitlement impacts, data leakage considerations, and audit logging.
+### Feature Requests (RFCs)
+For substantial changes (e.g., new microservices, external payment gateways, major UI overhauls):
+1. Open an Issue with the prefix `[RFC]: <Feature Title>`.
+2. Outline the motivation, architectural impact, data model updates, and security considerations.
+3. Wait for maintainer review and consensus from **Bhaanu G** before proceeding with development.
 
 ---
 
 ## 8. Pull Request (PR) Lifecycle & Strict Review Checklist
 
-All PRs undergo review by Lead Architect **Bhaanu G** against the following criteria:
+All PRs undergo review by the platform architect (**Bhaanu G**). Review criteria include:
 
-- [ ] **Authorship Verification**: Confirms that intellectual property remains assigned to Bhaanu G.
-- [ ] **Dual Build Pass**: Both `npm run build` and `.\mvnw.cmd test-compile` pass with 0 errors.
-- [ ] **No Secrets**: No database passwords, JWT tokens, SMTP keys, or private URIs committed.
-- [ ] **Documentation Updated**: All relevant sections in [README.md](README.md), [SECURITY.md](SECURITY.md), and [ACCESSIBILITY.md](ACCESSIBILITY.md) reflect the changes.
-- [ ] **Zero Regressions**: Existing authentication flows, payment verification states, and reader access limits remain intact.
+- [ ] **Authorship & Scope**: Does the PR address a single focused concern?
+- [ ] **Security**: Are all inputs validated? Are endpoints protected by JWT or `X-Gateway-Secret`?
+- [ ] **Performance**: Are blocking calls avoided on web threads?
+- [ ] **Database Integrity**: Are schema changes backward-compatible and accompanied by safe DDL migrations?
+- [ ] **Accessibility**: Does frontend UI comply with WCAG 2.1 AA (4.5:1 contrast, keyboard focus, ARIA labels)?
+- [ ] **Tests**: Are unit and integration tests provided where appropriate?
+- [ ] **Documentation**: Are changes documented in `README.md`, `SECURITY.md`, and relevant doc files?
 
 ---
 
 ## 9. Deployment Readiness & Production Hosting
 
-Zyndex is architected for seamless cloud-native containerization and static hosting:
-
-- **Frontend Deployment**: Configured via `render.yaml` as a static site service built with `npm run build` from the `dist/` root, utilizing `public/_redirects` (`/*  /index.html  200`) for seamless client-side single-page routing.
-- **Backend Microservices**: Packaged as executable Spring Boot JARs deployable as Docker containers across Kubernetes or cloud application platforms.
+- **Frontend Target**: Netlify Edge CDN (`https://zyndex.netlify.app`), deploying automatically from `main`.
+- **Backend Target**: Oracle Cloud VM (Ubuntu/Oracle Linux x86_64) running Docker Compose (`docker-compose.prod.yml`).
+- **Direct VM Entrypoint**: `http://92.5.166.34/` (Reverse proxy on port 80 routing to Gateway on 8080).
 
 ---
 
 ## 10. Security Disclosure & Contact Channels
 
-For inquiries, architecture consultations, or security notifications:
-
-- **Sole Creator & Lead Architect**: **Bhaanu G (Bhaanu Gali)**
-- **Primary Administrative Email**: `Bhaanugali@gmail.com`
-- **Direct Engineering Office**: `2400030952@kluniversity.in`
+If you discover a security vulnerability, **do not open a public issue**. Follow our private disclosure process in [SECURITY.md](SECURITY.md) and report immediately to:
+- **Lead Maintainer**: `Bhaanugali@gmail.com`
+- **Academic Contact**: `2400030952@kluniversity.in`

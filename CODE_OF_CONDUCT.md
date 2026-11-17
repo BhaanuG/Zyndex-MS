@@ -2,118 +2,100 @@
 
 ## Our Pledge
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, caste, color, religion, or sexual
-identity and orientation.
+We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, caste, color, religion, or sexual identity and orientation.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community dedicated to academic rigor, scientific advancement, and digital educational excellence.
+
+---
+
+## Authorship, Architectural Governance & Project Stewardship
+
+> [!IMPORTANT]
+> **Sole Creator, Lead Architect & Platform Maintainer**: **Bhaanu G (Bhaanu Gali)**  
+> **Primary Contact**: `Bhaanugali@gmail.com`  
+> **Direct Engineering Contact**: `2400030952@kluniversity.in`  
+> **Project Repository**: [https://github.com/BhaanuG/Zyndex-MS](https://github.com/BhaanuG/Zyndex-MS)  
+> *Zyndex was designed, architected, and built from first principles by Bhaanu G. All administrative authority, architectural governance, repository rights, and moderation finality reside with Bhaanu G.*
+
+---
 
 ## Our Standards
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+Examples of behavior that contributes to a positive environment for our community include:
 
-* Demonstrating empathy and kindness toward other people
-* Being respectful of differing opinions, viewpoints, and experiences
-* Giving and gracefully accepting constructive feedback
-* Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-* Focusing on what is best not just for us as individuals, but for the overall
-  community
+* **Demonstrating Empathy & Kindness**: Treating students, researchers, contributors, and maintainers with genuine respect regardless of background or technical experience.
+* **Constructive Collaboration**: Offering and gracefully accepting objective, constructive technical critique regarding pull requests, architectural diagrams, performance profiles, and user experience.
+* **Accountability & Integrity**: Acknowledging errors, apologizing sincerely to those affected, and proactively rectifying bugs, regressions, or documentation ambiguities.
+* **Academic & Ethical Rigor**: Upholding intellectual honesty, citing source material accurately, and respecting copyright and academic data integrity.
+* **Focus on Community Wellbeing**: Prioritizing code quality, platform security, and educational accessibility over personal ego or competitive behavior.
 
 Examples of unacceptable behavior include:
 
-* The use of sexualized language or imagery, and sexual attention or advances of
-  any kind
-* Trolling, insulting or derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or email address,
-  without their explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+* **Harassment & Discrimination**: Sexualized language or imagery, unwelcome sexual advances or attention of any kind, and offensive remarks relating to gender, identity, disability, race, caste, or background.
+* **Trolling & Derogatory Conduct**: Deliberately provocative remarks, mocking beginners or students, ad hominem attacks, and personal or political insults.
+* **Doxxing & Privacy Invasions**: Publishing private information of community members (such as personal physical addresses, phone numbers, or private emails) without explicit, documented consent.
+* **Sabotage & Malicious Submissions**: Intentionally introducing vulnerable code, backdoors, credential-harvesting mechanisms, corrupted data payloads, or misleading documentation.
+* **Unprofessional Representation**: Misrepresenting oneself as an official spokesperson, owner, or maintainer of Zyndex without explicit authorization from Bhaanu G.
+
+---
+
+## Scope of Code of Conduct
+
+This Code of Conduct applies within all official community spaces, including:
+
+1. The GitHub repository, issues tracker, pull request discussions, and wiki pages.
+2. Official email correspondence, communication threads, and community forums.
+3. Live demos, technical workshops, academic hackathons, and public speaking presentations where Zyndex is represented.
+4. Any public space when an individual is acting as a designated representative of the Zyndex project.
+
+---
 
 ## Enforcement Responsibilities
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+The project maintainer, **Bhaanu G**, is responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate, decisive, and fair corrective action in response to any behavior deemed inappropriate, threatening, offensive, or harmful.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+The maintainer reserves the full right and responsibility to edit, redact, or reject comments, commits, code changes, issue reports, pull requests, and other contributions that do not align with this Code of Conduct.
 
-## Scope
+---
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+## Incident Reporting & Contact Channels
 
-## Enforcement
+Instances of abusive, harassing, or otherwise unacceptable behavior must be reported directly to:
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders at **2400030952@kluniversity.in** or **Bhaanugali@gmail.com**.
-All complaints will be reviewed and investigated promptly and fairly.
+* **Primary Administrative Email**: `Bhaanugali@gmail.com`
+* **Direct Engineering Contact**: `2400030952@kluniversity.in`
 
-All community leaders are obligated to respect the privacy and security of the
-reporter of any incident.
+Please provide:
+- Clear description of the incident with dates, times, and context.
+- Links to relevant commits, pull requests, issues, or screenshots where applicable.
+- Identities of the involved parties.
 
-## Enforcement Guidelines
+All reports will be treated with **strict confidentiality** to protect the privacy and security of the reporter. We will acknowledge receipt of reports within **24 hours** and conclude investigation within **7 business days**.
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+---
+
+## Enforcement Guidelines & Tiered Corrective Actions
+
+Community leadership will follow these structured impact guidelines in determining consequences:
 
 ### 1. Correction
-
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
-
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+* **Community Impact**: Minor infraction, inappropriate language, or unprofessional communication during code review or discussions.
+* **Action**: A private, written warning from the project maintainer outlining the infraction, explaining why it violated project standards, and requesting an adjustment in conduct.
 
 ### 2. Warning
+* **Community Impact**: Repeated inappropriate comments, sustained argumentative behavior, disregard for review guidelines, or an isolated serious incident.
+* **Action**: A formal warning with explicit consequences for continued violations. The contributor may be placed on a temporary communication freeze for a period of 7 to 14 days.
 
-**Community Impact**: A violation through a single incident or series of
-actions.
+### 3. Temporary Suspension
+* **Community Impact**: Sustained harassment, abusive language, deliberate defiance of moderation decisions, or disruptive behavior in community discussions.
+* **Action**: A temporary ban from interacting with the GitHub organization, opening issues, or submitting pull requests for a defined period (e.g., 30 to 90 days).
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or permanent
-ban.
+### 4. Permanent Expulsion
+* **Community Impact**: Egregious violations including doxxing, hate speech, malicious code injection, threats of violence, or repeated violations following prior suspensions.
+* **Action**: Permanent ban from all repositories, discussions, and community platforms affiliated with Zyndex, with public notice documenting the ban reasons where appropriate.
 
-### 3. Temporary Ban
+---
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+## Attribution & Covenant Origin
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
-
-### 4. Permanent Ban
-
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
-
-**Consequence**: A permanent ban from any sort of public interaction within the
-community.
-
-## Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org),
-version 2.1, available at
-https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
-
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1, with dedicated governance and authorship stipulations customized for the **Zyndex** educational platform by **Bhaanu G**.

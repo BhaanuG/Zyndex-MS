@@ -47,14 +47,14 @@ Zyndex adheres strictly to the following accessibility benchmarks:
 
 ### 2.2 Complete Keyboard Operability & Focus Management
 - **Deterministic Tab Order**: All interactive controls—search bars, category filters, pagination controls, form inputs, and modal action buttons—follow natural visual reading order.
-- **High-Visibility Focus Rings**: Every focusable component features an unmistakable 4px focus ring (`focus:ring-4 focus:ring-orange-600/20`) to assist keyboard-only researchers.
+- **High-Visibility Focus Rings**: Every focusable component features an unmistakable 4px focus ring (`focus:ring-4 focus:ring-orange-600/20` or `focus:outline-2 focus:outline-orange-500`) to assist keyboard-only researchers.
 - **Strict Modal Focus Trapping**: Dialog overlays (including the 2-Minute UTR Hold Modal, Session Inactivity Alert, and Document Upload Modal) trap focus within the active dialog and restore focus to the triggering element upon dismissal.
 - **Global Escape Key & Enter Key Handlers**: Any modal or drawer can be instantly dismissed using the `Escape` key. All form inputs across login, registration OTP verification, and search fields trigger immediate execution via the `Enter` key.
 
 ### 2.3 Screen Reader & Assistive Technology Integration
 - **Semantic HTML5 Landmark Hierarchy**: Interfaces are structured with native `<header>`, `<nav>`, `<main>`, `<section>`, `<table>`, and `<footer>` elements, allowing screen readers (NVDA, JAWS, VoiceOver, and ChromeVox) to jump directly between logical regions.
 - **Comprehensive ARIA Metadata**: Buttons featuring icon-only visual layouts are reinforced with unambiguous `aria-label`, `aria-expanded`, and `aria-haspopup` attributes.
-- **Live Status Announcements**: Asynchronous operations (OTP generation, document ingestion progress, payment verification state changes) are wrapped in `aria-live="polite"` regions so assistive technology users receive real-time operational feedback.
+- **Live Status Announcements**: Asynchronous operations (OTP generation, document ingestion progress, payment verification state changes, telemetry stream updates) are wrapped in `aria-live="polite"` regions so assistive technology users receive real-time operational feedback without disruptive focus shifts.
 
 ### 2.4 Digital Document & PDF Reader Accessibility
 - **Dynamic In-Browser Scaling**: The embedded PDF reader supports continuous document zoom from 50% to 250% without truncating margins or breaking text reflow.
