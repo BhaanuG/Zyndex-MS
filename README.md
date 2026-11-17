@@ -764,7 +764,7 @@ sequenceDiagram
     Sub->>DB: SELECT * FROM payments ORDER BY created_at DESC
     Sub->>Auth: Fetches user name & email
     Sub-->>AdminUI: Populates transactions table with color-coded badges
-    Note over AdminUI: UTR Submitted: Admin sees direct Accept & Decline buttons; Cancelled at QR: Eye info icon only
+    Note over AdminUI: UTR Submitted displays Accept and Decline buttons, while Cancelled at QR displays Info icon only
     alt Admin Confirms Payment
         AdminUI->>GW: POST /api/payments/admin/verify {paymentId, action: "CONFIRM"}
         GW->>Sub: Forward request
@@ -951,9 +951,9 @@ sequenceDiagram
         Auth->>DB: UPDATE users SET session_token_version = session_token_version + 1
         Auth->>DB: DELETE FROM trusted_devices WHERE device_token != 'dev_l1'
         Auth-->>Laptop: Issues refreshed JWT (v=3)
-        Note over Mobile: Mobile next API call receives 401 Unauthorized, displays Session Timeout Modal ('Session active on another device') and auto-logs out in 15 seconds
-    else 2 hr 30 min Inactivity Timeout Triggered
-        Note over Laptop: After 2 hours idle: surfaces 30-min warning modal; after 2h 30m: closes session with 15s countdown modal
+        Note over Mobile: Mobile next API call receives 401 Unauthorized, displays Session Timeout Modal for active session on another device and auto-logs out in 15 seconds
+    else Inactivity Timeout Triggered (2h 30m)
+        Note over Laptop: After 2 hours idle surfaces 30-min warning modal, and after 150 minutes idle closes session with 15s countdown modal
     end
 ```
 
