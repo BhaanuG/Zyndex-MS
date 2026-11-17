@@ -1391,6 +1391,31 @@ graph TD
     ResourceDetail --> ReadingTimer[Heartbeat Duration Tracker]
 ```
 
+#### Detailed Component-to-Route Mapping & Functional Breakdown
+
+Below is the structured breakdown of each core React page component, its associated browser routes, access control tier, and runtime operational responsibilities:
+
+| Page Component | Registered Route Path | Access Control Level | Primary Purpose & Key Features |
+| :--- | :--- | :--- | :--- |
+| **`Login.jsx`** | `/Zyndex/User/Log-In`<br>`/Zyndex/Admin/Log-In` | Public | Dual-tab login & registration portal with role selector (`STUDENT` or `ADMIN`), password reveal toggle, dynamic 24h trusted device bypass, visual canvas CAPTCHA, and error handling. |
+| **`MailOtpVerification.jsx`** | `/Zyndex/User/Mail-OTP-Verification` | Public | Accepts and verifies the 4-digit numeric OTP dispatched via SMTP (strict 120s TTL expiry) before creating and activating the user account. |
+| **`ForgotPassword.jsx`** | `/Zyndex/Auth/Forgot-Password` | Public | Self-service password reset workflow: verifies registered email, dispatches password reset OTP, and allows setting a new secure password. |
+| **`AdminRequest.jsx`** | `/Zyndex/Admin/Sign-Up` | Public | Faculty application portal for requesting institutional administrator privileges, submitted for Main Admin review. |
+| **`Pricing.jsx`** | `/Zyndex/About/Pricing`<br>`/Zyndex/User/:name/:email/Profile/Billing/Pricing` | Public / Student | Full pricing comparison table (Free, Basic, Plus, Pro, University, Enterprise), UPI QR checkout modal, countdown timer, and 12-digit UTR input form. |
+| **`Browse.jsx`** | `/Zyndex/Resources/Browse` | Public / Student | Academic catalog with live search, department filters, semester dropdowns, and format badges (`PDF`, `EPUB`, `ARTICLE`). |
+| **`BrowseCategory.jsx`** | `/Zyndex/Browse-Category/:category` | Public / Student | Filtered resource view displaying textbooks and journals specific to an academic category (AI, ML, Physics, Economics, etc.). |
+| **`UserHome.jsx`** | `/Zyndex/User/:name/:email/Home` | Student (`user`) | Personalized student dashboard featuring recommended textbooks, recently opened documents, and live reading statistics. |
+| **`ResourceDetail.jsx`** | `/Zyndex/User/:name/:email/Resource/:id` | Student (`user`) | Comprehensive textbook view: interactive PDF reader with PDFBox slice preview, reading duration tracking, and feedback submission featuring an explicit **Anonymous Feedback Toggle** (when toggled ON, reviews conceal user identity as `Anonymous Reader` across the admin portal). |
+| **`SearchResults.jsx`** | `/Zyndex/User/:name/:email/Search` | Student (`user`) | Keyword search results with matched term highlighting, category grouping, and relevance sorting options. |
+| **`UserProfile.jsx`** | `/Zyndex/User/:name/:email/Profile` | Student (`user`) | Profile settings, password management, saved favorites list, download history, and active subscription details with tax invoice viewer. |
+| **`AdminDashboard.jsx`** | `/Zyndex/Admin/:name/:email/Dashboard` | Admin (`admin`) | High-level metrics: total catalog items, registered students, active subscriptions, revenue, and recent audit logs. |
+| **`AdminPayments.jsx`** | `/Zyndex/Admin/:name/:email/Payments` | Admin (`admin`) | Live payments portal: 6-second auto-polling, distinct user columns, UTR review hold, modal for **Confirm & Verify** or **Decline**, and 1-click Excel export. |
+| **`AdminLogs.jsx`** | `/Zyndex/Admin/:name/:email/Logs` | Admin (`admin`) | Real-time enterprise audit and telemetry hub structured into 3 distinct non-blended operational categories: (1) **Reading History & Engagement Analytics** with clustered student reading sessions, reading time in hrs/mins/sec, and Recharts telemetry; (2) **Microservice & Audit Logs** capturing real-time operational events across all Spring Boot microservices (`AUTH-SERVICE`, `CONTENT-SERVICE`, `USAGE-SERVICE`, `SUBSCRIPTION-SERVICE`, `ACCESS-SERVICE`, `API-GATEWAY`) with zero delay; (3) **Admin Action Logs** capturing an inspection trail of every administrator login step, credential submission, captcha verification, trusted device selection, page navigation, and catalog modification with exact seconds-accurate timestamps. |
+| **`ResourceManagement.jsx`** | `/Zyndex/Admin/:name/:email/Resource-Management` | Admin (`admin`) | Catalog administration: edit textbook metadata, update required subscription tier, replace PDF files, or delete resources. Includes integrated live sorting and filtering controls beside Search by Category and Newest/Oldest Added Date. |
+| **`UploadResource.jsx`** | `/Zyndex/Admin/:name/:email/Upload-Resource` | Admin (`admin`) | Document upload interface: file selector (PDF, EPUB, DOCX), title, author, department, and required tier selection. |
+| **`UserAccessManagement.jsx`** | `/Zyndex/Admin/:name/:email/User-Access` | Primary Admin | User administration directory: view all registered students, toggle account status, assign custom subscription tiers, and edit roles. |
+| **`FeedbackReview.jsx`** | `/Zyndex/Admin/:name/:email/Feedback-Review` | Admin (`admin`) | Moderation portal for student reviews, ratings, and user-submitted feedback. |
+
 ---
 
 ## 9. Security, Authentication & JWT Traceability
@@ -2052,13 +2077,13 @@ Statistics were calculated using a native filesystem audit executed across all s
 | :--- | :--- | :--- |
 | **Total Source Files** | **215 Files** | Application-owned source, configuration, template, and schema manifests |
 | **Total Folders / Directories** | **42 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **57,360 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **209,630 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,620,571 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,396,624 Characters** | 53.29% of total character stream |
-| **Digits & Numbers (`0-9`)** | **63,954 Characters** | 2.44% of total character stream |
-| **Symbols, Operators & Punctuation** | **352,778 Characters** | 13.46% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **807,215 Characters** | 30.80% of total character stream (indentation, newlines) |
+| **Total Lines of Code (LOC)** | **57,385 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **210,246 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,625,709 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,400,444 Characters** | 53.34% of total character stream |
+| **Digits & Numbers (`0-9`)** | **63,968 Characters** | 2.44% of total character stream |
+| **Symbols, Operators & Punctuation** | **353,438 Characters** | 13.46% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **807,859 Characters** | 30.77% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
@@ -2068,12 +2093,12 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,765 Lines** | **44,138 Words** | **555,762 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,019 Lines** | **16,413 Words** | **178,732 Chars** |
 | **`.json`** | Package & Dependency Manifests | **2 Files** | **6,156 Lines** | **11,741 Words** | **189,488 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,694 Lines** | **23,873 Words** | **208,398 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,719 Lines** | **24,489 Words** | **213,536 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **909 Lines** | **2,039 Words** | **21,091 Chars** |
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **713 Lines** | **1,387 Words** | **22,294 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
-| **Overall Total** | **Full Stack Application** | **215 Files** | **57,360 Lines** | **209,630 Words** | **2,620,571 Chars** |
+| **Overall Total** | **Full Stack Application** | **215 Files** | **57,385 Lines** | **210,246 Words** | **2,625,709 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
