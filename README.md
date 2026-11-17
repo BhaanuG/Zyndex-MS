@@ -1306,12 +1306,6 @@ Zyndex implements a hardened, poly-service microservices architecture. Communica
 
 The Zyndex frontend is architected as a **Comprehensive Multi-Page Platform & Multi-Portal Academic Web Application**, engineered on top of a modern **Single-Page Application (SPA)** client-side routing runtime. It is built using **React 18.3.1**, **Vite 6.4.6**, **Tailwind CSS**, **Framer Motion**, and **Recharts**.
 
-> [!NOTE]
-> **Understanding Single-Page Application (SPA) Architecture**:
-> In computer science, a Single-Page Application (SPA) does **not** mean the website only has a single page. Zyndex is a massive, multi-page academic platform featuring over 20+ distinct, bookmarkable screens (User Home, PDF Reader, Pricing, Admin Dashboards, Payments, Audit Logs).
-> 
-> The term **Single-Page Application (SPA)** describes the underlying **rendering engine**: instead of the browser making a slow server request and reloading the entire screen with a white flash on every click (traditional Multi-Page Architecture), an SPA loads the master HTML shell (`index.html`) and JavaScript bundle once. When a scholar navigates from `/Zyndex/User/Home` to `/Zyndex/Resource/42` or `/Zyndex/Admin/Dashboard`, the client-side router (`react-router-dom`) swaps the entire view component in **0 milliseconds** with seamless transitions while maintaining real URLs, browser history, and direct deep-linking.
-
 ### 8.1 🎨 The Design-to-Code Philosophy: From Ideation to Figma to Production
 
 The user interface of Zyndex was not assembled haphazardly through component libraries; it was engineered through a deliberate, three-stage design methodology prioritizing academic immersion, cognitive ergonomics, and zero-distraction research:
@@ -2058,13 +2052,13 @@ Statistics were calculated using a native filesystem audit executed across all s
 | :--- | :--- | :--- |
 | **Total Source Files** | **215 Files** | Application-owned source, configuration, template, and schema manifests |
 | **Total Folders / Directories** | **42 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **57,366 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **209,761 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,621,565 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,397,384 Characters** | 53.30% of total character stream |
-| **Digits & Numbers (`0-9`)** | **63,959 Characters** | 2.44% of total character stream |
-| **Symbols, Operators & Punctuation** | **352,868 Characters** | 13.46% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **807,354 Characters** | 30.80% of total character stream (indentation, newlines) |
+| **Total Lines of Code (LOC)** | **57,360 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **209,630 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,620,571 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,396,624 Characters** | 53.29% of total character stream |
+| **Digits & Numbers (`0-9`)** | **63,954 Characters** | 2.44% of total character stream |
+| **Symbols, Operators & Punctuation** | **352,778 Characters** | 13.46% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **807,215 Characters** | 30.80% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
@@ -2074,12 +2068,12 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,765 Lines** | **44,138 Words** | **555,762 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,019 Lines** | **16,413 Words** | **178,732 Chars** |
 | **`.json`** | Package & Dependency Manifests | **2 Files** | **6,156 Lines** | **11,741 Words** | **189,488 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,700 Lines** | **24,004 Words** | **209,392 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,694 Lines** | **23,873 Words** | **208,398 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **909 Lines** | **2,039 Words** | **21,091 Chars** |
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **713 Lines** | **1,387 Words** | **22,294 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
-| **Overall Total** | **Full Stack Application** | **215 Files** | **57,366 Lines** | **209,761 Words** | **2,621,565 Chars** |
+| **Overall Total** | **Full Stack Application** | **215 Files** | **57,360 Lines** | **209,630 Words** | **2,620,571 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
