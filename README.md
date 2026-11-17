@@ -2029,29 +2029,30 @@ Statistics were calculated using a native filesystem audit executed across all s
 
 | Metric Category | Measured Quantity | Description & Character Breakdown |
 | :--- | :--- | :--- |
-| **Total Source Files** | **209 Files** | Application-owned source, configuration, template, and schema manifests |
-| **Total Lines of Code (LOC)** | **50,713 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **180,926 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,207,404 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,202,584 Characters** | 54.48% of total character stream |
-| **Digits & Numbers (`0-9`)** | **54,985 Characters** | 2.49% of total character stream |
-| **Symbols, Operators & Punctuation** | **307,040 Characters** | 13.91% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **642,764 Characters** | 29.12% of total character stream (indentation, newlines) |
+| **Total Source Files** | **215 Files** | Application-owned source, configuration, template, and schema manifests |
+| **Total Folders / Directories** | **42 Folders** | Structured source modules, microservice packages, and asset directories |
+| **Total Lines of Code (LOC)** | **57,314 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **208,192 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,609,424 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,387,596 Characters** | 53.18% of total character stream |
+| **Digits & Numbers (`0-9`)** | **63,778 Characters** | 2.44% of total character stream |
+| **Symbols, Operators & Punctuation** | **351,851 Characters** | 13.48% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **806,199 Characters** | 30.90% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
 | Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`.jsx`** | React UI Components & Pages | **95 Files** | **25,746 Lines** | **90,508 Words** | **1,147,331 Chars** |
-| **`.java`** | Spring Boot Microservices Backend | **64 Files** | **9,848 Lines** | **40,265 Words** | **496,709 Chars** |
-| **`.js`** | JavaScript API Clients & Utilities | **16 Files** | **4,609 Lines** | **14,415 Words** | **155,131 Chars** |
-| **`.json`** | Package & Dependency Manifests | **2 Files** | **5,994 Lines** | **11,424 Words** | **169,922 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,497 Lines** | **20,573 Words** | **180,985 Chars** |
-| **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **801 Lines** | **1,834 Words** | **17,992 Chars** |
-| **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **12 Files** | **665 Lines** | **1,287 Words** | **19,662 Chars** |
-| **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **523 Lines** | **552 Words** | **18,789 Chars** |
-| **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
-| **Overall Total** | **Full Stack Application** | **209 Files** | **50,713 Lines** | **180,926 Words** | **2,207,404 Chars** |
+| **`.jsx`** | React UI Components & Pages | **99 Files** | **30,538 Lines** | **109,406 Words** | **1,424,117 Chars** |
+| **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,765 Lines** | **44,138 Words** | **555,762 Chars** |
+| **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,019 Lines** | **16,413 Words** | **178,732 Chars** |
+| **`.json`** | Package & Dependency Manifests | **2 Files** | **6,156 Lines** | **11,741 Words** | **189,488 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,648 Lines** | **22,435 Words** | **197,251 Chars** |
+| **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **909 Lines** | **2,039 Words** | **21,091 Chars** |
+| **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **713 Lines** | **1,387 Words** | **22,294 Chars** |
+| **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
+| **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
+| **Overall Total** | **Full Stack Application** | **215 Files** | **57,314 Lines** | **208,192 Words** | **2,609,424 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
