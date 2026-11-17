@@ -240,6 +240,7 @@ export default function Login() {
           return;
         }
 
+        const trimmedName = name.trim();
         const formattedName = trimmedName ? trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase() : '';
         const trimmedEmail = email.trim();
 
