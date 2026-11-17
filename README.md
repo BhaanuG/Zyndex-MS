@@ -563,7 +563,6 @@ Zyndex mandates 4-digit TLS-relayed One-Time Passwords (OTPs) with a strict 120-
 
 ```mermaid
 sequenceDiagram
-sequenceDiagram
     autonumber
     actor Student as Student Browser
     participant UI as Login.jsx / MailOtpVerification.jsx
@@ -2080,13 +2079,13 @@ Statistics were calculated using a native filesystem audit executed across all s
 | :--- | :--- | :--- |
 | **Total Source Files** | **215 Files** | Application-owned source, configuration, template, and schema manifests |
 | **Total Folders / Directories** | **42 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **57,388 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **210,304 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,626,181 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,400,777 Characters** | 53.34% of total character stream |
+| **Total Lines of Code (LOC)** | **57,387 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **210,303 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,626,164 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,400,762 Characters** | 53.34% of total character stream |
 | **Digits & Numbers (`0-9`)** | **63,971 Characters** | 2.44% of total character stream |
 | **Symbols, Operators & Punctuation** | **353,512 Characters** | 13.46% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **807,921 Characters** | 30.76% of total character stream (indentation, newlines) |
+| **Whitespace & Formatting (`\s`)** | **807,919 Characters** | 30.76% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
@@ -2096,12 +2095,12 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,765 Lines** | **44,138 Words** | **555,762 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,019 Lines** | **16,413 Words** | **178,732 Chars** |
 | **`.json`** | Package & Dependency Manifests | **2 Files** | **6,156 Lines** | **11,741 Words** | **189,488 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,722 Lines** | **24,547 Words** | **214,008 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **2,721 Lines** | **24,546 Words** | **213,991 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **909 Lines** | **2,039 Words** | **21,091 Chars** |
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **713 Lines** | **1,387 Words** | **22,294 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
-| **Overall Total** | **Full Stack Application** | **215 Files** | **57,388 Lines** | **210,304 Words** | **2,626,181 Chars** |
+| **Overall Total** | **Full Stack Application** | **215 Files** | **57,387 Lines** | **210,303 Words** | **2,626,164 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
