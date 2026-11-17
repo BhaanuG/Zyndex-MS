@@ -52,8 +52,11 @@
 **Zyndex** is a production-grade, distributed academic learning and digital resource management platform designed for universities, campus libraries, research labs, and academic consortia. The platform eliminates content redistribution risks and resolves fragmented student entitlements through:
 
 - **Strict Cryptographic Perimeter**: Dynamic 4-digit TLS-relayed OTP authentication, multi-device session management with real-time active session monitoring, 24-hour trusted device recognition with daily midnight IST reset, single-session token version enforcement (`session_token_version`), and stateless HMAC-SHA256 JWT access tokens.
+
 - **Zero-Leakage In-Memory PDF Slicing**: Proprietary academic documents are sliced on-the-fly in heap memory via Apache PDFBox for unverified and evaluation tiers, preventing client-side retrieval of complete files.
+
 - **Real-Time Telemetry Engine**: Continuous 15-second client heartbeat aggregation that accurately measures active reading duration, total unique readers, and concurrent live sessions.
+
 - **Dedicated UPI Checkout & Instant Reconciliation**: Dedicated multi-segment checkout route (`/Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/UTR/*`) featuring real-time analog clock hands with digital countdown (5-minute QR window, 10-minute UTR window), live UPI payment intent generation, bank UTR hold verification, browser-authenticated invoice viewer (`/Zyndex/Invoice/:id`), and administrative reconciliation portal.
 
 ---
@@ -143,25 +146,45 @@ flowchart TD
 ---
 
 ## 📑 Executive Table of Contents
+
 1. [Platform Overview & Mission Architecture](#1-project-identity--overview)
+
 2. [Domain Problem Statement & Solution Matrix](#2-what-is-zyndex-concept-domain--user-journeys)
+
 3. [Function-by-Function Source Code Inventory](#3-function-by-function-source-code-inventory)
+
 4. [Exact End-to-End Execution Flow Traces](#4-exact-end-to-end-execution-flow-traces)
+
 5. [Business Logic & Rules Knowledge Base](#5-business-logic--rules-knowledge-base)
+
 6. [Complete Codebase Directory & File Reference](#6-complete-codebase-directory--file-reference)
+
 7. [Complete Microservices System Architecture](#7-complete-microservices-system-architecture)
+
 8. [Frontend Architecture & Page-by-Page Reference](#8-frontend-architecture--page-by-page-reference)
+
 9. [Security, Authentication & JWT Traceability](#9-security-authentication--jwt-traceability)
+
 10. [Comprehensive REST API Reference](#10-comprehensive-rest-api-reference)
+
 11. [Database Architecture, Schemas & Mermaid ER Diagrams](#11-database-architecture-schemas--mermaid-er-diagrams)
+
 12. [Payment Gateway & Subscription Architecture](#12-payment-gateway--subscription-architecture)
+
 13. [Pin-to-Pin Practical Debugging Handbook](#13-pin-to-pin-practical-debugging-handbook)
+
 14. [Installation, Setup & Local Execution Guide](#14-installation-setup--local-execution-guide)
+
 15. [Testing Documentation & Verification Suites](#15-testing-documentation--verification-suites)
+
 16. [Deployment, Production Readiness & Known Risks](#16-deployment-production-readiness--known-risks)
+
 17. [Quantitative Codebase Statistics & Metrics](#17-quantitative-codebase-statistics--metrics)
+
 18. [Glossary of Technical Terminology](#18-comprehensive-glossary-of-technical-concepts--expanded-acronyms)
+
 19. [Developer Quick Navigation Index](#19-developer-quick-navigation-index)
+
 20. [Comprehensive Explanation of Technologies & Concepts Used in the Platform](#20-comprehensive-explanation-of-technologies--concepts-used-in-the-platform)
 
 ---
@@ -171,10 +194,14 @@ flowchart TD
 **Zyndex** is a production-grade, distributed digital library and academic resource repository. Designed for higher-education institutions, university campuses, and research organizations, Zyndex provides an end-to-end ecosystem connecting students, researchers, faculty, and administrators with textbooks, academic journals, syllabus guides, research papers, and lecture materials under strict digital access governance, multi-tiered subscription memberships, automated email notifications, and real-time telemetry analytics.
 
 ### 1.1 The Problem Zyndex Solves
+
 Academic institutions and independent publishers face severe digital content distribution challenges:
 - **Uncontrolled Redistribution & Copyright Infringement**: Universities struggle to distribute copyrighted textbooks and reference materials safely without risk of unauthorized downloading and redistribution.
+
 - **Disconnected Identity & Entitlements**: Traditional learning systems maintain user accounts separately from tier subscriptions, leading to fractured student access and complex entitlement enforcement.
+
 - **Absence of Verifiable Telemetry**: Academic leadership lacks granular data regarding which textbooks students actively read, how many minutes are spent per subject, and whether students meet reading quotas.
+
 - **Payment Verification Complexities in Emerging Markets**: Traditional recurring card billing frequently fails in India due to e-mandate banking regulations. Zyndex solves this through direct **UPI intent and QR code generation**, 12-digit UTR reference submission, and an administrative verification portal.
 
 ### 1.2 Quick Project Reference Table
@@ -203,17 +230,29 @@ Academic institutions and independent publishers face severe digital content dis
 Zyndex models the academic ecosystem around three foundational concepts: **Catalog Resources**, **Access Entitlements**, and **Reading Telemetry**.
 
 1. **Digital Publishing & Catalog Model**:
+
    - Content is categorized into **Textbooks**, **Academic Journals**, **Research Papers**, **Syllabus Modules**, and **Lecture Notes**.
+
    - Resources are organized by academic level (`Undergraduate`, `Postgraduate`, `PhD`), department (`Computer Science`, `Electrical Engineering`, etc.), semester, and required tier (`FREE`, `STUDENT_BASIC`, `STUDENT_PLUS`, `RESEARCHER_PRO`).
+
    - Files are stored on the server filesystem under `backend/uploads/` and streamed securely. PDF files requested by free-tier users are dynamically sliced in-memory via **Apache PDFBox** to prevent access beyond the 10-page preview ceiling.
+
 2. **Subscription & Entitlement Model**:
+
    - **Free / Demo**: Public documents only, 10-page preview limit, maximum 5 readings per day, online viewing only.
+
    - **Student Basic (₹99/mo)**: Digital books, academic journals, unlimited online reading, personal reading history.
+
    - **Student Plus (₹199/mo)**: Entire catalog, digital books, journals, research documents, offline browser saving, advanced semantic filtering, engagement metrics.
+
    - **PhD Scholar / Researcher (₹499/mo)**: Complete research collection, citation exports, download permissions for authorized documents, researcher analytics.
+
    - **University (₹1,00,000/yr) & Enterprise (₹3 - 5 Lakh/yr)**: Campus-wide SSO access, bulk student seats, institutional reporting, and administrative controls.
+
 3. **Telemetry & Reading Duration**:
+
    - While a student reads a document, the browser reader executes periodic heartbeats (`POST /api/resources/{id}/track-duration` and `/api/usage/records`).
+
    - Telemetry data is recorded in `zyndex_usage.usages` and aggregated in real-time, computing active sessions (users active within 15 minutes) and total reading time formatted into hours, minutes, and seconds.
 
 ### 2.2 End-to-End User Journeys
@@ -255,115 +294,209 @@ This section provides an exhaustive, class-by-class and method-by-method technic
 ### 3.1 Authentication & User Microservice (`auth-service` : 8081)
 
 #### 3.1.1 `AuthController.java`
+
 - **Path**: `auth-service/src/main/java/com/zyndex/auth/AuthController.java`
+
 - **Package**: `com.zyndex.auth`
+
 - **Purpose**: Exposes authentication endpoints including registration, credential verification, JWT issuance, admin signup requests, password resets, and session validation.
+
 - **Dependencies**: `JdbcTemplate jdbc`, `AuthSupport auth`, `AppProperties properties`, `AccountEmailService accountEmailService`.
+
 - **Key Methods**:
   1. `register(@RequestBody Map<String, Object> body)`
+
      - **Signature**: `Map<String, Object> register(Map<String, Object> body)`
+
      - **Mapping**: `POST /api/auth/register`
+
      - **Parameters**: `name`, `email`, `password`, `userType` (or `role`), `collegeName` (optional).
+
      - **Return**: Map containing `message`, created `user` summary, and default `FREE` tier assignment.
+
      - **Execution Sequence**:
+
        1. Validates that `email`, `name`, and `password` are non-blank.
+
        2. Validates password strength via `auth.validatePasswordStrength(password)` (minimum 8 characters, digit, uppercase, special character).
+
        3. Queries `zyndex_auth.users` to ensure email is not already registered.
+
        4. Hashes password using `auth.passwordEncoder.encode(password)` (BCrypt).
+
        5. Inserts user into `users` table with `status = 'ACTIVE'`, `subscription_plan = 'FREE'`.
+
        6. Asynchronously sends welcome email via `accountEmailService.sendSignupConfirmationEmail`.
+
      - **Exceptions**: `ApiException(HttpStatus.BAD_REQUEST)` if fields are missing or email exists.
+
      - **Database Operations**: `SELECT id FROM users WHERE LOWER(email) = ?`, `INSERT INTO users ...`.
+
   2. `login(HttpServletRequest request, @RequestBody Map<String, Object> body)`
+
      - **Signature**: `Map<String, Object> login(HttpServletRequest, Map<String, Object>)`
+
      - **Mapping**: `POST /api/auth/login`
+
      - **Parameters**: `email`, `password`, `role` (default `"user"`), optional `deviceToken`, `deviceName`, `browser`, `os`, `isTrusted`.
+
      - **Return**: Map containing `token` (7-day signed JWT) and sanitized `user` object.
+
      - **Execution Sequence**:
+
        1. Queries `users` by lowercase email. Throws 401 if not found.
+
        2. Verifies account status is `ACTIVE` and `is_terminated == false` (throws 403 if terminated or suspended).
+
        3. Checks role authorization: if `role="admin"` requested, user must possess `role="ADMIN"`.
+
        4. Evaluates password with `auth.passwordEncoder.matches(rawPassword, storedHash)`. Throws 401 on mismatch.
+
        5. Increments `session_token_version = session_token_version + 1` in `users` table to invalidate older active sessions across other devices.
+
        6. Extracts real client IP via `AuthSupport.getClientIp(request)` (reading `X-Forwarded-For` / remote network address).
+
        7. If `deviceToken` is supplied, registers/updates the device session in `trusted_devices` table with `is_trusted` flag and expiration timestamp (midnight IST if trusted, 30 days retention for active session tracking).
+
        8. Generates HMAC-SHA256 JWT via `auth.signToken(user)` containing updated `session_token_version`.
+
      - **Exceptions**: `ApiException(HttpStatus.UNAUTHORIZED)`, `ApiException(HttpStatus.FORBIDDEN)`.
+
   3. `checkLogin(HttpServletRequest request, @RequestBody Map<String, Object> body)`
+
      - **Signature**: `Map<String, Object> checkLogin(HttpServletRequest, Map<String, Object>)`
+
      - **Mapping**: `POST /api/auth/check-login`
+
      - **Purpose**: Pre-validates user credentials during multi-step authenticator screens without issuing an active session token.
+
   4. `checkTrustedDevice(@RequestBody Map<String, Object> body)`
+
      - **Mapping**: `POST /api/auth/check-trusted-device`
+
      - **Purpose**: Verifies whether an incoming `deviceToken` is actively recognized and flagged with `is_trusted = true` (within the current day prior to midnight IST) to safely bypass email OTP during login.
+
   5. `trustDevice(HttpServletRequest request, @RequestBody Map<String, Object> body)`
+
      - **Mapping**: `POST /api/auth/trust-device`
+
      - **Purpose**: Stores or renews a device session in `trusted_devices` with device token, device name, browser, OS, real client IP, and trust status.
+
   6. `untrustDevice(@RequestBody Map<String, Object> body)`
      - **Mapping**: `POST /api/auth/untrust-device`
+
      - **Purpose**: Sets `is_trusted = false` for the designated device token without wiping its login history from user audit logs.
+
   7. `adminRequest(@RequestBody Map<String, Object> body)`
+
      - **Signature**: `Map<String, Object> adminRequest(Map<String, Object> body)`
+
      - **Mapping**: `POST /api/auth/admin-request`
+
      - **Purpose**: Allows institutional leaders to submit an administrative access request stored in `admin_requests` table with status `PENDING`.
+
   8. `decideAdminRequest(HttpServletRequest request, @PathVariable long id, @RequestBody Map<String, Object> body)`
+
      - **Signature**: `Map<String, Object> decideAdminRequest(HttpServletRequest, long, Map<String, Object>)`
+
      - **Mapping**: `PUT /api/auth/admin-requests/{id}/decision`
+
      - **Purpose**: Approves (`APPROVED`) or rejects (`REJECTED`) admin requests. If approved, promotes target user role to `ADMIN`.
 
 #### 3.1.2 `OtpController.java`
+
 - **Path**: `auth-service/src/main/java/com/zyndex/auth/OtpController.java`
+
 - **Package**: `com.zyndex.auth`
+
 - **Purpose**: Generates, stores, throttles, and verifies 4-digit numeric One-Time Passwords (OTPs) for registration, password reset, and sensitive logins.
+
 - **Dependencies**: `JavaMailSender mailSender`, `AppProperties properties`, `AuthSupport auth`.
+
 - **In-Memory Store**: `ConcurrentHashMap<String, OtpRecord> otps` where key is `email:role` and record holds `otp`, `expiresAt` (Instant), and `attempts` count.
+
 - **Key Methods**:
   1. `send(@RequestBody Map<String, Object> body)`
+
      - **Signature**: `Map<String, Object> send(Map<String, Object> body)`
+
      - **Mapping**: `POST /api/send-otp`
+
      - **Parameters**: `email`, `role` (`"user"` or `"admin"`), `purpose` (`"REGISTRATION"`, `"PASSWORD_RESET"`, etc.).
+
      - **Code Logic**:
+
        - Generates 4-digit code: `String.valueOf(1000 + RANDOM.nextInt(9000))`.
+
        - Stores record with 120-second TTL (`OTP_TTL_SECONDS = 120`) and 0 attempts.
+
        - Dispatches HTML formatted email using `MimeMessageHelper` via configured SMTP relay.
+
      - **Return**: `{"message": "Verification code sent."}`.
   2. `verify(@RequestBody Map<String, Object> body)`
+
      - **Signature**: `Map<String, Object> verify(Map<String, Object> body)`
+
      - **Mapping**: `POST /api/verify-otp`
      - **Parameters**: `email`, `otp`, `role`.
      - **Validation**:
+
        - Rejects if record missing or expired (`record.expiresAt().isBefore(Instant.now())`).
+
        - Enforces rate limiting: increments `attempts`. If `attempts > 5`, purges record and throws 429 Too Many Requests.
+
        - Checks match with `record.otp().equals(candidateOtp)`. On match, removes record from map and returns 200 OK.
 
 #### 3.1.3 `UserController.java`
+
 - **Path**: `auth-service/src/main/java/com/zyndex/auth/UserController.java`
+
 - **Package**: `com.zyndex.auth`
+
 - **Purpose**: User profile management, administrative user CRUD, status updates, multi-device session tracking, device revocation, and internal plan upgrade email dispatches.
+
 - **Key Methods**:
+
   1. `profile(HttpServletRequest request, @PathVariable("userId") String userId)`: Returns user profile including name, email, department, college, and active subscription plan.
+
   2. `updateProfile(HttpServletRequest request, @RequestBody Map<String, Object> body)`: Updates name, department, phone, college, and avatar URL.
+
   3. `getActiveSessions(HttpServletRequest request)`:
      - **Mapping**: `GET /api/users/sessions`
      - **Purpose**: Powers the **Security & Devices** panel.
+
      - **Logic**: Retrieves active and trusted devices from `trusted_devices` table for the current user ID / email, extracts caller's real client IP (`AuthSupport.getClientIp`), current `session_token_version`, and device trust metadata.
+
   4. `revokeOtherSessions(HttpServletRequest request, @RequestBody Map<String, Object> body)`:
+
      - **Mapping**: `POST /api/users/sessions/revoke-others`
+
      - **Purpose**: Increments user's `session_token_version` to invalidate all other JWT sessions across browsers/devices and purges other device registrations from `trusted_devices`. Re-issues a fresh JWT for the active browser.
+
   5. `revokeDeviceSession(HttpServletRequest request, @PathVariable("deviceId") long deviceId)`:
+
      - **Mapping**: `DELETE /api/users/sessions/devices/{deviceId}`
+
      - **Purpose**: Revokes and purges a specific device login record by ID, logging the action in `system_logs`.
+
   6. `deleteAccount(HttpServletRequest request, @RequestBody Map<String, Object> body)`:
+
      - **Mapping**: `DELETE /api/users/profile`
+
      - **Purpose**: Self-service permanent account deletion protected by 4-digit OTP verification and confirmation challenge phrase. Dispatches farewell and admin audit emails.
+
   7. `planUpgradeEmail(HttpServletRequest request, @RequestBody Map<String, Object> body)`: Internal inter-service endpoint called by `subscription-service` to dispatch celebratory email when admin confirms UPI payment or subscription is upgraded.
 
 #### 3.1.4 `LogController.java`
+
 - **Path**: `auth-service/src/main/java/com/zyndex/auth/LogController.java`
+
 - **Package**: `com.zyndex.auth`
 - **Purpose**: System audit logging engine.
 - **Key Methods**:
+
   1. `listLogs(HttpServletRequest request, @RequestParam Map<String, String> query)`: Retrieves paginated system logs from `system_logs` table with dynamic filtering by `service`, `level` (`ERROR`, `WARN`, `INFO`), and `search` pattern. Returns statistical level counts.
+
   2. `createLog(HttpServletRequest request, @RequestBody Map<String, Object> body)`: Inserts an audit log entry with IP address, actor email, service name, action, and JSON details.
 
 ---
@@ -371,50 +504,89 @@ This section provides an exhaustive, class-by-class and method-by-method technic
 ### 3.2 Content & Catalog Microservice (`content-service` : 8082)
 
 #### 3.2.1 `ResourceController.java`
+
 - **Path**: `content-service/src/main/java/com/zyndex/content/ResourceController.java`
+
 - **Package**: `com.zyndex.content`
+
 - **Purpose**: Manages educational resources, catalog search, file uploads, PDF streaming, dynamic in-memory preview page slicing via Apache PDFBox, and reading duration tracking.
+
 - **Dependencies**: `JdbcTemplate jdbc`, `AppProperties properties`, `RestTemplate restTemplate`, `SqlSupport sql`.
+
 - **Key Methods**:
+
   1. `all(@RequestParam Map<String, String> query)` & `search(@RequestParam Map<String, String> query)`
+
      - **Mapping**: `GET /api/resources`, `GET /api/resources/search`
+
      - **Logic**: Executes paginated SQL query against `resources` table with case-insensitive filtering on `category`, `type`, and keyword matching across `title`, `description`, and `author`.
+
   2. `upload(HttpServletRequest request, @RequestParam Map<String, String> form, @RequestParam(value = "file", required = false) MultipartFile file)`
+
      - **Mapping**: `POST /api/resources`
+
      - **Security**: Requires `ADMIN` role via `requireAdmin(request)`.
+
      - **File Storage**: Saves file to disk via `storeFile(file)` under `backend/uploads/<UUID>.<ext>`.
+
      - **Database**: Inserts record into `resources` with `required_plan` (`FREE`, `STUDENT_BASIC`, `STUDENT_PLUS`, `RESEARCHER_PRO`).
+
   3. `serveFile(@PathVariable("id") long id, @RequestParam(value = "token", required = false) String token, HttpServletRequest request)`
+
      - **Mapping**: `GET /api/resources/{id}/file`
+
      - **Purpose**: Securely streams document files to the reader.
+
      - **Execution Flow**:
+
        1. Validates user via `X-User-Id` header or short-lived download token from `download_tokens` table (60s TTL).
+
        2. Fetches resource row; resolves file path via `resolveStoredFile(fileUrl)`.
+
        3. Invokes `checkAccessDetails(userId, id, "READ", role, category, type)` by calling `access-service/api/access/check`.
+
        4. Throws 403 Forbidden if not authorized.
        5. Logs `VIEW` usage event to `usage-service`.
        6. **Apache PDFBox In-Memory Slicing**:
+
           - If `accessDetails` contains `pageLimit` (e.g. 10 pages for Free-tier users) and file is a PDF:
+
           - Loads document via `org.apache.pdfbox.Loader.loadPDF(file.toFile())`.
+
           - If total pages > `pageLimit`, creates a new `PDDocument`, clones pages `0` to `pageLimit - 1`, saves to `ByteArrayOutputStream`, and returns the sliced byte array as `application/pdf`.
+
           - Fully prevents unauthorized access to remaining textbook pages at the binary stream level.
+
   4. `trackDuration(HttpServletRequest request, @PathVariable("id") long id, @RequestBody Map<String, Object> body)`
+
      - **Mapping**: `POST /api/resources/{id}/track-duration`
+
      - **Purpose**: Receives client reading heartbeat (e.g. 15 or 30 seconds) and forwards duration to `usage-service/api/usage/records`.
 
 #### 3.2.2 `UserContentController.java`
+
 - **Path**: `content-service/src/main/java/com/zyndex/content/UserContentController.java`
+
 - **Methods**:
+
   - `favorites(HttpServletRequest request, @RequestParam Map<String, String> query)`: Paginated user favorites from `favorites` table.
+
   - `addFavorite(HttpServletRequest request, @PathVariable("resourceId") long resourceId)`: Adds bookmark.
+
   - `removeFavorite(HttpServletRequest request, @PathVariable("resourceId") long resourceId)`: Deletes bookmark.
+
   - `recentViews(HttpServletRequest request, ...)`: Fetches student reading history.
 
 #### 3.2.3 `FeedbackController.java`
+
 - **Path**: `content-service/src/main/java/com/zyndex/content/FeedbackController.java`
+
 - **Methods**:
+
   - `submit(HttpServletRequest, @RequestBody Map<String, Object> body)`: Submits platform feedback.
+
   - `contact(@RequestBody Map<String, Object> body)`: Submits help inquiries and dispatches email via `ContactEmailService`.
+
   - `all(HttpServletRequest, @RequestParam Map<String, String> query)`: Administrative feedback review portal.
 
 ---
@@ -422,27 +594,47 @@ This section provides an exhaustive, class-by-class and method-by-method technic
 ### 3.3 Access & Entitlements Microservice (`access-service` : 8083)
 
 #### 3.3.1 `AccessController.java`
+
 - **Path**: `access-service/src/main/java/com/zyndex/access/AccessController.java`
+
 - **Package**: `com.zyndex.access`
+
 - **Purpose**: Authoritative decision point for resource access, subscription gating, daily free-tier reading limits, and download permissions.
+
 - **Dependencies**: `JdbcTemplate jdbc`, `RestTemplate restTemplate`.
+
 - **Key Methods**:
+
   1. `check(Long userId, Long resourceId, String permission, String role, String category, String type, String requiredPlan)`
+
      - **Mapping**: `GET /api/access/check`
      - **Decision Hierarchy**:
+
        1. If `role="admin"`: Returns `{"authorized": true}` immediately (full admin bypass).
+
        2. Direct Entitlement Check: Queries `access_entitlements` for active record matching `user_id`, `resource_id`, and permission.
+
        3. Global Plan Check: Queries user's active plan entitlement (`resource_id IS NULL`).
+
        4. Tier Comparison: Compares `userTier` against `reqTier` (FREE=0, STUDENT_BASIC=1, STUDENT_PLUS=2, RESEARCHER=3, UNIVERSITY=4, ENTERPRISE=5). If `userTier < reqTier`, returns `authorized: false`.
+
        5. Download Gating: If `permission="DOWNLOAD"` and `userTier < 3` (Researcher Pro), returns `authorized: false`.
+
        6. Free Tier Daily Limit Check:
           - If `userTier == 0` and content is public/demo:
+
           - Queries `usage-service/api/usage/views/user/{userId}/today` to count distinct documents viewed today.
+
           - If count >= `FREE_DAILY_READ_LIMIT` (default 5) and resource not already viewed today, returns `authorized: false`.
+
           - If permitted, returns `{"authorized": true, "pageLimit": 10}` to enforce PDF slicing.
+
   2. `subscribe(HttpServletRequest request, @RequestBody Map<String, Object> body)`
+
      - **Mapping**: `POST /api/access/subscribe`
+
      - **Security**: Restricted to internal calls containing `X-Internal-Service: subscription-service`.
+
      - **Logic**: Revokes prior plan entitlements in `access_entitlements` and grants new active entitlement with expiration calculated as `NOW() + INTERVAL durationDays DAY`.
 
 ---
@@ -450,25 +642,37 @@ This section provides an exhaustive, class-by-class and method-by-method technic
 ### 3.4 Telemetry & Usage Microservice (`usage-service` : 8084)
 
 #### 3.4.1 `UsageController.java`
+
 - **Path**: `usage-service/src/main/java/com/zyndex/usage/UsageController.java`
+
 - **Package**: `com.zyndex.usage`
+
 - **Purpose**: Collects telemetry events, reading duration heartbeats, computes real-time active sessions, and outputs live reading audit logs.
+
 - **Key Methods**:
   1. `logDuration(@RequestBody Map<String, Object> body)`
      - **Mapping**: `POST /api/usage/records`
+
      - **Parameters**: `userId`, `contentId` (or `resourceId`), `duration` (in seconds or minutes).
+
      - **Logic**: Inserts record into `zyndex_usage.usages` table with timestamp.
+
   2. `getEngagementAnalytics()`
      - **Mapping**: `GET /api/usage/engagement/analytics`
      - **Purpose**: Feeds admin analytics dashboard.
      - **Metrics Calculated**:
        - `totalReadingMinutes`: Sum of `duration` across `usages`.
        - `totalSessions`: Count of all reading sessions.
+
        - `activeSessionsNow`: Users whose `last_active_at` in `zyndex_auth.users` was within the last 15 minutes (`NOW() - INTERVAL 15 MINUTE`).
+
        - `trendData`: Hourly aggregated reading minutes and unique readers over past 24 hours.
+
   3. `getLiveReadingHistory(@RequestParam int page, @RequestParam int size)`
+
      - **Mapping**: `GET /api/usage/history/live`
      - **Purpose**: Powers live system logs in Admin portal.
+
      - **Logic**: Multi-table cross-schema join (`zyndex_usage.usages` joined with `zyndex_content.resources`, `zyndex_auth.users`, and `zyndex_access.access`) returning user name, user email, document title, category, reading duration, and timestamp.
 
 ---
@@ -476,47 +680,79 @@ This section provides an exhaustive, class-by-class and method-by-method technic
 ### 3.5 Subscription & Payment Microservice (`subscription-service` : 8085)
 
 #### 3.5.1 `SubscriptionController.java`
+
 - **Path**: `subscription-service/src/main/java/com/zyndex/subscription/SubscriptionController.java`
+
 - **Package**: `com.zyndex.subscription`
+
 - **Purpose**: Plan catalog retrieval, checkout session creation, UTR submission, payment status polling, user subscription cancellation, and admin payment verification.
+
 - **Key Methods**:
+
   1. `getPlans()`: `GET /api/subscriptions/plans` — Returns active subscription plans ordered by price.
+
   2. `createCheckout(HttpServletRequest request, @RequestBody Map<String, Object> body)`: `POST /api/subscriptions/checkout` — Delegates to `paymentService.createCheckoutSession`.
+
   3. `submitUtr(HttpServletRequest request, @PathVariable String paymentId, @RequestBody Map<String, Object> body)`: `POST /api/subscriptions/payment/{paymentId}/submit-utr` — Submits 12-digit UTR reference number for manual admin review.
+
   4. `getAdminPayments(HttpServletRequest request)`: `GET /api/subscriptions/admin/payments` — Admin portal endpoint to view all transactions with user names and emails.
+
   5. `verifyAdminPayment(HttpServletRequest request, @PathVariable String paymentId, @RequestBody Map<String, Object> body)`: `POST /api/subscriptions/admin/payments/{paymentId}/verify` — Admin approves (`CONFIRM`) or declines (`DECLINE`) pending payment.
 
 #### 3.5.2 `PaymentService.java`
+
 - **Path**: `subscription-service/src/main/java/com/zyndex/subscription/PaymentService.java`
+
 - **Package**: `com.zyndex.subscription`
+
 - **Purpose**: Core payment processing, UPI intent formatting, QR code generation, UTR hold state transitions, audit logging, admin verification, and subscription entitlement synchronization.
+
 - **Key Methods**:
+
   1. `createCheckoutSession(Long userId, String requestedPlanId, String requestedPaymentMethod)`
+
      - Validates plan exists and is active.
+
      - Inserts record into `payments` with status `PAYMENT_INITIATED`, generates `order_id` (`ORD_...`).
+
      - Formats direct UPI URI (`upi://pay?pa=918897337687@waaxis&pn=Zyndex%20Digital&am=...`).
+
      - Constructs QR code URL using `api.qrserver.com`.
+
   2. `submitUtrForReview(Long userId, String paymentId, String utrNumber)`
+
      - Validates non-blank UTR string.
+
      - Updates payment status to `REVIEW_REQUIRED` and sets `review_reason = 'User submitted UTR for manual verification. Subscription on hold.'`.
+
      - Logs audit entry `UTR_SUBMITTED_HOLD` in `payment_audit_logs`.
+
      - Calls `sendAdminHoldNotificationEmail` to notify `Bhaanugali@gmail.com` and `Bhaanugali99sai@gmail.com` with complete user, order, and UTR details.
+
   3. `verifyAdminPayment(String paymentId, String action, String adminUtr, String note)`
+
      - When `action="CONFIRM"`:
        - Invokes `activateSuccessfulSubscription`.
        - Updates payment status to `SUCCESS`.
+
        - Revokes old subscription in `subscriptions` and inserts new active subscription.
+
        - Calls `access-service/api/access/subscribe` via `RestTemplate` to elevate reading access.
+
        - Dispatches plan upgrade notification email via `auth-service`.
+
        - Sends multi-page GST tax invoice receipt email to student.
      - When `action="DECLINE"`:
        - Updates payment status to `FAILED` with `failure_reason`.
   4. `getAllPaymentsForAdmin()`
      - Retrieves all payment records.
+
      - Enriches each record with user name and user email by querying `zyndex_auth.users` directly or calling `auth-service/api/users/{id}/profile`.
 
 #### 3.5.3 `PaymentWebhookController.java`
+
 - **Path**: `subscription-service/src/main/java/com/zyndex/subscription/PaymentWebhookController.java`
+
 - **Purpose**: Ingests automated payment gateway webhook callbacks, validating HMAC-SHA256 signatures, timestamps, and idempotency delivery IDs.
 
 ---
@@ -524,18 +760,29 @@ This section provides an exhaustive, class-by-class and method-by-method technic
 ### 3.6 API Gateway & Service Discovery
 
 #### 3.6.1 `JwtValidationFilter.java`
+
 - **Path**: `api-gateway/src/main/java/com/zyndex/gateway/JwtValidationFilter.java`
+
 - **Package**: `com.zyndex.gateway`
+
 - **Type**: Spring Cloud Gateway GlobalFilter (`Ordered.HIGHEST_PRECEDENCE + 10`).
+
 - **Logic**:
+
   1. Whitelists public paths (`/api/auth/login`, `/api/auth/register`, `/api/send-otp`, etc.).
+
   2. Extracts `Authorization: Bearer <token>`.
+
   3. Validates HMAC-SHA256 signature and expiration using JJWT.
+
   4. Strips inbound client spoofed headers (`X-User-Id`, `X-User-Role`, `X-User-Email`).
+
   5. Injects verified claims as request headers: `X-User-Id`, `X-User-Role`, `X-User-Email`.
+
   6. Injects `X-Gateway-Secret` header to authorize downstream service communication.
 
 #### 3.6.2 `GatewaySecretFilter.java` (Present in all 5 downstream services)
+
 - **Purpose**: Intercepts all incoming HTTP servlet requests. Compares `X-Gateway-Secret` header with configured `zyndex.gateway-secret`. Rejects direct port calls with HTTP 403 Forbidden.
 
 ---
@@ -549,17 +796,26 @@ This section traces the full execution path across frontend components, gateway 
 ### 4.1 Flow 1: User Registration & OTP Verification
 
 #### Why OTP Verification Is Mandatory Across Zyndex (Security & Integrity Rationale)
+
 Zyndex mandates 4-digit TLS-relayed One-Time Passwords (OTPs) with a strict 120-second TTL and brute-force attempt limits across critical user workflows. The system rationale includes:
 1. **Preventing Spam & Phantom Account Enumeration**: Blocks automated bots and scripts from registering disposable or non-existent email addresses, preserving database health and ensuring only authentic students, researchers, and faculty join the platform.
+
 2. **Eliminating Account Takeovers (2FA on Sensitive Operations)**: Every login session, password reset request, and password change authorization requires out-of-band email verification, defeating credential stuffing attacks and leaked-password exploitation.
+
 3. **Institutional & Legal Compliance**: Protects copyrighted academic textbooks, research papers, and proprietary study resources by binding access strictly to verified email owners.
+
 4. **Seamless User Experience**: 4-digit codes minimize typing errors, allow rapid input, and trigger interactive geometric visual feedback upon entry, ensuring security without creating unnecessary user friction.
 
 #### Core OTP Use Cases in Zyndex:
+
 - **Use Case 1: Account Registration & Email Proof**: Pre-verifies the student/educator email inbox before committing user records to `zyndex_auth.users`.
+
 - **Use Case 2: Login 2-Step Authentication (2FA)**: Dispatches a dynamic code when authenticating a new session (bypassable only via an optional 24-hour trusted device token).
+
 - **Use Case 3: Self-Service Password Reset (Forgot Password)**: Validates proof-of-inbox possession before allowing a user to overwrite their BCrypt password hash.
+
 - **Use Case 4: In-Session Password Change Authorization**: Requires step-up OTP verification when a logged-in user changes credentials from profile settings.
+
 - **Use Case 5: Real-Time Invalidation & Resend (Anti-Replay)**: Requesting a replacement code immediately destroys the previous OTP in memory to prevent replay vulnerabilities.
 
 ```mermaid
@@ -638,15 +894,25 @@ Across the Zyndex microservices architecture, all transactional emails are rende
 
 **Detailed Step Traceability**:
 1. **User Action**: Student enters name, email, and password on `src/app/pages/Login.jsx`.
+
 2. **Event Handler**: `handleSendOtp` in `Login.jsx` validates input and calls `sendOtp({ email, role: 'user', purpose: 'REGISTRATION' })`.
+
 3. **API Client**: `src/services/api/authService.js` issues `apiClient.post('/api/send-otp', payload)`.
+
 4. **API Gateway**: `api-gateway/src/main/java/com/zyndex/gateway/JwtValidationFilter.java` inspects path, identifies `/api/send-otp` in `PUBLIC_PATH_PREFIXES`, appends `X-Gateway-Secret`, and routes to `lb://auth-service`.
+
 5. **Security Filter**: `auth-service/.../GatewaySecretFilter.java` checks secret match.
+
 6. **Controller**: `auth-service/.../OtpController.java` executes `send`.
+
 7. **Random Generation**: `String.valueOf(1000 + RANDOM.nextInt(9000))` produces 4-digit code.
+
 8. **In-Memory Cache**: Stored in `ConcurrentHashMap<String, OtpRecord>` with `Instant.now().plusSeconds(120)`.
+
 9. **SMTP Dispatch**: `mailSender.send(mimeMessage)` relays email via configured Gmail credentials.
+
 10. **Client Verification**: Student enters code; `handleVerifyOtp` calls `/api/verify-otp`. `OtpController.verify` validates code, prevents brute force (max 5 attempts), and clears OTP record.
+
 11. **Registration Execution**: `AuthController.register` verifies email uniqueness in `users` table, hashes password using BCrypt (cost factor 10), and inserts user with role `USER` and plan `FREE`.
 
 ---
@@ -654,15 +920,25 @@ Across the Zyndex microservices architecture, all transactional emails are rende
 ### 4.2 Flow 2: Student Login & JWT Issuance
 
 1. **User Action**: Student enters email and password, clicks **Sign In**.
+
 2. **React Event**: `handleSubmit` in `src/app/pages/Login.jsx` triggers `login(email, password, 'user')` from `AuthContext`.
+
 3. **HTTP Call**: `POST /api/auth/login` with body `{"email": "...", "password": "...", "role": "user"}`.
+
 4. **Gateway**: Matches public route, forwards to `auth-service`.
+
 5. **Backend Processing**:
+
    - `AuthController.login` queries `SELECT * FROM users WHERE LOWER(email) = ?`.
+
    - Checks `user.status == 'ACTIVE'`.
+
    - Validates password via `passwordEncoder.matches(rawPassword, storedHash)`.
+
    - Updates `last_active_at = NOW()` (critical for real-time telemetry analytics).
+
    - Generates JWT via `AuthSupport.signToken(user)` using HMAC-SHA256 secret. Claims include `sub`: user ID, `email`, `name`, `role`, and 7-day expiration.
+
 6. **Frontend State**: `AuthContext.jsx` receives token and user object, stores token in `localStorage.setItem('auth_token', token)`, sets `currentUser`, and navigates to `/Zyndex/User/:name/:email/Home`.
 
 ---
@@ -712,12 +988,19 @@ sequenceDiagram
 ### 4.4 Flow 4: Reading Telemetry & Duration Aggregation
 
 1. **Reader Timer**: While reading on `src/app/pages/user/ResourceDetail.jsx`, a `setInterval` timer fires every 30 seconds.
+
 2. **Heartbeat Call**: Client calls `POST /api/resources/{id}/track-duration` with `{"duration": 30}`.
+
 3. **Content Forward**: `ResourceController.trackDuration` delegates to `usage-service/api/usage/records`.
+
 4. **Database Insertion**: `UsageController.logDuration` executes `INSERT INTO zyndex_usage.usages (user_id, content_id, duration) VALUES (15, 42, 30)`.
+
 5. **Real-Time Analytics Query**:
+
    - In `AdminLogs.jsx`, polling calls `GET /api/usage/engagement/analytics`.
+
    - `UsageController.getEngagementAnalytics` computes `totalReadingMinutes = SUM(duration)`, `totalSessions = COUNT(*)`, and evaluates `activeSessionsNow` by querying `SELECT COUNT(*) FROM zyndex_auth.users WHERE last_active_at >= NOW() - INTERVAL 15 MINUTE`.
+
    - Formats elapsed time into clean hours, minutes, and seconds for UI display.
 
 ---
@@ -790,46 +1073,81 @@ sequenceDiagram
 ### 4.6 Flow 6: Platform Maintenance Mode Lifecycle (15-Minute Countdown, Automated Termination & Early Cancellation)
 
 #### Why Maintenance Mode Exists & System Rationale
+
 Platform Maintenance Mode is an enterprise safeguard engineered exclusively for the **Primary Platform Administrator** (`Bhaanugali@gmail.com`). Critical infrastructure operations — such as database schema migrations, cross-microservice dependency upgrades, bulk asset indexing, server relocations, and security audits — cannot safely proceed while thousands of students and faculty members are actively submitting form writes, completing UPI checkouts, and streaming PDF files. 
 
 Without maintenance controls, concurrent traffic during upgrades causes data corruption, race conditions in payment state machines, and partial record commits. Maintenance Mode guarantees a controlled, zero-data-loss transition window.
 
 #### What Happens When Maintenance Mode Is Triggered
+
 1. **Initiation by Primary Admin**: The Primary Admin toggles Maintenance Mode ON from `/Zyndex/Admin/.../Dashboard`.
+
 2. **Instant Timestamp Stamping**: `auth-service` stamps `MAINTENANCE_MODE = 'true'` and records the exact start timestamp `MAINTENANCE_SCHEDULED_AT = <ISO_TIMESTAMP>` in `zyndex_auth.system_settings`.
+
 3. **Advance Warning Email Broadcast (Email #20)**: An asynchronous background thread retrieves all registered student, faculty, and regular admin email addresses (excluding the Primary Admin) and dispatches individual advance warning emails:
+
    - **Subject**: `Zyndex System Notice | Scheduled Maintenance in 15 Minutes`
+
    - **Body**: Explains that maintenance will begin in 15 minutes, outlines affected services, and advises users to save active research work and download necessary notes.
+
 4. **Active Session Preservation (Zero Immediate Logout)**:
    - Crucially, **no sessions are terminated immediately**.
+
    - `AuthSupport.isMaintenanceMode()` evaluates `MAINTENANCE_SCHEDULED_AT`; because `elapsedSeconds < 15 * 60`, user authorization tokens remain completely valid. Scholars continue reading and browsing freely during the entire 15-minute preparation period.
+
 5. **Real-Time Visual Countdown Timers**:
    - **For Scholars / Regular Users (`UserLayout.jsx`)**:
+
      - An animated, high-priority notification popup immediately appears at the **top right corner**: *"Scheduled system maintenance is starting soon. The platform will go to maintenance mode in 15 minutes."*
+
      - The popup features a 10-second linear progress bar and **automatically closes after 10 seconds** without requiring user clicks.
+
      - A persistent, pulsing timer badge remains permanently anchored at the **top right corner** beside user navigation controls displaying the live seconds countdown: `Maintenance in: mm:ss`.
+
    - **For Administrators (`AdminLayout.jsx`)**:
+
      - A dedicated maintenance card is anchored at the **bottom of the profile navigation sidebar** (directly above Logout).
+
      - Displays the warning banner, operational impact explanation, and live countdown timer readout: `Time Left: mm:ss`.
+
 6. **Grace Period Expiration & Official Lockout**:
+
    - When the 15-minute countdown timer reaches `00:00`, client browsers invoke `/api/users/maintenance-officially-active`.
+
    - `auth-service` increments `session_token_version` globally for all users except the Primary Admin and clears `last_active_at`, immediately invalidating all outstanding JWT sessions across devices.
+
    - All scholar and regular admin sessions are terminated. An involuntary logout modal is displayed with the explanation: *"The platform is currently in maintenance mode. We are sorry for the inconvenience, please check back shortly."*
+
    - **Maintenance Active Email Broadcast (Email #21)** is dispatched to all platform members informing them that maintenance is officially in progress.
+
    - On the public Login page (`Login.jsx`), a dedicated full-width top notification banner is mounted: *"Platform Maintenance Mode Active — Sign in and account registration are temporarily suspended."* Form submission buttons are disabled for non-primary accounts. Only the Primary Admin can sign in.
+
 7. **Early Cancellation & Postponement Workflow (If Turned Off Before 15 Minutes)**:
+
    - If the Primary Admin toggles maintenance OFF *before* the 15-minute countdown finishes:
+
      - `auth-service` detects `elapsedSeconds < 15 * 60` and identifies the action as an early cancellation.
+
      - Removes `MAINTENANCE_SCHEDULED_AT` and sets `MAINTENANCE_MODE = 'false'`.
+
      - **Maintenance Cancelled / Postponed Email Broadcast (Email #23)** is dispatched to all platform users:
+
        - **Subject**: `Notice: Scheduled Maintenance Postponed / Cancelled - Normal Access Restored`
+
        - **Body**: Informs users that maintenance was cancelled/postponed due to technical scheduling adjustments, confirms that systems remain 100% online, and notes that active sessions will not be terminated.
+
      - The client countdown bar polling (every 3s) detects the cancellation and **immediately dismantles the countdown timer** from user and admin screens in real time without requiring a page refresh.
+
 8. **Maintenance Conclusion & Website Restoration (If Turned Off After Completion)**:
+
    - When the Primary Admin concludes work and toggles maintenance OFF after maintenance was officially active:
+
      - Normal authentication, login, and registration gates are reopened immediately.
+
      - **Maintenance Concluded / Back Online Email Broadcast (Email #22)** is dispatched to all platform members:
+
        - **Subject**: `Zyndex System Notice | Platform Maintenance Complete - We're Back Online!`
+
        - **Body**: Congratulates users on system restoration and invites them to log back in to resume academic research.
 
 ```mermaid
@@ -1250,55 +1568,93 @@ Zyndex implements a hardened, poly-service microservices architecture. Communica
 ### 7.1 Microservice Profiles & Responsibilities
 
 #### 1. Eureka Discovery Server (`eureka-server`)
+
 - **Port**: `8761`
+
 - **Responsibility**: Centralized service registry. Maintains live heartbeats of all active microservices.
+
 - **Key Bootstrap Class**: `com.zyndex.eureka.EurekaServerApplication`
+
 - **Startup**: `cd eureka-server && ..\mvnw.cmd spring-boot:run`
+
 - **Dashboard**: `http://localhost:8761/`
 
 #### 2. API Gateway (`api-gateway`)
+
 - **Port**: `8080`
+
 - **Responsibility**: Edge reverse proxy. Performs reactive token verification, strips incoming spoofed security headers, injects authenticated user claims (`X-User-Id`, `X-User-Role`, `X-User-Email`), attaches `X-Gateway-Secret`, and routes requests to downstream services via Eureka load balancing (`lb://`).
+
 - **Key Classes**:
+
   - `com.zyndex.gateway.ApiGatewayApplication`: Reactive Gateway startup.
+
   - `com.zyndex.gateway.JwtValidationFilter`: Global filter executing at priority order `-1`.
 
 #### 3. Auth Service (`auth-service`)
+
 - **Port**: `8081` | **Database**: `zyndex_auth`
+
 - **Responsibility**: User registration, credential verification, BCrypt password hashing, 4-digit email OTP generation and validation (120-second TTL), account profile management, system log tracking, and JWT issuance (7-day validity).
+
 - **Key Classes**:
+
   - `AuthController.java`: Core login, registration, and credential verification endpoints.
+
   - `OtpController.java`: Endpoints `/api/send-otp` and `/api/verify-otp`.
+
   - `AccountEmailService.java`: Asynchronous HTML email dispatcher via SMTP.
+
   - `AuthSupport.java`: Token signing, password strength validation, and external university verification.
 
 #### 4. Content Service (`content-service`)
+
 - **Port**: `8082` | **Database**: `zyndex_content`
+
 - **Responsibility**: Academic catalog search, category filtering, resource metadata management, PDF file upload handling, short-lived download token generation, student ratings/feedback, and in-memory PDF slicing via Apache PDFBox for free preview limits.
+
 - **Key Classes**:
+
   - `ResourceController.java`: Catalog search, upload, and `/api/resources/{id}/file` streaming.
+
   - `UserContentController.java`: Endpoints managing student favorites, recent views, and downloads.
+
   - `FeedbackController.java`: Endpoints managing ratings and resource reviews.
 
 #### 5. Access Service (`access-service`)
+
 - **Port**: `8083` | **Database**: `zyndex_access`
+
 - **Responsibility**: Entitlement engine and digital rights authorization. Evaluates whether a student’s subscription tier permits reading a specific document, enforces page preview limits, and checks daily reading volume against `usage-service`.
+
 - **Key Classes**:
+
   - `AccessController.java`: Endpoints `/api/access/check`, `/subscribe`, `/entitlements/user/{userId}`.
 
 #### 6. Usage Service (`usage-service`)
+
 - **Port**: `8084` | **Database**: `zyndex_usage`
+
 - **Responsibility**: Student telemetry tracking, reading duration accumulation, active session monitoring (users active within 15 minutes), and live reading history cross-joins.
+
 - **Key Classes**:
+
   - `UsageController.java`: Endpoints `/api/usage/events`, `/records`, `/engagement/analytics`, `/history/live`.
 
 #### 7. Subscription Service (`subscription-service`)
+
 - **Port**: `8085` | **Database**: `zyndex_subscription`
+
 - **Responsibility**: Membership tier plans, UPI QR checkout initiation, 180s/300s session expiry checking, 12-digit UTR submission with administrative hold (`REVIEW_REQUIRED`), manual confirmation/rejection, invoice dispatch, and webhook event handling.
+
 - **Key Classes**:
+
   - `SubscriptionController.java`: Endpoints `/api/subscriptions/plans`, `/me`, `/admin/sync`.
+
   - `PaymentService.java`: Comprehensive payment lifecycle, audit logging, and email dispatch.
+
   - `PaymentController.java`: Endpoints `/api/payments/checkout`, `/submit-utr`, `/status`, `/admin/all`, `/verify`.
+
   - `WebhookController.java`: Webhook simulator and event handler with delivery deduplication.
 
 ---
@@ -1312,26 +1668,38 @@ The Zyndex frontend is architected as a **Comprehensive Multi-Page Platform & Mu
 The user interface of Zyndex was not assembled haphazardly through component libraries; it was engineered through a deliberate, three-stage design methodology prioritizing academic immersion, cognitive ergonomics, and zero-distraction research:
 
 #### 1. Core Problem Discovery & Hand-Crafted Ideation
+
 Before writing a single line of frontend code, intensive workflow mapping and hand-crafted sketches were drafted to eliminate the real-world friction scholars and administrators experience daily:
 - **Academic Content Discovery**: Solving fragmented searching across 10 subject disciplines (AI, ML, Physics, Economics, etc.) with unified multi-category indexing.
+
 - **Copyright & Tier Ambiguity**: Eliminating user confusion between full textbook downloads versus 10-page preview slices through prominent visual tier badges and clear entitlement dialogs.
+
 - **Frictionless Payment Reconciliation**: Eliminating payment drops caused by banking e-mandates by mapping out intuitive UPI QR settlement, real-time 12-digit UTR input, and an interactive 2-minute verification hold modal.
 
 #### 2. Systematization with the Figma Design System
+
 Once user journeys and state transitions were mapped, **Figma** served as the visual engine to establish an enterprise-scale design system:
 - **Design Tokens**: Standardized dimensional scales (4px grid increments), elevation shadows, card border radii, and typographic rhythm across all screens.
+
 - **High-Contrast Academic Color Palette**: Deep Academic Slate (`#0f172a`, `#1e293b`), Scholar Amber (`#ea580c`, `#c2410c`), and Emerald Verification (`#10b981`), engineered to prevent eye strain during extended reading while meeting WCAG 2.1 AA (4.5:1+) accessibility contrast standards.
+
 - **High-Fidelity Interactive Prototyping**: Complete prototypes of the 10-category student learning catalog, embedded PDF reader canvas, telemetry telemetry cards, and multi-column administrator audit trail matrices were tested and refined directly in Figma before frontend implementation.
 
 #### 3. Deterministic Translation into Production Code
+
 The Figma tokens and component architectures were translated directly into **Tailwind CSS** utility classes and modular React components:
 - **Pixel-Perfect Parity**: Guarantees that layouts in the browser reflect Figma wireframes with 100% fidelity.
+
 - **Fluid Micro-Interactions**: Real-time reading telemetry heartbeats, dynamic OTP countdown rings, and smooth modal focus traps built with **Framer Motion** match the exact animation curves prototyped in Figma.
+
 - **Multi-Portal Uniformity**: Ensures a cohesive, premium design language shared across Student Reading Portals and Enterprise Administrative Consoles.
 
 ### 8.2 Architecture & State Management
+
 - **HTTP Client**: Implemented in [`src/services/api/apiClient.js`](file:///d:/Zyndex/src/services/api/apiClient.js) using an Axios instance with a 30-second timeout. Intercepts outgoing requests to attach `Authorization: Bearer <auth_token>` from `localStorage` and automatically handles multipart headers for `FormData` file uploads.
+
 - **Authentication State**: Managed via [`src/app/context/AuthContext.jsx`](file:///d:/Zyndex/src/app/context/AuthContext.jsx). Exposes `user`, `token`, `login()`, `logout()`, `refreshUser()`, and `isAuthenticated`.
+
 - **Routing & Guards**: Managed in [`src/app/routes.jsx`](file:///d:/Zyndex/src/app/routes.jsx) using React Router v7. Route protection is enforced via [`src/app/components/ProtectedRoute.jsx`](file:///d:/Zyndex/src/app/components/ProtectedRoute.jsx), redirecting unauthenticated users to `/Zyndex/User/Log-In` or denying non-admin accounts access to administrative screens.
 
 ### 8.3 Complete Page Catalog & Route Directory
@@ -1672,30 +2040,40 @@ erDiagram
 ### 11.1 Schema Data Dictionaries
 
 #### 1. Schema: `zyndex_auth`
+
 - **`users`**:
   - `id` (BIGINT, PK, AUTO_INCREMENT)
   - `email` (VARCHAR(255), Unique, Not Null)
   - `password` (VARCHAR(255), Not Null) - BCrypt hash
   - `username` (VARCHAR(255), Not Null) - Full Name
+
   - `role` (VARCHAR(50), Default `'STUDENT'`) - Values: `'STUDENT'`, `'ADMIN'`
+
   - `user_type` (VARCHAR(100), Default `'Other'`) - e.g. `'Student'`, `'Faculty'`, `'Researcher'`
+
   - `profession` (VARCHAR(255), Nullable)
   - `college_name` (VARCHAR(255), Nullable)
   - `university_name` (VARCHAR(255), Nullable)
   - `active` (BOOLEAN, Default `TRUE`)
+
   - `last_active_at` (DATETIME, Nullable) - Heartbeat updated upon login and active reading
+
   - `created_at` (DATETIME, Default `CURRENT_TIMESTAMP`)
 - **`otps`**:
   - `id` (BIGINT, PK, AUTO_INCREMENT)
   - `email` (VARCHAR(255), Not Null)
+
   - `code` (VARCHAR(10), Not Null) - 4-digit numeric OTP (120-second TTL)
+
   - `expires_at` (DATETIME, Not Null) - 10-minute expiry
   - `verified` (BOOLEAN, Default `FALSE`)
 - **`system_logs`**:
   - `id` (BIGINT, PK, AUTO_INCREMENT)
   - `timestamp` (DATETIME, Default `CURRENT_TIMESTAMP`)
   - `service` (VARCHAR(50), Not Null)
+
   - `level` (VARCHAR(20), Default `'INFO'`) - Values: `'INFO'`, `'WARN'`, `'ERROR'`, `'SUCCESS'`
+
   - `action` (VARCHAR(100), Not Null)
   - `actor_email` (VARCHAR(255), Nullable)
   - `details` (TEXT, Nullable)
@@ -1705,24 +2083,37 @@ erDiagram
   - `id` (BIGINT, PK, AUTO_INCREMENT)
   - `user_id` (BIGINT, Not Null)
   - `email` (VARCHAR(190), Not Null)
+
   - `device_token` (VARCHAR(255), Not Null) - Unique browser/hardware UUID
+
   - `device_name` (VARCHAR(120), Nullable) - e.g., 'Chrome on Windows', 'Mobile Web'
+
   - `browser` (VARCHAR(80), Nullable) - Detected browser family
+
   - `operating_system` (VARCHAR(80), Nullable) - Detected platform (Windows, macOS, Android, iOS)
+
   - `ip_address` (VARCHAR(80), Nullable) - Network client IP from request headers
+
   - `is_trusted` (BOOLEAN, Default `TRUE`) - Active 24-hour OTP bypass validity
+
   - `trusted_at` (DATETIME(6), Default `CURRENT_TIMESTAMP(6)`) - Login registration timestamp
+
   - `expires_at` (DATETIME(6), Not Null) - Expiry boundary (midnight IST for trust, 30 days retention for active sessions)
 
 #### 2. Schema: `zyndex_content`
+
 - **`resources`**:
   - `id` (BIGINT, PK, AUTO_INCREMENT)
   - `title` (VARCHAR(255), Not Null)
   - `author` (VARCHAR(255), Not Null)
   - `category` (VARCHAR(100), Not Null)
+
   - `type` (VARCHAR(50), Not Null) - e.g. `'PDF'`, `'EPUB'`, `'ARTICLE'`
+
   - `required_plan` (VARCHAR(50), Default `'FREE'`) - `'FREE'`, `'STUDENT_BASIC'`, `'STUDENT_PLUS'`, `'RESEARCHER_PRO'`
+
   - `file_url` (VARCHAR(500), Nullable) - Filesystem path under `backend/uploads/`
+
   - `downloads_count` (INT, Default 0)
   - `rating` (DOUBLE, Default 0.0)
   - `approved` (INT, Default 1)
@@ -1733,32 +2124,45 @@ erDiagram
   - `resource_id` (BIGINT, Not Null)
   - `user_id` (BIGINT, Not Null)
   - `role` (VARCHAR(50), Not Null)
+
   - `created_at` (DATETIME, Default `CURRENT_TIMESTAMP`) - 60-second validity
+
 - **`feedback`**:
   - `id` (BIGINT, PK, AUTO_INCREMENT)
   - `resource_id` (BIGINT, Not Null)
   - `user_id` (BIGINT, Not Null)
   - `rating` (INT, Not Null) - 1 to 5 scale
   - `comment` (TEXT, Nullable)
+
   - `admin_response` (TEXT, Nullable) - Reaction / comment provided by administrator
+
   - `responded_at` (DATETIME(6), Nullable) - Timestamp when admin response was recorded and emailed
+
   - `created_at` (DATETIME, Default `CURRENT_TIMESTAMP`)
 
 #### 3. Schema: `zyndex_access`
+
 - **`access_entitlements`**:
   - `id` (BIGINT, PK, AUTO_INCREMENT)
   - `user_id` (BIGINT, Not Null)
+
   - `resource_id` (BIGINT, Default 0) - `0` represents a global subscription entitlement
+
   - `permission` (VARCHAR(50), Not Null) - Stores plan code e.g. `'STUDENT_PLUS'` or `'READ'`
+
   - `status` (VARCHAR(20), Default `'ACTIVE'`) - Values: `'ACTIVE'`, `'REVOKED'`, `'EXPIRED'`
+
   - `expires_at` (DATETIME, Nullable)
 
 #### 4. Schema: `zyndex_usage`
+
 - **`usages`**:
   - `usage_id` (BIGINT, PK, AUTO_INCREMENT)
   - `user_id` (BIGINT, Not Null)
   - `content_id` (BIGINT, Not Null)
+
   - `duration` (INT, Default 0) - Accumulated reading duration in minutes
+
   - `created_at` (DATETIME, Default `CURRENT_TIMESTAMP`)
 - **`downloads`**:
   - `id` (BIGINT, PK, AUTO_INCREMENT)
@@ -1772,10 +2176,15 @@ erDiagram
   - `viewed_at` (DATETIME, Default `CURRENT_TIMESTAMP`)
 
 #### 5. Schema: `zyndex_subscription`
+
 - **`plans`**:
+
   - `id` (VARCHAR(50), PK) - `'FREE'`, `'STUDENT_BASIC'`, `'STUDENT_PLUS'`, `'RESEARCHER_PRO'`, `'UNIVERSITY'`, `'ENTERPRISE'`
+
   - `name` (VARCHAR(100), Not Null)
+
   - `price_paise` (BIGINT, Not Null) - e.g. `19900` for ₹199.00
+
   - `currency` (VARCHAR(10), Default `'INR'`)
   - `billing_interval` (VARCHAR(20), Default `'MONTH'`)
   - `active` (BOOLEAN, Default `TRUE`)
@@ -1783,13 +2192,17 @@ erDiagram
   - `id` (VARCHAR(64), PK) - e.g. `'SUB_...'`
   - `user_id` (BIGINT, Not Null)
   - `plan_id` (VARCHAR(50), Not Null)
+
   - `status` (VARCHAR(20), Default `'ACTIVE'`) - Values: `'ACTIVE'`, `'CANCELLED'`, `'EXPIRED'`, `'REVOKED'`
+
   - `start_date` (DATETIME, Not Null)
   - `end_date` (DATETIME, Not Null)
   - `auto_renew` (BOOLEAN, Default `TRUE`)
 - **`payments`**:
   - `id` (VARCHAR(64), PK) - e.g. `'PAY_...'`
+
   - `order_id` (VARCHAR(64), Unique, Not Null) - e.g. `'ORD_...'`
+
   - `user_id` (BIGINT, Not Null)
   - `plan_id` (VARCHAR(50), Not Null)
   - `previous_plan` (VARCHAR(50), Nullable)
@@ -1797,8 +2210,11 @@ erDiagram
   - `currency` (VARCHAR(10), Default `'INR'`)
   - `payment_method` (VARCHAR(50), Default `'UPI'`)
   - `gateway` (VARCHAR(50), Default `'UPI_DIRECT'`)
+
   - `utr` (VARCHAR(50), Nullable) - 12-digit UPI reference number
+
   - `status` (VARCHAR(30), Default `'PAYMENT_INITIATED'`) - Values: `'PAYMENT_INITIATED'`, `'REVIEW_REQUIRED'`, `'SUCCESS'`, `'FAILED'`, `'EXPIRED'`, `'CANCELLED'`
+
   - `review_reason` (TEXT, Nullable)
   - `failure_reason` (TEXT, Nullable)
   - `receipt_email_sent` (BOOLEAN, Default `FALSE`)
@@ -1817,13 +2233,16 @@ erDiagram
   - `details` (TEXT, Nullable)
   - `created_at` (DATETIME(6), Default `CURRENT_TIMESTAMP(6)`)
 - **`payment_webhook_deliveries`**:
+
   - `delivery_id` (VARCHAR(100), PK) - Deduplication identifier
+
   - `payment_id` (VARCHAR(64), Nullable)
   - `order_id` (VARCHAR(64), Nullable)
   - `event_type` (VARCHAR(50), Not Null)
   - `signature_verified` (BOOLEAN, Default `TRUE`)
   - `payload` (TEXT, Not Null)
   - `status` (VARCHAR(50), Not Null)
+
   - `processed_at` (DATETIME(6), Default `CURRENT_TIMESTAMP(6)`)
 
 ---
@@ -1857,43 +2276,64 @@ stateDiagram-v2
 ### 12.1 Step-by-Step Payment Lifecycle & Source Locations
 
 1. **Checkout Initiation & Plan Restriction**:
+
    - In [`src/app/pages/Pricing.jsx`](file:///d:/Zyndex/src/app/pages/Pricing.jsx), plans are presented with full feature lists:
+
      - Free / Demo (₹0)
      - Student Basic (₹99/mo) &bull; Symbol `○`
      - Student Plus (₹199/mo) &bull; Symbol `⬦`
      - PhD Researcher (₹499/mo) &bull; Symbol `✦`
      - University Campus (₹1,00,000/yr) &bull; Symbol `⬢`
      - Enterprise Institution (₹3,00,000/yr) &bull; Symbol `∞`
+
    - **Active Plan Lock**: If a user is on an active plan, other plan checkout actions are locked with clear guidance until the current plan tenure finishes.
+
    - When a user chooses a valid plan, a new payment order is generated and the client navigates to the dedicated full-page payment portal:
      `/Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/:::::::::`
 2. **Dedicated Payment Portal & QR Window**:
+
    - Hosted in [`src/app/pages/PaymentPage.jsx`](file:///d:/Zyndex/src/app/pages/PaymentPage.jsx) under brand header *"Zyndex Educational Excellence"*.
+
    - All standard navigation links and footers are cleanly isolated.
+
    - Left card displays the high-resolution UPI QR code generated from direct UPI URI:
      `upi://pay?pa=918897337687@waaxis&pn=Zyndex%20Educational%20Excellence&am=199.00&tr=ORD_...`
    - Right card displays a live, running **analog circular clock** with moving minute and second hands alongside a synchronous 5-minute digital countdown.
+
    - If user clicks **Cancel Payment**, the payment status updates to `CANCELLED` and remains visible in audit records.
+
 3. **UTR Submission Window**:
+
    - When user clicks **I Have Paid**, the app transitions to the dedicated UTR submission URL:
      `/Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/UTR/:::::::::`
    - A 10-minute validity timer is initiated.
    - User enters their 12-digit bank reference UTR number.
+
    - Client dispatches `POST /api/payments/submit-utr`. Status transitions to **`REVIEW_REQUIRED`** (**In Hold**).
+
    - Asynchronously triggers instant notification email to `Bhaanugali@gmail.com`.
+
    - If someone copies and pastes the payment URL after completion or cancellation, anti-tamper security renders the final order details rather than re-initiating the checkout session.
+
 4. **Live Administrative Reconciliation**:
+
    - In [`src/app/pages/admin/AdminPayments.jsx`](file:///d:/Zyndex/src/app/pages/admin/AdminPayments.jsx), the dashboard polls transactions every 6 seconds.
+
    - Standardized status colors:
      - 🟢 **Success**: Green badge
      - 🔵 **Initiated**: Blue badge
      - 🟡 **In Hold / Review Required**: Yellow badge
      - 🔴 **Cancelled / Declined**: Red badge
      - ⚪ **Expired**: Dark grey badge
+
    - If an order was cancelled at the QR stage without UTR, admins see a view-only eye icon with transaction metadata.
+
    - When a valid UTR is submitted, admins see direct **Confirm & Verify** and **Decline** buttons. Declining prompts the administrator for mandatory comment reasons, which are emailed to the user with full timestamps.
+
 5. **Browser-Locked Tax Invoices**:
+
    - Hosted at `/Zyndex/Invoice/:paymentId` and `/Zyndex/User/.../Profile/Billing/Invoice/:paymentId`.
+
    - Accessible only if the user is actively logged into the matching account on that browser session. If unauthenticated, the user is warned and safely redirected to `/Zyndex/User/Log-In` after 60 seconds.
 
 ---
@@ -1915,9 +2355,13 @@ This incident response guide provides actionable instructions for resolving comm
 | **Admin Logs displays 0 reading minutes**| `usage-service/.../UsageController.java` | `UsageController.logDuration` | `usage-service` console log | Student closed reader before 15s interval heartbeat or user not logged in | Ensure the reader window remains open for >15 seconds. Check Network tab for successful `POST /api/usage/records` 200 OK responses. |
 
 ### 13.1 Running a Single Microservice in Debug Mode
+
 1. Open the service bootstrap class (e.g., `subscription-service/src/main/java/com/zyndex/subscription/SubscriptionApplication.java`) in VS Code or IntelliJ.
+
 2. Set a breakpoint on the target line (e.g. `PaymentService.java` line 872).
+
 3. Click **Debug** above `main()`.
+
 4. Trigger the endpoint through API Gateway (`http://localhost:8080/api/payments/...`). The debugger will pause at your breakpoint, allowing full variable and stack inspection.
 
 ---
@@ -1925,12 +2369,17 @@ This incident response guide provides actionable instructions for resolving comm
 ## 14. Installation, Setup & Local Execution Guide
 
 ### 14.1 System Prerequisites
+
 - **Operating System**: Windows 10/11, macOS, or Linux
+
 - **Java Development Kit (JDK)**: OpenJDK 21 LTS installed and set on environment `PATH`
+
 - **Node.js**: Version 18.x or 20.x LTS with `npm` 9.x+
+
 - **MySQL Database Server**: Version 8.0 or 8.4 running on port `3306`
 
 ### 14.2 Step 1: Initialize MySQL Databases
+
 Connect to MySQL using MySQL Workbench, DBeaver, or the CLI client and execute:
 
 ```sql
@@ -1944,6 +2393,7 @@ CREATE DATABASE IF NOT EXISTS zyndex_subscription CHARACTER SET utf8mb4 COLLATE 
 *(Note: Table creation is automated. When each microservice boots, its `DbInitializer.java` component automatically executes idempotent `CREATE TABLE IF NOT EXISTS` DDL scripts).*
 
 ### 14.3 Step 2: Configure Environment Variables
+
 Copy `.env.example` to `.env` in the repository root:
 
 ```powershell
@@ -1951,6 +2401,7 @@ Copy-Item .env.example .env
 ```
 
 Ensure the following variables are defined:
+
 ```properties
 DB_HOST=localhost
 DB_PORT=3306
@@ -1966,6 +2417,7 @@ RECEIVER_UPI_ID=918897337687@waaxis
 ```
 
 ### 14.4 Step 3: Compile Backend Microservices
+
 Using Windows PowerShell from the project root directory:
 
 ```powershell
@@ -1977,11 +2429,13 @@ $env:JAVA_HOME = "C:\Users\DELL\.vscode\extensions\redhat.java-1.56.0-win32-x64\
 ```
 
 ### 14.5 Step 4: Install Frontend Dependencies
+
 ```powershell
 npm install
 ```
 
 ### 14.6 Step 5: Start All Services & Frontend Concurrently
+
 Execute the master startup command:
 
 ```powershell
@@ -1989,20 +2443,33 @@ npm run dev:all
 ```
 
 #### Starting Services Individually in Separate Terminals
+
 1. **Eureka Server** (Tab 1): `cd eureka-server && ..\mvnw.cmd spring-boot:run`
+
 2. **API Gateway** (Tab 2): `cd api-gateway && ..\mvnw.cmd spring-boot:run`
+
 3. **Auth Service** (Tab 3): `cd auth-service && ..\mvnw.cmd spring-boot:run`
+
 4. **Content Service** (Tab 4): `cd content-service && ..\mvnw.cmd spring-boot:run`
+
 5. **Access Service** (Tab 5): `cd access-service && ..\mvnw.cmd spring-boot:run`
+
 6. **Usage Service** (Tab 6): `cd usage-service && ..\mvnw.cmd spring-boot:run`
+
 7. **Subscription Service** (Tab 7): `cd subscription-service && ..\mvnw.cmd spring-boot:run`
+
 8. **Frontend Web App** (Tab 8): `npm run dev`
 
 ### 14.7 Verified Application URLs
+
 - **Web Application Entry Point**: `http://localhost:5173`
+
 - **Student Login**: `http://localhost:5173/Zyndex/User/Log-In`
+
 - **Admin Login**: `http://localhost:5173/Zyndex/Admin/Log-In`
+
 - **Pricing & Checkout**: `http://localhost:5173/Zyndex/About/Pricing`
+
 - **API Gateway Root**: `http://localhost:8080`
 - **Eureka Discovery Console**: `http://localhost:8761`
 
@@ -2020,6 +2487,7 @@ The codebase includes automated test suites covering inter-service security, cat
 | `SubscriptionIntegrationTest.java`| `subscription-service`| Integration | `.\mvnw.cmd test -Dtest=SubscriptionIntegrationTest` | Checkout initiation, UTR submission, status transitions |
 
 ### Running All Automated Tests
+
 ```powershell
 .\mvnw.cmd test
 ```
@@ -2031,11 +2499,17 @@ The codebase includes automated test suites covering inter-service security, cat
 ### 16.1 Production Readiness Checklist
 
 - [x] **0 Compilation / Build Errors**: All 7 Java microservices compile cleanly with OpenJDK 21; Vite bundle builds in under 13 seconds.
+
 - [x] **Zero TypeScript Overhead**: Frontend is written in pure React JavaScript/JSX with Tailwind CSS, eliminating transpilation type mismatches.
+
 - [x] **Database Schemas Isolated**: Complete schema isolation across `zyndex_auth`, `zyndex_content`, `zyndex_access`, `zyndex_usage`, and `zyndex_subscription`.
+
 - [x] **Zero Mock Data in Production**: All payment transactions, telemetry logs, and catalog items query live MySQL databases.
+
 - [x] **Inter-Service Security**: Downstream services reject requests missing `X-Gateway-Secret`.
+
 - [ ] **Object Storage Integration**: Content files currently persist on local filesystem (`backend/uploads/`). For multi-node containerized deployment, configure an S3-compatible object storage bucket.
+
 - [ ] **Automated Bank SMS / Webhook Observer**: UTR verification currently requires manual admin approval via `/Zyndex/Admin/.../Payments`. Automated matching against live bank webhooks remains a planned enhancement.
 
 ---
@@ -2043,8 +2517,10 @@ The codebase includes automated test suites covering inter-service security, cat
 ## 17. Quantitative Codebase Statistics & Metrics
 
 ### 17.1 Measurement Methodology
+
 Statistics were calculated using a native filesystem audit executed across all source files, configuration manifests, stylesheets, templates, and documentation.
 - **Inclusion Criteria**: All application-owned source code (`.jsx`, `.js`, `.java`, `.css`, `.json`, `.yml`, `.html`, `.md`).
+
 - **Exclusion Criteria**: Compiled outputs (`target/`, `dist/`), external package dependencies (`node_modules/`), version control internals (`.git/`), IDE settings (`.vscode/`), and temporary scratch scripts.
 
 ### 17.2 Codebase Granular Character, Word, File & Line Counts
@@ -2053,13 +2529,13 @@ Statistics were calculated using a native filesystem audit executed across all s
 | :--- | :--- | :--- |
 | **Total Source Files** | **215 Files** | Application-owned source, configuration, template, and schema manifests |
 | **Total Folders / Directories** | **42 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **57,690 Lines** | Formatted newline-delimited source code lines |
+| **Total Lines of Code (LOC)** | **58,222 Lines** | Formatted newline-delimited source code lines |
 | **Total Word Count** | **215,976 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,663,205 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,431,887 Characters** | 53.77% of total character stream |
+| **Overall Character Count** | **2,663,737 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,431,887 Characters** | 53.75% of total character stream |
 | **Digits & Numbers (`0-9`)** | **64,382 Characters** | 2.42% of total character stream |
 | **Symbols, Operators & Punctuation** | **355,350 Characters** | 13.34% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **811,586 Characters** | 30.47% of total character stream (indentation, newlines) |
+| **Whitespace & Formatting (`\s`)** | **812,118 Characters** | 30.49% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
@@ -2069,24 +2545,34 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,765 Lines** | **44,138 Words** | **555,762 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,019 Lines** | **16,413 Words** | **178,732 Chars** |
 | **`.json`** | Package & Dependency Manifests | **2 Files** | **6,156 Lines** | **11,741 Words** | **189,488 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **3,024 Lines** | **30,219 Words** | **251,032 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **3,556 Lines** | **30,219 Words** | **251,564 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **909 Lines** | **2,039 Words** | **21,091 Chars** |
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **713 Lines** | **1,387 Words** | **22,294 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
-| **Overall Total** | **Full Stack Application** | **215 Files** | **57,690 Lines** | **215,976 Words** | **2,663,205 Chars** |
+| **Overall Total** | **Full Stack Application** | **215 Files** | **58,222 Lines** | **215,976 Words** | **2,663,737 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
+
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
 - **AI (Artificial Intelligence)**: Foundational neural networks, autonomous agents, prompt engineering, and intelligent systems.
+
 - **ML (Machine Learning)**: Predictive algorithms, deep learning architectures, statistical learning models, and classification.
+
 - **Computer Science**: Computational theory, data structures, algorithms, operating systems, and distributed system architectures.
+
 - **Physics**: Classical mechanics, quantum physics, thermodynamics, electromagnetism, and modern optics.
+
 - **Chemistry**: Organic synthesis, inorganic reactions, physical chemistry, chemical kinetics, and spectroscopy.
+
 - **Mathematics**: Linear algebra, multivariable calculus, discrete mathematics, probability, statistics, and differential equations.
+
 - **Economics**: Microeconomics, macroeconomics, fiscal policy, financial markets, econometrics, and behavioral economics.
+
 - **History**: World history, ancient civilizations, political revolutions, historiography, and modern global developments.
+
 - **Literature**: Classical texts, literary analysis, world poetry, comparative linguistics, and critical prose.
+
 - **Biology**: Cellular biology, molecular genetics, evolutionary biology, physiology, biochemistry, and microbiology.
 
 ---
@@ -2096,6 +2582,7 @@ Zyndex organizes learning resources across the 10 authentic academic subject cat
 To assist open-source contributors, university faculty, scholars, and technical auditors, all technical acronyms, design paradigms, and architectural terms used throughout Zyndex are formally expanded and defined below:
 
 ### 18.1 Frontend & Application Layer Acronyms
+
 - **SPA (Single-Page Application)**: An application rendering paradigm where the master HTML shell (`index.html`) is delivered once. As scholars navigate between distinct views (such as the 10-category catalog, dynamic PDF reader, or administrative analytics consoles), client-side routing dynamically renders components in **0 milliseconds** without triggering full browser reloads or blank white screens.
 
 - **UI (User Interface)**: The visual, interactive presentation layer (buttons, menus, cards, forms, color palettes, and typography) that scholars and administrators see and interact with on screen.
@@ -2113,6 +2600,7 @@ To assist open-source contributors, university faculty, scholars, and technical 
 - **CSS (Cascading Style Sheets)**: The stylesheet language used to format visual presentations. Zyndex utilizes **Tailwind CSS**, a utility-first styling engine with customized tokenized design palettes.
 
 ### 18.2 Backend & Distributed Architecture Acronyms
+
 - **API (Application Programming Interface)**: A formal set of HTTP REST endpoints, data protocols, and JSON schemas through which the frontend web client communicates with backend microservices.
 
 - **REST (Representational State Transfer)**: A stateless, resource-oriented architectural style for distributed web services utilizing standard HTTP verbs (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`).
@@ -2132,6 +2620,7 @@ To assist open-source contributors, university faculty, scholars, and technical 
 - **LOC (Lines of Code)**: The quantitative count of newline-delimited source code lines across all application-owned files, used for codebase benchmarking and complexity analysis.
 
 ### 18.3 Networking, Database & Protocol Acronyms
+
 - **HTTP / HTTPS (Hypertext Transfer Protocol / Secure)**: The foundational application-level communication protocols used for transmitting distributed hypermedia over the web, secured via TLS encryption.
 
 - **TLS / SSL (Transport Layer Security / Secure Sockets Layer)**: Cryptographic network protocols designed to provide end-to-end communication security and confidentiality over the internet.
@@ -2182,6 +2671,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.1 Single-Page Application (SPA) vs. Multi-Page Experience
+
 - **Real-World Analogy**: Think of a traditional multi-page website like ordering a brand new physical book every single time you want to read the next chapter—the postal service has to deliver a whole new cover, spine, and packaging each time (a full screen flash and page reload). An SPA is like having a digital e-reader tablet already sitting in your hands: the physical device and glass screen stay right where they are, and turning the page simply repaints the text in a fraction of a second.
 
 - **How It Works in Plain English**: A Single-Page Application does **not** mean that Zyndex is a website with only one page. Zyndex is a massive, multi-page academic library platform featuring more than 20 distinct screens (User Home, Academic Catalog, PDF Document Reader, Pricing Plans, Payment Checkout, Administrative Telemetry Hubs, and User Management). 
@@ -2191,6 +2681,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.2 Cloud Virtual Machine (Cloud VM) & Virtualized Compute
+
 - **Real-World Analogy**: Imagine a massive high-rise apartment building. Instead of every tenant having to construct their own physical foundation, roof, and brick walls on a separate plot of land, the building is carved up into independent, secure apartments. Each apartment has its own locked front door, dedicated rooms, electricity meters, and plumbing, completely isolated from its neighbors.
 
 - **How It Works in Plain English**: A Cloud Virtual Machine (Cloud VM) is a software-defined computer that runs inside a large physical data center server owned by cloud infrastructure providers. It behaves exactly like a standalone physical desktop or server running Linux (Ubuntu), with its own dedicated virtual processor cores (vCPUs), system RAM, virtual hard drives (NVMe/SSD storage), and public IP address.
@@ -2200,22 +2691,31 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.3 Microservices Architecture: Decentralized Modular Services
+
 - **Real-World Analogy**: In a small bakery run by one person (a "monolith"), that single baker must take customer orders, bake breads, frost cakes, ring up cash registers, wash dishes, and sweep floors. If the baker gets sick or overwhelmed at the cash register, the entire bakery shuts down. In a modern corporate hospital (a "microservices" system), specialized departments operate independently: radiology handles scans, the pharmacy dispenses medicine, billing prints invoices, and surgery performs operations. If billing experiences a printer jam, surgeons can still save lives uninterrupted.
 
 - **How It Works in Plain English**: Instead of building one enormous, tangled computer program where a single coding mistake could crash the entire application, microservices divide the software into separate, self-contained mini-applications. Each service owns its own specific business responsibility and communicates with other services over standardized web calls (HTTP REST).
 
 - **Application in Zyndex**: Zyndex is split across 7 specialized microservices:
+
   1. **`auth-service` (Port 8081)**: Manages student and faculty identities, registration, password cryptography, and OTP email dispatch.
+
   2. **`content-service` (Port 8082)**: Manages academic textbooks, research papers, category directories, metadata, and PDF storage.
+
   3. **`access-service` (Port 8083)**: Evaluates user entitlements, verifying whether a student is allowed to read or download a document based on their subscription tier.
+
   4. **`usage-service` (Port 8084)**: Collects reading duration heartbeats, logs session history, and records telemetry.
+
   5. **`subscription-service` (Port 8085)**: Manages subscription tiers, handles UPI checkout QR codes, records 12-digit bank UTR numbers, and produces GST tax invoices.
+
   6. **`discovery-service` (Port 8761)**: Acts as the automated telephone directory (Netflix Eureka) connecting all services together.
+
   7. **`api-gateway` (Port 8080)**: Serves as the single secure front entrance for all user web traffic.
 
 ---
 
 ### 20.4 API Gateway: The Security Perimeter & Reverse Proxy
+
 - **Real-World Analogy**: Think of an international airport security checkpoint. Passengers are not allowed to wander freely onto the tarmac or knock directly on the cockpit doors of parked airplanes. Everyone must enter through the main terminal lobby, pass through security scanning gates, verify their boarding passes and passports, and then be directed to their specific boarding gate.
 
 - **How It Works in Plain English**: An API Gateway is a specialized reverse proxy server that sits between the outside internet (users' phones and laptops) and the internal backend services. It acts as the single public entry point (`http://92.5.166.34:8080`). All requests pass through it first, allowing the gateway to verify authentication, block unauthorized intruders, enforce rate limits, and securely route requests to the correct internal microservice.
@@ -2225,6 +2725,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.5 Non-Blocking Reactive Event Loops (Project Reactor & Netty)
+
 - **Real-World Analogy**: Imagine a traditional restaurant where each waiter is assigned to one customer. The waiter takes the order, walks to the kitchen, and stands completely motionless waiting 20 minutes for the chef to cook before carrying the plate to the table. That restaurant needs 100 waiters for 100 customers! A reactive restaurant works like a busy coffee shop with a single barista: the barista takes your order, gives you a numbered receipt, immediately takes the next person's order, and calls out order numbers as coffees finish brewing.
 
 - **How It Works in Plain English**: Traditional web servers use a "thread-per-request" model where a thread sits idle and frozen while waiting for a database query or network response to complete. Reactive programming uses a non-blocking event-driven loop. A small handful of worker threads manage thousands of active network connections simultaneously, switching tasks whenever data is waiting to be processed.
@@ -2234,6 +2735,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.6 Dynamic Service Discovery: Netflix Eureka
+
 - **Real-World Analogy**: Imagine an emergency dispatch center. When police cars, ambulances, and fire trucks start their shifts, they don't have hardcoded street corners assigned forever; they radio in to the central dispatcher: *"Ambulance 4 is online at Sector 9."* When a 911 call comes in, the dispatcher consults the live board and routes the call to the nearest available unit.
 
 - **How It Works in Plain English**: In distributed cloud systems, services are frequently restarted, updated, or moved to different network ports. Hardcoding IP addresses and port numbers into application code causes systems to break whenever an address changes. A Service Registry is a live directory where services register themselves automatically when they start up.
@@ -2243,6 +2745,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.7 In-Memory PDF Slicing & Digital Rights Management (Apache PDFBox)
+
 - **Real-World Analogy**: Imagine visiting a museum archive that holds rare, multi-million-dollar historical manuscripts. The archivists do not hand you the complete original 800-page book to take home. Instead, they produce a high-resolution photocopy of just the first 10 preview pages, bind them in a temporary booklet, and let you inspect them in the viewing gallery. The remaining 790 pages never leave the vault.
 
 - **How It Works in Plain English**: Digital Rights Management (DRM) protects academic authors and publishers from unauthorized book piracy and redistribution. Traditional websites often hide pages using frontend CSS tricks (like blurring pages or hiding them with Javascript), but tech-savvy users can easily open the browser developer tools and download the full PDF. True security requires server-side slicing.
@@ -2252,6 +2755,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.8 Stateless Authentication: JSON Web Tokens (JWT) & JJWT
+
 - **Real-World Analogy**: Think of a wristband issued at an international music festival. Once the box office verifies your ID and ticket, they fasten a tamper-proof wristband with a holographic seal around your wrist. From that moment on, security guards at all 10 concert stages simply look at your wristband and holographic seal to let you through. They don't have to call the main ticket booth or search through a central filing cabinet of 50,000 attendee records every single time you enter a tent.
 
 - **How It Works in Plain English**: In traditional web systems, the server saves every logged-in user in its own memory or database (a "session"). As user volume scales into tens of thousands, server memory fills up. Stateless authentication replaces server-stored sessions with a digitally signed cryptographic token (a JSON Web Token). The token contains the user's ID, role, and expiration timestamp. Because it is signed with a secret key known only to the backend, the server can instantly verify that the token is authentic without checking a database.
@@ -2261,6 +2765,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.9 Multi-Device Session Invalidation & Token Versioning
+
 - **Real-World Analogy**: Imagine checking into a luxury hotel and receiving a plastic keycard for Room 402. If you lose your card or believe someone made a copy, you visit the front desk. The clerk issues you a new card programmed with "Key Version 2". The door lock on Room 402 now recognizes Version 2, and the old Version 1 card immediately stops working anywhere in the hotel.
 
 - **How It Works in Plain English**: Because JWT tokens are stateless, revoking access before a token naturally expires is a classic computer science challenge. Token versioning solves this by attaching an integer version counter (`session_token_version`) to the user's database profile and embedding that same version number inside each newly issued JWT.
@@ -2270,6 +2775,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.10 Password Security: Cryptographic BCrypt Hashing with Adaptive Salt
+
 - **Real-World Analogy**: Imagine putting an important document into an industrial blender. You can easily blend an apple and strawberry into a smoothie in 5 seconds, but no human on earth can un-blend the smoothie and reconstruct the original fresh fruit piece by piece. Furthermore, adding a unique pinch of salt to every smoothie guarantees that even two smoothies made from the same fruit taste distinctly different.
 
 - **How It Works in Plain English**: Plaintext passwords must never be stored in a database. Hashing is a one-way mathematical function that converts any password into a fixed-length scramble of letters and numbers. A "salt" is a randomly generated secret string added to the password before hashing, which prevents attackers from using precomputed lookup tables (Rainbow Tables) to reverse-engineer common passwords.
@@ -2279,6 +2785,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.11 Email Verification & Cryptographic OTPs via SMTP Relays
+
 - **Real-World Analogy**: When setting up a secure bank locker, the bank manager sends an SMS or email with a 4-digit code that is valid for only 2 minutes. If you enter the code immediately, the locker unlocks. If you wait 2 minutes and 1 second, the code disintegrates and becomes useless paper.
 
 - **How It Works in Plain English**: One-Time Passwords (OTPs) provide out-of-band verification to guarantee that a user genuinely owns the email address they registered with. The code is generated using cryptographically secure random number generators and stored temporarily with a strict Time-To-Live (TTL) expiration window.
@@ -2288,6 +2795,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.12 Unified Payments Interface (UPI) QR Intent & Manual Bank UTR Reconciliation
+
 - **Real-World Analogy**: When buying coffee at a local market in India, you scan the merchant's QR code with your mobile banking app (Google Pay, PhonePe, or Paytm) and confirm payment. The bank sends you a confirmation receipt containing a 12-digit reference number. You show that 12-digit number to the cashier, who verifies the settlement against their register and hands you your order.
 
 - **How It Works in Plain English**: The Unified Payments Interface (UPI) is a real-time instant payment protocol developed by the National Payments Corporation of India (NPCI). Instead of requiring users to enter sensitive 16-digit credit card numbers, CVVs, and expiry dates, UPI encodes transaction details into a standardized URI (`upi://pay?pa=...&am=199&cu=INR`). The customer’s bank issues a unique 12-digit numeric audit code called a Unique Transaction Reference (UTR) for every completed transfer.
@@ -2297,6 +2805,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.13 High-Frequency Client Telemetry & Analytics Heartbeats
+
 - **Real-World Analogy**: Think of a modern fitness smartwatch. It doesn't only record that you started running at 8:00 AM and finished at 9:00 AM; every few seconds, it pulses an optical sensor to measure your heart rate, pace, and oxygen levels, compiling a smooth real-time performance graph of your entire workout.
 
 - **How It Works in Plain English**: In an educational platform, merely knowing that a student clicked "Open" on a textbook does not tell instructors or administrators if the student actually read the book or closed the tab after 5 seconds. Telemetry heartbeats are lightweight background network pings sent by the web browser at regular intervals while a student is actively reading.
@@ -2306,12 +2815,17 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.14 Relational Database Schemas & ACID Transaction Boundaries
+
 - **Real-World Analogy**: Imagine buying a house. You cannot transfer ownership of the deed if the buyer's check bounces, and the bank cannot wire the funds if the seller refuses to sign the contract. The entire purchase must succeed together as one indivisible unit, or the entire transaction is rolled back and canceled so neither party loses money.
 
 - **How It Works in Plain English**: A Relational Database Management System (RDBMS) organizes information into structured tables with rows and columns, linked together by foreign keys. ACID is an acronym representing the four non-negotiable guarantees of reliable data processing:
+
   - **Atomicity**: Either all operations in a transaction succeed, or none of them do (no half-saved records).
+
   - **Consistency**: Data must always obey defined business rules, foreign keys, and unique constraints.
+
   - **Isolation**: Concurrent transactions running at the exact same moment do not interfere with or corrupt each other.
+
   - **Durability**: Once a transaction is committed, the data is permanently written to physical disk and will survive power failures.
 
 - **Application in Zyndex**: Zyndex uses **MySQL 8.4 LTS** with the **InnoDB storage engine**. Each microservice connects to its own isolated database schema (`zyndex_auth`, `zyndex_content`, `zyndex_access`, `zyndex_usage`, and `zyndex_subscription`). When an administrator approves a subscription payment, `subscription-service` wraps the operation in an ACID transaction boundary: it marks the payment as `SUCCESS`, revokes old subscriptions, inserts the new active plan, calls `access-service` to grant entitlements, and logs an audit record. If any step fails, the entire transaction is cleanly rolled back to prevent inconsistent financial state.
@@ -2319,6 +2833,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.15 High-Performance Database Connection Pooling (HikariCP)
+
 - **Real-World Analogy**: Imagine an airport taxi stand. If every incoming passenger had to wait for a brand new taxi to be manufactured at a car factory, delivered, registered, and fueled before getting a ride, the airport would be in complete gridlock. Instead, a fleet of 10 ready-to-drive taxis sits running in the taxi queue; a passenger hops in, takes their ride, and the taxi returns to the queue ready for the next person.
 
 - **How It Works in Plain English**: Establishing a brand new network connection to a database is an expensive computing operation that involves TCP handshakes, authentication, SSL negotiation, and memory allocation. A connection pool creates and maintains a warm pool of active database connections in memory, loaning them out to application threads for milliseconds and reclaiming them the moment a query completes.
@@ -2328,6 +2843,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.16 Zero-Trust Inter-Service Perimeter Security (`X-Gateway-Secret`)
+
 - **Real-World Analogy**: Imagine an intelligence agency building where diplomats and visitors are only permitted into the ground-floor reception area. To enter the high-security subterranean offices where sensitive operations occur, staff members must wear a coded badge with a secret daily frequency signature that only the security desk can imprint. Anyone walking through an internal corridor without that specific signature is immediately apprehended.
 
 - **How It Works in Plain English**: In a microservice ecosystem, internal services (like `content-service` or `subscription-service`) should never be directly accessible from the outside internet. Even if an attacker learns the internal port number of a microservice, the service should reject requests that did not originate from the trusted API Gateway.
@@ -2337,6 +2853,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.17 Responsive Component Design & Utility-First Styling (Tailwind CSS)
+
 - **Real-World Analogy**: Traditional custom CSS is like hiring a tailor to hand-sew every single shirt, pants, and button from scratch for every customer—it is slow, difficult to maintain consistently, and creates massive wardrobes of duplicate cloth. Tailwind CSS is like having an organized modular box of standardized, high-quality precision Lego bricks (e.g., standard lengths, snap connectors, and colors) that can be assembled instantly into any structure with guaranteed visual alignment.
 
 - **How It Works in Plain English**: Instead of writing thousands of lines of custom CSS stylesheets with arbitrary pixel values and inconsistent colors, utility-first CSS provides a standardized dictionary of pre-configured design classes (such as `p-4` for padding, `rounded-xl` for border radius, and `text-sm` for font size). These classes are applied directly inside React JSX markup.
@@ -2346,6 +2863,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.18 Accessibility Standards Compliance (WCAG 2.1 AA & ARIA)
+
 - **Real-World Analogy**: When an architect designs a university lecture hall, they do not only build stairs; they include wheelchair ramps, tactile paving for visual impairments, high-contrast door signs, and audio induction loops for hearing aids. This ensures that every scholar, regardless of physical ability, has equal access to knowledge.
 
 - **How It Works in Plain English**: Web accessibility ensures that digital platforms can be navigated, understood, and operated by people with disabilities, including those who rely on screen reader software (such as NVDA, JAWS, or VoiceOver) or keyboard-only navigation. The Web Content Accessibility Guidelines (WCAG) 2.1 Level AA are the global international standard for web accessibility.
@@ -2355,6 +2873,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.19 Interactive Data Visualization with SVG Primitives (Recharts)
+
 - **Real-World Analogy**: Looking at a raw spreadsheet containing 10,000 rows of numbers is like staring at static on an old television—it is exhausting and impossible to spot trends. A weather forecast map translates those millions of air pressure and temperature readings into intuitive blue rain clouds and orange sun icons that anyone can understand in two seconds.
 
 - **How It Works in Plain English**: Rather than forcing platform administrators to read through endless raw database rows of reading times, data visualization engines calculate mathematical coordinates and generate responsive, interactive Scalable Vector Graphics (SVG) directly inside the browser.
@@ -2364,6 +2883,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.20 Lightning-Fast Frontend Compilation & Development (Vite 6)
+
 - **Real-World Analogy**: Older web development tools worked like printing an entire newspaper daily—even if a journalist changed a single comma in an article, the factory had to stop, re-ink the printing press, and reprint all 100 pages from scratch. Modern Vite works like a digital news ticker: only the specific sentence that changed is refreshed on screen in milliseconds without reprinting the rest of the newspaper.
 
 - **How It Works in Plain English**: Traditional web bundlers (like Webpack) bundle every JavaScript file into a massive file before running. Vite leverages native browser ES Modules (ESM) to serve source files on-demand during development and utilizes **Rollup** and **esbuild** for high-speed production bundling.
@@ -2373,6 +2893,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.21 Zero-Trust Client-Side Input Sanitization (DOMPurify)
+
 - **Real-World Analogy**: Think of a bank teller counter equipped with bulletproof glass and a secure pass-through tray. Before any package or document submitted by a customer is brought into the bank vault, it passes through an automated scanner that removes and incinerates any hidden blades, toxins, or explosives, ensuring only safe paper enters the building.
 
 - **How It Works in Plain English**: Cross-Site Scripting (XSS) is a severe web vulnerability where malicious users submit hidden `<script>` tags or malicious HTML into text boxes (such as book feedback or profile bios). If a website renders this text without cleaning it, the malicious script executes inside other users' browsers, potentially stealing their private login tokens. DOMPurify scans HTML strings and strips away dangerous tags, script attributes, and JavaScript URLs.
@@ -2382,6 +2903,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.22 In-Browser Hardware-Accelerated PDF Rendering (PDF.js / `pdfjs-dist`)
+
 - **Real-World Analogy**: Rather than forcing a student to install a bulky, proprietary 500-megabyte PDF viewer software program on their laptop just to read a class chapter, the digital library embeds a lightweight, high-resolution optical microscope directly into their browser window, rendering text crisp and clear on any screen size.
 
 - **How It Works in Plain English**: Developed by Mozilla, PDF.js is a community-standard JavaScript library that parses and renders Portable Document Format (PDF) files directly onto HTML5 `<canvas>` elements inside the web browser without requiring external plugins or Adobe Acrobat installations.
@@ -2391,6 +2913,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.23 Enterprise Operational Liveness & Health Probes (Spring Boot Actuator)
+
 - **Real-World Analogy**: Modern passenger aircraft are equipped with thousands of internal avionics sensors continuously checking engine temperature, fuel line pressure, and wing flap hydraulics. The flight computer doesn't wait for an engine to sputter mid-flight; it displays continuous green status lights on the cockpit dashboard to guarantee that every system is operating within safe parameters.
 
 - **How It Works in Plain English**: In distributed enterprise architectures, operations engineers and automated orchestration tools need a standardized way to check if a service is healthy, alive, and ready to receive traffic. Spring Boot Actuator provides built-in production-ready endpoints (`/actuator/health`, `/actuator/metrics`, `/actuator/info`) that expose system telemetry without writing custom monitoring code.
@@ -2400,6 +2923,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.24 Centralized HTTP Interceptor Pipelines (Axios Interceptors)
+
 - **Real-World Analogy**: Imagine an executive courier service where every outgoing letter must have the company's official wax seal and security clearance stamp pressed onto the envelope before leaving the mailroom, and every returning delivery must be inspected by security for expired visitor passes before delivery to the desk. Instead of having every employee manually stamp their own letters, the central mailroom clerk handles it automatically for all outbound mail.
 
 - **How It Works in Plain English**: When a frontend web application communicates with backend APIs, developers should not manually paste authentication headers into every single button click or network fetch across 99 different components. An HTTP Interceptor is a centralized pipeline that automatically catches outgoing requests and incoming responses to apply global logic.
@@ -2409,6 +2933,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.25 Declarative Server-Side Request Validation (Jakarta Bean Validation)
+
 - **Real-World Analogy**: When submitting a passport application at a government consulate, the intake clerk will not forward your paperwork to the national security vault if you left your date of birth blank, provided an invalid 3-digit phone number, or wrote a fake name. The application is rejected at the front desk immediately, saving valuable investigative resources.
 
 - **How It Works in Plain English**: Web applications must never assume that incoming data is clean or valid. Jakarta Bean Validation provides standardized declarative annotations (such as `@NotNull`, `@NotBlank`, `@Email`, `@Size(min=8)`) attached directly to Java Data Transfer Objects (DTOs). When a request hits a controller annotated with `@Valid`, Spring automatically inspects the payload and rejects malformed inputs before database logic executes.
@@ -2418,6 +2943,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.26 Cross-Origin Security Perimeter (CORS Architecture)
+
 - **Real-World Analogy**: Imagine a prestigious university library that issues digital passes exclusively to its registered students on the official campus portal. If an unauthorized third-party commercial website tries to create an iframe window and steal the university's private book repository to show on their own ad-supported site, the university security guard inspects the calling website's address and firmly slams the digital shutter closed.
 
 - **How It Works in Plain English**: Cross-Origin Resource Sharing (CORS) is a browser security protocol enforced by web browsers. By default, browsers prevent scripts running on one origin (e.g., `https://zyndex.netlify.app`) from sending requests to a completely different backend domain or IP address (e.g., `http://92.5.166.34:8080`) unless the backend explicitly responds with permission headers (`Access-Control-Allow-Origin`).
@@ -2427,6 +2953,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.27 Declarative Animation & Physics-Based Micro-Interactions (Framer Motion)
+
 - **Real-World Analogy**: In a well-crafted physical luxury watch, opening the caseback or winding the crown provides smooth, dampened mechanical feedback rather than a jarring, abrupt snap. Similarly, modern software feels intuitive and trustworthy when visual elements glide gracefully into place rather than popping in and out like a glitch.
 
 - **How It Works in Plain English**: Framer Motion is a production-grade animation library for React that simplifies building fluid micro-interactions, layout transitions, and gesture controls using declarative spring physics rather than rigid, hardcoded CSS keyframe timers.
@@ -2436,6 +2963,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.28 Accessible Headless Component Primitives (Radix UI)
+
 - **Real-World Analogy**: Think of high-end architectural door hinges and mortise locks. They do not dictate what wood or color the door must be—you can paint the door royal navy or academic gold—but the internal mechanical hinge guarantees that the door swings smoothly, latches securely, and meets all municipal commercial fire exit safety codes.
 
 - **How It Works in Plain English**: "Headless" UI libraries provide complete interactive logic, focus traps, keyboard accessibility, and ARIA state management without imposing any visual styling. This allows developers to style components freely with Tailwind CSS while guaranteeing 100% compliance with screen readers and assistive technologies.
@@ -2445,6 +2973,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.29 Real-Time Non-Intrusive Notification Engine (Sonner)
+
 - **Real-World Analogy**: In an automobile, when you turn on the high beams or engage cruise control, a subtle, clean indicator light illuminates on the dashboard edge without blocking the windshield or distracting the driver from the road ahead.
 
 - **How It Works in Plain English**: Traditional browser alert dialogs (`window.alert()`) freeze the browser, interrupt user reading, and provide a jarring user experience. Modern toast notification engines render non-intrusive, stackable status cards that slide into the corner of the screen and automatically fade away after a few seconds.
@@ -2454,6 +2983,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.30 Visual Anti-Automation Defense: Canvas Dynamic CAPTCHA
+
 - **Real-World Analogy**: At the entrance of an exclusive scholarly society, the security officer asks visitors to read a handwritten signature code scrawled on a textured slate chalkboard. A human eye can effortlessly decipher the letters despite chalk dust and irregular angles, but an automated robotic camera without human context cannot read the text.
 
 - **How It Works in Plain English**: Automated credential stuffing bots frequently attempt to guess administrator passwords by bombarding login forms with thousands of stolen credential pairs per minute. A Completely Automated Public Turing test to tell Computers and Humans Apart (CAPTCHA) presents a visual puzzle that is trivial for humans to solve but computationally difficult for bots to automate.
@@ -2463,6 +2993,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.31 Scalable SVG Vector Iconography System (Lucide React)
+
 - **Real-World Analogy**: International road signs (like Stop, Yield, or Speed Limit signs) use standardized, universal geometric symbols rather than complex written essays. A driver can instantly recognize a sign from 500 feet away regardless of the language they speak.
 
 - **How It Works in Plain English**: Vector icons are drawn using mathematical coordinate lines (Scalable Vector Graphics) rather than fixed pixel grids (PNGs or JPEGs). This guarantees that an icon remains razor-sharp and crystal clear whether displayed as a tiny 16-pixel badge on a smartphone or a massive 128-pixel emblem on a 4K desktop monitor, while maintaining an exceptionally tiny file footprint.
@@ -2472,6 +3003,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 ---
 
 ### 20.32 Automated Financial Ledger & Telemetry Export (Apache POI & Excel)
+
 - **Real-World Analogy**: At the close of each academic term, a university registrar or bursar must present financial audit ledgers to university trustees and chartered accountants. Instead of manually retyping thousands of student transaction records by hand, the head librarian pushes one button, and an official, pre-formatted multi-column financial spreadsheet workbook is produced instantly.
 
 - **How It Works in Plain English**: While web applications display data cleanly in interactive HTML tables, financial accountants and institutional auditors require standardized spreadsheet formats (`.xlsx` or `.csv`) that can be opened in Microsoft Excel, Google Sheets, or institutional ERP accounting software for formula auditing and tax compliance.
