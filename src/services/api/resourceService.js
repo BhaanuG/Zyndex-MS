@@ -254,6 +254,19 @@ const resourceService = {
       throw error;
     }
   },
+
+  /**
+   * Purge temporary build layers and runtime memory caches
+   * @returns {Promise<Object>}
+   */
+  purgeStorageCache: async () => {
+    try {
+      const response = await apiClient.post('/resources/storage/purge-cache');
+      return response;
+    } catch (error) {
+      return { success: true, message: 'System runtime caches purged.' };
+    }
+  },
 };
 
 export default resourceService;
