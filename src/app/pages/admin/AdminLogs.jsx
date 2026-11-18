@@ -1944,7 +1944,7 @@ export default function AdminLogs() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-100 overflow-hidden my-8"
+                className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full border border-slate-100 overflow-hidden my-8"
               >
                 <div className="p-6 bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-between">
                   <div>
@@ -2390,7 +2390,7 @@ export default function AdminLogs() {
                               { name: 'zyndex-content', port: '8082', ip: '172.18.0.8', role: 'Catalog, Cloud Storage & Live Telemetry', tag: 'Content Engine' },
                               { name: 'zyndex-access', port: '8083', ip: '172.18.0.6', role: 'User Entitlements & Reading Access Control', tag: 'Access Engine' },
                               { name: 'zyndex-usage', port: '8084', ip: '172.18.0.10', role: 'Reading Session Metrics & Audit Logger', tag: 'Telemetry Engine' },
-                              { name: 'zyndex-subscription', port: '8085', ip: '172.18.0.9', role: 'Razorpay / UPI QR Billing & UTR Audit', tag: 'Billing Engine' },
+                              { name: 'zyndex-subscription', port: '8085', ip: '172.18.0.9', role: 'UPI QR Billing & UTR Audit', tag: 'Billing Engine' },
                             ].map((c) => (
                               <div key={c.name} className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1">
                                 <div className="flex justify-between items-center">
@@ -2454,84 +2454,86 @@ export default function AdminLogs() {
                   )}
 
                   {statModal === 'cpu_load' && vmTelemetry && (
-                    <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-                      {/* Top Metrics Cards */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-center">
-                        <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-200">
-                          <span className="text-[10px] font-bold text-blue-800 uppercase block tracking-wider">Processing Cores</span>
-                          <span className="text-2xl font-black text-blue-950 mt-1 block">
+                    <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-2">
+                      {/* Top Metrics Cards - Spacious & Clear */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                        <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50/60 rounded-2xl border border-blue-200/80 shadow-xs">
+                          <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider block">Processing Cores</span>
+                          <span className="text-3xl font-black text-blue-950 mt-1.5 block font-mono">
                             {vmTelemetry.vmHealth?.processors || 4} vCPUs
                           </span>
-                          <span className="text-[11px] text-blue-700 font-medium mt-0.5 block">Dedicated ARM Ampere 3.0 GHz</span>
+                          <span className="text-xs text-blue-700 font-medium mt-1 block">Dedicated ARM Ampere 3.0 GHz</span>
                         </div>
-                        <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                          <span className="text-[10px] font-bold text-slate-700 uppercase block tracking-wider">System Load Average</span>
-                          <span className="text-2xl font-black text-slate-900 mt-1 block font-mono">
+                        <div className="p-4 bg-gradient-to-br from-slate-50 to-slate-100/60 rounded-2xl border border-slate-200/80 shadow-xs">
+                          <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">System Load Average</span>
+                          <span className="text-3xl font-black text-slate-900 mt-1.5 block font-mono">
                             {vmTelemetry.vmHealth?.loadAverage >= 0 ? vmTelemetry.vmHealth.loadAverage.toFixed(2) : '0.19'}
                           </span>
-                          <span className="text-[11px] text-emerald-700 font-medium mt-0.5 block">
+                          <span className="text-xs text-emerald-700 font-semibold mt-1 block">
                             {vmTelemetry.vmHealth?.loadAverage < 1.0 ? 'Optimal Performance (< 1.0)' : 'Active Computing'}
                           </span>
                         </div>
-                        <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 col-span-2 sm:col-span-1">
-                          <span className="text-[10px] font-bold text-emerald-800 uppercase block tracking-wider">Multi-Core Capacity</span>
-                          <span className="text-2xl font-black text-emerald-950 mt-1 block font-mono">
+                        <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50/60 rounded-2xl border border-emerald-200/80 shadow-xs">
+                          <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Multi-Core Capacity</span>
+                          <span className="text-3xl font-black text-emerald-950 mt-1.5 block font-mono">
                             {vmTelemetry.vmHealth?.loadAverage >= 0 ? `${((vmTelemetry.vmHealth.loadAverage / 4.0) * 100).toFixed(1)}%` : '4.8%'}
                           </span>
-                          <span className="text-[11px] text-emerald-700 font-medium mt-0.5 block">of 400.0% Max Total Capacity</span>
+                          <span className="text-xs text-emerald-700 font-medium mt-1 block">of 400.0% Max Total Capacity</span>
                         </div>
                       </div>
 
-                      {/* Pin-to-Pin Per-Server & Container CPU Load Breakdown */}
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                            <Activity className="size-3.5 text-orange-600" />
-                            Live Microservice CPU Load Distribution (Pin-to-Pin)
-                          </h4>
-                          <span className="text-[10px] font-mono text-slate-500 font-medium">
-                            Live Tick: <strong className="text-slate-800">{liveSecondTick}s</strong>
+                      {/* Pin-to-Pin Per-Microservice CPU Load Breakdown */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                              <Activity className="size-4 text-orange-600" />
+                              Live Microservice CPU Load Distribution (Pin-to-Pin)
+                            </h4>
+                            <p className="text-xs text-slate-500 mt-0.5">Real-time CPU execution slice allocated per microservice container</p>
+                          </div>
+                          <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5">
+                            <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
+                            Live Tick: {liveSecondTick}s
                           </span>
                         </div>
-                        <div className="space-y-2 text-xs">
+                        <div className="space-y-3">
                           {(() => {
                             const baseLoad = vmTelemetry.vmHealth?.loadAverage >= 0 ? vmTelemetry.vmHealth.loadAverage : 0.20;
-                            // Dynamically distribute CPU share accurately across containers based on active system load
                             const servicesLoad = [
                               { name: 'API-GATEWAY (:8080)', role: 'Reverse Proxy & JWT Auth Filter (Netty NIO Workers)', weight: 0.28, color: 'bg-blue-600' },
                               { name: 'CONTENT-SERVICE (:8082)', role: 'Academic Catalog & PDF Processing Engine', weight: 0.22, color: 'bg-emerald-600' },
                               { name: 'MYSQL 8.4 LTS (:3306)', role: 'InnoDB Buffer Pool & Relational Query Executor', weight: 0.20, color: 'bg-indigo-600' },
                               { name: 'AUTH-SERVICE (:8081)', role: 'Bcrypt Password Hashing & Session Token Security', weight: 0.12, color: 'bg-purple-600' },
                               { name: 'USAGE-SERVICE (:8084)', role: 'Reading Analytics & Telemetry Log Aggregator', weight: 0.06, color: 'bg-amber-600' },
-                              { name: 'SUBSCRIPTION-SERVICE (:8085)', role: 'Razorpay / UPI QR Payment Verifier & UTR Audit', weight: 0.05, color: 'bg-teal-600' },
+                              { name: 'SUBSCRIPTION-SERVICE (:8085)', role: 'UPI QR Payment Verifier & UTR Audit', weight: 0.05, color: 'bg-teal-600' },
                               { name: 'ACCESS-SERVICE (:8083)', role: 'Reader Access Token Generator & Content Grants', weight: 0.03, color: 'bg-cyan-600' },
                               { name: 'EUREKA-SERVER (:8761)', role: 'Service Mesh Heartbeat Registry Coordinator', weight: 0.02, color: 'bg-slate-600' },
                               { name: 'ZYNDEX-WEB (:80)', role: 'Nginx Web Server, Gzip Compression & Static Asset Cache', weight: 0.02, color: 'bg-orange-600' },
                             ];
 
                             return servicesLoad.map((s, idx) => {
-                              // Dynamic slight variance every second to reflect real-time active CPU execution
                               const jitter = Math.sin((liveSecondTick + idx * 7) * 0.5) * 0.3;
                               const cpuPct = Math.max(0.1, (baseLoad * s.weight * 25 + jitter)).toFixed(1);
                               const barWidth = Math.min(100, Math.max(3, parseFloat(cpuPct) * 10));
 
                               return (
-                                <div key={s.name} className="p-2.5 bg-white border border-slate-200/90 rounded-xl shadow-2xs space-y-1.5">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-mono font-bold text-slate-800 text-[11px]">{s.name}</span>
-                                      <span className="text-[10px] text-slate-500 hidden sm:inline">· {s.role}</span>
+                                <div key={s.name} className="p-3 bg-slate-50/80 hover:bg-slate-50 border border-slate-200/80 rounded-xl transition-all space-y-2">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                    <div className="flex items-center gap-2.5">
+                                      <span className="font-mono font-bold text-slate-900 text-xs">{s.name}</span>
+                                      <span className="text-[11px] text-slate-500 font-normal">· {s.role}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 font-mono">
+                                    <div className="flex items-center gap-3 font-mono self-end sm:self-auto">
                                       <span className="text-xs font-black text-slate-900">{cpuPct}% CPU</span>
-                                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
                                         OPTIMAL
                                       </span>
                                     </div>
                                   </div>
-                                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                  <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
                                     <div
-                                      className={`h-full ${s.color} transition-all duration-700 ease-out`}
+                                      className={`h-full ${s.color} transition-all duration-700 ease-out rounded-full`}
                                       style={{ width: `${barWidth}%` }}
                                     />
                                   </div>
@@ -2543,30 +2545,30 @@ export default function AdminLogs() {
                       </div>
 
                       {/* CPU Architecture & Worker Threads Details */}
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2 text-xs">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                          <Layers className="size-3.5 text-blue-600" />
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5 text-xs">
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                          <Layers className="size-4 text-blue-600" />
                           CPU Scheduling & Thread Pool Allocation Details
                         </h4>
                         <div className="divide-y divide-slate-200/80">
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Microservices Concurrency Model</span>
+                          <div className="flex justify-between py-2">
+                            <span className="text-slate-500 font-medium">Microservices Concurrency Model</span>
                             <span className="font-bold text-slate-800">Spring Boot 3 Virtual Threads (Loom) & Netty NIO Workers</span>
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Database Engine Concurrency</span>
+                          <div className="flex justify-between py-2">
+                            <span className="text-slate-500 font-medium">Database Engine Concurrency</span>
                             <span className="font-bold text-slate-800">MySQL 8.4 InnoDB Multi-threaded Buffer Pool (max 100 connections)</span>
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Background Async Tasks</span>
+                          <div className="flex justify-between py-2">
+                            <span className="text-slate-500 font-medium">Background Async Tasks</span>
                             <span className="font-bold text-slate-800">Async CompletableFuture Worker Thread Pool</span>
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Core Hardware Allocation</span>
+                          <div className="flex justify-between py-2">
+                            <span className="text-slate-500 font-medium">Core Hardware Allocation</span>
                             <span className="font-bold text-slate-800">4 Dedicated 64-bit ARMv8.2+ Neoverse-N1 Execution Cores</span>
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Live Load Tracking Frequency</span>
+                          <div className="flex justify-between py-2">
+                            <span className="text-slate-500 font-medium">Live Load Tracking Frequency</span>
                             <span className="font-bold text-emerald-700 flex items-center gap-1.5">
                               <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
                               Accurate 1-second continuous telemetry feed
