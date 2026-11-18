@@ -2673,16 +2673,7 @@ export default function AdminLogs() {
                           </div>
                         </div>
 
-                        {/* Explanation Note on Calculation Math */}
-                        <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-2xl text-[11px] text-blue-900 leading-relaxed">
-                          <strong className="font-bold text-blue-950 flex items-center gap-1 mb-1">
-                            <span className="text-blue-600">ℹ️</span> How Java Memory Calculation Works (Pin-to-Pin):
-                          </strong>
-                          In modern 64-bit Java, <code className="bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-mono">Max Ceiling ({maxMb.toFixed(0)} MB)</code> is the absolute upper limit the container can consume before GC throttling. The OS has currently pre-committed <code className="bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-mono">{allocatedMb.toFixed(0)} MB</code>, of which Java is actively using <code className="bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-mono">{usedMb.toFixed(1)} MB</code>. The true usable free headroom until maximum capacity is exactly:
-                          <div className="mt-1 font-mono text-[11px] font-bold text-blue-950 bg-white/70 p-1.5 rounded-lg border border-blue-200 text-center">
-                            Actively Used ({usedMb.toFixed(1)} MB) + Total Free Headroom ({availableHeadroomMb.toFixed(1)} MB) = Max Ceiling ({maxMb.toFixed(0)} MB)
-                          </div>
-                        </div>
+
 
                         {/* Microservices Memory Footprint Matrix */}
                         <div className="border border-slate-200 rounded-2xl p-4 bg-white shadow-xs space-y-2.5">
@@ -2851,20 +2842,7 @@ export default function AdminLogs() {
                           </div>
                         </div>
 
-                        {/* Detailed Non-Technical Explanation */}
-                        <div className="p-3.5 bg-indigo-50/80 border border-indigo-200 rounded-2xl text-[11px] text-indigo-950 leading-relaxed space-y-1.5">
-                          <div className="font-bold text-indigo-950 flex items-center gap-1.5">
-                            <span>💡</span>
-                            <span>Why is ~{usedGb} GB used before any user files are uploaded?</span>
-                          </div>
-                          <p className="text-slate-700">
-                            Your server is a complete dedicated production cloud computer hosting <strong>9 independent containers</strong> (MySQL database engine, Spring Boot microservices, Nginx web server, and Linux operating system). The occupied space is the bare operating framework required to run the entire backend and database securely 24/7.
-                          </p>
-                          <div className="pt-1 text-emerald-800 font-semibold flex items-center gap-1">
-                            <span>✅</span>
-                            <span>You have over <strong>{freeGb} GB of 100% free storage</strong> reserved specifically for student PDFs, documents, and database records!</span>
-                          </div>
-                        </div>
+
 
                         {/* Storage Purge Action Panel */}
                         <div className="p-3.5 bg-amber-50/60 border border-amber-300 rounded-2xl space-y-2">
