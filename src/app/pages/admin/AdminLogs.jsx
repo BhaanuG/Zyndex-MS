@@ -2227,119 +2227,220 @@ export default function AdminLogs() {
 
                   {statModal === 'vm_state' && vmTelemetry && (
                     <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-                      {/* Top Summary Banner */}
+                      {/* Top Summary Banner: 4 Clean Metric Cards */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-                        <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
-                          <span className="text-[10px] font-bold text-emerald-800 uppercase block tracking-wider">Health Status</span>
-                          <span className="text-lg font-black text-emerald-950 mt-0.5 flex items-center justify-center gap-1.5">
+                        <div className="p-3 bg-emerald-50/80 rounded-2xl border border-emerald-200 shadow-2xs">
+                          <span className="text-[10px] font-bold text-emerald-800 uppercase block tracking-wider">Cluster State</span>
+                          <span className="text-lg font-black text-emerald-950 mt-0.5 flex items-center justify-center gap-1.5 font-mono">
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
                             {vmTelemetry.vmHealth?.status || 'UP'}
                           </span>
-                          <span className="text-[10px] text-emerald-700 font-medium">100% Operational</span>
+                          <span className="text-[10px] text-emerald-700 font-semibold">9 / 9 Nodes Online</span>
                         </div>
-                        <div className="p-3 bg-blue-50 rounded-2xl border border-blue-200">
-                          <span className="text-[10px] font-bold text-blue-800 uppercase block tracking-wider">Gateway Mesh</span>
-                          <span className="text-lg font-black text-blue-950 mt-0.5 block">Active</span>
+                        <div className="p-3 bg-blue-50/80 rounded-2xl border border-blue-200 shadow-2xs">
+                          <span className="text-[10px] font-bold text-blue-800 uppercase block tracking-wider">Gateway Proxy</span>
+                          <span className="text-lg font-black text-blue-950 mt-0.5 block font-mono">Active</span>
                           <span className="text-[10px] text-blue-700 font-medium">Port :8080 · Netty</span>
                         </div>
-                        <div className="p-3 bg-purple-50 rounded-2xl border border-purple-200">
-                          <span className="text-[10px] font-bold text-purple-800 uppercase block tracking-wider">Discovery</span>
-                          <span className="text-lg font-black text-purple-950 mt-0.5 block">Eureka</span>
-                          <span className="text-[10px] text-purple-700 font-medium">5/5 Heartbeats · :8761</span>
+                        <div className="p-3 bg-purple-50/80 rounded-2xl border border-purple-200 shadow-2xs">
+                          <span className="text-[10px] font-bold text-purple-800 uppercase block tracking-wider">Eureka Discovery</span>
+                          <span className="text-lg font-black text-purple-950 mt-0.5 block font-mono">Synchronized</span>
+                          <span className="text-[10px] text-purple-700 font-medium">Port :8761 · Mesh</span>
                         </div>
-                        <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200">
-                          <span className="text-[10px] font-bold text-amber-800 uppercase block tracking-wider">Host Node</span>
-                          <span className="text-lg font-black text-amber-950 mt-0.5 block">Ampere ARM</span>
+                        <div className="p-3 bg-amber-50/80 rounded-2xl border border-amber-200 shadow-2xs">
+                          <span className="text-[10px] font-bold text-amber-800 uppercase block tracking-wider">Cloud Host Node</span>
+                          <span className="text-lg font-black text-amber-950 mt-0.5 block font-mono">ARM Ampere A1</span>
                           <span className="text-[10px] text-amber-700 font-medium">4 OCPU · 24 GB RAM</span>
                         </div>
                       </div>
 
-                      {/* Live Microservices Container Mesh Topology */}
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                            <Server className="size-3.5 text-orange-600" />
-                            Live Microservices Topology (9 Containers Active)
+                      {/* SECTION 1: Cloud Compute Node & Host Operating System */}
+                      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-3">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <span className="size-2 rounded-full bg-orange-500" />
+                            1. Cloud Compute Host & Hardware Architecture
                           </h4>
-                          <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            9 / 9 Online
+                          <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                            eu-frankfurt-1 (AD-2 · FD-3)
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                          {[
-                            { name: 'API-GATEWAY', port: '8080', role: 'Reverse Proxy & JWT Filter', ip: '172.18.0.4', status: 'HEALTHY' },
-                            { name: 'AUTH-SERVICE', port: '8081', role: 'Identity, Bcrypt & Session', ip: '172.18.0.7', status: 'HEALTHY' },
-                            { name: 'CONTENT-SERVICE', port: '8082', role: 'Catalog & PDF Streamer', ip: '172.18.0.8', status: 'HEALTHY' },
-                            { name: 'ACCESS-SERVICE', port: '8083', role: 'Reader Rights & Tokens', ip: '172.18.0.6', status: 'HEALTHY' },
-                            { name: 'USAGE-SERVICE', port: '8084', role: 'Telemetry & Log Aggregator', ip: '172.18.0.10', status: 'HEALTHY' },
-                            { name: 'SUBSCRIPTION-SERVICE', port: '8085', role: 'Razorpay, UPI QR & UTR', ip: '172.18.0.9', status: 'HEALTHY' },
-                            { name: 'MYSQL 8.4 LTS', port: '3306', role: 'InnoDB Database Engine', ip: '172.18.0.2', status: 'HEALTHY' },
-                            { name: 'EUREKA-SERVER', port: '8761', role: 'Service Mesh Discovery', ip: '172.18.0.3', status: 'HEALTHY' },
-                            { name: 'ZYNDEX-WEB', port: '80', role: 'Nginx 1.27 Web Frontend', ip: '172.18.0.5', status: 'HEALTHY' }
-                          ].map((svc) => (
-                            <div key={svc.name} className="p-2.5 bg-white border border-slate-200/90 rounded-xl shadow-2xs hover:border-orange-300 transition-colors">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="font-mono text-[11px] font-bold text-slate-900 truncate">{svc.name}</span>
-                                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-md">
-                                  :{svc.port}
-                                </span>
-                              </div>
-                              <p className="text-[10px] text-slate-500 truncate mb-1">{svc.role}</p>
-                              <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                                <span>{svc.ip}</span>
-                                <span className="text-emerald-600 font-bold flex items-center gap-1">
-                                  <span className="size-1.5 rounded-full bg-emerald-500" />
-                                  UP
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <span className="text-slate-500">Instance Shape</span>
+                            <span className="font-mono font-bold text-slate-800">VM.Standard.A1.Flex</span>
+                          </div>
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <span className="text-slate-500">Compute Processing Unit</span>
+                            <span className="font-mono font-bold text-slate-800">4 OCPUs (ARMv8.2 Neoverse-N1 @ 3.0 GHz)</span>
+                          </div>
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <span className="text-slate-500">Physical System Memory</span>
+                            <span className="font-mono font-bold text-slate-800">24.0 GB LPDDR4x ECC RAM</span>
+                          </div>
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <span className="text-slate-500">Boot Volume Storage</span>
+                            <span className="font-mono font-bold text-slate-800">44.07 GB NVMe Block Storage (ext4)</span>
+                          </div>
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <span className="text-slate-500">Operating System</span>
+                            <span className="font-bold text-slate-800">Ubuntu 24.04 LTS (Linux 7.0.0-1013-oracle aarch64)</span>
+                          </div>
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <span className="text-slate-500">Virtualization Hypervisor</span>
+                            <span className="font-mono font-bold text-slate-800">Oracle Cloud Paravirtualized UEFI_64</span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Deep Cloud Infrastructure & Network Specs */}
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs space-y-2">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                          <Layers className="size-3.5 text-blue-600" />
-                          Pin-to-Pin Infrastructure & Network Specifications
-                        </h4>
-                        <div className="divide-y divide-slate-200/80">
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Cloud Provider & Region</span>
-                            <span className="font-bold text-slate-800">Oracle Cloud Infrastructure (Frankfurt eu-frankfurt-1 · AD-2 / FD-3)</span>
+                      {/* SECTION 2: Network Routing, VCN & Ingress Security */}
+                      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-3">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <span className="size-2 rounded-full bg-blue-500" />
+                            2. Cloud Network Topology & Ingress Ports
+                          </h4>
+                          <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-bold">
+                            Ingress Firewall Active
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                            <span className="text-[11px] text-slate-500 font-medium">Public Internet Entry Point</span>
+                            <div className="font-mono font-bold text-orange-700 text-xs">
+                              130.61.247.196 (Port 80 HTTP / 8080 API)
+                            </div>
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Compute Hardware Shape</span>
-                            <span className="font-bold text-slate-800">VM.Standard.A1.Flex (Ampere Altra ARM Neoverse-N1 · 4 OCPUs · 24 GB RAM)</span>
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                            <span className="text-[11px] text-slate-500 font-medium">Private VCN & Subnet IP</span>
+                            <div className="font-mono font-bold text-slate-800 text-xs">
+                              10.0.0.134 (subnet-20261113-2345 regional)
+                            </div>
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Host Operating System</span>
-                            <span className="font-bold text-slate-800">Canonical Ubuntu 24.04 LTS (Linux 7.0.0-1013-oracle aarch64)</span>
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                            <span className="text-[11px] text-slate-500 font-medium">Docker Internal Bridge Mesh</span>
+                            <div className="font-mono font-bold text-slate-800 text-xs">
+                              172.18.0.0/16 (zyndex_zyndex-network · MTU 1500)
+                            </div>
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Public Entry Node</span>
-                            <span className="font-mono font-bold text-orange-700">130.61.247.196:80 (Web UI) · :8080 (API Gateway)</span>
+                          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                            <span className="text-[11px] text-slate-500 font-medium">Persisted Linux Ingress Ports</span>
+                            <div className="font-mono font-bold text-emerald-700 text-xs">
+                              22 (SSH), 80 (Web), 443 (HTTPS), 8080 (Gateway)
+                            </div>
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Private Subnet & VCN</span>
-                            <span className="font-mono text-slate-800">10.0.0.134 (vcn-20261113-2345 · subnet-20261113-2345)</span>
+                        </div>
+                      </div>
+
+                      {/* SECTION 3: Microservice Container Mesh Topology Grouped by Category */}
+                      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-3.5">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <span className="size-2 rounded-full bg-emerald-500" />
+                            3. Microservice Container Mesh Topology (9 Active Containers)
+                          </h4>
+                          <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
+                            9 / 9 Synchronized
+                          </span>
+                        </div>
+
+                        {/* Category A: Routing & Infrastructure Services */}
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>🌐</span> Routing, Discovery & Web Edge (3 Containers)
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Container Virtual Mesh</span>
-                            <span className="font-mono text-slate-800">zyndex_zyndex-network (Bridge 172.18.0.0/16 · MTU 1500)</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                            {[
+                              { name: 'zyndex-web', port: '80', ip: '172.18.0.5', role: 'Nginx 1.27 Web Frontend SPA', tag: 'Web Entry', color: 'border-orange-200 bg-orange-50/40 text-orange-900' },
+                              { name: 'zyndex-gateway', port: '8080', ip: '172.18.0.4', role: 'API Gateway & JWT Router (Netty)', tag: 'API Router', color: 'border-blue-200 bg-blue-50/40 text-blue-900' },
+                              { name: 'zyndex-eureka', port: '8761', ip: '172.18.0.3', role: 'Netflix Eureka Service Registry', tag: 'Discovery', color: 'border-purple-200 bg-purple-50/40 text-purple-900' },
+                            ].map((c) => (
+                              <div key={c.name} className={`p-2.5 rounded-xl border ${c.color} space-y-1`}>
+                                <div className="flex justify-between items-center">
+                                  <span className="font-mono font-bold text-[11px]">{c.name}</span>
+                                  <span className="text-[9px] font-mono font-black px-1.5 py-0.2 bg-white rounded border border-slate-200">:{c.port}</span>
+                                </div>
+                                <p className="text-[10px] opacity-80 leading-tight">{c.role}</p>
+                                <div className="flex justify-between items-center text-[10px] font-mono pt-1 border-t border-slate-200/50">
+                                  <span className="text-slate-500">{c.ip}</span>
+                                  <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                    <span className="size-1.5 rounded-full bg-emerald-500" /> UP
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Security Ingress Ports</span>
-                            <span className="font-mono text-emerald-700 font-bold">22 (SSH), 80 (HTTP), 443 (HTTPS), 8080 (Gateway API)</span>
+                        </div>
+
+                        {/* Category B: Core Business Logic Services */}
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>⚙️</span> Core Business Spring Boot Microservices (5 Containers)
                           </div>
-                          <div className="flex justify-between py-1.5">
-                            <span className="text-slate-500">Live Telemetry State</span>
-                            <span className="font-bold text-emerald-700 flex items-center gap-1.5">
-                              <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
-                              Active 1-second continuous live polling ({liveSecondTick}s cycle)
-                            </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            {[
+                              { name: 'zyndex-auth', port: '8081', ip: '172.18.0.7', role: 'Identity, Bcrypt Hashing & JWT Security', tag: 'Auth Engine' },
+                              { name: 'zyndex-content', port: '8082', ip: '172.18.0.8', role: 'Catalog, Cloud Storage & Live Telemetry', tag: 'Content Engine' },
+                              { name: 'zyndex-access', port: '8083', ip: '172.18.0.6', role: 'User Entitlements & Reading Access Control', tag: 'Access Engine' },
+                              { name: 'zyndex-usage', port: '8084', ip: '172.18.0.10', role: 'Reading Session Metrics & Audit Logger', tag: 'Telemetry Engine' },
+                              { name: 'zyndex-subscription', port: '8085', ip: '172.18.0.9', role: 'Razorpay / UPI QR Billing & UTR Audit', tag: 'Billing Engine' },
+                            ].map((c) => (
+                              <div key={c.name} className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-mono font-bold text-[11px] text-slate-900">{c.name}</span>
+                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-white rounded border border-slate-200 text-slate-700">:{c.port}</span>
+                                </div>
+                                <p className="text-[10px] text-slate-500 leading-tight">{c.role}</p>
+                                <div className="flex justify-between items-center text-[10px] font-mono pt-1 border-t border-slate-200/50">
+                                  <span className="text-slate-400">{c.ip}</span>
+                                  <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                    <span className="size-1.5 rounded-full bg-emerald-500" /> UP
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
                           </div>
+                        </div>
+
+                        {/* Category C: Relational Database Layer */}
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>🗄️</span> Relational Persistence Layer (1 Container)
+                          </div>
+                          <div className="p-2.5 rounded-xl border border-rose-200 bg-rose-50/40 text-rose-950 space-y-1 text-xs">
+                            <div className="flex justify-between items-center">
+                              <span className="font-mono font-bold text-[11px]">zyndex-mysql (MySQL 8.4 LTS Community Server)</span>
+                              <span className="text-[9px] font-mono font-black px-1.5 py-0.2 bg-white rounded border border-slate-200">Port :3306</span>
+                            </div>
+                            <p className="text-[10px] text-slate-600">
+                              InnoDB ACID engine with connection pooling, automated migrations, UTF8MB4 charset, and persistent NVMe volume mount at <code>/var/lib/mysql</code>.
+                            </p>
+                            <div className="flex justify-between items-center text-[10px] font-mono pt-1 border-t border-rose-200/50">
+                              <span className="text-slate-500">IP: 172.18.0.2 (Private Internal Network Only)</span>
+                              <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                <span className="size-1.5 rounded-full bg-emerald-500" /> HEALTHY & LOCKED
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* SECTION 4: Live Telemetry & Heartbeat Specifications */}
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs space-y-1.5">
+                        <div className="flex justify-between py-1 text-slate-700">
+                          <span className="text-slate-500">Live Telemetry State</span>
+                          <span className="font-bold text-emerald-700 flex items-center gap-1.5">
+                            <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
+                            Accurate 1-second continuous telemetry feed ({liveSecondTick}s active cycle)
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-1 text-slate-700">
+                          <span className="text-slate-500">Cloud Data Center Latency</span>
+                          <span className="font-mono font-bold text-slate-800">&lt; 15ms Intra-mesh Interconnect</span>
+                        </div>
+                        <div className="flex justify-between py-1 text-slate-700">
+                          <span className="text-slate-500">Service Fault Tolerance</span>
+                          <span className="font-bold text-emerald-700">Docker Restart Always Policy Enabled</span>
                         </div>
                       </div>
                     </div>
