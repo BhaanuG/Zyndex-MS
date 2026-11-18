@@ -67,14 +67,20 @@ const SESSION_GAP_MS = 30 * 60 * 1000;
 
 /**
  * Format timestamp in 12-hour format with AM/PM in IST (Indian Standard Time)
- * Example output: "14 Nov 2026, 09:27:05 AM"
+ * Handles UTC strings (e.g. "2026-11-18 08:22:21" or ISO "2026-11-18T08:22:21Z")
+ * Example output: "18 Nov 2026, 01:52:21 PM IST"
  */
 const formatTimestampIST = (rawDate) => {
   if (!rawDate) return 'N/A';
   try {
-    const d = new Date(rawDate);
+    let dateStr = String(rawDate).trim();
+    // If it's a "YYYY-MM-DD HH:mm:ss" SQL format without timezone, append 'Z' so it parses as UTC
+    if (/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}/.test(dateStr)) {
+      dateStr = dateStr.replace(' ', 'T') + 'Z';
+    }
+    const d = new Date(dateStr);
     if (isNaN(d.getTime())) return String(rawDate);
-    return d.toLocaleString('en-IN', {
+    const formatted = d.toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       day: '2-digit',
       month: 'short',
@@ -84,6 +90,7 @@ const formatTimestampIST = (rawDate) => {
       second: '2-digit',
       hour12: true
     });
+    return `${formatted} IST`;
   } catch (e) {
     return String(rawDate);
   }
