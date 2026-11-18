@@ -37,7 +37,7 @@ public class UsageController {
                 String resourceCategory = "Academics";
                 String resourceAuthor = "Faculty";
                 try {
-                    var rList = jdbc.queryForList("SELECT title, category, author FROM zyndex_content.resources WHERE id = ? LIMIT 1", resourceId);
+                    var rList = jdbc.queryForList("SELECT title, category, author FROM resources WHERE id = ? LIMIT 1", resourceId);
                     if (!rList.isEmpty()) {
                         if (rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
                         if (rList.get(0).get("category") != null) resourceCategory = String.valueOf(rList.get(0).get("category"));
@@ -48,7 +48,7 @@ public class UsageController {
                 String userEmail = "User #" + userId;
                 String userName = "Scholar";
                 try {
-                    var uList = jdbc.queryForList("SELECT email, username FROM zyndex_auth.users WHERE id = ? LIMIT 1", userId);
+                    var uList = jdbc.queryForList("SELECT email, username FROM users WHERE id = ? LIMIT 1", userId);
                     if (!uList.isEmpty()) {
                         if (uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
                         if (uList.get(0).get("username") != null) userName = String.valueOf(uList.get(0).get("username"));
@@ -61,7 +61,7 @@ public class UsageController {
                 );
 
                 jdbc.update("""
-                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                        INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                         VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'RESOURCE_DOWNLOADED', ?, ?, '127.0.0.1', 'SUCCESS')
                         """, userEmail, detailLog);
             } catch (Exception ignored) {}
@@ -80,7 +80,7 @@ public class UsageController {
                 String resourceCategory = "General Academics";
                 String resourceType = "TEXTBOOK";
                 try {
-                    var rList = jdbc.queryForList("SELECT title, category, type FROM zyndex_content.resources WHERE id = ? LIMIT 1", resourceId);
+                    var rList = jdbc.queryForList("SELECT title, category, type FROM resources WHERE id = ? LIMIT 1", resourceId);
                     if (!rList.isEmpty()) {
                         if (rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
                         if (rList.get(0).get("category") != null) resourceCategory = String.valueOf(rList.get(0).get("category"));
@@ -91,7 +91,7 @@ public class UsageController {
                 String userEmail = "User #" + userId;
                 String userName = "Scholar";
                 try {
-                    var uList = jdbc.queryForList("SELECT email, username FROM zyndex_auth.users WHERE id = ? LIMIT 1", userId);
+                    var uList = jdbc.queryForList("SELECT email, username FROM users WHERE id = ? LIMIT 1", userId);
                     if (!uList.isEmpty()) {
                         if (uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
                         if (uList.get(0).get("username") != null) userName = String.valueOf(uList.get(0).get("username"));
@@ -104,7 +104,7 @@ public class UsageController {
                 );
 
                 jdbc.update("""
-                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                        INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                         VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'RESOURCE_LOADED', ?, ?, '127.0.0.1', 'SUCCESS')
                         """, userEmail, detailLog);
             } catch (Exception ignored) {}
@@ -224,16 +224,16 @@ public class UsageController {
         try {
             String resourceTitle = "Resource #" + contentId;
             try {
-                var rList = jdbc.queryForList("SELECT title FROM zyndex_content.resources WHERE id = ? LIMIT 1", contentId);
+                var rList = jdbc.queryForList("SELECT title FROM resources WHERE id = ? LIMIT 1", contentId);
                 if (!rList.isEmpty() && rList.get(0).get("title") != null) resourceTitle = String.valueOf(rList.get(0).get("title"));
             } catch (Exception ignored) {}
             String userEmail = "User #" + userId;
             try {
-                var uList = jdbc.queryForList("SELECT email FROM zyndex_auth.users WHERE id = ? LIMIT 1", userId);
+                var uList = jdbc.queryForList("SELECT email FROM users WHERE id = ? LIMIT 1", userId);
                 if (!uList.isEmpty() && uList.get(0).get("email") != null) userEmail = String.valueOf(uList.get(0).get("email"));
             } catch (Exception ignored) {}
             jdbc.update("""
-                    INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'USAGE-SERVICE', 'INFO', 'READING_PROGRESS_SAVED', ?, ?, '127.0.0.1', 'SUCCESS')
                     """, userEmail, "Reading heartbeat progress accumulated (" + duration + " min) on " + resourceTitle + " (ID: " + contentId + ") by reader: " + userEmail);
         } catch (Exception ignored) {}
@@ -257,7 +257,7 @@ public class UsageController {
                 SELECT COUNT(DISTINCT user_id) FROM (
                     SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 24 HOUR
                     UNION
-                    SELECT id AS user_id FROM zyndex_auth.users 
+                    SELECT id AS user_id FROM users 
                     WHERE last_active_at >= NOW() - INTERVAL 24 HOUR
                 ) active_users
                 """, Long.class);
@@ -267,7 +267,7 @@ public class UsageController {
                 SELECT COUNT(DISTINCT user_id) FROM (
                     SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 15 MINUTE
                     UNION
-                    SELECT id AS user_id FROM zyndex_auth.users 
+                    SELECT id AS user_id FROM users 
                     WHERE last_active_at >= NOW() - INTERVAL 15 MINUTE
                 ) active_now
                 """, Long.class);
@@ -296,8 +296,8 @@ public class UsageController {
                         COALESCE(SUM(u.duration), 0) AS minutes,
                         COUNT(DISTINCT u.user_id) AS readers,
                         COUNT(*) AS sessions
-                    FROM zyndex_usage.usages u
-                    LEFT JOIN zyndex_content.resources res ON res.id = u.content_id
+                    FROM usages u
+                    LEFT JOIN resources res ON res.id = u.content_id
                     GROUP BY COALESCE(res.category, 'General Academics')
                     ORDER BY minutes DESC
                     LIMIT 8
@@ -314,8 +314,8 @@ public class UsageController {
                         COALESCE(usr.user_type, usr.role, 'Student') AS tier,
                         COUNT(DISTINCT u.user_id) AS readers,
                         COALESCE(SUM(u.duration), 0) AS totalMinutes
-                    FROM zyndex_usage.usages u
-                    LEFT JOIN zyndex_auth.users usr ON usr.id = u.user_id
+                    FROM usages u
+                    LEFT JOIN users usr ON usr.id = u.user_id
                     WHERE usr.role IS NULL OR UPPER(usr.role) != 'ADMIN'
                     GROUP BY COALESCE(usr.user_type, usr.role, 'Student')
                     ORDER BY readers DESC
@@ -338,9 +338,9 @@ public class UsageController {
                         COALESCE(res.type, 'TEXTBOOK') AS type,
                         u.duration AS durationMinutes,
                         u.created_at AS timestamp
-                    FROM zyndex_usage.usages u
-                    LEFT JOIN zyndex_content.resources res ON res.id = u.content_id
-                    LEFT JOIN zyndex_auth.users usr ON usr.id = u.user_id
+                    FROM usages u
+                    LEFT JOIN resources res ON res.id = u.content_id
+                    LEFT JOIN users usr ON usr.id = u.user_id
                     ORDER BY u.created_at DESC
                     LIMIT 10
                     """);
@@ -358,13 +358,13 @@ public class UsageController {
                         COALESCE(usr.email, 'student@zyndex.com') AS userEmail,
                         COALESCE(usr.role, 'STUDENT') AS role,
                         COALESCE((
-                            SELECT SUM(duration) FROM zyndex_usage.usages 
+                            SELECT SUM(duration) FROM usages 
                             WHERE user_id = usr.id AND created_at >= NOW() - INTERVAL 24 HOUR
                         ), 0) AS totalDuration,
                         COALESCE(usr.last_active_at, NOW()) AS lastActiveAt
-                    FROM zyndex_auth.users usr
+                    FROM users usr
                     WHERE usr.last_active_at >= NOW() - INTERVAL 24 HOUR 
-                       OR usr.id IN (SELECT user_id FROM zyndex_usage.usages WHERE created_at >= NOW() - INTERVAL 24 HOUR)
+                       OR usr.id IN (SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 24 HOUR)
                     ORDER BY lastActiveAt DESC
                     """);
         } catch (Exception e) {
@@ -409,11 +409,11 @@ public class UsageController {
                     u.created_at AS timestamp,
                     DATE_SUB(u.created_at, INTERVAL u.duration MINUTE) AS startTime,
                     u.created_at AS endTime
-                FROM zyndex_usage.usages u
-                LEFT JOIN zyndex_content.resources res ON res.id = u.content_id
-                LEFT JOIN zyndex_content.content c ON c.content_id = u.content_id
-                LEFT JOIN zyndex_auth.users usr ON usr.id = u.user_id
-                LEFT JOIN zyndex_access.access acc ON (acc.user_id = u.user_id AND acc.content_id = u.content_id)
+                FROM usages u
+                LEFT JOIN resources res ON res.id = u.content_id
+                LEFT JOIN content c ON c.content_id = u.content_id
+                LEFT JOIN users usr ON usr.id = u.user_id
+                LEFT JOIN access acc ON (acc.user_id = u.user_id AND acc.content_id = u.content_id)
                 ORDER BY u.created_at DESC
                 LIMIT ? OFFSET ?
                 """, size, offset);
@@ -495,7 +495,7 @@ public class UsageController {
             var catRows = jdbc.queryForList("""
                     SELECT r.category, SUM(u.duration) AS total_mins
                     FROM usages u
-                    JOIN zyndex_content.resources r ON r.id = u.content_id
+                    JOIN resources r ON r.id = u.content_id
                     WHERE u.user_id = ?
                     GROUP BY r.category
                     ORDER BY total_mins DESC

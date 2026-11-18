@@ -49,7 +49,7 @@ public class UsageAuditLoggingFilter implements Filter {
 
             try {
                 jdbc.update("""
-                        INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status, response_time_ms)
+                        INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status, response_time_ms)
                         VALUES (NOW(), 'USAGE-SERVICE', 'INFO', ?, ?, ?, ?, 'SUCCESS', ?)
                         """, action, actorEmail, details, ip, responseTimeMs);
             } catch (Exception ignored) {}
