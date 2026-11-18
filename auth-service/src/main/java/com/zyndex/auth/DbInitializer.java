@@ -142,6 +142,9 @@ class DbInitializer implements CommandLineRunner {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                 """);
         try {
+            jdbc.execute("ALTER TABLE users ADD COLUMN is_primary_admin BOOLEAN NOT NULL DEFAULT FALSE");
+        } catch (Exception ignored) {}
+        try {
             jdbc.execute("ALTER TABLE users ADD COLUMN session_token_version INT NOT NULL DEFAULT 1");
         } catch (Exception ignored) {}
         try {
