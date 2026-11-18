@@ -110,14 +110,35 @@ class ResourceController {
         long usedMemory = totalMemory - freeMemory;
         long maxMemory = Runtime.getRuntime().maxMemory();
 
+        double systemCpuLoad = 0.0;
+        double processCpuLoad = 0.0;
+        long hostTotalMemory = 25769803776L; // 24 GB default
+        long hostFreeMemory = 0;
+        if (osBean instanceof com.sun.management.OperatingSystemMXBean sunOs) {
+            systemCpuLoad = Math.max(0.0, sunOs.getCpuLoad());
+            processCpuLoad = Math.max(0.0, sunOs.getProcessCpuLoad());
+            long ht = sunOs.getTotalMemorySize();
+            if (ht > 0) hostTotalMemory = ht;
+            hostFreeMemory = sunOs.getFreeMemorySize();
+        }
+
         Map<String, Object> vmHealth = new java.util.HashMap<>();
         vmHealth.put("status", "UP");
         vmHealth.put("processors", availableProcessors);
         vmHealth.put("loadAverage", systemLoadAverage);
+        vmHealth.put("systemCpuLoad", Math.round(systemCpuLoad * 1000.0) / 10.0);
+        vmHealth.put("processCpuLoad", Math.round(processCpuLoad * 1000.0) / 10.0);
         vmHealth.put("totalMemoryBytes", totalMemory);
         vmHealth.put("usedMemoryBytes", usedMemory);
         vmHealth.put("freeMemoryBytes", freeMemory);
         vmHealth.put("maxMemoryBytes", maxMemory);
+        vmHealth.put("hostTotalMemoryBytes", hostTotalMemory);
+        vmHealth.put("hostFreeMemoryBytes", hostFreeMemory);
+        vmHealth.put("osArch", System.getProperty("os.arch"));
+        vmHealth.put("osName", System.getProperty("os.name"));
+        vmHealth.put("osVersion", System.getProperty("os.version"));
+        vmHealth.put("javaVersion", System.getProperty("java.version"));
+        vmHealth.put("uptimeSeconds", java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime() / 1000);
 
         Map<String, Object> res = new java.util.HashMap<>();
         res.put("totalBytes", totalSpace);
