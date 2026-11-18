@@ -252,25 +252,15 @@ public class UsageController {
         Long totalSessions = jdbc.queryForObject("SELECT COUNT(*) FROM usages", Long.class);
         Long uniqueReaders = jdbc.queryForObject("SELECT COUNT(DISTINCT user_id) FROM usages", Long.class);
         
-        // Active users today: includes all active users and administrators active today (last 24 hours or calendar day)
-        Long todayReaders = jdbc.queryForObject("""
-                SELECT COUNT(DISTINCT user_id) FROM (
-                    SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 24 HOUR
-                    UNION
-                    SELECT id AS user_id FROM users 
-                    WHERE last_active_at >= NOW() - INTERVAL 24 HOUR
-                ) active_users
-                """, Long.class);
+        // Active readers today: only users with actual reading activity in the last 24 hours
+        Long todayReaders = jdbc.queryForObject(
+                "SELECT COUNT(DISTINCT user_id) FROM usages WHERE created_at >= NOW() - INTERVAL 24 HOUR",
+                Long.class);
 
-        // Real-time active users right now: users and administrators with activity within the last 15 minutes
-        Long activeSessionsNow = jdbc.queryForObject("""
-                SELECT COUNT(DISTINCT user_id) FROM (
-                    SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 15 MINUTE
-                    UNION
-                    SELECT id AS user_id FROM users 
-                    WHERE last_active_at >= NOW() - INTERVAL 15 MINUTE
-                ) active_now
-                """, Long.class);
+        // Real-time active readers right now: users actively reading a resource within the last 15 minutes
+        Long activeSessionsNow = jdbc.queryForObject(
+                "SELECT COUNT(DISTINCT user_id) FROM usages WHERE created_at >= NOW() - INTERVAL 15 MINUTE",
+                Long.class);
 
         long avgMinutes = (totalSessions != null && totalSessions > 0) ? (totalMinutes / totalSessions) : 0L;
 
@@ -363,8 +353,7 @@ public class UsageController {
                         ), 0) AS totalDuration,
                         COALESCE(usr.last_active_at, NOW()) AS lastActiveAt
                     FROM users usr
-                    WHERE usr.last_active_at >= NOW() - INTERVAL 24 HOUR 
-                       OR usr.id IN (SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 24 HOUR)
+                    WHERE usr.id IN (SELECT user_id FROM usages WHERE created_at >= NOW() - INTERVAL 24 HOUR)
                     ORDER BY lastActiveAt DESC
                     """);
         } catch (Exception e) {
