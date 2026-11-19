@@ -28,8 +28,8 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT%20(Exclusive%20Attribution)-yellow?style=flat-square" alt="License" /></a>
-  <a href="SECURITY.md"><img src="https://img.shields.io/badge/Security-Cryptographic%20OTP%20%26%20JWT-2ea44f?style=flat-square" alt="Security" /></a>
-  <a href="ACCESSIBILITY.md"><img src="https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA%20%26%20Section%20508-blue?style=flat-square" alt="Accessibility" /></a>
+  <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/Security-Cryptographic%20OTP%20%26%20JWT-2ea44f?style=flat-square" alt="Security" /></a>
+  <a href=".github/ACCESSIBILITY.md"><img src="https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA%20%26%20Section%20508-blue?style=flat-square" alt="Accessibility" /></a>
   <img src="https://img.shields.io/badge/Build%20Status-Passing%20(0%20Errors)-brightgreen?style=flat-square" alt="Build Status" />
   <img src="https://img.shields.io/badge/Deployment-Render%20Cloud%20Native-46E3B7?style=flat-square" alt="Deployment" />
 </p>
