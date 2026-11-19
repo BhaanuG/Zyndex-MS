@@ -31,7 +31,7 @@
   <a href=".github/SECURITY.md"><img src="https://img.shields.io/badge/Security-Cryptographic%20OTP%20%26%20JWT-2ea44f?style=flat-square" alt="Security" /></a>
   <a href=".github/ACCESSIBILITY.md"><img src="https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA%20%26%20Section%20508-blue?style=flat-square" alt="Accessibility" /></a>
   <img src="https://img.shields.io/badge/Build%20Status-Passing%20(0%20Errors)-brightgreen?style=flat-square" alt="Build Status" />
-  <img src="https://img.shields.io/badge/Deployment-Render%20Cloud%20Native-46E3B7?style=flat-square" alt="Deployment" />
+  <img src="https://img.shields.io/badge/Deployment-Oracle%20Cloud%20Infrastructure%20(OCI)-F80000?style=flat-square&logo=oracle&logoColor=white" alt="Deployment" />
 </p>
 
 <p align="center">
@@ -2496,7 +2496,87 @@ The codebase includes automated test suites covering inter-service security, cat
 
 ## 16. Deployment, Production Readiness & Known Risks
 
-### 16.1 Production Readiness Checklist
+### 16.1 Production Infrastructure Architecture: Oracle Cloud Infrastructure (OCI)
+
+Zyndex is deployed in production on a dedicated **Oracle Cloud Infrastructure (OCI)** Compute Virtual Machine running Ubuntu Linux (x86_64). The host node runs an isolated multi-container mesh orchestrated via Docker Compose, fronted by an Nginx reverse proxy on port 80.
+
+| Infrastructure Parameter | Production Specification | Architectural Function |
+| :--- | :--- | :--- |
+| **Cloud Provider** | Oracle Cloud Infrastructure (OCI) | Enterprise tier hosting compute, storage, and networking |
+| **Compute Instance Type** | Dedicated Virtual Machine (VM.Standard) | 4 OCPUs (8 vCPUs), 24 GB RAM hardware capacity |
+| **Operating System** | Ubuntu 24.04 LTS (x86_64) | Production hardened Linux kernel with systemd process supervision |
+| **Container Runtime** | Docker Engine 27.x & Docker Compose | Multi-container isolation for 9 microservice instances |
+| **Reverse Proxy / Edge Ingress** | Nginx Alpine (`zyndex-web`) | Port 80 ingress, static SPA bundle delivery, gzip compression, `/api/*` reverse proxy |
+| **Internal Gateway** | Spring Cloud Gateway (`zyndex-gateway`) | Port 8080 non-blocking Netty routing, JWT cryptographic validation, rate-limiting |
+| **Service Discovery** | Netflix Eureka Server (`zyndex-eureka`) | Port 8761 internal heartbeat registry and dynamic service lookup |
+| **Relational Database** | MySQL 8.4 LTS (`zyndex-mysql`) | Port 3306 transactional storage with InnoDB persistent volume mapping |
+| **Storage Capacity** | 44.07 GB NVMe Root Volume | ~9.16 GB OS/Docker baseline, 34.91 GB dedicated free store for user uploads |
+
+### 16.2 Production Container Mesh Topology
+
+```
+                     Internet / Scholar Traffic
+                                 │
+                                 ▼
+                     ┌───────────────────────┐
+                     │   Oracle Cloud VM     │
+                     │  Public IP: :80       │
+                     └───────────┬───────────┘
+                                 │
+                   ┌─────────────┴─────────────┐
+                   │  zyndex-web (Nginx :80)   │
+                   │  - SPA Static Distribution│
+                   │  - Ingress API Proxy      │
+                   └─────────────┬─────────────┘
+                                 │ /api/*
+                                 ▼
+                   ┌───────────────────────────┐
+                   │ zyndex-gateway (:8080)    │
+                   │ - Spring Cloud Gateway    │
+                   │ - JWT Auth Verification   │
+                   └─────────────┬─────────────┘
+                                 │
+         ┌──────────────┬────────┼──────────────┬──────────────┐
+         ▼              ▼        ▼              ▼              ▼
+   ┌───────────┐  ┌───────────┐ ┌───────────┐  ┌───────────┐ ┌───────────┐
+   │auth-serv. │  │content-s. │ │access-s.  │  │usage-serv.│ │subscr-s.  │
+   │  (:8081)  │  │  (:8082)  │ │  (:8083)  │  │  (:8084)  │ │  (:8085)  │
+   └─────┬─────┘  └─────┬─────┘ └─────┬─────┘  └─────┬─────┘ └─────┬─────┘
+         │              │             │              │             │
+         └──────────────┼─────────────┼──────────────┼─────────────┘
+                        │             │              │
+                        ▼             ▼              ▼
+               ┌───────────────────────────────────────────┐
+               │         zyndex-eureka (:8761)             │
+               │   Service Discovery & Mesh Heartbeats     │
+               └───────────────────────────────────────────┘
+                        │
+                        ▼
+               ┌───────────────────────────────────────────┐
+               │          zyndex-mysql (:3306)             │
+               │  MySQL 8.4 LTS Multi-Schema InnoDB Store  │
+               └───────────────────────────────────────────┘
+```
+
+### 16.3 Production Deployment Workflow
+
+Production builds and updates are deployed using the automated deployment script (`deploy-oracle.sh`) and Docker Compose:
+
+1. **Step 1: Frontend Asset Compilation**:
+   ```bash
+   npm run build
+   ```
+2. **Step 2: Microservice Compilation**:
+   Each Spring Boot microservice is packaged into an executable JAR using Java 21:
+   ```bash
+   mvn clean package -DskipTests
+   ```
+3. **Step 3: Container Mesh Orchestration**:
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d --build
+   ```
+
+### 16.4 Production Readiness Checklist
 
 - [x] **0 Compilation / Build Errors**: All 7 Java microservices compile cleanly with OpenJDK 21; Vite bundle builds in under 13 seconds.
 
@@ -2507,6 +2587,8 @@ The codebase includes automated test suites covering inter-service security, cat
 - [x] **Zero Mock Data in Production**: All payment transactions, telemetry logs, and catalog items query live MySQL databases.
 
 - [x] **Inter-Service Security**: Downstream services reject requests missing `X-Gateway-Secret`.
+
+- [x] **Cloud VM Infrastructure Live**: 24/7 dedicated hosting on Oracle Cloud Infrastructure Compute node.
 
 - [ ] **Object Storage Integration**: Content files currently persist on local filesystem (`backend/uploads/`). For multi-node containerized deployment, configure an S3-compatible object storage bucket.
 
@@ -3009,6 +3091,45 @@ To make Zyndex easily understandable for students, educators, developers, resear
 - **How It Works in Plain English**: While web applications display data cleanly in interactive HTML tables, financial accountants and institutional auditors require standardized spreadsheet formats (`.xlsx` or `.csv`) that can be opened in Microsoft Excel, Google Sheets, or institutional ERP accounting software for formula auditing and tax compliance.
 
 - **Application in Zyndex**: In the live payments administration portal (`AdminPayments.jsx`), Zyndex provides a **1-Click Excel Export** feature. When clicked, the platform extracts the active payment transactions, formats user identities, plans, amounts in rupees, 12-digit bank UTR numbers, payment statuses, and verification timestamps into clean tabular spreadsheets ready for institutional accounting, tax reconciliation, and audit archiving.
+
+---
+
+### 20.33 Enterprise Cloud Hosting: Oracle Cloud Infrastructure (OCI)
+
+- **Real-World Analogy**: Imagine renting a dedicated, private research facility inside a massive, state-of-the-art academic technology park. The park management provides uninterruptible electricity, physical security, cooling systems, and high-speed fiber-optic data highways directly to the campus, allowing the researchers to focus entirely on running their laboratory instruments without having to maintain the physical building itself.
+
+- **How It Works in Plain English**: Oracle Cloud Infrastructure (OCI) is an enterprise cloud computing platform that provides scalable compute servers, high-speed software-defined networking, NVMe block storage, and managed databases across global cloud data centers. Rather than running a server in a local computer lab where power outages or internet drops could take the platform offline, OCI guarantees high availability, enterprise-grade uptime, and dedicated physical hardware resources.
+
+- **Application in Zyndex**: Zyndex utilizes Oracle Cloud Infrastructure as its primary production hosting environment. All backend services, the API Gateway, discovery registry, student reading telemetry, and the MySQL transactional database run 24/7 on OCI, providing reliable, secure access for students and administrators worldwide.
+
+---
+
+### 20.34 Cloud Virtualization: Oracle Cloud Virtual Machine (OCI Compute VM)
+
+- **Real-World Analogy**: Think of a large physical office building that is divided into independent, soundproof corporate suites. Each suite has its own private key, its own dedicated electrical breaker, and its own climate controls. Even though multiple suites share the building structure, what happens inside one suite never interferes with or overheats another.
+
+- **How It Works in Plain English**: A Virtual Machine (VM) is an isolated software computer that runs on top of physical server hardware via a hypervisor. It functions exactly like a physical computer: it has its own dedicated operating system (Ubuntu Linux), dedicated processor cores (OCPUs / vCPUs), dedicated RAM (Random Access Memory), and its own virtual storage drive. If software inside the VM needs to restart, it reboots independently without affecting any other systems on the physical machine.
+
+- **Application in Zyndex**: The Zyndex backend runs inside an OCI Compute Virtual Machine configured with 4 dedicated compute cores and 24 GB of RAM. The VM provides an isolated, consistent Linux environment where all 9 production containers run safely with guaranteed CPU scheduling and memory allocation.
+
+---
+
+### 20.35 Dedicated Compute Instance: Oracle Compute Instance
+
+- **Real-World Analogy**: In a high-traffic university library, having a dedicated research workstation reserved exclusively for student catalog lookups ensures that catalog searches remain lightning-fast, regardless of how many other students are browsing the book aisles.
+
+- **How It Works in Plain English**: In cloud computing, an "instance" is the specific, running deployment of a virtual server created from a selected hardware profile (shape) and operating system image. It possesses a unique cloud instance ID, private and public IP addresses, dedicated memory, and assigned network interfaces. Developers can remotely connect to the instance via secure cryptographic shell (SSH) keys to configure software, deploy containers, inspect system logs, and monitor hardware load in real time.
+
+- **Application in Zyndex**: The Zyndex Oracle Compute Instance acts as the central execution host for the entire platform. It hosts the Docker daemon running the 9 containers:
+  1. `zyndex-web`: Nginx edge reverse proxy on port 80.
+  2. `zyndex-gateway`: Spring Cloud Gateway on port 8080.
+  3. `zyndex-eureka`: Service discovery registry on port 8761.
+  4. `zyndex-auth`: Identity, session token, and security engine on port 8081.
+  5. `zyndex-content`: Catalog, metadata, and PDF storage engine on port 8082.
+  6. `zyndex-access`: Reader entitlement verification on port 8083.
+  7. `zyndex-usage`: Real-time reading telemetry and engagement aggregator on port 8084.
+  8. `zyndex-subscription`: Membership tier and payment verification on port 8085.
+  9. `zyndex-mysql`: MySQL 8.4 LTS relational database on port 3306.
 
 ---
 
