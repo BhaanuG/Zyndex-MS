@@ -34,4 +34,7 @@ spring-backend/*.log
 .git_blueprints.ps1
 .launch_daemon.vbs
 .random_loop_engine.ps1
+dist.tar.gz
+*.tar.gz
+
 
