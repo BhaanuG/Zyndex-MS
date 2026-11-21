@@ -79,6 +79,34 @@ export default function PaymentPage() {
   const utrPageUrl = `/Zyndex/User/${safeUserName}/${safeUserEmail}/Profile/Billing/${amount || '199'}/Payment/${orderId}/UTR/.::::::::::::::::::::|Payment.php`;
   const qrPageUrl = `/Zyndex/User/${safeUserName}/${safeUserEmail}/Profile/Billing/${amount || '199'}/Payment/${orderId}/.::::::::::::::::::::|Payment.php`;
 
+  // Prevent back navigation on payment page - push dummy state and redirect back to billing profile
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href);
+
+    const handlePopState = (event) => {
+      // Prevent going back, force navigation to Billing & Plans
+      event.preventDefault();
+      navigate(billingProfilePath, { replace: true });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [billingProfilePath, navigate]);
+
+  // If payment is already completed or expired, redirect if trying to revisit
+  useEffect(() => {
+    if (paymentData?.status) {
+      const status = paymentData.status.toUpperCase();
+      // If payment has already been completed earlier (and we returned), avoid re-entering
+      const wasReturned = sessionStorage.getItem(`payment_returned_${orderId}`);
+      if (wasReturned && (status === 'SUCCESS' || status === 'REVIEW_REQUIRED' || status === 'COMPLETED')) {
+        navigate(billingProfilePath, { replace: true });
+      }
+    }
+  }, [paymentData?.status, orderId, billingProfilePath, navigate]);
+
   // Fetch initial payment / order status
   useEffect(() => {
     let isMounted = true;
@@ -480,7 +508,10 @@ export default function PaymentPage() {
             <div className="pt-2 flex justify-center">
               <button
                 type="button"
-                onClick={() => navigate(billingProfilePath)}
+                onClick={() => {
+                  sessionStorage.setItem(`payment_returned_${orderId}`, 'true');
+                  navigate(billingProfilePath, { replace: true });
+                }}
                 className="px-6 py-3.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ArrowLeft className="size-4" />
@@ -524,7 +555,10 @@ export default function PaymentPage() {
             <div className="pt-2 flex justify-center">
               <button
                 type="button"
-                onClick={() => navigate(billingProfilePath)}
+                onClick={() => {
+                  sessionStorage.setItem(`payment_returned_${orderId}`, 'true');
+                  navigate(billingProfilePath, { replace: true });
+                }}
                 className="px-6 py-3.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
               >
                 <span>Return to User Portal</span>
