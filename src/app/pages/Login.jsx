@@ -53,7 +53,7 @@ export default function Login() {
         sessionStorage.removeItem('zyndex_session_notice');
         return notice;
       }
-    } catch (e) { }
+    } catch (e) {}
     return '';
   });
 
@@ -68,7 +68,7 @@ export default function Login() {
           setIsMaintenanceActive(false);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const handleEmailBlur = async () => {
@@ -111,8 +111,8 @@ export default function Login() {
   useEffect(() => {
     const path = location.pathname;
     const targetPath = activeTab === 'user'
-      ? (path.includes('/User/Sign-Up') ? '/Zyndex/User/Sign-Up.php' : '/Zyndex/User/Log-In.php')
-      : '/Zyndex/Admin/Log-In.php';
+      ? (path.includes('/User/Sign-Up') ? '/Zyndex/User/Sign-Up' : '/Zyndex/User/Log-In')
+      : '/Zyndex/Admin/Log-In';
     if (path !== targetPath && (path.includes('/Log-In') || path.includes('/Sign-In') || path.includes('/Sign-Up'))) {
       navigate(targetPath, { replace: true });
     }
@@ -314,7 +314,7 @@ export default function Login() {
           actorEmail: email.trim(),
           details: `Administrator entered ID and password on login page`,
           status: 'SUCCESS'
-        }).catch(() => { });
+        }).catch(() => {});
       }
 
       sessionStorage.setItem('pending_auth', JSON.stringify({
@@ -326,8 +326,8 @@ export default function Login() {
       }));
       sessionStorage.removeItem('mail_otp_request_state');
 
-      navigate(activeTab === 'admin'
-        ? '/Zyndex/Admin/Authenticator-Verification-Page'
+      navigate(activeTab === 'admin' 
+        ? '/Zyndex/Admin/Authenticator-Verification-Page' 
         : '/Zyndex/User/Authenticator-Verification-Page');
     } catch (err) {
       const errMsg = err.message || '';
@@ -656,20 +656,21 @@ export default function Login() {
                         type="button"
                         onClick={handleSendSignupOtp}
                         disabled={sendingOtp || (otpSent && otpCountdown > 0) || otpVerified}
-                        className={`px-4 py-3.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all shadow-sm ${otpVerified
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default'
-                          : 'bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60'
-                          }`}
+                        className={`px-4 py-3.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all shadow-sm ${
+                          otpVerified
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default'
+                            : 'bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60'
+                        }`}
                       >
                         {sendingOtp
                           ? 'Sending...'
                           : otpVerified
-                            ? '✓ Verified'
-                            : otpSent
-                              ? otpCountdown > 0
-                                ? `Resend (${otpCountdown}s)`
-                                : 'Resend OTP'
-                              : 'Send OTP'}
+                          ? '✓ Verified'
+                          : otpSent
+                          ? otpCountdown > 0
+                            ? `Resend (${otpCountdown}s)`
+                            : 'Resend OTP'
+                          : 'Send OTP'}
                       </button>
                     )}
                   </div>
@@ -848,8 +849,9 @@ export default function Login() {
                 {isSignUpMode && (
                   <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
                     <span className="text-slate-600 font-medium">Email verification:</span>
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${otpVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
+                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                      otpVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
                       {otpVerified ? '✓ Verified' : 'OTP verification required'}
                     </span>
                   </div>
@@ -871,8 +873,9 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={submitting || (isSignUpMode && !otpVerified) || isTerminatedUser || (isMaintenanceActive && activeTab !== 'admin')}
-                    className={`w-full relative group transition-all ${(isSignUpMode && !otpVerified) || isTerminatedUser || (isMaintenanceActive && activeTab !== 'admin') ? 'opacity-60 cursor-not-allowed' : 'disabled:opacity-70'
-                      }`}
+                    className={`w-full relative group transition-all ${
+                      (isSignUpMode && !otpVerified) || isTerminatedUser || (isMaintenanceActive && activeTab !== 'admin') ? 'opacity-60 cursor-not-allowed' : 'disabled:opacity-70'
+                    }`}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
                     <div className="relative flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-600/30">
