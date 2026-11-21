@@ -687,7 +687,7 @@ export default function UserProfile() {
                         to={`/Zyndex/User/${userName}/${userEmail}/Profile/Billing/Pricing`} 
                         className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold transition-colors text-xs shadow-xs"
                       >
-                        Change / Upgrade Plan
+                        Upgrade Plan
                       </Link>
                     </div>
                   </div>
