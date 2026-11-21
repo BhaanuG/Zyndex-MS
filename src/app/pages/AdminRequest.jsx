@@ -216,10 +216,18 @@ export default function AdminRequest() {
       .catch(() => {});
   }, []);
 
+  const formatTitleCase = (str) => {
+    return str.replace(/\b([a-zA-Z])([a-zA-Z]*)/g, (_, first, rest) => {
+      return first.toUpperCase() + rest.toLowerCase();
+    });
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    const updatedValue = name === 'fullName' ? formatTitleCase(value) : value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: updatedValue,
     });
     setError('');
   };
