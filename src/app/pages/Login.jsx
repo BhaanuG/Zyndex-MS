@@ -558,17 +558,25 @@ export default function Login() {
                 </div>
               )}
 
-              <div className="relative mb-8 p-1 bg-slate-100 rounded-2xl">
-                <motion.div className={`absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-xl shadow-md ${activeTab === 'user' ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gradient-to-br from-blue-600 to-indigo-600'}`} animate={{ x: activeTab === 'user' ? '0.25rem' : 'calc(100% + 0.25rem)' }} transition={{ type: 'spring', stiffness: 400, damping: 35 }} />
-                <div className="relative flex gap-2">
-                  <button type="button" onClick={() => setActiveTab('user')} className={`flex-1 py-3 px-6 rounded-xl text-sm font-semibold z-10 flex items-center justify-center gap-2 ${activeTab === 'user' ? 'text-white' : 'text-slate-600'}`}>
+              {isSignUpMode ? (
+                <div className="relative mb-8 p-1 bg-slate-100 rounded-2xl flex justify-center">
+                  <div className="w-full py-3 px-6 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-md">
                     <User className="size-4" />User Access
-                  </button>
-                  <button type="button" onClick={() => setActiveTab('admin')} className={`flex-1 py-3 px-6 rounded-xl text-sm font-semibold z-10 flex items-center justify-center gap-2 ${activeTab === 'admin' ? 'text-white' : 'text-slate-600'}`}>
-                    <Shield className="size-4" />Admin Access
-                  </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="relative mb-8 p-1 bg-slate-100 rounded-2xl">
+                  <motion.div className={`absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-xl shadow-md ${activeTab === 'user' ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gradient-to-br from-blue-600 to-indigo-600'}`} animate={{ x: activeTab === 'user' ? '0.25rem' : 'calc(100% + 0.25rem)' }} transition={{ type: 'spring', stiffness: 400, damping: 35 }} />
+                  <div className="relative flex gap-2">
+                    <button type="button" onClick={() => setActiveTab('user')} className={`flex-1 py-3 px-6 rounded-xl text-sm font-semibold z-10 flex items-center justify-center gap-2 ${activeTab === 'user' ? 'text-white' : 'text-slate-600'}`}>
+                      <User className="size-4" />User Access
+                    </button>
+                    <button type="button" onClick={() => setActiveTab('admin')} className={`flex-1 py-3 px-6 rounded-xl text-sm font-semibold z-10 flex items-center justify-center gap-2 ${activeTab === 'admin' ? 'text-white' : 'text-slate-600'}`}>
+                      <Shield className="size-4" />Admin Access
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {isSignUpMode && (
