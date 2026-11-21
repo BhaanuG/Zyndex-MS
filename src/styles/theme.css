@@ -411,11 +411,13 @@
   .depth-3d-input {
     box-shadow: var(--shadow-3d-input);
     transform: translateZ(0);
+    border-color: rgba(234, 88, 12, 0.45) !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .depth-3d-input:focus {
     box-shadow: var(--shadow-3d-input-focus);
+    border-color: #ea580c !important;
   }
 
   /* Subtle top highlight for elevated surfaces */

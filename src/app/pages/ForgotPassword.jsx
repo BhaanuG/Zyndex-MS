@@ -490,7 +490,7 @@ export default function ForgotPassword() {
                         placeholder="Enter your registered email"
                         pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                         title="Email must contain @ and a domain (e.g., .com, .org)"
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
                         required
                       />
                     </div>
@@ -522,7 +522,7 @@ export default function ForgotPassword() {
                         }
                       }}
                       placeholder="4-digit code"
-                      className="flex-1 px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                      className="flex-1 px-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl outline-none"
                       required
                     />
                     <button
@@ -555,7 +555,7 @@ export default function ForgotPassword() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Enter your new password"
-                        className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
+                        className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
                         required
                         minLength="8"
                       />

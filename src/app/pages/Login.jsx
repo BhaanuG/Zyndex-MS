@@ -603,7 +603,7 @@ export default function Login() {
                             setSuccessMessage('');
                           }}
                           placeholder=""
-                          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
+                          className="w-full pl-12 pr-4 py-3.5 bg-slate-100 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
                           required
                         />
                       </div>
@@ -612,7 +612,7 @@ export default function Login() {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">I am a</label>
                       <div className="relative flex items-center">
                         <GraduationCap className="absolute left-4 size-5 text-slate-400" />
-                        <select value={userType} onChange={(e) => { setUserType(e.target.value); setError(''); setSuccessMessage(''); }} className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input">
+                        <select value={userType} onChange={(e) => { setUserType(e.target.value); setError(''); setSuccessMessage(''); }} className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input">
                           <option>Student</option>
                           <option>Teacher / Educator</option>
                           <option>Researcher</option>
@@ -625,12 +625,12 @@ export default function Login() {
                     {userType === 'Other' && (
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2">What best describes you?</label>
-                        <input type="text" value={otherDescription} onChange={(e) => { setOtherDescription(e.target.value); setError(''); setSuccessMessage(''); }} placeholder="Tell us what best describes you" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input" required />
+                        <input type="text" value={otherDescription} onChange={(e) => { setOtherDescription(e.target.value); setError(''); setSuccessMessage(''); }} placeholder="Tell us what best describes you" className="w-full px-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input" required />
                       </div>
                     )}
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">University / College name <span className="font-normal text-slate-400">(optional)</span></label>
-                      <input type="text" value={institutionName} onChange={(e) => { setInstitutionName(e.target.value); setError(''); setSuccessMessage(''); }} placeholder="Enter your university or college name" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input" />
+                      <input type="text" value={institutionName} onChange={(e) => { setInstitutionName(e.target.value); setError(''); setSuccessMessage(''); }} placeholder="Enter your university or college name" className="w-full px-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input" />
                     </div>
                   </>
                 )}
@@ -660,7 +660,7 @@ export default function Login() {
                         }}
                         onBlur={handleEmailBlur}
                         placeholder="Enter your email"
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
                         required
                         disabled={isSignUpMode && otpVerified}
                       />
@@ -753,7 +753,7 @@ export default function Login() {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
                   <div className="relative flex items-center">
                     <Lock className="absolute left-4 size-5 text-slate-400 z-10" />
-                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => { setPassword(e.target.value); setError(''); setSuccessMessage(''); }} placeholder={isSignUpMode ? 'Create your password' : 'Enter your password'} className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input" required />
+                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => { setPassword(e.target.value); setError(''); setSuccessMessage(''); }} placeholder={isSignUpMode ? 'Create your password' : 'Enter your password'} className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input" required />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 p-1 text-slate-400 hover:text-orange-600 transition-colors z-10">
                       {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                     </button>
@@ -774,7 +774,7 @@ export default function Login() {
                           setSuccessMessage('');
                         }}
                         placeholder="Re-enter your password to confirm"
-                        className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
+                        className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
                         required
                       />
                       <button
