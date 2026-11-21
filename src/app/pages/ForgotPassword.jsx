@@ -424,7 +424,7 @@ export default function ForgotPassword() {
                   transition={{ delay: 0.55 }}
                 >
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Full Name <span className="text-xs font-normal text-slate-400">(Auto-filled from registered account)</span>
+                    Full Name
                   </label>
                   <div className="relative group">
                     <div className="relative flex items-center">
