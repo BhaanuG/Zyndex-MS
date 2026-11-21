@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router';
+import { useEffect } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { AuthProvider, useAuth } from '@/app/context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen } from 'lucide-react';
@@ -106,6 +107,16 @@ function LogoutAnimation() {
 
 function LayoutContent() {
   const { isLoggingOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Enforce .php extension on every page URL automatically
+  useEffect(() => {
+    const { pathname, search, hash } = location;
+    if (pathname && pathname !== '/' && !pathname.endsWith('.php')) {
+      navigate(`${pathname}.php${search}${hash}`, { replace: true });
+    }
+  }, [location, navigate]);
 
   return (
     <>

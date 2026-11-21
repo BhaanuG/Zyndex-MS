@@ -109,12 +109,12 @@ export default function Login() {
   }, [location.pathname]);
 
   useEffect(() => {
-    const path = location.pathname;
+    const path = location.pathname.replace(/\.php$/i, '');
     const targetPath = activeTab === 'user'
       ? (path.includes('/User/Sign-Up') ? '/Zyndex/User/Sign-Up' : '/Zyndex/User/Log-In')
       : '/Zyndex/Admin/Log-In';
     if (path !== targetPath && (path.includes('/Log-In') || path.includes('/Sign-In') || path.includes('/Sign-Up'))) {
-      navigate(targetPath, { replace: true });
+      navigate(`${targetPath}.php`, { replace: true });
     }
   }, [activeTab, navigate, location.pathname]);
 
