@@ -356,8 +356,8 @@ export default function Pricing() {
       const amountRupees = (amountPaise / 100).toFixed(0);
       const orderId = res.orderId || res.paymentId;
 
-      // Navigate directly to dedicated payment order page with ::::::::: suffix
-      navigate(`/Zyndex/User/${safeName}/${safeEmail}/Profile/Billing/${amountRupees}/Payment/${orderId}/:::::::::`);
+      // Navigate directly to dedicated payment order page with requested suffix
+      navigate(`/Zyndex/User/${safeName}/${safeEmail}/Profile/Billing/${amountRupees}/Payment/${orderId}/.::::::::::::::::::::|Payment.php`);
     } catch (error) {
       setCustomAlert({
         title: 'Checkout Error',

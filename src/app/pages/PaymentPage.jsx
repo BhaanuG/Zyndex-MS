@@ -75,9 +75,9 @@ export default function PaymentPage() {
 
   const safeUserName = encodeURIComponent(user?.name ? user.name.replace(/\s+/g, '-') : name || 'Scholar');
   const safeUserEmail = encodeURIComponent(user?.email || email || 'user@zyndex.com');
-  const billingProfilePath = `/Zyndex/User/${safeUserName}/${safeUserEmail}/Profile/Billing`;
-  const utrPageUrl = `/Zyndex/User/${safeUserName}/${safeUserEmail}/Profile/Billing/${amount || '199'}/Payment/${orderId}/UTR/:::::::::::::::::::`;
-  const qrPageUrl = `/Zyndex/User/${safeUserName}/${safeUserEmail}/Profile/Billing/${amount || '199'}/Payment/${orderId}/:::::::::`;
+  const billingProfilePath = `/Zyndex/User/${safeUserName}/${safeUserEmail}/Profile/Billing.php`;
+  const utrPageUrl = `/Zyndex/User/${safeUserName}/${safeUserEmail}/Profile/Billing/${amount || '199'}/Payment/${orderId}/UTR/.::::::::::::::::::::|Payment.php`;
+  const qrPageUrl = `/Zyndex/User/${safeUserName}/${safeUserEmail}/Profile/Billing/${amount || '199'}/Payment/${orderId}/.::::::::::::::::::::|Payment.php`;
 
   // Fetch initial payment / order status
   useEffect(() => {
