@@ -112,45 +112,103 @@ export default function Authenticator({ onSuccess, onBack }) {
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120);
   const inputRef = useRef(null);
-
-  // Generate a random code on mount
-  useEffect(() => {
-    generateNewCode();
-  }, []);
+  const codeTimestampRef = useRef(Date.now());
+  const successTriggeredRef = useRef(false);
 
   const generateNewCode = () => {
     const randomCode = VALID_CODES[Math.floor(Math.random() * VALID_CODES.length)];
     setDisplayedCode(randomCode);
     setUserInput('');
     setError('');
+    codeTimestampRef.current = Date.now();
+    setTimeLeft(120);
     inputRef.current?.focus();
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (userInput === displayedCode) {
-      // Success animation
+  // Generate a random code on mount
+  useEffect(() => {
+    generateNewCode();
+  }, []);
+
+  // Timer interval: changes code every 120 seconds even if page is open or tab is switched
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - codeTimestampRef.current) / 1000);
+      const remaining = 120 - elapsed;
+      if (remaining <= 0) {
+        if (!successTriggeredRef.current) {
+          generateNewCode();
+        }
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 500);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Listen for tab focus / visibilitychange so that if 120 seconds passed while switched to another tab, code refreshes immediately
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const elapsed = Math.floor((Date.now() - codeTimestampRef.current) / 1000);
+        if (elapsed >= 120 && !successTriggeredRef.current) {
+          generateNewCode();
+        } else {
+          setTimeLeft(Math.max(1, 120 - elapsed));
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, []);
+
+  const handleVerify = (codeToTest) => {
+    if (successTriggeredRef.current) return;
+    const value = codeToTest.trim();
+
+    if (value === displayedCode) {
+      successTriggeredRef.current = true;
+      setVerifying(true);
       setSuccess(true);
+      setError('');
+
+      // Take exactly 3 seconds before navigating to the next page
       setTimeout(async () => {
         try {
           await onSuccess();
-        } catch (error) {
+        } catch (err) {
+          successTriggeredRef.current = false;
           setSuccess(false);
-          setError(error?.message || 'Authentication failed. Please try again.');
+          setVerifying(false);
+          setError(err?.message || 'Authentication failed. Please try again.');
           inputRef.current?.focus();
         }
-      }, 1500);
+      }, 3000);
     } else {
-      // Invalid code - AUTO-GENERATE NEW CODE (CRITICAL FIX)
+      // Invalid code: display error, shake, and automatically generate new code
       setError('Incorrect code. A new code has been generated.');
       setShake(true);
       setTimeout(() => {
         setShake(false);
-        generateNewCode(); // Automatically generate new code on wrong entry
+        generateNewCode();
         inputRef.current?.focus();
       }, 500);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (userInput.length === 6 && !verifying) {
+      handleVerify(userInput);
     }
   };
 
@@ -324,31 +382,40 @@ export default function Authenticator({ onSuccess, onBack }) {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <label className="block text-sm font-semibold text-slate-700 mb-3">
-                    Enter the 6-digit code
-                  </label>
-                  <motion.input
-                    ref={inputRef}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    value={userInput}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
-                      setUserInput(value);
-                      setError('');
-                    }}
-                    className={`w-full px-6 py-4 text-center text-3xl font-bold border-2 rounded-xl focus:outline-none transition-all tracking-[0.5em] ${
-                      error
-                        ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-4 focus:ring-red-100'
-                        : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100'
-                    }`}
-                    placeholder="______"
-                    animate={{
-                      x: shake ? [-10, 10, -10, 10, 0] : 0
-                    }}
-                    transition={{ duration: 0.5 }}
-                  />
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-semibold text-slate-700">
+                        Enter the 6-digit code
+                      </label>
+                      <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200">
+                        Code expires in {timeLeft}s
+                      </span>
+                    </div>
+                    <motion.input
+                      ref={inputRef}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={userInput}
+                      disabled={verifying}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setUserInput(value);
+                        setError('');
+                        if (value.length === 6) {
+                          handleVerify(value);
+                        }
+                      }}
+                      className={`w-full px-6 py-4 text-center text-3xl font-bold border-2 rounded-xl focus:outline-none transition-all tracking-[0.5em] ${
+                        error
+                          ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-4 focus:ring-red-100'
+                          : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100'
+                      }`}
+                      placeholder="______"
+                      animate={{
+                        x: shake ? [-10, 10, -10, 10, 0] : 0
+                      }}
+                      transition={{ duration: 0.5 }}
+                    />
 
                   {/* Error Message */}
                   <AnimatePresence>
