@@ -232,21 +232,22 @@ export default function UserProfile() {
   const userEmail = user?.email ? encodeURIComponent(user.email) : 'email';
   const profileBaseUrl = `/Zyndex/User/${userName}/${userEmail}/Profile`;
 
-  // Get active tab from path URL
+  // Get active tab from path URL (ignoring .php extension)
   const getActiveTabFromPath = () => {
-    if (location.pathname.endsWith('/My-Favorites')) return 'favourites';
-    if (location.pathname.endsWith('/Account-Settings')) return 'settings';
-    if (location.pathname.endsWith('/Security-and-Devices') || location.pathname.endsWith('/Sessions')) return 'sessions';
-    if (location.pathname.endsWith('/Billing')) return 'billing';
+    const cleanPath = location.pathname.replace(/\.php$/i, '');
+    if (cleanPath.endsWith('/My-Favorites')) return 'favourites';
+    if (cleanPath.endsWith('/Account-Settings')) return 'settings';
+    if (cleanPath.endsWith('/Security-and-Devices') || cleanPath.endsWith('/Sessions')) return 'sessions';
+    if (cleanPath.endsWith('/Billing')) return 'billing';
     return 'favourites'; // fallback/default
   };
 
   // Sync tab clicks to router navigation
   const handleTabChange = (val) => {
-    if (val === 'favourites') navigate(`${profileBaseUrl}/My-Favorites`);
-    else if (val === 'settings') navigate(`${profileBaseUrl}/Account-Settings`);
-    else if (val === 'sessions') navigate(`${profileBaseUrl}/Security-and-Devices`);
-    else if (val === 'billing') navigate(`${profileBaseUrl}/Billing`);
+    if (val === 'favourites') navigate(`${profileBaseUrl}/My-Favorites.php`);
+    else if (val === 'settings') navigate(`${profileBaseUrl}/Account-Settings.php`);
+    else if (val === 'sessions') navigate(`${profileBaseUrl}/Security-and-Devices.php`);
+    else if (val === 'billing') navigate(`${profileBaseUrl}/Billing.php`);
   };
 
   // Check if user is subscribed to student or university plan
