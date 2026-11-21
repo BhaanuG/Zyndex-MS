@@ -356,16 +356,20 @@ class AuthController {
     Map<String, Object> accountDetails(@RequestParam("email") String email, @RequestParam(value = "role", defaultValue = "user") String role) {
         Map<String, Object> user = auth.findUserByEmail(email.trim().toLowerCase());
         if (user == null) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "No matching account was found.");
+            throw new ApiException(HttpStatus.NOT_FOUND, "No matching account was found for this email address.");
         }
         boolean requestedAdmin = "admin".equalsIgnoreCase(role);
         boolean accountIsAdmin = "ADMIN".equalsIgnoreCase(AuthSupport.str(user.get("role")));
-        if (requestedAdmin != accountIsAdmin) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "No matching account was found.");
+        if (requestedAdmin && !accountIsAdmin) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "This account is registered as user.");
+        }
+        if (!requestedAdmin && accountIsAdmin) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "This account is registered in administrative.");
         }
         Map<String, Object> response = new java.util.HashMap<>();
         response.put("fullName", AuthSupport.str(user.get("username")));
         response.put("email", AuthSupport.str(user.get("email")));
+        response.put("role", accountIsAdmin ? "admin" : "user");
         return response;
     }
 
@@ -544,11 +548,18 @@ class AuthController {
             auth.validatePasswordStrength(newPassword);
         }
         Map<String, Object> existing = auth.findUserByEmail(email);
-        boolean roleMatches = "admin".equalsIgnoreCase(role)
-            ? "ADMIN".equalsIgnoreCase(AuthSupport.str(existing == null ? null : existing.get("role")))
-            : existing != null && !"ADMIN".equalsIgnoreCase(AuthSupport.str(existing.get("role")));
-        if (existing == null || !roleMatches || !AuthSupport.str(existing.get("username")).equalsIgnoreCase(fullName)
-                || !otpController.consumeVerifiedOtp(email.toLowerCase(), role)) {
+        if (existing == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "No matching account was found for this email address.");
+        }
+        boolean requestedAdmin = "admin".equalsIgnoreCase(role);
+        boolean accountIsAdmin = "ADMIN".equalsIgnoreCase(AuthSupport.str(existing.get("role")));
+        if (requestedAdmin && !accountIsAdmin) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "This account is registered as user.");
+        }
+        if (!requestedAdmin && accountIsAdmin) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "This account is registered in administrative.");
+        }
+        if (!otpController.consumeVerifiedOtp(email.toLowerCase(), role)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Verify the OTP and account details before resetting your password.");
         }
         String hash = auth.passwordEncoder.encode(newPassword);

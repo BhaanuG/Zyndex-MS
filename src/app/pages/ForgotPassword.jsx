@@ -113,24 +113,57 @@ export default function ForgotPassword() {
 
   const passwordStrength = getPasswordStrength(newPassword);
 
-  const lookupAccount = async () => {
-    if (!email) return;
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const lookupAccount = async (targetEmail = email, targetRole = userType) => {
+    const checkEmail = (targetEmail || '').trim();
+    if (!checkEmail) {
+      setFullName('');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(checkEmail)) {
+      return;
+    }
+
     try {
-      const account = await authService.getAccountDetails(email, userType);
+      const account = await authService.getAccountDetails(checkEmail, targetRole);
       setFullName(account.fullName || '');
       setError('');
     } catch (err) {
       setFullName('');
-      setError('No matching account was found for this email and account type.');
+      const msg = err.message || '';
+      if (msg.includes('administrative') || msg.includes('user')) {
+        setError(msg);
+      } else {
+        setError(targetRole === 'admin'
+          ? 'This account is not registered as admin or does not exist.'
+          : 'This account is not registered as user or does not exist.');
+      }
+    }
+  };
+
+  const handleUserTypeChange = (newType) => {
+    setUserType(newType);
+    setError('');
+    setOtpVerified(false);
+    setOtp('');
+    if (email) {
+      lookupAccount(email, newType);
     }
   };
 
   const sendOtp = async () => {
     setOtpSending(true);
     setError('');
+    setSuccessMessage('');
     try {
-      await authService.sendOtp({ email, role: userType, purpose: 'PASSWORD_RESET' });
+      if (!fullName) {
+        await lookupAccount();
+      }
+      await authService.sendOtp({ email: email.trim(), role: userType, purpose: 'PASSWORD_RESET', force: true });
       setOtpVerified(false);
+      setSuccessMessage(`OTP has been sent to ${email.trim()}.`);
     } catch (err) {
       setError(err.message || 'Unable to send OTP.');
     } finally {
@@ -140,9 +173,11 @@ export default function ForgotPassword() {
 
   const verifyOtp = async () => {
     setError('');
+    setSuccessMessage('');
     try {
-      await authService.verifyOtp({ email, otp, role: userType });
+      await authService.verifyOtp({ email: email.trim().toLowerCase(), otp: otp.trim(), role: userType });
       setOtpVerified(true);
+      setSuccessMessage('OTP verified successfully! You can now enter your new password.');
     } catch (err) {
       setError(err.message || 'Invalid OTP.');
     }
@@ -152,9 +187,10 @@ export default function ForgotPassword() {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
+    setSuccessMessage('');
 
     if (!otpVerified) {
-      setError('Send and verify the OTP before resetting your password.');
+      setError('Send and verify the OTP before saving your password.');
       setIsSubmitting(false);
       return;
     }
@@ -168,7 +204,7 @@ export default function ForgotPassword() {
 
     try {
       const requestPayload = {
-        email,
+        email: email.trim(),
         fullName,
         role: userType,
         newPassword,
@@ -176,31 +212,19 @@ export default function ForgotPassword() {
 
       await authService.requestPasswordReset(requestPayload);
 
-      // Show loader with personalized message
-      setLoaderMessage(`Thank you, ${fullName}! Your ${userType} account password reset request has been submitted. We're processing your request and will send instructions to ${email} shortly.`);
-      setShowLoader(true);
-
-      // Keep loader visible for 15 seconds, then redirect
+      setSuccessMessage('Password reset successfully! Redirecting to login...');
       setTimeout(() => {
-        setShowLoader(false);
         setIsSubmitting(false);
-        
-        // Clear form
-        setFullName('');
-        setEmail('');
-        setNewPassword('');
-        
-        // Redirect to login after successful submission
-        setTimeout(() => {
-          navigate('/Zyndex/User/Log-In');
-        }, 500);
-      }, 15000); // 15 seconds as requested
+        navigate(userType === 'admin' ? '/Zyndex/Admin/Log-In.php' : '/Zyndex/User/Log-In.php', {
+          replace: true,
+          state: { signupSuccess: 'Your password has been reset successfully. Please log in with your new password.' }
+        });
+      }, 1500);
 
     } catch (err) {
       console.error('Password reset request failed:', err);
-      setError(err.message || 'Failed to send reset request. Please try again.');
+      setError(err.message || 'Failed to save password. Please try again.');
       setIsSubmitting(false);
-      setShowLoader(false);
     }
   };
 
@@ -357,7 +381,7 @@ export default function ForgotPassword() {
                       {/* User Button */}
                       <motion.button
                         type="button"
-                        onClick={() => setUserType('user')}
+                        onClick={() => handleUserTypeChange('user')}
                         className={`relative z-10 py-3 px-6 rounded-lg font-semibold transition-colors ${
                           userType === 'user'
                             ? 'text-white'
@@ -375,7 +399,7 @@ export default function ForgotPassword() {
                       {/* Admin Button */}
                       <motion.button
                         type="button"
-                        onClick={() => setUserType('admin')}
+                        onClick={() => handleUserTypeChange('admin')}
                         className={`relative z-10 py-3 px-6 rounded-lg font-semibold transition-colors ${
                           userType === 'admin'
                             ? 'text-white'
@@ -393,26 +417,24 @@ export default function ForgotPassword() {
                   </div>
                 </motion.div>
 
-                {/* Full Name Field */}
+                {/* Full Name Field (Non-editable, auto-populated) */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.55 }}
                 >
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Full Name
+                    Full Name <span className="text-xs font-normal text-slate-400">(Auto-filled from registered account)</span>
                   </label>
                   <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl opacity-0 group-focus-within:opacity-10 blur transition-opacity" />
                     <div className="relative flex items-center">
-                      <User className="absolute left-4 size-5 text-slate-400 group-focus-within:text-orange-600 transition-colors" />
+                      <User className="absolute left-4 size-5 text-slate-400 transition-colors" />
                       <input
                         type="text"
                         value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Enter your full name"
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
-                        required
+                        readOnly
+                        placeholder="Auto-filled once email is entered"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-100 border border-slate-200 text-slate-700 font-medium rounded-xl outline-none cursor-not-allowed select-none transition-all depth-3d-input"
                       />
                     </div>
                   </div>
@@ -435,8 +457,19 @@ export default function ForgotPassword() {
                       <input
                         type="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onBlur={lookupAccount}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEmail(val);
+                          setError('');
+                          setSuccessMessage('');
+                          setOtpVerified(false);
+                          if (val.trim()) {
+                            lookupAccount(val, userType);
+                          } else {
+                            setFullName('');
+                          }
+                        }}
+                        onBlur={() => lookupAccount(email, userType)}
                         placeholder="Enter your registered email"
                         pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                         title="Email must contain @ and a domain (e.g., .com, .org)"
@@ -524,6 +557,27 @@ export default function ForgotPassword() {
                   )}
                 </motion.div>
 
+                {/* Messages */}
+                {successMessage && (
+                  <motion.div
+                    className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <p className="text-xs font-semibold text-emerald-800">{successMessage}</p>
+                  </motion.div>
+                )}
+
+                {error && (
+                  <motion.div
+                    className="p-3.5 bg-red-50 border border-red-200 rounded-xl"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <p className="text-xs font-semibold text-red-700">{error}</p>
+                  </motion.div>
+                )}
+
                 {/* Submit Button */}
                 {isMaintenanceActive && (
                   <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200 mt-4 text-center font-medium">
@@ -549,11 +603,11 @@ export default function ForgotPassword() {
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                         />
-                        Submitting...
+                        Saving...
                       </>
                     ) : (
                       <>
-                        Submit Request
+                        Save Password
                         <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
