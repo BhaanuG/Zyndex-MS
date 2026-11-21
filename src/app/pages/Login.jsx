@@ -327,8 +327,8 @@ export default function Login() {
       sessionStorage.removeItem('mail_otp_request_state');
 
       navigate(activeTab === 'admin' 
-        ? '/Zyndex/Admin/Authenticator-Verification-Page' 
-        : '/Zyndex/User/Authenticator-Verification-Page');
+        ? '/Zyndex/Admin/Auth/Authenticator-Verification-Page.php' 
+        : '/Zyndex/User/Auth/Authenticator-Verification-Page.php');
     } catch (err) {
       const errMsg = err.message || '';
       if (isSignUpMode && (errMsg.includes('OTP verification is required') || errMsg.includes('OTP') || errMsg.includes('expired'))) {

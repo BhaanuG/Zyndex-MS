@@ -386,7 +386,11 @@ export default function Authenticator({ onSuccess, onBack }) {
                       <label className="block text-sm font-semibold text-slate-700">
                         Enter the 6-digit code
                       </label>
-                      <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200">
+                      <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-orange-700 bg-orange-100 px-3 py-1.5 rounded-full border-2 border-orange-400 shadow-sm shadow-orange-500/20">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-600"></span>
+                        </span>
                         Code expires in {timeLeft}s
                       </span>
                     </div>

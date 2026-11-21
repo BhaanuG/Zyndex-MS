@@ -88,7 +88,7 @@ export default function AdminAuthenticator() {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
     sessionStorage.setItem('human_verification_passed', 'true');
-    navigate('/Zyndex/Admin/Mail-OTP-Verification');
+    navigate('/Zyndex/Admin/Auth/Mail-OTP-Verification.php');
   };
 
   const handleAuthBack = () => {

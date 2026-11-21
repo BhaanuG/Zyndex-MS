@@ -77,7 +77,7 @@ export default function UserAuthenticator() {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
     sessionStorage.setItem('human_verification_passed', 'true');
-    navigate('/Zyndex/User/Mail-OTP-Verification');
+    navigate('/Zyndex/User/Auth/Mail-OTP-Verification.php');
   };
 
   const handleAuthBack = () => {

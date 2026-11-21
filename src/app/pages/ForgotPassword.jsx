@@ -73,6 +73,7 @@ export default function ForgotPassword() {
   const [otp, setOtp] = useState('');
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
+  const [otpCountdown, setOtpCountdown] = useState(0);
   const [newPassword, setNewPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,6 +81,15 @@ export default function ForgotPassword() {
   const [showLoader, setShowLoader] = useState(false);
   const [loaderMessage, setLoaderMessage] = useState('');
   const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
+
+  // OTP Countdown timer
+  useEffect(() => {
+    if (otpCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
 
   useEffect(() => {
     apiClient.get('/users/maintenance-mode')
@@ -154,16 +164,23 @@ export default function ForgotPassword() {
   };
 
   const sendOtp = async () => {
+    if (otpSending || otpCountdown > 0) return;
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError('Please enter your registered email address.');
+      return;
+    }
     setOtpSending(true);
     setError('');
     setSuccessMessage('');
     try {
       if (!fullName) {
-        await lookupAccount();
+        await lookupAccount(trimmedEmail, userType);
       }
-      await authService.sendOtp({ email: email.trim(), role: userType, purpose: 'PASSWORD_RESET', force: true });
+      await authService.sendOtp({ email: trimmedEmail, role: userType, purpose: 'PASSWORD_RESET', force: true });
       setOtpVerified(false);
-      setSuccessMessage(`OTP has been sent to ${email.trim()}.`);
+      setOtpCountdown(120);
+      setSuccessMessage(`A 4-digit OTP was sent to ${trimmedEmail}. It expires in 120 Seconds.`);
     } catch (err) {
       setError(err.message || 'Unable to send OTP.');
     } finally {
@@ -508,7 +525,14 @@ export default function ForgotPassword() {
                       className="flex-1 px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"
                       required
                     />
-                    <button type="button" onClick={sendOtp} disabled={otpSending || !email} className="px-4 py-3 bg-[#0b1f3a] text-white rounded-xl disabled:opacity-50">{otpSending ? 'Sending...' : 'Send OTP'}</button>
+                    <button
+                      type="button"
+                      onClick={sendOtp}
+                      disabled={otpSending || !email || otpCountdown > 0}
+                      className="px-4 py-3 bg-[#0b1f3a] text-white rounded-xl disabled:opacity-50 transition-all font-medium text-sm"
+                    >
+                      {otpSending ? 'Sending...' : otpCountdown > 0 ? `Resend (${otpCountdown}s)` : 'Send OTP'}
+                    </button>
                     <button type="button" onClick={verifyOtp} disabled={!otp || otpVerified} className="px-4 py-3 bg-orange-600 text-white rounded-xl disabled:opacity-50">{otpVerified ? 'Verified' : 'Verify'}</button>
                   </div>
                 </motion.div>

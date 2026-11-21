@@ -82,34 +82,50 @@ const routeList = [
       },
       {
         path: "Zyndex/User/authenticator-page",
-        element: <Navigate to="/Zyndex/User/Authenticator-Verification-Page" replace />
+        element: <Navigate to="/Zyndex/User/Auth/Authenticator-Verification-Page" replace />
       },
       {
         path: "Zyndex/Admin/authenticator-page",
-        element: <Navigate to="/Zyndex/Admin/Authenticator-Verification-Page" replace />
+        element: <Navigate to="/Zyndex/Admin/Auth/Authenticator-Verification-Page" replace />
       },
       {
         path: "Zyndex/User/Authenticator-Zyndex/User/authenticator-Verification-Page",
-        element: <Navigate to="/Zyndex/User/Authenticator-Verification-Page" replace />
+        element: <Navigate to="/Zyndex/User/Auth/Authenticator-Verification-Page" replace />
       },
       {
         path: "Zyndex/Admin/Authenticator-Zyndex/User/authenticator-Verification-Page",
-        element: <Navigate to="/Zyndex/Admin/Authenticator-Verification-Page" replace />
+        element: <Navigate to="/Zyndex/Admin/Auth/Authenticator-Verification-Page" replace />
       },
       {
         path: "Zyndex/User/Authenticator-Verification-Page",
-        element: <PageTransitionWrapper duration={5000}><UserAuthenticator /></PageTransitionWrapper>
+        element: <Navigate to="/Zyndex/User/Auth/Authenticator-Verification-Page" replace />
       },
       {
         path: "Zyndex/Admin/Authenticator-Verification-Page",
+        element: <Navigate to="/Zyndex/Admin/Auth/Authenticator-Verification-Page" replace />
+      },
+      {
+        path: "Zyndex/User/Auth/Authenticator-Verification-Page",
+        element: <PageTransitionWrapper duration={5000}><UserAuthenticator /></PageTransitionWrapper>
+      },
+      {
+        path: "Zyndex/Admin/Auth/Authenticator-Verification-Page",
         element: <PageTransitionWrapper duration={5000}><AdminAuthenticator /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/User/Mail-OTP-Verification",
-        element: <PageTransitionWrapper duration={5000}><MailOtpVerification /></PageTransitionWrapper>
+        element: <Navigate to="/Zyndex/User/Auth/Mail-OTP-Verification" replace />
       },
       {
         path: "Zyndex/Admin/Mail-OTP-Verification",
+        element: <Navigate to="/Zyndex/Admin/Auth/Mail-OTP-Verification" replace />
+      },
+      {
+        path: "Zyndex/User/Auth/Mail-OTP-Verification",
+        element: <PageTransitionWrapper duration={5000}><MailOtpVerification /></PageTransitionWrapper>
+      },
+      {
+        path: "Zyndex/Admin/Auth/Mail-OTP-Verification",
         element: <PageTransitionWrapper duration={5000}><MailOtpVerification /></PageTransitionWrapper>
       },
       {

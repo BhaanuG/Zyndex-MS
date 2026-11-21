@@ -146,7 +146,7 @@ export default function MailOtpVerification() {
         const isEmailSent = response.emailSent;
         setStatus(
           isEmailSent
-            ? `A 4-digit OTP was sent to ${authData.email}. It expires in 2 minutes.`
+            ? `A 4-digit OTP was sent to ${authData.email}. It expires in 120 Seconds`
             : `A 4-digit OTP was generated (Development Mode). Check backend console.`
         );
       } catch (requestError) {
@@ -231,7 +231,7 @@ export default function MailOtpVerification() {
       const isEmailSent = response.emailSent;
       setStatus(
         isEmailSent
-          ? `A new OTP was sent to ${authData.email}. It expires in 2 minutes.`
+          ? `A 4-digit OTP was sent to ${authData.email}. It expires in 120 Seconds`
           : `A new OTP was generated (Development Mode). Check backend console.`
       );
 
@@ -577,7 +577,17 @@ export default function MailOtpVerification() {
             <div className="text-center mb-5 sm:mb-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1.5">Mail OTP Verification</h1>
               <p className="text-slate-600 text-xs sm:text-sm">Enter the 4-digit security code sent to your registered email.</p>
-              <p className="text-xs text-orange-700 mt-2 font-semibold">Time remaining: {remainingSeconds}s</p>
+              <div className="mt-3 flex items-center justify-center">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-100 border-2 border-orange-400 text-orange-900 shadow-md shadow-orange-500/20 animate-pulse">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-600"></span>
+                  </span>
+                  <span className="text-sm sm:text-base font-extrabold tracking-wide">
+                    Time remaining: <span className="text-orange-700 text-base sm:text-lg">{remainingSeconds}s</span>
+                  </span>
+                </div>
+              </div>
             </div>
 
             {status && (
