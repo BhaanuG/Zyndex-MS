@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Mail, User, Lock, Shield, CheckCircle, Sparkles, ArrowLeft } from 'lucide-react';
+import { BookOpen, Mail, User, Lock, Shield, CheckCircle, Sparkles, ArrowLeft, KeyRound } from 'lucide-react';
 import { useNavigate, Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import authService from '@/services/api/authService';
@@ -203,6 +203,24 @@ export default function AdminRequest() {
   const [error, setError] = useState('');
   const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
 
+  // OTP Verification States
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpCountdown, setOtpCountdown] = useState(0);
+  const [otpSuccessMessage, setOtpSuccessMessage] = useState('');
+
+  // Countdown timer for resend OTP
+  useEffect(() => {
+    if (otpCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
+
   useEffect(() => {
     apiClient.get('/users/maintenance-mode')
       .then(res => {
@@ -230,12 +248,91 @@ export default function AdminRequest() {
       [name]: updatedValue,
     });
     setError('');
+    setOtpSuccessMessage('');
+
+    if (name === 'email' && otpVerified) {
+      setOtpVerified(false);
+      setOtpSent(false);
+      setOtpCode('');
+      setOtpSuccessMessage('');
+    }
+  };
+
+  const handleSendOtp = async () => {
+    setError('');
+    setOtpSuccessMessage('');
+    const trimmedEmail = formData.email.trim();
+    const trimmedName = formData.fullName.trim();
+
+    if (!trimmedName) {
+      setError('Please enter your full name first.');
+      return;
+    }
+    if (!trimmedEmail) {
+      setError('Please enter your email address to receive the verification OTP.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    setSendingOtp(true);
+    try {
+      await apiClient.post('/send-otp', {
+        email: trimmedEmail,
+        role: 'admin',
+        purpose: 'SIGNUP',
+        name: trimmedName,
+        displayName: formData.displayName.trim(),
+        force: true,
+      });
+      setOtpSent(true);
+      setOtpCountdown(120);
+      setOtpSuccessMessage(`Security OTP has been sent to ${trimmedEmail}. It will expire in 120 seconds.`);
+    } catch (err) {
+      setError(err.message || 'Failed to send verification OTP.');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (codeToVerify) => {
+    const code = (codeToVerify || otpCode).trim();
+    if (code.length !== 4) {
+      setError('Please enter all 4 digits of the OTP.');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setError('');
+    try {
+      await apiClient.post('/verify-otp', {
+        email: formData.email.trim().toLowerCase(),
+        otp: code,
+        role: 'admin',
+      });
+      setOtpVerified(true);
+      setOtpSuccessMessage('Email verified successfully! You can now submit your request.');
+    } catch (err) {
+      setError(err.message || 'Invalid or expired OTP. Please check and try again.');
+    } finally {
+      setVerifyingOtp(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSending(true);
     setError('');
+    setOtpSuccessMessage('');
+
+    if (!otpVerified) {
+      setError('Please verify your email address with the OTP before submitting your request.');
+      return;
+    }
+
+    setSending(true);
 
     try {
       // Validate form data
@@ -249,40 +346,31 @@ export default function AdminRequest() {
         throw new Error('Password must be at least 8 characters long, contain at least one uppercase letter, one digit, and one special character.');
       }
 
-      // Dispatch signup OTP with pre-check that email does not exist
-      await apiClient.post('/send-otp', {
-        email: formData.email.trim(),
-        role: 'admin',
-        purpose: 'SIGNUP',
-        name: formData.fullName.trim(),
-        displayName: formData.displayName.trim(),
-        force: true,
-      });
-
-      // Save pending admin signup in sessionStorage and route to OTP verification
-      sessionStorage.setItem('pending_auth', JSON.stringify({
+      // Submit verified admin request directly
+      await authService.requestAdminAccess({
         fullName: formData.fullName.trim(),
         displayName: formData.displayName.trim(),
         email: formData.email.trim(),
         password: formData.password,
-        role: 'admin',
-        isSignUp: true,
-      }));
-      sessionStorage.setItem('human_verification_passed', 'true');
-      sessionStorage.removeItem('mail_otp_request_state');
+      });
 
-      navigate('/Zyndex/Admin/Mail-OTP-Verification');
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/Zyndex/Admin/Log-In', {
+          replace: true,
+          state: {
+            requestSuccess: `Thank you ${formData.displayName.trim()}! Your verified admin request has been submitted successfully.`,
+          },
+        });
+      }, 3000);
     } catch (err) {
       console.error('Admin request error:', err);
-      
-      // Provide more specific error messages
       let errorMessage = 'Failed to send request. ';
       if (err.message) {
         errorMessage += err.message;
       } else {
         errorMessage += 'Please check your internet connection and try again.';
       }
-      
       setError(errorMessage);
       setSending(false);
     }
@@ -491,22 +579,105 @@ export default function AdminRequest() {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Email Address
                   </label>
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl opacity-0 group-focus-within:opacity-10 blur transition-opacity" />
-                    <div className="relative flex items-center">
-                      <Mail className="absolute left-4 size-5 text-slate-400 group-focus-within:text-orange-600 transition-colors" />
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="Enter your email"
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all"
-                        required
-                      />
+                  <div className="flex gap-2">
+                    <div className="relative flex-1 group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl opacity-0 group-focus-within:opacity-10 blur transition-opacity" />
+                      <div className="relative flex items-center">
+                        <Mail className="absolute left-4 size-5 text-slate-400 group-focus-within:text-orange-600 transition-colors" />
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="Enter your email"
+                          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all"
+                          required
+                          disabled={otpVerified}
+                        />
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={sendingOtp || (otpSent && otpCountdown > 0) || otpVerified}
+                      className={`px-4 py-3.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all shadow-sm ${
+                        otpVerified
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default'
+                          : 'bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60'
+                      }`}
+                    >
+                      {sendingOtp
+                        ? 'Sending...'
+                        : otpVerified
+                        ? '✓ Verified'
+                        : otpSent
+                        ? otpCountdown > 0
+                          ? `Resend (${otpCountdown}s)`
+                          : 'Resend OTP'
+                        : 'Send OTP'}
+                    </button>
                   </div>
                 </div>
+
+                {/* Inline OTP verification block */}
+                {otpSent && !otpVerified && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="p-4 bg-orange-50/70 border border-orange-200 rounded-2xl space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-orange-950 uppercase tracking-wider">
+                        Enter 4-Digit Security OTP
+                      </label>
+                      <span className="text-[11px] text-orange-700 font-medium">Sent to {formData.email}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1 flex items-center">
+                        <KeyRound className="absolute left-3.5 size-4 text-orange-500" />
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={4}
+                          value={otpCode}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                            setOtpCode(val);
+                            setError('');
+                            if (val.length === 4) {
+                              handleVerifyOtp(val);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (otpCode.length === 4) {
+                                handleVerifyOtp(otpCode);
+                              }
+                            }
+                          }}
+                          placeholder="••••"
+                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-orange-300 rounded-xl focus:ring-2 focus:ring-orange-500 font-mono text-center tracking-[0.4em] font-bold text-lg text-slate-800 outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleVerifyOtp()}
+                        disabled={verifyingOtp || otpCode.length !== 4}
+                        className="px-5 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 text-white text-xs font-bold rounded-xl hover:from-orange-700 hover:to-red-700 disabled:opacity-50 transition-all shadow-sm"
+                      >
+                        {verifyingOtp ? 'Checking...' : 'Verify OTP'}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {otpVerified && (
+                  <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold">
+                    <CheckCircle className="size-4 text-emerald-600 shrink-0" />
+                    <span>Email verified successfully. You can now submit your admin request.</span>
+                  </div>
+                )}
 
                 {/* Password */}
                 <div>
@@ -530,7 +701,17 @@ export default function AdminRequest() {
                   </div>
                 </div>
 
-                {/* Error Message */}
+                {/* Feedback Messages */}
+                {otpSuccessMessage && !otpVerified && (
+                  <motion.div
+                    className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <p className="text-xs text-emerald-700 font-medium">{otpSuccessMessage}</p>
+                  </motion.div>
+                )}
+
                 {error && (
                   <motion.div
                     className="p-4 bg-red-50 border border-red-200 rounded-xl"
@@ -549,10 +730,10 @@ export default function AdminRequest() {
                 )}
                 <motion.button
                   type="submit"
-                  disabled={sending || isMaintenanceActive}
-                  className={`w-full relative group ${isMaintenanceActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  whileHover={{ scale: !sending && !isMaintenanceActive ? 1.02 : 1 }}
-                  whileTap={{ scale: !sending && !isMaintenanceActive ? 0.98 : 1 }}
+                  disabled={sending || isMaintenanceActive || !otpVerified}
+                  className={`w-full relative group ${isMaintenanceActive || !otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  whileHover={{ scale: !sending && !isMaintenanceActive && otpVerified ? 1.02 : 1 }}
+                  whileTap={{ scale: !sending && !isMaintenanceActive && otpVerified ? 0.98 : 1 }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div className="relative flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
