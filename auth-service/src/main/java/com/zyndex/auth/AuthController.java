@@ -538,7 +538,6 @@ class AuthController {
     @PostMapping("/forgot-password")
     Map<String, Object> forgotPassword(@RequestBody Map<String, Object> body) {
         String email = AuthSupport.str(body.get("email"));
-        String fullName = AuthSupport.str(AuthSupport.first(body.get("fullName"), email.split("@")[0]));
         String role = AuthSupport.str(AuthSupport.first(body.get("role"), "user"));
         String newPassword = AuthSupport.str(body.get("newPassword"));
         if (email.isBlank()) {
