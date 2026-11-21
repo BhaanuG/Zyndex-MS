@@ -267,6 +267,19 @@ const resourceService = {
       return { success: true, message: 'System runtime caches purged.' };
     }
   },
+
+  /**
+   * Clear historical sorted journal logs from database
+   * @returns {Promise<Object>}
+   */
+  clearStorageLogs: async () => {
+    try {
+      const response = await apiClient.post('/resources/storage/clear-logs');
+      return response;
+    } catch (error) {
+      return { success: false, message: error?.message || 'Could not clear journal logs.' };
+    }
+  },
 };
 
 export default resourceService;
