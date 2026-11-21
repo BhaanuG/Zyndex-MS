@@ -51,6 +51,9 @@ export default function UserAccessManagement() {
   const [adminRequests, setAdminRequests] = useState([]);
   const [restoringUser, setRestoringUser] = useState(null);
   const [loggingOutUser, setLoggingOutUser] = useState(null);
+  const [declineTarget, setDeclineTarget] = useState(null);
+  const [declineReason, setDeclineReason] = useState('');
+  const [processingRequestId, setProcessingRequestId] = useState(null);
 
   const handleRestoreUserAccess = async (u) => {
     if (!isPrimaryAdmin) return;
@@ -262,14 +265,28 @@ export default function UserAccessManagement() {
     }
   }, [canManageUsers]);
 
-  const decideAdminRequest = async (request, decision) => {
-    const reason = decision === 'decline' ? window.prompt('Reason for declining this request:') || '' : '';
+  const decideAdminRequest = async (request, decision, customReason = '') => {
+    if (decision === 'decline' && !customReason && customReason !== null) {
+      setDeclineTarget(request);
+      setDeclineReason('');
+      return;
+    }
+
+    const reason = customReason || '';
+    setProcessingRequestId(request.id);
+    // Optimistic UI update: remove request immediately so UI responds instantaneously
+    setAdminRequests((current) => current.filter((item) => item.id !== request.id));
+    setDeclineTarget(null);
+
     try {
       await authService.decideAdminRequest(request.id, decision, reason);
-      setAdminRequests((current) => current.filter((item) => item.id !== request.id));
-      await loadUsers(searchTerm);
+      loadUsers(searchTerm);
     } catch (error) {
+      // Revert if error
+      setAdminRequests((current) => [request, ...current]);
       window.alert(error.message || 'Unable to update admin request.');
+    } finally {
+      setProcessingRequestId(null);
     }
   };
 
@@ -558,9 +575,20 @@ export default function UserAccessManagement() {
                     <p className="text-sm text-gray-600">{request.email}</p>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => decideAdminRequest(request, 'approve')} className="px-3 py-2 bg-green-600 text-white rounded-lg">Accept</button>
-                    <button onClick={() => decideAdminRequest(request, 'decline')} className="px-3 py-2 bg-amber-600 text-white rounded-lg">Ignore</button>
-                    <button onClick={() => decideAdminRequest(request, 'delete')} className="px-3 py-2 bg-red-600 text-white rounded-lg">Delete</button>
+                    <button
+                      onClick={() => decideAdminRequest(request, 'approve')}
+                      disabled={processingRequestId === request.id}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-sm transition-all disabled:opacity-50"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => decideAdminRequest(request, 'decline')}
+                      disabled={processingRequestId === request.id}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg shadow-sm transition-all disabled:opacity-50"
+                    >
+                      Ignore
+                    </button>
                   </div>
                 </div>
               ))}
@@ -868,6 +896,61 @@ export default function UserAccessManagement() {
                   <div className="flex items-center gap-3 pt-2">
                     <button type="button" onClick={closeResetModal} className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">Cancel</button>
                     <button type="submit" className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Reset Password</button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+        {/* Decline/Ignore Request Reason Modal */}
+        {declineTarget && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeclineTarget(null)}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 pointer-events-auto">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Ignore Admin Access Request</h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  Provide a reason for declining the request from <span className="font-semibold text-slate-800">{declineTarget.full_name}</span> ({declineTarget.email}):
+                </p>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    decideAdminRequest(declineTarget, 'decline', declineReason || 'Request ignored by administrator');
+                  }}
+                >
+                  <textarea
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    placeholder="Enter reason (optional)"
+                    rows={3}
+                    autoFocus
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none text-sm text-slate-800 transition-all mb-4"
+                  />
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setDeclineTarget(null)}
+                      className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-md shadow-amber-500/20 transition-all"
+                    >
+                      Confirm Ignore
+                    </button>
                   </div>
                 </form>
               </div>
