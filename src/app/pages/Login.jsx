@@ -602,7 +602,7 @@ export default function Login() {
                             setError('');
                             setSuccessMessage('');
                           }}
-                          placeholder=""
+                          placeholder="Enter your name (e.g. Rahul Sharma)"
                           className="w-full pl-12 pr-4 py-3.5 bg-slate-100 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-600 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all depth-3d-input"
                           required
                         />
