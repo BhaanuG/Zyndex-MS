@@ -254,10 +254,11 @@ class ResourceController {
             
             // Record this administrative clear event in system_logs
             try {
+                long totalCount = totalBefore != null ? totalBefore : 0L;
                 jdbc.update("""
                     INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
                     VALUES (NOW(), 'ADMIN-PORTAL', 'INFO', 'ADMIN_CLEAR_LOGS', 'admin', ?, '127.0.0.1', 'SUCCESS')
-                """, "Purged " + purged + " historical journal logs to optimize database storage.");
+                """, "Purged " + purged + " historical journal logs to optimize database storage (was " + totalCount + " logs).");
             } catch (Exception ignored) {}
 
             return Map.of("success", true, "message", "Successfully purged " + purged + " sorted journal logs from the database.", "purgedCount", purged);
