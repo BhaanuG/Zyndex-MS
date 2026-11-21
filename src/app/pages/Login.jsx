@@ -817,11 +817,7 @@ export default function Login() {
                   </div>
                 )}
 
-                {otpSuccessMessage && (
-                  <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-xs font-semibold">
-                    <span>{otpSuccessMessage}</span>
-                  </div>
-                )}
+
 
                 {error && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm space-y-2">
