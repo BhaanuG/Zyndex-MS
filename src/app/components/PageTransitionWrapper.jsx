@@ -5,10 +5,7 @@ import { BookOpen } from 'lucide-react';
 
 function TransitionLoader({ duration = 5000, message = 'Loading...' }) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-orange-50"
     >
       {/* Animated Background */}
@@ -170,7 +167,7 @@ function TransitionLoader({ duration = 5000, message = 'Loading...' }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -273,15 +270,13 @@ export default function PageTransitionWrapper({ children, duration = 5000 }) {
 
   return (
     <>
-      <AnimatePresence mode="wait">
-        {isTransitioning && <TransitionLoader key="loader" duration={duration} />}
-      </AnimatePresence>
+      {isTransitioning && <TransitionLoader duration={duration} />}
       
       {/* 
-        Keep children mounted during transition so React and next-page effects (API fetches, data hydration)
-        execute immediately behind the transition loader without any delay or lagging!
+        Hide children completely using hidden/display:none while transitioning
+        to eliminate any single-frame flashing before the loader covers the viewport.
       */}
-      <div className={isTransitioning ? 'invisible pointer-events-none' : ''}>
+      <div className={isTransitioning ? 'hidden' : 'block'}>
         {children}
       </div>
     </>
