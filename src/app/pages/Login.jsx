@@ -919,7 +919,7 @@ export default function Login() {
                         </Link>
                         {activeTab === 'user' && (
                           <Link to="/Zyndex/User/Sign-Up" className="text-sm text-slate-500 hover:text-orange-600 font-medium transition-colors">
-                            Need a new user account? <span className="text-orange-600 font-semibold">Create Account</span>
+                            New to Zyndex? <span className="text-orange-600 font-semibold">Create an account</span>
                           </Link>
                         )}
                       </div>
