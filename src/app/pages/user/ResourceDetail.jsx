@@ -364,8 +364,8 @@ export default function ResourceDetail() {
 
   return (
     <UserLayout>
-      <div className="py-4 sm:py-8 px-3 sm:px-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="py-4 sm:py-8 px-4 sm:px-[2.5cm]">
+        <div className="w-full">
           {loadingResource ? (
             <motion.div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 sm:p-12 animate-pulse space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="h-8 bg-slate-200 rounded-xl w-3/4 mb-4"></div>
