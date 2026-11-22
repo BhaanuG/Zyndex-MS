@@ -572,17 +572,14 @@ export default function ResourceDetail() {
           setPdfScale(Math.max(0.4, Number(widthScale.toFixed(2))));
         }
       } else {
-        // Fit to page: page fits cleanly top-to-bottom
-        if (availableHeight > 200 && baseViewport.height > 0) {
+        // Fit to page: ensure the rotated page fits both vertically and horizontally so nothing is ever cropped
+        if (availableHeight > 200 && baseViewport.height > 0 && availableWidth > 200 && baseViewport.width > 0) {
           let fitScale = availableHeight / baseViewport.height;
-          // In two-page view, check if two pages fit horizontally as well
-          if (pdfPageViewMode === 'two-page') {
-            const totalWidthNeeded = baseViewport.width * 2 + 16;
-            if (totalWidthNeeded * fitScale > availableWidth) {
-              fitScale = availableWidth / totalWidthNeeded;
-            }
+          const totalWidthNeeded = pdfPageViewMode === 'two-page' ? baseViewport.width * 2 + 16 : baseViewport.width;
+          if (totalWidthNeeded * fitScale > availableWidth) {
+            fitScale = availableWidth / totalWidthNeeded;
           }
-          setPdfScale(Math.max(0.4, Number(fitScale.toFixed(2))));
+          setPdfScale(Math.max(0.3, Number(fitScale.toFixed(2))));
         }
       }
     }).catch(() => {});
