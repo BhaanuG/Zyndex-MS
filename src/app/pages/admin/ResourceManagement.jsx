@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Clock, CheckCircle, HardDrive, Database, Activity, Cpu } from 'lucide-react';
+import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Clock, CheckCircle, CheckCircle2, HardDrive, Database, Activity, Cpu } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
@@ -452,6 +452,7 @@ export default function ResourceManagement() {
       });
 
       setModalMessage({
+        type: 'success',
         title: 'Resource Uploaded',
         text: 'The resource has been uploaded successfully and is now live.',
         buttonText: 'OK'
@@ -1416,9 +1417,15 @@ export default function ResourceManagement() {
               exit={{ opacity: 0, scale: 0.95 }}
             >
               <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4" onClick={(e) => e.stopPropagation()}>
-                <div className="size-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto">
-                  <AlertTriangle className="size-6" />
-                </div>
+                {modalMessage.type === 'success' ? (
+                  <div className="size-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm shadow-emerald-500/20">
+                    <CheckCircle2 className="size-6 text-emerald-600" />
+                  </div>
+                ) : (
+                  <div className="size-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto">
+                    <AlertTriangle className="size-6" />
+                  </div>
+                )}
                 <h3 className="text-lg font-bold text-slate-900">{modalMessage.title || 'Notification'}</h3>
                 <p className="text-sm text-slate-500">{modalMessage.text}</p>
                 <div className="flex gap-3 pt-2">
@@ -1428,7 +1435,11 @@ export default function ResourceManagement() {
                       if (modalMessage.action) modalMessage.action();
                       setModalMessage(null);
                     }}
-                    className="flex-1 py-2.5 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-xl text-xs hover:opacity-95 shadow-md"
+                    className={`flex-1 py-2.5 text-white font-semibold rounded-xl text-xs hover:opacity-95 shadow-md ${
+                      modalMessage.type === 'success'
+                        ? 'bg-gradient-to-r from-emerald-500 to-green-600 shadow-emerald-500/20'
+                        : 'bg-gradient-to-r from-orange-500 to-red-600 shadow-orange-500/20'
+                    }`}
                   >
                     {modalMessage.buttonText || 'OK'}
                   </button>
