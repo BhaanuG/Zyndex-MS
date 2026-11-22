@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, X, ChevronDown, BookOpen } from 'lucide-react';
+import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, X, ChevronDown, BookOpen, RotateCw, RotateCcw } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as pdfWorkerModule from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -55,6 +55,7 @@ export default function ResourceDetail() {
   const [pdfPage, setPdfPage] = useState(1);
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.15);
+  const [pdfRotation, setPdfRotation] = useState(0);
   const [isPdfFullscreen, setIsPdfFullscreen] = useState(false);
   const [showPdfSidebar, setShowPdfSidebar] = useState(false);
   const [pdfSidebarTab, setPdfSidebarTab] = useState('thumbnails'); // 'thumbnails' | 'outline'
@@ -487,7 +488,7 @@ export default function ResourceDetail() {
       if (cancelled) return;
       // High-DPI (Retina / 4K / Mobile) rendering: scale canvas internal pixels by window.devicePixelRatio
       const dpr = Math.max(window.devicePixelRatio || 1, 2);
-      const viewport = page.getViewport({ scale: pdfScale * dpr });
+      const viewport = page.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
       const canvas = pdfCanvasRef.current;
       const context = canvas.getContext('2d', { alpha: false });
       
@@ -496,7 +497,7 @@ export default function ResourceDetail() {
       canvas.height = Math.floor(viewport.height);
 
       // Display size stays locked to CSS scale so layout does not stretch
-      const cssViewport = page.getViewport({ scale: pdfScale });
+      const cssViewport = page.getViewport({ scale: pdfScale, rotation: pdfRotation });
       canvas.style.width = `${Math.floor(cssViewport.width)}px`;
       canvas.style.height = `${Math.floor(cssViewport.height)}px`;
 
@@ -510,7 +511,7 @@ export default function ResourceDetail() {
     return () => {
       cancelled = true;
     };
-  }, [pdfDocument, pdfPage, pdfScale]);
+  }, [pdfDocument, pdfPage, pdfScale, pdfRotation]);
 
   return (
     <UserLayout>
@@ -706,6 +707,33 @@ export default function ResourceDetail() {
                         <span className="w-12 text-center text-xs font-semibold">{Math.round(pdfScale * 100)}%</span>
                         <button type="button" disabled={pdfScale >= 2.5} onClick={() => setPdfScale((scale) => Math.min(2.5, Number((scale + 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom in" title="Zoom in"><Plus className="size-4" /></button>
                         <div className="h-5 w-px bg-neutral-700 mx-1" />
+                        {/* Continuous rotation controls in Full Screen */}
+                        {isPdfFullscreen && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setPdfRotation((r) => (r - 90 + 360) % 360)}
+                              className="rounded p-1.5 hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer transition-colors"
+                              aria-label="Rotate Counterclockwise"
+                              title={`Rotate Counterclockwise (${(pdfRotation - 90 + 360) % 360}°)`}
+                            >
+                              <RotateCcw className="size-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPdfRotation((r) => (r + 90) % 360)}
+                              className="rounded p-1.5 hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer transition-colors flex items-center gap-1"
+                              aria-label="Rotate Clockwise"
+                              title={`Rotate Clockwise (${(pdfRotation + 90) % 360}°)`}
+                            >
+                              <RotateCw className="size-4" />
+                              {pdfRotation !== 0 && (
+                                <span className="text-[10px] font-mono text-orange-400 font-bold">{pdfRotation}°</span>
+                              )}
+                            </button>
+                            <div className="h-5 w-px bg-neutral-700 mx-1" />
+                          </>
+                        )}
                         <button
                           type="button"
                           onClick={togglePdfFullscreen}
