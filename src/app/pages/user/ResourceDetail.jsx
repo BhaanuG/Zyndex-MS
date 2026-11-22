@@ -425,39 +425,6 @@ export default function ResourceDetail() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-4">
                   <div className="flex-1 min-w-0">
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-4 break-words">{resource.title}</h1>
-                    
-                    {/* Neatly Organized Academic Metadata */}
-                    <div className="space-y-2 mb-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 divide-y divide-slate-200/70 text-xs">
-                      <div className="flex items-center justify-between pb-2 gap-2">
-                        <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
-                          <Tag className="size-3.5 text-orange-500" /> Category
-                        </span>
-                        <span className="font-semibold text-slate-800 truncate text-right">
-                          {resource.category || 'General'}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 gap-2">
-                        <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
-                          <User className="size-3.5 text-blue-500" /> Author
-                        </span>
-                        <span className="font-semibold text-slate-800 truncate text-right" title={resource.author || resource.subject || 'Zyndex Contributor'}>
-                          {resource.author || resource.subject || 'Zyndex Contributor'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Membership & Entitlement Status */}
-                    <div className="flex items-center gap-2 flex-wrap pt-1">
-                      <span className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs ${
-                        requiredTier === 0
-                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                          : 'bg-orange-50 text-orange-800 border border-orange-200'
-                      }`}>
-                        <span className={`size-1.5 rounded-full ${requiredTier === 0 ? 'bg-emerald-500' : 'bg-orange-500'}`} />
-                        {requiredTier === 0 ? 'Free Access Resource' : `Requires: ${PLAN_NAMES[requiredPlan] || requiredPlan}`}
-                      </span>
-                    </div>
                   </div>
                   <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
                     <button onClick={toggleFavorite} className={`flex items-center gap-2 px-4 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm ${isFavorite ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}>
@@ -465,6 +432,39 @@ export default function ResourceDetail() {
                       {isFavorite ? 'Favourite' : 'Add Favourite'}
                     </button>
                   </div>
+                </div>
+
+                {/* Neatly Organized Academic Metadata - Full Width Across Border */}
+                <div className="space-y-2 mb-5 w-full bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 divide-y divide-slate-200/70 text-xs sm:text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center pb-2.5 gap-2 text-center sm:text-left">
+                    <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+                      <Tag className="size-3.5 text-orange-500" /> Category
+                    </span>
+                    <span className="font-semibold text-slate-800 text-center sm:col-span-2 sm:text-center">
+                      {resource.category || 'General'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center pt-2.5 gap-2 text-center sm:text-left">
+                    <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+                      <User className="size-3.5 text-blue-500" /> Author
+                    </span>
+                    <span className="font-semibold text-slate-800 text-center sm:col-span-2 sm:text-center" title={resource.author || resource.subject || 'Zyndex Contributor'}>
+                      {resource.author || resource.subject || 'Zyndex Contributor'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Membership & Entitlement Status */}
+                <div className="flex items-center gap-2 flex-wrap mb-6">
+                  <span className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs ${
+                    requiredTier === 0
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-orange-50 text-orange-800 border border-orange-200'
+                  }`}>
+                    <span className={`size-1.5 rounded-full ${requiredTier === 0 ? 'bg-emerald-500' : 'bg-orange-500'}`} />
+                    {requiredTier === 0 ? 'Free Access Resource' : `Requires: ${PLAN_NAMES[requiredPlan] || requiredPlan}`}
+                  </span>
                 </div>
 
                 {isArticle ? (
