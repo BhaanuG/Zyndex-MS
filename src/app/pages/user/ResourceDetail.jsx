@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, X, ChevronDown, BookOpen, RotateCw, RotateCcw } from 'lucide-react';
+import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, X, ChevronDown, BookOpen, RotateCw, RotateCcw, BookOpenCheck, Square } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as pdfWorkerModule from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -56,6 +56,7 @@ export default function ResourceDetail() {
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.15);
   const [pdfRotation, setPdfRotation] = useState(0);
+  const [pdfPageViewMode, setPdfPageViewMode] = useState('single'); // 'single' | 'two-page'
   const [isPdfFullscreen, setIsPdfFullscreen] = useState(false);
   const [showPdfSidebar, setShowPdfSidebar] = useState(false);
   const [pdfSidebarTab, setPdfSidebarTab] = useState('thumbnails'); // 'thumbnails' | 'outline'
@@ -63,6 +64,8 @@ export default function ResourceDetail() {
   const [outlineLoading, setOutlineLoading] = useState(false);
   const [thumbnailUrls, setThumbnailUrls] = useState({});
   const pdfCanvasRef = useRef(null);
+  const pdfSecondCanvasRef = useRef(null);
+  const pdfViewerAreaRef = useRef(null);
   const pdfContainerRef = useRef(null);
   const thumbnailsContainerRef = useRef(null);
   const hasTrackedView = useRef(false);
@@ -480,16 +483,49 @@ export default function ResourceDetail() {
     }
   }, [pdfPage, showPdfSidebar, pdfSidebarTab]);
 
+  // Automatically adjust scale in Fullscreen mode so the page fits top-to-bottom
+  useEffect(() => {
+    if (!isPdfFullscreen || !pdfDocument) return;
+
+    let cancelled = false;
+
+    pdfDocument.getPage(pdfPage).then((page) => {
+      if (cancelled) return;
+      const baseViewport = page.getViewport({ scale: 1, rotation: pdfRotation });
+      const availableHeight = window.innerHeight - 75; // Account for 50px top toolbar and margins
+      if (availableHeight > 200 && baseViewport.height > 0) {
+        let fitScale = availableHeight / baseViewport.height;
+        // In two-page view, check if two pages fit horizontally
+        if (pdfPageViewMode === 'two-page') {
+          const sidebarWidth = showPdfSidebar ? 320 : 0;
+          const availableWidth = window.innerWidth - sidebarWidth - 60;
+          const totalWidthNeeded = baseViewport.width * 2;
+          if (totalWidthNeeded * fitScale > availableWidth) {
+            fitScale = availableWidth / totalWidthNeeded;
+          }
+        }
+        setPdfScale(Math.max(0.4, Number(fitScale.toFixed(2))));
+      }
+    }).catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isPdfFullscreen, pdfRotation, pdfPageViewMode, showPdfSidebar, pdfPage, pdfDocument]);
+
   useEffect(() => {
     if (!pdfDocument || !pdfCanvasRef.current) return undefined;
 
     let cancelled = false;
+
+    // Render Page 1 (Primary Page)
     pdfDocument.getPage(pdfPage).then((page) => {
       if (cancelled) return;
       // High-DPI (Retina / 4K / Mobile) rendering: scale canvas internal pixels by window.devicePixelRatio
       const dpr = Math.max(window.devicePixelRatio || 1, 2);
       const viewport = page.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
       const canvas = pdfCanvasRef.current;
+      if (!canvas) return;
       const context = canvas.getContext('2d', { alpha: false });
       
       // Internal buffer size multiplied by DPR for ultra-sharp vectors & text
@@ -508,10 +544,32 @@ export default function ResourceDetail() {
       if (!cancelled) setPreviewError(error.message || 'Unable to open the PDF page.');
     });
 
+    // Render Page 2 (Right Page) if in Two-Page Book View
+    const secondPageNum = pdfPage + 1;
+    if (pdfPageViewMode === 'two-page' && secondPageNum <= pdfPageCount && pdfSecondCanvasRef.current) {
+      pdfDocument.getPage(secondPageNum).then((secondPage) => {
+        if (cancelled) return;
+        const dpr = Math.max(window.devicePixelRatio || 1, 2);
+        const secondViewport = secondPage.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
+        const secondCanvas = pdfSecondCanvasRef.current;
+        if (!secondCanvas) return;
+        const secondContext = secondCanvas.getContext('2d', { alpha: false });
+
+        secondCanvas.width = Math.floor(secondViewport.width);
+        secondCanvas.height = Math.floor(secondViewport.height);
+
+        const secondCssViewport = secondPage.getViewport({ scale: pdfScale, rotation: pdfRotation });
+        secondCanvas.style.width = `${Math.floor(secondCssViewport.width)}px`;
+        secondCanvas.style.height = `${Math.floor(secondCssViewport.height)}px`;
+
+        secondPage.render({ canvasContext: secondContext, viewport: secondViewport }).promise.catch(() => {});
+      }).catch(() => {});
+    }
+
     return () => {
       cancelled = true;
     };
-  }, [pdfDocument, pdfPage, pdfScale, pdfRotation]);
+  }, [pdfDocument, pdfPage, pdfScale, pdfRotation, pdfPageViewMode, pdfPageCount]);
 
   return (
     <UserLayout>
@@ -681,7 +739,7 @@ export default function ResourceDetail() {
                             <div className="h-5 w-px bg-neutral-700 mx-0.5" />
                           </>
                         )}
-                        <button type="button" disabled={pdfPage <= 1} onClick={() => setPdfPage((page) => Math.max(1, page - 1))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Previous page" title="Previous page"><ChevronLeft className="size-5" /></button>
+                        <button type="button" disabled={pdfPage <= 1} onClick={() => setPdfPage((page) => Math.max(1, page - (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Previous page" title="Previous page"><ChevronLeft className="size-5" /></button>
                         <div className="flex items-center gap-1.5 text-xs sm:text-sm bg-neutral-800 px-2.5 py-1 rounded-lg border border-neutral-700">
                           <span>Page</span>
                           <input
@@ -698,9 +756,13 @@ export default function ResourceDetail() {
                             className="w-12 text-center bg-neutral-950 text-white rounded border border-neutral-600 py-0.5 text-xs font-bold focus:outline-none focus:border-orange-500"
                             title="Enter page number to jump directly"
                           />
-                          <span className="text-neutral-400">of {pdfPageCount}</span>
+                          {pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount ? (
+                            <span className="text-neutral-400 font-mono">- {pdfPage + 1} of {pdfPageCount}</span>
+                          ) : (
+                            <span className="text-neutral-400">of {pdfPageCount}</span>
+                          )}
                         </div>
-                        <button type="button" disabled={pdfPage >= pdfPageCount} onClick={() => setPdfPage((page) => Math.min(pdfPageCount, page + 1))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
+                        <button type="button" disabled={pdfPage >= pdfPageCount || (pdfPageViewMode === 'two-page' && pdfPage + 1 >= pdfPageCount)} onClick={() => setPdfPage((page) => Math.min(pdfPageCount, page + (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
                       </div>
                       <div className="flex items-center gap-2">
                         <button type="button" disabled={pdfScale <= 0.8} onClick={() => setPdfScale((scale) => Math.max(0.8, Number((scale - 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom out" title="Zoom out"><Minus className="size-4" /></button>
@@ -731,6 +793,40 @@ export default function ResourceDetail() {
                                 <span className="text-[10px] font-mono text-orange-400 font-bold">{pdfRotation}°</span>
                               )}
                             </button>
+                            <div className="h-5 w-px bg-neutral-700 mx-1" />
+                          </>
+                        )}
+                        {/* View Mode (Single vs Two-Page Book) in Full Screen */}
+                        {isPdfFullscreen && (
+                          <>
+                            <div className="flex items-center bg-neutral-800 p-0.5 rounded-lg border border-neutral-700">
+                              <button
+                                type="button"
+                                onClick={() => setPdfPageViewMode('single')}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                                  pdfPageViewMode === 'single'
+                                    ? 'bg-neutral-700 text-orange-400 shadow-sm'
+                                    : 'text-neutral-400 hover:text-white'
+                                }`}
+                                title="Single Page View (Fit Top-to-Bottom)"
+                              >
+                                <Square className="size-3.5" />
+                                <span className="hidden md:inline">Single</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPdfPageViewMode('two-page')}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                                  pdfPageViewMode === 'two-page'
+                                    ? 'bg-neutral-700 text-orange-400 shadow-sm'
+                                    : 'text-neutral-400 hover:text-white'
+                                }`}
+                                title="Two-Page Book View (Fit Top-to-Bottom)"
+                              >
+                                <BookOpenCheck className="size-3.5" />
+                                <span className="hidden md:inline">Two-Page</span>
+                              </button>
+                            </div>
                             <div className="h-5 w-px bg-neutral-700 mx-1" />
                           </>
                         )}
@@ -942,16 +1038,33 @@ export default function ResourceDetail() {
                       )}
 
                       {/* Main PDF Canvas Area */}
-                      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-neutral-700">
-                        <div className="relative mx-auto w-fit bg-white shadow-xl my-auto" onContextMenu={(event) => event.preventDefault()}>
-                          <canvas ref={pdfCanvasRef} className="block max-w-none select-none" />
-                          <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
-                            {Array.from({ length: 10 }).map((_, index) => (
-                              <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
-                                {user?.name || user?.username || 'Zyndex User'} • {user?.email || 'user@example.com'} • Zyndex Digital Library
-                              </div>
-                            ))}
+                      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-neutral-700" ref={pdfViewerAreaRef}>
+                        <div className="relative mx-auto w-fit flex flex-col md:flex-row items-center justify-center gap-4 my-auto" onContextMenu={(event) => event.preventDefault()}>
+                          {/* Page 1 Canvas */}
+                          <div className="relative bg-white shadow-2xl">
+                            <canvas ref={pdfCanvasRef} className="block max-w-none select-none" />
+                            <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
+                              {Array.from({ length: 10 }).map((_, index) => (
+                                <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
+                                  {user?.name || user?.username || 'Zyndex User'} • {user?.email || 'user@example.com'} • Zyndex Digital Library
+                                </div>
+                              ))}
+                            </div>
                           </div>
+
+                          {/* Page 2 Canvas in Two-Page Book View */}
+                          {pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount && (
+                            <div className="relative bg-white shadow-2xl">
+                              <canvas ref={pdfSecondCanvasRef} className="block max-w-none select-none" />
+                              <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
+                                {Array.from({ length: 10 }).map((_, index) => (
+                                  <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
+                                    {user?.name || user?.username || 'Zyndex User'} • {user?.email || 'user@example.com'} • Zyndex Digital Library
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
