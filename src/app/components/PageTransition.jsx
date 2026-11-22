@@ -93,7 +93,7 @@ export default function PageTransition({ children, isTransitioning = false }) {
                   initial={{ width: '0%' }}
                   animate={{ width: '100%' }}
                   transition={{
-                    duration: 5,
+                    duration: 3,
                     ease: "easeInOut"
                   }}
                 />

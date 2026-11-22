@@ -24,7 +24,7 @@ function SubmissionLoader({ message }) {
           className="mb-6 inline-block"
           animate={{ rotateY: 360 }}
           transition={{
-            duration: 5,
+            duration: 3,
             repeat: Infinity,
             ease: "linear"
           }}

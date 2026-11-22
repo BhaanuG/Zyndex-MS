@@ -284,7 +284,7 @@ export default function HelpCenter() {
       description: 'The rotating book loader',
       content: `
         <h2>Zyndex Page Transitions</h2>
-        <p>Every page navigation includes a delightful 5-second rotating book animation.</p>
+        <p>Every page navigation includes a delightful 3-second rotating book animation.</p>
         <h3>What is the Book Animation?</h3>
         <p>When navigating between pages, you'll see an animated rotating book that represents knowledge and learning.</p>
         <h3>When Does It Appear?</h3>
@@ -294,7 +294,7 @@ export default function HelpCenter() {
           <li>Switching user sections</li>
           <li>Accessing public pages</li>
         </ul>
-        <h3>Why 5 Seconds?</h3>
+        <h3>Why 3 Seconds?</h3>
         <p>The animation provides a smooth transition while the page loads, creating a pleasant user experience.</p>
       `,
       tags: ['animation', 'transition', 'loading', 'book', 'effects'],

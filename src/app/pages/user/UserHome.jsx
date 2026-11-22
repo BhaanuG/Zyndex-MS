@@ -182,7 +182,7 @@ export default function UserHome() {
     const userEmail = getUrlSafeEmail();
     setTimeout(() => {
       navigate(`/Zyndex/User/${userName}/${userEmail}/Resource/${resourceId}`);
-    }, 5000);
+    }, 3000);
   };
 
   const handleSeeAllResults = () => {
@@ -551,10 +551,10 @@ export default function UserHome() {
         </div>
       </div>
 
-      {/* 5-second rotating book transition modal upon selecting a search item */}
+      {/* 3-second rotating book transition modal upon selecting a search item */}
       <AnimatePresence>
         {isBookTransitioning && (
-          <TransitionLoader duration={5000} message="Loading resource..." />
+          <TransitionLoader duration={3000} message="Loading resource..." />
         )}
       </AnimatePresence>
     </UserLayout>

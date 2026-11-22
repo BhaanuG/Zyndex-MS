@@ -3,7 +3,7 @@ import { useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen } from 'lucide-react';
 
-function TransitionLoader({ duration = 5000, message = 'Loading...' }) {
+function TransitionLoader({ duration = 3000, message = 'Loading...' }) {
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-orange-50"
@@ -171,7 +171,7 @@ function TransitionLoader({ duration = 5000, message = 'Loading...' }) {
   );
 }
 
-export default function PageTransitionWrapper({ children, duration = 5000 }) {
+export default function PageTransitionWrapper({ children, duration = 3000 }) {
   const location = useLocation();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayLocation, setDisplayLocation] = useState(location);

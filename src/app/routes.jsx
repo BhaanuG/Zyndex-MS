@@ -47,29 +47,29 @@ const routeList = [
       // User Login/Sign-Up Routes
       {
         path: "Zyndex/User/Log-In",
-        element: <PageTransitionWrapper duration={5000}><Login /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Login /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/User/Sign-In",
-        element: <PageTransitionWrapper duration={5000}><Login /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Login /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/User/Sign-Up",
-        element: <PageTransitionWrapper duration={5000}><Login /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Login /></PageTransitionWrapper>
       },
       // Admin Login/Sign-Up Routes
       {
         path: "Zyndex/Admin/Log-In",
-        element: <PageTransitionWrapper duration={5000}><Login /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Login /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Admin/Sign-Up",
-        element: <PageTransitionWrapper duration={5000}><AdminRequest /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><AdminRequest /></PageTransitionWrapper>
       },
       // Forgot Password Route
       {
         path: "Zyndex/Auth/Forgot-Password",
-        element: <PageTransitionWrapper duration={5000}><ForgotPassword /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><ForgotPassword /></PageTransitionWrapper>
       },
       // Legacy route for backward compatibility
       {
@@ -106,11 +106,11 @@ const routeList = [
       },
       {
         path: "Zyndex/User/Auth/Authenticator-Verification-Page",
-        element: <PageTransitionWrapper duration={5000}><UserAuthenticator /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><UserAuthenticator /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Admin/Auth/Authenticator-Verification-Page",
-        element: <PageTransitionWrapper duration={5000}><AdminAuthenticator /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><AdminAuthenticator /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/User/Mail-OTP-Verification",
@@ -122,15 +122,15 @@ const routeList = [
       },
       {
         path: "Zyndex/User/Auth/Mail-OTP-Verification",
-        element: <PageTransitionWrapper duration={5000}><MailOtpVerification /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><MailOtpVerification /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Admin/Auth/Mail-OTP-Verification",
-        element: <PageTransitionWrapper duration={5000}><MailOtpVerification /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><MailOtpVerification /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/About/Pricing",
-        element: <PageTransitionWrapper duration={5000}><Pricing /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Pricing /></PageTransitionWrapper>
       },
       {
         path: "ScholarSphere/Pricing",
@@ -142,19 +142,19 @@ const routeList = [
       },
       {
         path: "Zyndex/About/About-Us",
-        element: <PageTransitionWrapper duration={5000}><About /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><About /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/About/Contact",
-        element: <PageTransitionWrapper duration={5000}><Contact /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Contact /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Contact/Contact-Us",
-        element: <PageTransitionWrapper duration={5000}><Contact /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Contact /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Features",
-        element: <PageTransitionWrapper duration={5000}><Browse /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Browse /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Resources/Features",
@@ -162,11 +162,11 @@ const routeList = [
       },
       {
         path: "Zyndex/Resources/Browse",
-        element: <PageTransitionWrapper duration={5000}><Browse /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Browse /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Resources/Categories",
-        element: <PageTransitionWrapper duration={5000}><BrowseCategory /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><BrowseCategory /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Categories",
@@ -182,153 +182,153 @@ const routeList = [
       },
       {
         path: "Zyndex/Browse-Category/:category",
-        element: <PageTransitionWrapper duration={5000}><BrowseCategory /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><BrowseCategory /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Help-Center",
-        element: <PageTransitionWrapper duration={5000}><HelpCenter /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><HelpCenter /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Support/Help-Center",
-        element: <PageTransitionWrapper duration={5000}><HelpCenter /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><HelpCenter /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/FAQ",
-        element: <PageTransitionWrapper duration={5000}><FAQ /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><FAQ /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Support/FAQ",
-        element: <PageTransitionWrapper duration={5000}><FAQ /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><FAQ /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Support/Frequently-Asked-Questions",
-        element: <PageTransitionWrapper duration={5000}><FAQ /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><FAQ /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Privacy-Policy",
-        element: <PageTransitionWrapper duration={5000}><Privacy /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Privacy /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Legal/Privacy",
-        element: <PageTransitionWrapper duration={5000}><Privacy /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Privacy /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Terms-of-Service",
-        element: <PageTransitionWrapper duration={5000}><Terms /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Terms /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Legal/Terms",
-        element: <PageTransitionWrapper duration={5000}><Terms /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><Terms /></PageTransitionWrapper>
       },
       // Admin Routes
       {
         path: "Zyndex/Admin/:name/:email/Dashboard",
-        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><AdminDashboard /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={3000}><AdminDashboard /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/Upload-Resource",
-        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><UploadResource /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={3000}><UploadResource /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/Resource-Management",
-        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><ResourceManagement /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={3000}><ResourceManagement /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/Content-Management",
-        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><ResourceManagement /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={3000}><ResourceManagement /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/User-Access",
-        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><UserAccessManagement /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={3000}><UserAccessManagement /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/User-Management",
-        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><UserAccessManagement /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={3000}><UserAccessManagement /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/Feedback-Review",
-        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><FeedbackReview /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={3000}><FeedbackReview /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/Payments",
-        element: <ProtectedRoute role="admin" primaryOnly><PageTransitionWrapper duration={5000}><AdminPayments /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin" primaryOnly><PageTransitionWrapper duration={3000}><AdminPayments /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/Logs",
-        element: <ProtectedRoute role="admin" primaryOnly><PageTransitionWrapper duration={5000}><AdminLogs /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin" primaryOnly><PageTransitionWrapper duration={3000}><AdminLogs /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Admin/:name/:email/Profile",
-        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={5000}><AdminProfile /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="admin"><PageTransitionWrapper duration={3000}><AdminProfile /></PageTransitionWrapper></ProtectedRoute>
       },
       // User Routes
       {
         path: "Zyndex/User/:name/:email/Home",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserHome /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><UserHome /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Search",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><SearchResults /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><SearchResults /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Resource/:id",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><ResourceDetail /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><ResourceDetail /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/My-Favorites",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Account-Settings",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Security-and-Devices",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Sessions",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Billing",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><UserProfile /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/Pricing",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><Pricing /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><Pricing /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/UTR/*",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/UTR",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId/*",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/:amount/Payment/:orderId",
-        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={5000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
+        element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><PaymentPage /></PageTransitionWrapper></ProtectedRoute>
       },
       {
         path: "Zyndex/Invoice/:paymentId",
-        element: <PageTransitionWrapper duration={5000}><InvoiceViewPage /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><InvoiceViewPage /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/Billing/Invoice/:paymentId",
-        element: <PageTransitionWrapper duration={5000}><InvoiceViewPage /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><InvoiceViewPage /></PageTransitionWrapper>
       },
       {
         path: "Zyndex/User/:name/:email/Profile/Billing/Invoice/:paymentId",
-        element: <PageTransitionWrapper duration={5000}><InvoiceViewPage /></PageTransitionWrapper>
+        element: <PageTransitionWrapper duration={3000}><InvoiceViewPage /></PageTransitionWrapper>
       },
       // Catch-all route to gracefully redirect invalid or outdated paths to appropriate portal instead of throwing 404 to ErrorBoundary
       {
