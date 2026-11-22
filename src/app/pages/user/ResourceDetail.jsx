@@ -1194,10 +1194,24 @@ export default function ResourceDetail() {
                                                     type="button"
                                                     onClick={(e) => {
                                                       e.stopPropagation();
-                                                      setExpandedOutlineNodes((prev) => ({
-                                                        ...prev,
-                                                        [item.key]: !prev[item.key],
-                                                      }));
+                                                      setExpandedOutlineNodes((prev) => {
+                                                        const wasExpanded = Boolean(prev[item.key]);
+                                                        if (wasExpanded) {
+                                                          // Closing this section
+                                                          return { ...prev, [item.key]: false };
+                                                        }
+                                                        // Accordion: opening this section closes other sibling sections at the same depth
+                                                        const nextState = {};
+                                                        Object.keys(prev).forEach((k) => {
+                                                          // Keep ancestor or descendant keys if applicable, but close siblings
+                                                          if (depth > 0 && k.startsWith(item.key.substring(0, item.key.lastIndexOf('-')))) {
+                                                            // Keep parent open
+                                                            nextState[k] = prev[k];
+                                                          }
+                                                        });
+                                                        nextState[item.key] = true;
+                                                        return nextState;
+                                                      });
                                                     }}
                                                     className="p-1 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white mr-1 transition-transform cursor-pointer"
                                                     title={isExpanded ? 'Collapse Section' : 'Expand Section'}
@@ -1212,12 +1226,26 @@ export default function ResourceDetail() {
                                                   <span className="w-5 shrink-0" />
                                                 )}
 
-                                                {/* Title Navigation */}
+                                                {/* Title Navigation (also toggles accordion if it has children) */}
                                                 <button
                                                   type="button"
                                                   onClick={() => {
                                                     if (item.pageNumber && item.pageNumber >= 1 && item.pageNumber <= pdfPageCount) {
                                                       setPdfPage(item.pageNumber);
+                                                    }
+                                                    if (hasChildren) {
+                                                      setExpandedOutlineNodes((prev) => {
+                                                        const wasExpanded = Boolean(prev[item.key]);
+                                                        if (wasExpanded) return { ...prev, [item.key]: false };
+                                                        const nextState = {};
+                                                        Object.keys(prev).forEach((k) => {
+                                                          if (depth > 0 && k.startsWith(item.key.substring(0, item.key.lastIndexOf('-')))) {
+                                                            nextState[k] = prev[k];
+                                                          }
+                                                        });
+                                                        nextState[item.key] = true;
+                                                        return nextState;
+                                                      });
                                                     }
                                                   }}
                                                   className="flex-1 text-left line-clamp-2 leading-relaxed cursor-pointer pr-2 hover:text-white"
