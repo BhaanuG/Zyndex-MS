@@ -446,12 +446,8 @@ export default function ResourceDetail() {
           const structuredOutline = await processItems(rawOutline);
           if (isMounted) {
             setPdfOutline(structuredOutline);
-            // Default first level headers to expanded
-            const initialExpanded = {};
-            structuredOutline.forEach((it) => {
-              if (it.items && it.items.length > 0) initialExpanded[it.key] = true;
-            });
-            setExpandedOutlineNodes(initialExpanded);
+            // Default TOC sections to COLLAPSED so it is not overly long or cluttered
+            setExpandedOutlineNodes({});
             setOutlineLoading(false);
           }
         } else {
@@ -557,37 +553,45 @@ export default function ResourceDetail() {
 
     let cancelled = false;
 
-    pdfDocument.getPage(pdfPage).then((page) => {
-      if (cancelled) return;
-      const baseViewport = page.getViewport({ scale: 1, rotation: pdfRotation });
-      const availableHeight = window.innerHeight - 75; // Account for 50px top toolbar and margins
+    const pagePromises = [pdfDocument.getPage(pdfPage)];
+    if (pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount) {
+      pagePromises.push(pdfDocument.getPage(pdfPage + 1));
+    }
+
+    Promise.all(pagePromises).then(([page1, page2]) => {
+      if (cancelled || !page1) return;
+      const vp1 = page1.getViewport({ scale: 1, rotation: pdfRotation });
+      const vp2 = page2 ? page2.getViewport({ scale: 1, rotation: pdfRotation }) : null;
+
+      // Available space inside viewer container
+      const availableHeight = Math.max(100, window.innerHeight - 80);
       const sidebarWidth = showPdfSidebar ? 320 : 0;
-      const availableWidth = window.innerWidth - sidebarWidth - 60;
+      const availableWidth = Math.max(200, window.innerWidth - sidebarWidth - 64);
 
       if (pdfFitMode === 'width') {
-        // Fit to width: page horizontally fills available viewing area
-        const totalWidthNeeded = pdfPageViewMode === 'two-page' ? baseViewport.width * 2 + 16 : baseViewport.width;
+        // Fit to width: horizontally fills available viewing area
+        const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
         if (totalWidthNeeded > 0 && availableWidth > 200) {
           const widthScale = availableWidth / totalWidthNeeded;
-          setPdfScale(Math.max(0.4, Number(widthScale.toFixed(2))));
+          setPdfScale(Math.max(0.35, Math.min(2.5, Number(widthScale.toFixed(2)))));
         }
       } else {
-        // Fit to page: ensure the rotated page fits both vertically and horizontally so nothing is ever cropped
-        if (availableHeight > 200 && baseViewport.height > 0 && availableWidth > 200 && baseViewport.width > 0) {
-          let fitScale = availableHeight / baseViewport.height;
-          const totalWidthNeeded = pdfPageViewMode === 'two-page' ? baseViewport.width * 2 + 16 : baseViewport.width;
-          if (totalWidthNeeded * fitScale > availableWidth) {
-            fitScale = availableWidth / totalWidthNeeded;
-          }
-          setPdfScale(Math.max(0.3, Number(fitScale.toFixed(2))));
+        // Fit to page (default): ensure both height and width fit without any 3/4 or side cropping
+        const maxPageHeight = vp2 ? Math.max(vp1.height, vp2.height) : vp1.height;
+        const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
+
+        let fitScale = availableHeight / maxPageHeight;
+        if (totalWidthNeeded * fitScale > availableWidth) {
+          fitScale = availableWidth / totalWidthNeeded;
         }
+        setPdfScale(Math.max(0.25, Math.min(2.5, Number(fitScale.toFixed(2)))));
       }
     }).catch(() => {});
 
     return () => {
       cancelled = true;
     };
-  }, [isPdfFullscreen, pdfRotation, pdfPageViewMode, pdfFitMode, showPdfSidebar, pdfPage, pdfDocument]);
+  }, [isPdfFullscreen, pdfRotation, pdfPageViewMode, pdfFitMode, showPdfSidebar, pdfPage, pdfPageCount, pdfDocument]);
 
   useEffect(() => {
     if (!pdfDocument || !pdfCanvasRef.current) return undefined;
@@ -1056,8 +1060,8 @@ export default function ResourceDetail() {
                           {/* Content Panel */}
                           <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#2d2d2d]">
                             {/* Panel Header */}
-                            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700/80 bg-[#262626]">
-                              <h3 className="font-semibold text-sm text-white flex items-center gap-2">
+                            <div className="flex items-center justify-between px-3 py-2.5 border-b border-neutral-700/80 bg-[#262626]">
+                              <h3 className="font-semibold text-xs sm:text-sm text-white flex items-center gap-1.5">
                                 {pdfSidebarTab === 'thumbnails' ? (
                                   <>
                                     <LayoutGrid className="size-4 text-orange-400" />
@@ -1070,14 +1074,43 @@ export default function ResourceDetail() {
                                   </>
                                 )}
                               </h3>
-                              <button
-                                type="button"
-                                onClick={() => setShowPdfSidebar(false)}
-                                className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-700 cursor-pointer"
-                                title="Close Panel"
-                              >
-                                <X className="size-4" />
-                              </button>
+                              <div className="flex items-center gap-1">
+                                {pdfSidebarTab === 'outline' && pdfOutline && pdfOutline.length > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const anyExpanded = Object.values(expandedOutlineNodes).some(Boolean);
+                                      if (anyExpanded) {
+                                        setExpandedOutlineNodes({});
+                                      } else {
+                                        const all = {};
+                                        const markAll = (items) => {
+                                          items.forEach((it) => {
+                                            if (it.items && it.items.length > 0) {
+                                              all[it.key] = true;
+                                              markAll(it.items);
+                                            }
+                                          });
+                                        };
+                                        markAll(pdfOutline);
+                                        setExpandedOutlineNodes(all);
+                                      }
+                                    }}
+                                    className="px-1.5 py-0.5 text-[11px] font-medium rounded text-neutral-300 hover:text-white hover:bg-neutral-700 cursor-pointer"
+                                    title={Object.values(expandedOutlineNodes).some(Boolean) ? 'Collapse all sections' : 'Expand all sections'}
+                                  >
+                                    {Object.values(expandedOutlineNodes).some(Boolean) ? 'Collapse All' : 'Expand All'}
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPdfSidebar(false)}
+                                  className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-700 cursor-pointer"
+                                  title="Close Panel"
+                                >
+                                  <X className="size-4" />
+                                </button>
+                              </div>
                             </div>
 
                             {/* Panel Body */}
@@ -1144,94 +1177,80 @@ export default function ResourceDetail() {
                                     </div>
                                   ) : pdfOutline && pdfOutline.length > 0 ? (
                                     <div className="space-y-1 text-xs">
-                                      {pdfOutline.map((item) => {
-                                        const hasChildren = item.items && item.items.length > 0;
-                                        const isExpanded = Boolean(expandedOutlineNodes[item.key]);
-                                        return (
-                                          <div key={item.key} className="space-y-1">
-                                            <div
-                                              className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 transition-colors group cursor-pointer ${
-                                                item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'hover:bg-neutral-800 text-neutral-300'
-                                              }`}
-                                            >
-                                              {/* Expand / Collapse Toggle Arrow for Main Headings */}
-                                              {hasChildren ? (
+                                      {(() => {
+                                        const renderOutlineNode = (item, depth = 0) => {
+                                          const hasChildren = item.items && item.items.length > 0;
+                                          const isExpanded = Boolean(expandedOutlineNodes[item.key]);
+                                          return (
+                                            <div key={item.key} className="space-y-1">
+                                              <div
+                                                className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 transition-colors group cursor-pointer ${
+                                                  item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'hover:bg-neutral-800 text-neutral-300'
+                                                }`}
+                                              >
+                                                {/* Expand / Collapse Toggle Arrow */}
+                                                {hasChildren ? (
+                                                  <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setExpandedOutlineNodes((prev) => ({
+                                                        ...prev,
+                                                        [item.key]: !prev[item.key],
+                                                      }));
+                                                    }}
+                                                    className="p-1 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white mr-1 transition-transform cursor-pointer"
+                                                    title={isExpanded ? 'Collapse Section' : 'Expand Section'}
+                                                  >
+                                                    <ChevronDown
+                                                      className={`size-3.5 transition-transform duration-200 ${
+                                                        isExpanded ? 'rotate-0 text-orange-400' : '-rotate-90 text-neutral-500'
+                                                      }`}
+                                                    />
+                                                  </button>
+                                                ) : (
+                                                  <span className="w-5 shrink-0" />
+                                                )}
+
+                                                {/* Title Navigation */}
                                                 <button
                                                   type="button"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setExpandedOutlineNodes((prev) => ({
-                                                      ...prev,
-                                                      [item.key]: !prev[item.key],
-                                                    }));
-                                                  }}
-                                                  className="p-1 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white mr-1 transition-transform"
-                                                  title={isExpanded ? 'Collapse Section' : 'Expand Section'}
-                                                >
-                                                  <ChevronDown
-                                                    className={`size-3.5 transition-transform duration-200 ${
-                                                      isExpanded ? 'rotate-0 text-orange-400' : '-rotate-90 text-neutral-500'
-                                                    }`}
-                                                  />
-                                                </button>
-                                              ) : (
-                                                <span className="w-5 shrink-0" />
-                                              )}
-
-                                              {/* Chapter Title Click Navigates Directly */}
-                                              <button
-                                                type="button"
-                                                onClick={() => {
-                                                  if (item.pageNumber && item.pageNumber >= 1 && item.pageNumber <= pdfPageCount) {
-                                                    setPdfPage(item.pageNumber);
-                                                  }
-                                                }}
-                                                className="flex-1 text-left line-clamp-2 leading-relaxed cursor-pointer pr-2 hover:text-white"
-                                              >
-                                                {item.title}
-                                              </button>
-
-                                              {item.pageNumber && (
-                                                <span
                                                   onClick={() => {
                                                     if (item.pageNumber && item.pageNumber >= 1 && item.pageNumber <= pdfPageCount) {
                                                       setPdfPage(item.pageNumber);
                                                     }
                                                   }}
-                                                  className="text-[10px] text-neutral-500 font-mono shrink-0 cursor-pointer hover:text-orange-400"
+                                                  className="flex-1 text-left line-clamp-2 leading-relaxed cursor-pointer pr-2 hover:text-white"
+                                                  title={item.title}
                                                 >
-                                                  p.{item.pageNumber}
-                                                </span>
-                                              )}
-                                            </div>
+                                                  {item.title}
+                                                </button>
 
-                                            {/* Sub-items (collapsible) */}
-                                            {hasChildren && isExpanded && (
-                                              <div className="pl-5 space-y-1 border-l border-neutral-700/60 ml-3">
-                                                {item.items.map((sub) => (
-                                                  <button
-                                                    key={sub.key || sub.title}
-                                                    type="button"
+                                                {item.pageNumber && (
+                                                  <span
                                                     onClick={() => {
-                                                      if (sub.pageNumber && sub.pageNumber >= 1 && sub.pageNumber <= pdfPageCount) {
-                                                        setPdfPage(sub.pageNumber);
+                                                      if (item.pageNumber && item.pageNumber >= 1 && item.pageNumber <= pdfPageCount) {
+                                                        setPdfPage(item.pageNumber);
                                                       }
                                                     }}
-                                                    className={`w-full text-left px-2 py-1 rounded flex items-center justify-between hover:bg-neutral-800 transition-colors cursor-pointer group text-xs ${
-                                                      sub.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'text-neutral-400 hover:text-neutral-200'
-                                                    }`}
+                                                    className="text-[10px] text-neutral-500 font-mono shrink-0 cursor-pointer hover:text-orange-400"
                                                   >
-                                                    <span className="truncate pr-2">{sub.title}</span>
-                                                    {sub.pageNumber && (
-                                                      <span className="text-[10px] text-neutral-500 font-mono shrink-0">p.{sub.pageNumber}</span>
-                                                    )}
-                                                  </button>
-                                                ))}
+                                                    p.{item.pageNumber}
+                                                  </span>
+                                                )}
                                               </div>
-                                            )}
-                                          </div>
-                                        );
-                                      })}
+
+                                              {/* Recursive Sub-items (collapsible) */}
+                                              {hasChildren && isExpanded && (
+                                                <div className="pl-3 space-y-1 border-l border-neutral-700/60 ml-3">
+                                                  {item.items.map((sub) => renderOutlineNode(sub, depth + 1))}
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        };
+                                        return pdfOutline.map((item) => renderOutlineNode(item, 0));
+                                      })()}
                                     </div>
                                   ) : (
                                     <div className="py-12 px-4 text-center text-neutral-400 space-y-2">
@@ -1257,10 +1276,10 @@ export default function ResourceDetail() {
                             <span>Rendering page...</span>
                           </div>
                         )}
-                        <div className="relative mx-auto w-fit flex flex-col md:flex-row items-center justify-center gap-4 my-auto" onContextMenu={(event) => event.preventDefault()}>
+                        <div className="relative mx-auto w-fit flex flex-col md:flex-row items-center justify-center gap-4 my-auto shrink-0" onContextMenu={(event) => event.preventDefault()}>
                           {/* Page 1 Canvas */}
-                          <div className="relative bg-white shadow-2xl">
-                            <canvas ref={pdfCanvasRef} className="block max-w-none select-none bg-white" />
+                          <div className="relative bg-white shadow-2xl shrink-0">
+                            <canvas ref={pdfCanvasRef} className="block select-none bg-white" />
                             <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
                               {Array.from({ length: 10 }).map((_, index) => (
                                 <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
@@ -1272,8 +1291,8 @@ export default function ResourceDetail() {
 
                           {/* Page 2 Canvas in Two-Page Book View (Only in Fullscreen) */}
                           {isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount && (
-                            <div className="relative bg-white shadow-2xl">
-                              <canvas ref={pdfSecondCanvasRef} className="block max-w-none select-none bg-white" />
+                            <div className="relative bg-white shadow-2xl shrink-0">
+                              <canvas ref={pdfSecondCanvasRef} className="block select-none bg-white" />
                               <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
                                 {Array.from({ length: 10 }).map((_, index) => (
                                   <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
