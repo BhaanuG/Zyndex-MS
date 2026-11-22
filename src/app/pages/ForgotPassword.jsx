@@ -75,7 +75,9 @@ export default function ForgotPassword() {
   const [otpSending, setOtpSending] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [showLoader, setShowLoader] = useState(false);
@@ -215,6 +217,12 @@ export default function ForgotPassword() {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
     if (!passwordRegex.test(newPassword)) {
       setError('Password must be at least 8 characters long, contain at least one uppercase letter, one digit, and one special character.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match. Please re-confirm your new password.');
       setIsSubmitting(false);
       return;
     }
@@ -577,6 +585,50 @@ export default function ForgotPassword() {
                       className={`mt-1.5 text-xs font-medium ${passwordStrength.color}`}
                     >
                       Password strength: {passwordStrength.text}
+                    </motion.p>
+                  )}
+                </motion.div>
+
+                {/* Confirm New Password Field */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.72 }}
+                >
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Confirm New Password
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl opacity-0 group-focus-within:opacity-10 blur transition-opacity" />
+                    <div className="relative flex items-center">
+                      <Lock className="absolute left-4 size-5 text-slate-400 group-focus-within:text-orange-600 transition-colors z-10" />
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Re-enter your new password to confirm"
+                        className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-orange-300/35 rounded-xl focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all depth-3d-input"
+                        required
+                        minLength="8"
+                      />
+                      <motion.button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 p-1 text-slate-400 hover:text-orange-600 transition-colors z-10"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {showConfirmPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                      </motion.button>
+                    </div>
+                  </div>
+                  {confirmPassword && newPassword !== confirmPassword && (
+                    <motion.p
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-1.5 text-xs font-medium text-red-500"
+                    >
+                      Passwords do not match.
                     </motion.p>
                   )}
                 </motion.div>
