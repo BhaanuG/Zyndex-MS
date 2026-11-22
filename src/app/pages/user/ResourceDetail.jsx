@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
+import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as pdfWorkerModule from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -55,7 +55,9 @@ export default function ResourceDetail() {
   const [pdfPage, setPdfPage] = useState(1);
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.15);
+  const [isPdfFullscreen, setIsPdfFullscreen] = useState(false);
   const pdfCanvasRef = useRef(null);
+  const pdfContainerRef = useRef(null);
   const hasTrackedView = useRef(false);
   const getProtocol = () => (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:');
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `${getProtocol()}//${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
@@ -79,6 +81,36 @@ export default function ResourceDetail() {
   useEffect(() => {
     refreshUser();
   }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsPdfFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  const togglePdfFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        if (pdfContainerRef.current?.requestFullscreen) {
+          await pdfContainerRef.current.requestFullscreen();
+        } else if (pdfContainerRef.current?.webkitRequestFullscreen) {
+          await pdfContainerRef.current.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen toggle failed:', err);
+    }
+  };
 
   useEffect(() => {
     let isCancelled = false;
@@ -502,7 +534,13 @@ export default function ResourceDetail() {
                     </div>
                   </div>
                 ) : previewUrl && isPdfPreview && pdfDocument ? (
-                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-neutral-800" onContextMenu={(event) => event.preventDefault()}>
+                  <div
+                    ref={pdfContainerRef}
+                    className={`overflow-hidden rounded-xl border border-gray-200 bg-neutral-800 flex flex-col ${
+                      isPdfFullscreen ? 'fixed inset-0 z-[9999] rounded-none border-0 w-screen h-screen' : ''
+                    }`}
+                    onContextMenu={(event) => event.preventDefault()}
+                  >
                     <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-900 px-4 py-2.5 text-white select-none">
                       <div className="flex items-center gap-2">
                         <button type="button" disabled={pdfPage <= 1} onClick={() => setPdfPage((page) => Math.max(1, page - 1))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Previous page" title="Previous page"><ChevronLeft className="size-5" /></button>
@@ -529,10 +567,29 @@ export default function ResourceDetail() {
                       <div className="flex items-center gap-2">
                         <button type="button" disabled={pdfScale <= 0.8} onClick={() => setPdfScale((scale) => Math.max(0.8, Number((scale - 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom out" title="Zoom out"><Minus className="size-4" /></button>
                         <span className="w-12 text-center text-xs font-semibold">{Math.round(pdfScale * 100)}%</span>
-                        <button type="button" disabled={pdfScale >= 2} onClick={() => setPdfScale((scale) => Math.min(2, Number((scale + 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom in" title="Zoom in"><Plus className="size-4" /></button>
+                        <button type="button" disabled={pdfScale >= 2.5} onClick={() => setPdfScale((scale) => Math.min(2.5, Number((scale + 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom in" title="Zoom in"><Plus className="size-4" /></button>
+                        <div className="h-5 w-px bg-neutral-700 mx-1" />
+                        <button
+                          type="button"
+                          onClick={togglePdfFullscreen}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-xs font-semibold transition-all border border-neutral-700 cursor-pointer"
+                          title={isPdfFullscreen ? 'Exit Full Screen' : 'View Full Screen'}
+                        >
+                          {isPdfFullscreen ? (
+                            <>
+                              <Minimize2 className="size-4 text-orange-400" />
+                              <span className="hidden sm:inline">Exit Fullscreen</span>
+                            </>
+                          ) : (
+                            <>
+                              <Maximize2 className="size-4 text-orange-400" />
+                              <span className="hidden sm:inline">Full Screen</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
-                    <div className="relative max-h-[720px] overflow-auto bg-neutral-700 p-4">
+                    <div className={`relative overflow-auto bg-neutral-700 p-4 ${isPdfFullscreen ? 'flex-1 h-[calc(100vh-50px)]' : 'max-h-[720px]'}`}>
                       <div className="relative mx-auto w-fit bg-white shadow-xl" onContextMenu={(event) => event.preventDefault()}>
                         <canvas ref={pdfCanvasRef} className="block max-w-none select-none" />
                         <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
