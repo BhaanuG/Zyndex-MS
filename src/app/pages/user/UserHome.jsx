@@ -10,6 +10,8 @@ import userService from '@/services/api/userService';
 import { getPlanName, getPlanBadgeClass } from '@/utils/planHelper';
 
 const categoryIcons = {
+  'artificial intelligence': { icon: Brain, gradient: 'from-fuchsia-500 to-rose-500', bgColor: 'bg-fuchsia-100' },
+  'machine learning': { icon: Cpu, gradient: 'from-indigo-500 to-blue-500', bgColor: 'bg-indigo-100' },
   ai: { icon: Brain, gradient: 'from-fuchsia-500 to-rose-500', bgColor: 'bg-fuchsia-100' },
   ml: { icon: Cpu, gradient: 'from-indigo-500 to-blue-500', bgColor: 'bg-indigo-100' },
   mathematics: { icon: Calculator, gradient: 'from-green-500 to-emerald-500', bgColor: 'bg-green-100' },
@@ -24,11 +26,11 @@ const categoryIcons = {
   history: { icon: ScrollText, gradient: 'from-orange-500 to-red-500', bgColor: 'bg-orange-100' },
 };
 
-const preferredCategoryOrder = ['AI', 'ML', 'Computer Science', 'Physics', 'Chemistry', 'Mathematics', 'Economics', 'History', 'Literature', 'Biology'];
+const preferredCategoryOrder = ['Artificial Intelligence', 'Machine Learning', 'Computer Science', 'Physics', 'Chemistry', 'Mathematics', 'Economics', 'History', 'Literature', 'Biology'];
 
 const STANDARD_CATEGORIES = [
-  { name: 'AI', description: 'Artificial intelligence paradigms, neural networks, and prompt engineering' },
-  { name: 'ML', description: 'Machine learning fundamentals, predictive algorithms, and deep learning' },
+  { name: 'Artificial Intelligence', description: 'Artificial intelligence paradigms, neural networks, and prompt engineering' },
+  { name: 'Machine Learning', description: 'Machine learning fundamentals, predictive algorithms, and deep learning' },
   { name: 'Computer Science', description: 'Data structures, algorithms, computational theory, and systems' },
   { name: 'Physics', description: 'Classical mechanics, quantum physics, thermodynamics, and optics' },
   { name: 'Chemistry', description: 'Organic chemistry, inorganic compounds, and chemical thermodynamics' },

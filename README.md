@@ -2637,9 +2637,9 @@ Statistics were calculated using a native filesystem audit executed across all s
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 
 Zyndex organizes learning resources across the 10 authentic academic subject categories defined in the platform:
-- **AI (Artificial Intelligence)**: Foundational neural networks, autonomous agents, prompt engineering, and intelligent systems.
+- **Artificial Intelligence**: Foundational neural networks, autonomous agents, prompt engineering, and intelligent systems.
 
-- **ML (Machine Learning)**: Predictive algorithms, deep learning architectures, statistical learning models, and classification.
+- **Machine Learning**: Predictive algorithms, deep learning architectures, statistical learning models, and classification.
 
 - **Computer Science**: Computational theory, data structures, algorithms, operating systems, and distributed system architectures.
 

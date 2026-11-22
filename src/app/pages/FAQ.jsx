@@ -13,7 +13,7 @@ export default function FAQ() {
     },
     {
       question: 'How do I access and read resources on Zyndex?',
-      answer: 'Simply create a free account, browse academic categories (such as AI, Machine Learning, Computer Science, and Mathematics), and open any material in our web-based viewer. Reading modes, active chapter navigation, and search indexes are built directly into the reading interface.',
+      answer: 'Simply create a free account, browse academic categories (such as Artificial Intelligence, Machine Learning, Computer Science, and Mathematics), and open any material in our web-based viewer. Reading modes, active chapter navigation, and search indexes are built directly into the reading interface.',
     },
     {
       question: 'What are the account roles available on registration?',

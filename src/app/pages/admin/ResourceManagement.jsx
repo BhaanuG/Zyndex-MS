@@ -9,8 +9,8 @@ import DOMPurify from 'dompurify';
 import LinkedInArticleEditor from '@/app/components/LinkedInArticleEditor';
 
 const defaultCategories = [
-  'AI',
-  'ML',
+  'Artificial Intelligence',
+  'Machine Learning',
   'Computer Science',
   'Physics',
   'Chemistry',

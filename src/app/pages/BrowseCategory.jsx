@@ -14,14 +14,14 @@ export default function BrowseCategory() {
 
   const categories = [
     {
-      title: 'AI',
+      title: 'Artificial Intelligence',
       description: 'Artificial intelligence paradigms, foundational neural networks, and prompt engineering',
       icon: Brain,
       gradient: 'from-orange-500 to-amber-500',
       bgGradient: 'from-orange-50 to-amber-50',
     },
     {
-      title: 'ML',
+      title: 'Machine Learning',
       description: 'Machine learning fundamentals, predictive algorithms, statistical models, and deep learning',
       icon: Cpu,
       gradient: 'from-red-500 to-orange-500',

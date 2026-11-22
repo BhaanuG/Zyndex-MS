@@ -22,7 +22,7 @@ export default function Features() {
     {
       icon: Filter,
       title: 'Academic Discipline Categories',
-      description: 'Curated archives spanning AI, ML, Computer Science, Physics, Chemistry, Mathematics, Economics, History, Literature, and Biology.',
+      description: 'Curated archives spanning Artificial Intelligence, Machine Learning, Computer Science, Physics, Chemistry, Mathematics, Economics, History, Literature, and Biology.',
       gradient: 'from-amber-500 to-orange-600'
     },
     {
