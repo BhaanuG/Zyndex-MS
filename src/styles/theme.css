@@ -412,13 +412,13 @@
     box-shadow: var(--shadow-3d-input);
     transform: translateZ(0);
     border-width: 1px !important;
-    border-color: rgba(251, 146, 60, 0.22) !important;
+    border-color: rgba(249, 115, 22, 0.28) !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .depth-3d-input:focus {
     box-shadow: var(--shadow-3d-input-focus);
-    border-color: rgba(249, 115, 22, 0.5) !important;
+    border-color: #ea580c !important;
     outline: none;
   }
 

@@ -690,10 +690,10 @@ export default function MailOtpVerification() {
                             repeat: isCurrent ? Infinity : 0,
                             repeatDelay: 1.5,
                           }}
-                          className={`absolute inset-0 shadow-md transition-colors duration-250 ${
+                          className={`absolute inset-0 shadow-xs transition-colors duration-250 ${
                             isFilled
-                              ? 'bg-gradient-to-tr from-orange-500 to-amber-500 border-2 border-orange-400 shadow-orange-500/25'
-                              : 'bg-white border-2 border-orange-500 ring-4 ring-orange-500/10 shadow-orange-500/10'
+                              ? 'bg-gradient-to-tr from-orange-500 to-amber-500 border border-orange-400 shadow-orange-500/20'
+                              : 'bg-white border border-orange-400/40 ring-2 ring-orange-500/10 shadow-xs'
                           }`}
                         />
 
