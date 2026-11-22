@@ -412,7 +412,7 @@ export default function Authenticator({ onSuccess, onBack }) {
                       className={`w-full px-6 py-4 text-center text-3xl font-bold border-2 rounded-xl focus:outline-none transition-all tracking-[0.5em] ${
                         error
                           ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-4 focus:ring-red-100'
-                          : 'border border-orange-500/40 bg-slate-50 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100'
+                          : 'border border-orange-300/30 bg-slate-50 focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100/50'
                       }`}
                       placeholder="______"
                       animate={{

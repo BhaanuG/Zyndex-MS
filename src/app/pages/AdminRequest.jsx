@@ -545,7 +545,7 @@ export default function AdminRequest() {
                         value={formData.fullName}
                         onChange={handleChange}
                         placeholder="Enter your full name"
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-300/35 rounded-xl focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
                         required
                       />
                     </div>
@@ -567,7 +567,7 @@ export default function AdminRequest() {
                         value={formData.displayName}
                         onChange={handleChange}
                         placeholder="Enter your display name"
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-300/35 rounded-xl focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
                         required
                       />
                     </div>
@@ -590,7 +590,7 @@ export default function AdminRequest() {
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="Enter your email"
-                          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all"
+                          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-300/35 rounded-xl focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
                           required
                           disabled={otpVerified}
                         />
@@ -694,7 +694,7 @@ export default function AdminRequest() {
                         value={formData.password}
                         onChange={handleChange}
                         placeholder="Enter your password"
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-500/40 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-600/10 outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-orange-300/35 rounded-xl focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
                         required
                       />
                     </div>
