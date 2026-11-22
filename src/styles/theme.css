@@ -411,14 +411,14 @@
   .depth-3d-input {
     box-shadow: var(--shadow-3d-input);
     transform: translateZ(0);
-    border-width: 2px !important;
-    border-color: #ea580c !important;
+    border-width: 1px !important;
+    border-color: rgba(249, 115, 22, 0.4) !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .depth-3d-input:focus {
     box-shadow: var(--shadow-3d-input-focus);
-    border-color: #c2410c !important;
+    border-color: #ea580c !important;
     outline: none;
   }
 
