@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2 } from 'lucide-react';
+import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, X, ChevronDown, BookOpen } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as pdfWorkerModule from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -56,8 +56,14 @@ export default function ResourceDetail() {
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.15);
   const [isPdfFullscreen, setIsPdfFullscreen] = useState(false);
+  const [showPdfSidebar, setShowPdfSidebar] = useState(false);
+  const [pdfSidebarTab, setPdfSidebarTab] = useState('thumbnails'); // 'thumbnails' | 'outline'
+  const [pdfOutline, setPdfOutline] = useState([]);
+  const [outlineLoading, setOutlineLoading] = useState(false);
+  const [thumbnailUrls, setThumbnailUrls] = useState({});
   const pdfCanvasRef = useRef(null);
   const pdfContainerRef = useRef(null);
+  const thumbnailsContainerRef = useRef(null);
   const hasTrackedView = useRef(false);
   const getProtocol = () => (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:');
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `${getProtocol()}//${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
@@ -361,6 +367,118 @@ export default function ResourceDetail() {
     };
   }, [previewUrlWithVersion, isPdfPreview]);
 
+  // Load outline / bookmarks when document is available
+  useEffect(() => {
+    if (!pdfDocument) {
+      setPdfOutline([]);
+      setThumbnailUrls({});
+      return;
+    }
+
+    let isMounted = true;
+    setOutlineLoading(true);
+
+    async function parseOutline() {
+      try {
+        const rawOutline = await pdfDocument.getOutline();
+        if (!isMounted) return;
+
+        if (!rawOutline || rawOutline.length === 0) {
+          setPdfOutline([]);
+          setOutlineLoading(false);
+          return;
+        }
+
+        // Helper to resolve destination to a 1-based page number
+        async function resolveDestToPage(dest) {
+          try {
+            if (!dest) return null;
+            let explicitDest = dest;
+            if (typeof dest === 'string') {
+              explicitDest = await pdfDocument.getDestination(dest);
+            }
+            if (Array.isArray(explicitDest) && explicitDest.length > 0) {
+              const pageRef = explicitDest[0];
+              if (pageRef && typeof pageRef === 'object' && ('num' in pageRef || 'gen' in pageRef)) {
+                const pageIndex = await pdfDocument.getPageIndex(pageRef);
+                return pageIndex + 1;
+              } else if (typeof pageRef === 'number') {
+                return pageRef + 1;
+              }
+            }
+            return null;
+          } catch (e) {
+            return null;
+          }
+        }
+
+        async function processItems(items) {
+          const result = [];
+          for (const item of items) {
+            let pageNum = await resolveDestToPage(item.dest);
+            let subItems = [];
+            if (item.items && item.items.length > 0) {
+              subItems = await processItems(item.items);
+            }
+            result.push({
+              title: item.title,
+              dest: item.dest,
+              pageNumber: pageNum,
+              items: subItems,
+            });
+          }
+          return result;
+        }
+
+        const structuredOutline = await processItems(rawOutline);
+        if (isMounted) {
+          setPdfOutline(structuredOutline);
+          setOutlineLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setPdfOutline([]);
+          setOutlineLoading(false);
+        }
+      }
+    }
+
+    parseOutline();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pdfDocument]);
+
+  // Lazy render thumbnail for a specific page when requested
+  const renderThumbnail = async (pageNumber) => {
+    if (!pdfDocument || thumbnailUrls[pageNumber]) return;
+    try {
+      const page = await pdfDocument.getPage(pageNumber);
+      const thumbViewport = page.getViewport({ scale: 0.25 });
+      const thumbCanvas = document.createElement('canvas');
+      thumbCanvas.width = Math.floor(thumbViewport.width);
+      thumbCanvas.height = Math.floor(thumbViewport.height);
+      const thumbCtx = thumbCanvas.getContext('2d', { alpha: false });
+      
+      await page.render({ canvasContext: thumbCtx, viewport: thumbViewport }).promise;
+      const dataUrl = thumbCanvas.toDataURL('image/jpeg', 0.75);
+      setThumbnailUrls((prev) => ({ ...prev, [pageNumber]: dataUrl }));
+    } catch (e) {
+      // Ignore individual thumbnail rendering errors
+    }
+  };
+
+  // Keep active thumbnail scrolled into view when sidebar is open
+  useEffect(() => {
+    if (showPdfSidebar && pdfSidebarTab === 'thumbnails' && thumbnailsContainerRef.current) {
+      const activeEl = thumbnailsContainerRef.current.querySelector(`[data-thumb-page="${pdfPage}"]`);
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }, [pdfPage, showPdfSidebar, pdfSidebarTab]);
+
   useEffect(() => {
     if (!pdfDocument || !pdfCanvasRef.current) return undefined;
 
@@ -543,6 +661,25 @@ export default function ResourceDetail() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-900 px-4 py-2.5 text-white select-none">
                       <div className="flex items-center gap-2">
+                        {isPdfFullscreen && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setShowPdfSidebar((prev) => !prev)}
+                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                                showPdfSidebar
+                                  ? 'bg-orange-600/20 text-orange-400 border-orange-500/50'
+                                  : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border-neutral-700 hover:text-white'
+                              }`}
+                              title={showPdfSidebar ? 'Hide Page Navigator & Contents' : 'Show Page Navigator & Contents'}
+                              aria-label="Toggle Page Navigator"
+                            >
+                              <PanelLeft className="size-4" />
+                              <span className="hidden sm:inline">Pages</span>
+                            </button>
+                            <div className="h-5 w-px bg-neutral-700 mx-0.5" />
+                          </>
+                        )}
                         <button type="button" disabled={pdfPage <= 1} onClick={() => setPdfPage((page) => Math.max(1, page - 1))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Previous page" title="Previous page"><ChevronLeft className="size-5" /></button>
                         <div className="flex items-center gap-1.5 text-xs sm:text-sm bg-neutral-800 px-2.5 py-1 rounded-lg border border-neutral-700">
                           <span>Page</span>
@@ -589,15 +726,204 @@ export default function ResourceDetail() {
                         </button>
                       </div>
                     </div>
-                    <div className={`relative overflow-auto bg-neutral-700 p-4 ${isPdfFullscreen ? 'flex-1 h-[calc(100vh-50px)]' : 'max-h-[720px]'}`}>
-                      <div className="relative mx-auto w-fit bg-white shadow-xl" onContextMenu={(event) => event.preventDefault()}>
-                        <canvas ref={pdfCanvasRef} className="block max-w-none select-none" />
-                        <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
-                          {Array.from({ length: 10 }).map((_, index) => (
-                            <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
-                              {user?.name || user?.username || 'Zyndex User'} • {user?.email || 'user@example.com'} • Zyndex Digital Library
+                    {/* Body Area with Split Sidebar in Fullscreen */}
+                    <div className={`relative flex flex-1 overflow-hidden bg-neutral-700 ${isPdfFullscreen ? 'h-[calc(100vh-50px)]' : 'max-h-[720px]'}`}>
+                      {/* Left Navigation Sidebar (Thumbnails & Table of Contents) in Fullscreen */}
+                      {isPdfFullscreen && showPdfSidebar && (
+                        <div className="flex h-full w-72 sm:w-80 shrink-0 border-r border-neutral-800 bg-[#2b2b2b] text-neutral-200 select-none z-10 shadow-2xl">
+                          {/* Navigation Icon Strip */}
+                          <div className="w-12 shrink-0 bg-[#202020] border-r border-neutral-700/80 flex flex-col items-center py-3 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPdfSidebarTab('thumbnails')}
+                              className={`p-2.5 rounded-lg transition-all cursor-pointer ${
+                                pdfSidebarTab === 'thumbnails'
+                                  ? 'bg-neutral-800 text-orange-400 border border-neutral-600 shadow-sm'
+                                  : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
+                              }`}
+                              title="Page Thumbnails"
+                              aria-label="Page Thumbnails"
+                            >
+                              <LayoutGrid className="size-5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPdfSidebarTab('outline')}
+                              className={`p-2.5 rounded-lg transition-all cursor-pointer ${
+                                pdfSidebarTab === 'outline'
+                                  ? 'bg-neutral-800 text-orange-400 border border-neutral-600 shadow-sm'
+                                  : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
+                              }`}
+                              title="Table of Contents"
+                              aria-label="Table of Contents"
+                            >
+                              <ListTree className="size-5" />
+                            </button>
+                          </div>
+
+                          {/* Content Panel */}
+                          <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#2d2d2d]">
+                            {/* Panel Header */}
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700/80 bg-[#262626]">
+                              <h3 className="font-semibold text-sm text-white flex items-center gap-2">
+                                {pdfSidebarTab === 'thumbnails' ? (
+                                  <>
+                                    <LayoutGrid className="size-4 text-orange-400" />
+                                    <span>Thumbnails ({pdfPageCount})</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ListTree className="size-4 text-orange-400" />
+                                    <span>Table of Contents</span>
+                                  </>
+                                )}
+                              </h3>
+                              <button
+                                type="button"
+                                onClick={() => setShowPdfSidebar(false)}
+                                className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-700 cursor-pointer"
+                                title="Close Panel"
+                              >
+                                <X className="size-4" />
+                              </button>
                             </div>
-                          ))}
+
+                            {/* Panel Body */}
+                            <div className="flex-1 overflow-y-auto p-3" ref={thumbnailsContainerRef}>
+                              {pdfSidebarTab === 'thumbnails' ? (
+                                <div className="space-y-4">
+                                  {Array.from({ length: pdfPageCount }).map((_, idx) => {
+                                    const pageNum = idx + 1;
+                                    const isCurrent = pageNum === pdfPage;
+                                    return (
+                                      <div
+                                        key={pageNum}
+                                        data-thumb-page={pageNum}
+                                        onClick={() => setPdfPage(pageNum)}
+                                        onMouseEnter={() => renderThumbnail(pageNum)}
+                                        ref={(node) => {
+                                          if (node && !thumbnailUrls[pageNum]) {
+                                            // Trigger initial load for nearby pages
+                                            if (Math.abs(pageNum - pdfPage) <= 3) {
+                                              renderThumbnail(pageNum);
+                                            }
+                                          }
+                                        }}
+                                        className="group cursor-pointer flex flex-col items-center"
+                                      >
+                                        <div
+                                          className={`relative w-36 sm:w-40 aspect-[1/1.414] bg-white rounded-md overflow-hidden shadow transition-all flex items-center justify-center ${
+                                            isCurrent
+                                              ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-[#2d2d2d] shadow-lg'
+                                              : 'border border-neutral-700 group-hover:border-neutral-500 opacity-90 group-hover:opacity-100'
+                                          }`}
+                                        >
+                                          {thumbnailUrls[pageNum] ? (
+                                            <img
+                                              src={thumbnailUrls[pageNum]}
+                                              alt={`Page ${pageNum}`}
+                                              className="w-full h-full object-contain pointer-events-none"
+                                              loading="lazy"
+                                            />
+                                          ) : (
+                                            <div className="flex flex-col items-center justify-center text-neutral-400 gap-1 p-2">
+                                              <BookOpen className="size-5 text-neutral-500" />
+                                              <span className="text-[10px] text-neutral-400 font-mono">Page {pageNum}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <span
+                                          className={`text-xs mt-1.5 font-medium transition-colors ${
+                                            isCurrent ? 'text-blue-400 font-bold' : 'text-neutral-400 group-hover:text-neutral-200'
+                                          }`}
+                                        >
+                                          {pageNum}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <div>
+                                  {outlineLoading ? (
+                                    <div className="flex items-center justify-center py-10 text-neutral-400 text-xs">
+                                      <div className="size-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mr-2" />
+                                      Loading outline...
+                                    </div>
+                                  ) : pdfOutline && pdfOutline.length > 0 ? (
+                                    <div className="space-y-1 text-xs">
+                                      {pdfOutline.map((item, i) => (
+                                        <div key={i} className="space-y-1">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              if (item.pageNumber && item.pageNumber >= 1 && item.pageNumber <= pdfPageCount) {
+                                                setPdfPage(item.pageNumber);
+                                              }
+                                            }}
+                                            className={`w-full text-left px-2.5 py-1.5 rounded-md flex items-start gap-2 hover:bg-neutral-800 transition-colors cursor-pointer group ${
+                                              item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'text-neutral-300'
+                                            }`}
+                                          >
+                                            <ChevronRight className="size-3.5 shrink-0 mt-0.5 text-neutral-500 group-hover:text-neutral-300" />
+                                            <span className="flex-1 line-clamp-2 leading-relaxed">{item.title}</span>
+                                            {item.pageNumber && (
+                                              <span className="text-[10px] text-neutral-500 font-mono shrink-0 ml-1">p.{item.pageNumber}</span>
+                                            )}
+                                          </button>
+                                          {item.items && item.items.length > 0 && (
+                                            <div className="pl-4 space-y-1 border-l border-neutral-700/60 ml-3">
+                                              {item.items.map((sub, subIdx) => (
+                                                <button
+                                                  key={subIdx}
+                                                  type="button"
+                                                  onClick={() => {
+                                                    if (sub.pageNumber && sub.pageNumber >= 1 && sub.pageNumber <= pdfPageCount) {
+                                                      setPdfPage(sub.pageNumber);
+                                                    }
+                                                  }}
+                                                  className={`w-full text-left px-2 py-1 rounded flex items-center justify-between hover:bg-neutral-800 transition-colors cursor-pointer group text-xs ${
+                                                    sub.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'text-neutral-400 hover:text-neutral-200'
+                                                  }`}
+                                                >
+                                                  <span className="truncate pr-2">{sub.title}</span>
+                                                  {sub.pageNumber && (
+                                                    <span className="text-[10px] text-neutral-500 font-mono shrink-0">p.{sub.pageNumber}</span>
+                                                  )}
+                                                </button>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="py-12 px-4 text-center text-neutral-400 space-y-2">
+                                      <ListTree className="size-8 mx-auto text-neutral-600 opacity-60" />
+                                      <p className="text-xs font-medium text-neutral-300">No outline bookmarks embedded</p>
+                                      <p className="text-[11px] text-neutral-500 leading-relaxed">
+                                        This document does not contain an internal table of contents. Use page thumbnails to browse sections.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Main PDF Canvas Area */}
+                      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-neutral-700">
+                        <div className="relative mx-auto w-fit bg-white shadow-xl my-auto" onContextMenu={(event) => event.preventDefault()}>
+                          <canvas ref={pdfCanvasRef} className="block max-w-none select-none" />
+                          <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
+                            {Array.from({ length: 10 }).map((_, index) => (
+                              <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
+                                {user?.name || user?.username || 'Zyndex User'} • {user?.email || 'user@example.com'} • Zyndex Digital Library
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
