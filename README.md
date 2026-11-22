@@ -1714,9 +1714,9 @@ The table below catalogs all public, student, and administrator pages across Zyn
 | **`AdminRequest.jsx`** | `/Zyndex/Admin/Sign-Up` | Public | Faculty application portal for requesting institutional administrator privileges, submitted for Main Admin review. |
 | **`Pricing.jsx`** | `/Zyndex/About/Pricing`<br>`/Zyndex/User/:name/:email/Profile/Billing/Pricing` | Public / Student | Full pricing comparison table (Free, Basic, Plus, Pro, University, Enterprise), UPI QR checkout modal, 180s/300s countdown timer, and 12-digit UTR input form. |
 | **`Browse.jsx`** | `/Zyndex/Resources/Browse` | Public / Student | Academic catalog with live search, department filters, semester dropdowns, and format badges (`PDF`, `EPUB`, `ARTICLE`). |
-| **`BrowseCategory.jsx`** | `/Zyndex/Browse-Category/:category` | Public / Student | Filtered discipline view displaying textbooks and journals specific to an academic category (AI, ML, Physics, Economics, etc.). |
+| **`BrowseCategory.jsx`** | `/Zyndex/Browse-Category/:category` | Public / Student | Filtered discipline view displaying textbooks and journals specific to an academic category (Artificial Intelligence, Machine Learning, Computer Science, Physics, Economics, etc.). |
 | **`UserHome.jsx`** | `/Zyndex/User/:name/:email/Home` | Student (`user`) | Personalized student dashboard featuring recommended textbooks, recently opened documents, and live reading statistics. |
-| **`ResourceDetail.jsx`** | `/Zyndex/User/:name/:email/Resource/:id` | Student (`user`) | Comprehensive textbook view: interactive PDF reader with PDFBox slice preview, 15s reading duration tracking, and feedback submission featuring an explicit **Anonymous Feedback Toggle** (conceals identity as *Anonymous Reader* across admin portal). |
+| **`ResourceDetail.jsx`** | `/Zyndex/User/:name/:email/Resource/:id` | Student (`user`) | Comprehensive textbook view: interactive PDF reader with High-DPI canvas scaling, dedicated fullscreen toggle, left-side page navigator with thumbnail scrolling and Table of Contents bookmarks, unlimited 90° clockwise/counter-clockwise page rotation, Single Page vs. Two-Page book view spread, top-to-bottom Fit-to-Page and Fit-to-Width modes, 15s active engagement telemetry tracking, and feedback submission featuring an explicit **Anonymous Feedback Toggle** (conceals identity as *Anonymous Reader* across admin portal). |
 | **`SearchResults.jsx`** | `/Zyndex/User/:name/:email/Search` | Student (`user`) | Keyword search results with matched term highlighting, category grouping, and relevance sorting options. |
 | **`UserProfile.jsx`** | `/Zyndex/User/:name/:email/Profile` | Student (`user`) | Profile settings, password management, active trusted devices table, saved favorites list, download history, and active subscription details with GST tax invoice viewer. |
 | **`AdminDashboard.jsx`** | `/Zyndex/Admin/:name/:email/Dashboard` | Admin (`admin`) | High-level metrics: total catalog items, registered students, active subscriptions, revenue, and recent audit logs. |
@@ -2611,28 +2611,28 @@ Statistics were calculated using a native filesystem audit executed across all s
 | :--- | :--- | :--- |
 | **Total Source Files** | **216 Files** | Application-owned source, configuration, template, and schema manifests |
 | **Total Folders / Directories** | **106 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **59,808 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **223,238 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,758,535 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,477,298 Characters** | 53.55% of total character stream |
-| **Digits & Numbers (`0-9`)** | **67,048 Characters** | 2.43% of total character stream |
-| **Symbols, Operators & Punctuation** | **366,588 Characters** | 13.29% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **847,601 Characters** | 30.73% of total character stream (indentation, newlines) |
+| **Total Lines of Code (LOC)** | **60,119 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **225,279 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,734,491 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,490,281 Characters** | 54.50% of total character stream |
+| **Digits & Numbers (`0-9`)** | **67,615 Characters** | 2.47% of total character stream |
+| **Symbols, Operators & Punctuation** | **369,690 Characters** | 13.52% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **806,905 Characters** | 29.51% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
 | Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`.jsx`** | React UI Components & Pages | **99 Files** | **31,817 Lines** | **114,852 Words** | **1,501,892 Chars** |
-| **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,907 Lines** | **44,748 Words** | **562,815 Chars** |
-| **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,045 Lines** | **16,503 Words** | **179,489 Chars** |
-| **`.json`** | Package & Dependency Manifests | **3 Files** | **6,170 Lines** | **11,760 Words** | **189,705 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **3,677 Lines** | **31,302 Words** | **260,417 Chars** |
-| **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **913 Lines** | **2,053 Words** | **21,241 Chars** |
-| **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **713 Lines** | **1,387 Words** | **22,287 Chars** |
-| **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
-| **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
-| **Overall Total** | **Full Stack Application** | **216 Files** | **59,808 Lines** | **223,238 Words** | **2,758,535 Chars** |
+| **`.jsx`** | React UI Components & Pages | **99 Files** | **32,242 Lines** | **116,824 Words** | **1,501,407 Chars** |
+| **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,844 Lines** | **44,748 Words** | **551,972 Chars** |
+| **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,028 Lines** | **16,503 Words** | **174,479 Chars** |
+| **`.json`** | Package & Dependency Manifests | **3 Files** | **6,167 Lines** | **11,760 Words** | **183,551 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **3,671 Lines** | **31,371 Words** | **261,018 Chars** |
+| **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **909 Lines** | **2,053 Words** | **20,333 Chars** |
+| **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **700 Lines** | **1,387 Words** | **21,599 Chars** |
+| **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **528 Lines** | **565 Words** | **19,249 Chars** |
+| **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
+| **Overall Total** | **Full Stack Application** | **216 Files** | **60,119 Lines** | **225,279 Words** | **2,734,491 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 
@@ -2990,7 +2990,7 @@ To make Zyndex easily understandable for students, educators, developers, resear
 
 - **How It Works in Plain English**: Developed by Mozilla, PDF.js is a community-standard JavaScript library that parses and renders Portable Document Format (PDF) files directly onto HTML5 `<canvas>` elements inside the web browser without requiring external plugins or Adobe Acrobat installations.
 
-- **Application in Zyndex**: Zyndex incorporates `pdfjs-dist` inside the student reading canvas (`ResourceDetail.jsx`). When `content-service` streams an authorized textbook stream or 10-page evaluation slice, `pdfjs-dist` dynamically renders the pages with vector-sharp font rendering, page-zoom controls, thumbnail navigation, and smooth scrolling on both mobile phones and desktop displays.
+- **Application in Zyndex**: Zyndex incorporates `pdfjs-dist` inside the student reading canvas (`ResourceDetail.jsx`). When `content-service` streams an authorized textbook stream or 10-page evaluation slice, `pdfjs-dist` dynamically renders the pages with vector-sharp High-DPI (`window.devicePixelRatio`) font rendering, page-zoom controls, a dedicated full-screen mode, an interactive left-side navigation sidebar supporting scrollable page thumbnails and Table of Contents (TOC) bookmarks, continuous unlimited page rotation (both clockwise and counter-clockwise with rotation angle badges), Single-Page and Two-Page (physical open book) spreads, and top-to-bottom Fit-to-Page and Fit-to-Width viewport sizing.
 
 ---
 
