@@ -64,6 +64,7 @@ export default function ResourceDetail() {
   const [pdfSidebarTab, setPdfSidebarTab] = useState('thumbnails'); // 'thumbnails' | 'outline'
   const [pdfOutline, setPdfOutline] = useState([]);
   const [outlineLoading, setOutlineLoading] = useState(false);
+  const [expandedOutlineNodes, setExpandedOutlineNodes] = useState({});
   const [thumbnailUrls, setThumbnailUrls] = useState({});
   const pdfCanvasRef = useRef(null);
   const pdfSecondCanvasRef = useRef(null);
@@ -380,6 +381,7 @@ export default function ResourceDetail() {
     if (!pdfDocument) {
       setPdfOutline([]);
       setThumbnailUrls({});
+      setExpandedOutlineNodes({});
       return;
     }
 
@@ -390,12 +392,6 @@ export default function ResourceDetail() {
       try {
         const rawOutline = await pdfDocument.getOutline();
         if (!isMounted) return;
-
-        if (!rawOutline || rawOutline.length === 0) {
-          setPdfOutline([]);
-          setOutlineLoading(false);
-          return;
-        }
 
         // Helper to resolve destination to a 1-based page number
         async function resolveDestToPage(dest) {
@@ -420,15 +416,18 @@ export default function ResourceDetail() {
           }
         }
 
-        async function processItems(items) {
+        async function processItems(items, parentPath = '') {
           const result = [];
-          for (const item of items) {
+          for (let idx = 0; idx < items.length; idx++) {
+            const item = items[idx];
+            const nodeKey = `${parentPath}${idx}`;
             let pageNum = await resolveDestToPage(item.dest);
             let subItems = [];
             if (item.items && item.items.length > 0) {
-              subItems = await processItems(item.items);
+              subItems = await processItems(item.items, `${nodeKey}-`);
             }
             result.push({
+              key: nodeKey,
               title: item.title,
               dest: item.dest,
               pageNumber: pageNum,
@@ -438,14 +437,52 @@ export default function ResourceDetail() {
           return result;
         }
 
-        const structuredOutline = await processItems(rawOutline);
-        if (isMounted) {
-          setPdfOutline(structuredOutline);
-          setOutlineLoading(false);
+        if (rawOutline && rawOutline.length > 0) {
+          const structuredOutline = await processItems(rawOutline);
+          if (isMounted) {
+            setPdfOutline(structuredOutline);
+            // Default first level headers to expanded
+            const initialExpanded = {};
+            structuredOutline.forEach((it) => {
+              if (it.items && it.items.length > 0) initialExpanded[it.key] = true;
+            });
+            setExpandedOutlineNodes(initialExpanded);
+            setOutlineLoading(false);
+          }
+        } else {
+          // If no PDF outline bookmarks exist, generate automatic section breakdown by page intervals
+          const autoSections = [];
+          const step = pdfDocument.numPages > 100 ? 25 : (pdfDocument.numPages > 30 ? 10 : 5);
+          for (let p = 1; p <= pdfDocument.numPages; p += step) {
+            const endPage = Math.min(pdfDocument.numPages, p + step - 1);
+            const sectionIdx = autoSections.length + 1;
+            autoSections.push({
+              key: `section-${sectionIdx}`,
+              title: p === endPage ? `Page ${p}` : `Section ${sectionIdx}: Pages ${p} – ${endPage}`,
+              pageNumber: p,
+              items: [],
+            });
+          }
+          if (isMounted) {
+            setPdfOutline(autoSections);
+            setOutlineLoading(false);
+          }
         }
       } catch (err) {
         if (isMounted) {
-          setPdfOutline([]);
+          // Fallback outline on error
+          const autoSections = [];
+          const step = 20;
+          for (let p = 1; p <= pdfDocument.numPages; p += step) {
+            const endPage = Math.min(pdfDocument.numPages, p + step - 1);
+            autoSections.push({
+              key: `sec-${p}`,
+              title: `Pages ${p} – ${endPage}`,
+              pageNumber: p,
+              items: [],
+            });
+          }
+          setPdfOutline(autoSections);
           setOutlineLoading(false);
         }
       }
@@ -458,19 +495,41 @@ export default function ResourceDetail() {
     };
   }, [pdfDocument]);
 
-  // Lazy render thumbnail for a specific page when requested
+  // Pre-load visible thumbnails continuously as user scrolls or navigates
+  useEffect(() => {
+    if (!showPdfSidebar || pdfSidebarTab !== 'thumbnails' || !pdfDocument) return;
+
+    let cancelled = false;
+    // Load window around current page immediately (+/- 5 pages)
+    const start = Math.max(1, pdfPage - 4);
+    const end = Math.min(pdfPageCount, pdfPage + 6);
+
+    for (let p = start; p <= end; p++) {
+      if (!thumbnailUrls[p]) {
+        renderThumbnail(p);
+      }
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showPdfSidebar, pdfSidebarTab, pdfPage, pdfDocument, pdfPageCount]);
+
+  // Lazy render thumbnail for a specific page
   const renderThumbnail = async (pageNumber) => {
     if (!pdfDocument || thumbnailUrls[pageNumber]) return;
     try {
       const page = await pdfDocument.getPage(pageNumber);
-      const thumbViewport = page.getViewport({ scale: 0.25 });
+      const thumbViewport = page.getViewport({ scale: 0.22 });
       const thumbCanvas = document.createElement('canvas');
       thumbCanvas.width = Math.floor(thumbViewport.width);
       thumbCanvas.height = Math.floor(thumbViewport.height);
       const thumbCtx = thumbCanvas.getContext('2d', { alpha: false });
-      
-      await page.render({ canvasContext: thumbCtx, viewport: thumbViewport }).promise;
-      const dataUrl = thumbCanvas.toDataURL('image/jpeg', 0.75);
+      thumbCtx.fillStyle = '#ffffff';
+      thumbCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+
+      await page.render({ canvasContext: thumbCtx, viewport: thumbViewport, background: 'rgb(255, 255, 255)' }).promise;
+      const dataUrl = thumbCanvas.toDataURL('image/jpeg', 0.7);
       setThumbnailUrls((prev) => ({ ...prev, [pageNumber]: dataUrl }));
     } catch (e) {
       // Ignore individual thumbnail rendering errors
@@ -1083,50 +1142,94 @@ export default function ResourceDetail() {
                                     </div>
                                   ) : pdfOutline && pdfOutline.length > 0 ? (
                                     <div className="space-y-1 text-xs">
-                                      {pdfOutline.map((item, i) => (
-                                        <div key={i} className="space-y-1">
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              if (item.pageNumber && item.pageNumber >= 1 && item.pageNumber <= pdfPageCount) {
-                                                setPdfPage(item.pageNumber);
-                                              }
-                                            }}
-                                            className={`w-full text-left px-2.5 py-1.5 rounded-md flex items-start gap-2 hover:bg-neutral-800 transition-colors cursor-pointer group ${
-                                              item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'text-neutral-300'
-                                            }`}
-                                          >
-                                            <ChevronRight className="size-3.5 shrink-0 mt-0.5 text-neutral-500 group-hover:text-neutral-300" />
-                                            <span className="flex-1 line-clamp-2 leading-relaxed">{item.title}</span>
-                                            {item.pageNumber && (
-                                              <span className="text-[10px] text-neutral-500 font-mono shrink-0 ml-1">p.{item.pageNumber}</span>
-                                            )}
-                                          </button>
-                                          {item.items && item.items.length > 0 && (
-                                            <div className="pl-4 space-y-1 border-l border-neutral-700/60 ml-3">
-                                              {item.items.map((sub, subIdx) => (
+                                      {pdfOutline.map((item) => {
+                                        const hasChildren = item.items && item.items.length > 0;
+                                        const isExpanded = Boolean(expandedOutlineNodes[item.key]);
+                                        return (
+                                          <div key={item.key} className="space-y-1">
+                                            <div
+                                              className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 transition-colors group cursor-pointer ${
+                                                item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'hover:bg-neutral-800 text-neutral-300'
+                                              }`}
+                                            >
+                                              {/* Expand / Collapse Toggle Arrow for Main Headings */}
+                                              {hasChildren ? (
                                                 <button
-                                                  key={subIdx}
                                                   type="button"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setExpandedOutlineNodes((prev) => ({
+                                                      ...prev,
+                                                      [item.key]: !prev[item.key],
+                                                    }));
+                                                  }}
+                                                  className="p-1 hover:bg-neutral-700 rounded text-neutral-400 hover:text-white mr-1 transition-transform"
+                                                  title={isExpanded ? 'Collapse Section' : 'Expand Section'}
+                                                >
+                                                  <ChevronDown
+                                                    className={`size-3.5 transition-transform duration-200 ${
+                                                      isExpanded ? 'rotate-0 text-orange-400' : '-rotate-90 text-neutral-500'
+                                                    }`}
+                                                  />
+                                                </button>
+                                              ) : (
+                                                <span className="w-5 shrink-0" />
+                                              )}
+
+                                              {/* Chapter Title Click Navigates Directly */}
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  if (item.pageNumber && item.pageNumber >= 1 && item.pageNumber <= pdfPageCount) {
+                                                    setPdfPage(item.pageNumber);
+                                                  }
+                                                }}
+                                                className="flex-1 text-left line-clamp-2 leading-relaxed cursor-pointer pr-2 hover:text-white"
+                                              >
+                                                {item.title}
+                                              </button>
+
+                                              {item.pageNumber && (
+                                                <span
                                                   onClick={() => {
-                                                    if (sub.pageNumber && sub.pageNumber >= 1 && sub.pageNumber <= pdfPageCount) {
-                                                      setPdfPage(sub.pageNumber);
+                                                    if (item.pageNumber && item.pageNumber >= 1 && item.pageNumber <= pdfPageCount) {
+                                                      setPdfPage(item.pageNumber);
                                                     }
                                                   }}
-                                                  className={`w-full text-left px-2 py-1 rounded flex items-center justify-between hover:bg-neutral-800 transition-colors cursor-pointer group text-xs ${
-                                                    sub.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'text-neutral-400 hover:text-neutral-200'
-                                                  }`}
+                                                  className="text-[10px] text-neutral-500 font-mono shrink-0 cursor-pointer hover:text-orange-400"
                                                 >
-                                                  <span className="truncate pr-2">{sub.title}</span>
-                                                  {sub.pageNumber && (
-                                                    <span className="text-[10px] text-neutral-500 font-mono shrink-0">p.{sub.pageNumber}</span>
-                                                  )}
-                                                </button>
-                                              ))}
+                                                  p.{item.pageNumber}
+                                                </span>
+                                              )}
                                             </div>
-                                          )}
-                                        </div>
-                                      ))}
+
+                                            {/* Sub-items (collapsible) */}
+                                            {hasChildren && isExpanded && (
+                                              <div className="pl-5 space-y-1 border-l border-neutral-700/60 ml-3">
+                                                {item.items.map((sub) => (
+                                                  <button
+                                                    key={sub.key || sub.title}
+                                                    type="button"
+                                                    onClick={() => {
+                                                      if (sub.pageNumber && sub.pageNumber >= 1 && sub.pageNumber <= pdfPageCount) {
+                                                        setPdfPage(sub.pageNumber);
+                                                      }
+                                                    }}
+                                                    className={`w-full text-left px-2 py-1 rounded flex items-center justify-between hover:bg-neutral-800 transition-colors cursor-pointer group text-xs ${
+                                                      sub.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'text-neutral-400 hover:text-neutral-200'
+                                                    }`}
+                                                  >
+                                                    <span className="truncate pr-2">{sub.title}</span>
+                                                    {sub.pageNumber && (
+                                                      <span className="text-[10px] text-neutral-500 font-mono shrink-0">p.{sub.pageNumber}</span>
+                                                    )}
+                                                  </button>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   ) : (
                                     <div className="py-12 px-4 text-center text-neutral-400 space-y-2">
