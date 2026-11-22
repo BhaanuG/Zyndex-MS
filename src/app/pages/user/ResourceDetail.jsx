@@ -335,11 +335,21 @@ export default function ResourceDetail() {
     let cancelled = false;
     pdfDocument.getPage(pdfPage).then((page) => {
       if (cancelled) return;
-      const viewport = page.getViewport({ scale: pdfScale });
+      // High-DPI (Retina / 4K / Mobile) rendering: scale canvas internal pixels by window.devicePixelRatio
+      const dpr = Math.max(window.devicePixelRatio || 1, 2);
+      const viewport = page.getViewport({ scale: pdfScale * dpr });
       const canvas = pdfCanvasRef.current;
       const context = canvas.getContext('2d', { alpha: false });
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
+      
+      // Internal buffer size multiplied by DPR for ultra-sharp vectors & text
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+
+      // Display size stays locked to CSS scale so layout does not stretch
+      const cssViewport = page.getViewport({ scale: pdfScale });
+      canvas.style.width = `${Math.floor(cssViewport.width)}px`;
+      canvas.style.height = `${Math.floor(cssViewport.height)}px`;
+
       page.render({ canvasContext: context, viewport }).promise.catch((error) => {
         if (!cancelled) setPreviewError(error.message || 'Unable to render the PDF page.');
       });

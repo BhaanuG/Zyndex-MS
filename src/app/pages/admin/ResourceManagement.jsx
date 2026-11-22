@@ -254,10 +254,14 @@ export default function ResourceManagement() {
         const canvas = pdfCanvasRef.current;
         if (!canvas) return;
         const context = canvas.getContext('2d');
-        const viewport = page.getViewport({ scale: pdfScale });
+        const dpr = Math.max(window.devicePixelRatio || 1, 2);
+        const viewport = page.getViewport({ scale: pdfScale * dpr });
+        const cssViewport = page.getViewport({ scale: pdfScale });
 
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        canvas.style.width = `${Math.floor(cssViewport.width)}px`;
+        canvas.style.height = `${Math.floor(cssViewport.height)}px`;
 
         renderTask = page.render({
           canvasContext: context,
