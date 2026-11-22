@@ -59,6 +59,7 @@ export default function ResourceDetail() {
   const [pdfPageViewMode, setPdfPageViewMode] = useState('single'); // 'single' | 'two-page'
   const [pdfFitMode, setPdfFitMode] = useState('page'); // 'page' (fit-to-page / top-to-bottom) | 'width' (fit-to-width)
   const [isPdfFullscreen, setIsPdfFullscreen] = useState(false);
+  const [isPageRendering, setIsPageRendering] = useState(false);
   const [showPdfSidebar, setShowPdfSidebar] = useState(false);
   const [pdfSidebarTab, setPdfSidebarTab] = useState('thumbnails'); // 'thumbnails' | 'outline'
   const [pdfOutline, setPdfOutline] = useState([]);
@@ -66,6 +67,8 @@ export default function ResourceDetail() {
   const [thumbnailUrls, setThumbnailUrls] = useState({});
   const pdfCanvasRef = useRef(null);
   const pdfSecondCanvasRef = useRef(null);
+  const primaryRenderTaskRef = useRef(null);
+  const secondaryRenderTaskRef = useRef(null);
   const pdfViewerAreaRef = useRef(null);
   const pdfContainerRef = useRef(null);
   const thumbnailsContainerRef = useRef(null);
@@ -529,6 +532,19 @@ export default function ResourceDetail() {
     if (!pdfDocument || !pdfCanvasRef.current) return undefined;
 
     let cancelled = false;
+    setIsPageRendering(true);
+
+    // Cancel any active render tasks before starting a new render to prevent black frames or conflicts
+    try {
+      if (primaryRenderTaskRef.current) {
+        primaryRenderTaskRef.current.cancel();
+      }
+    } catch (e) {}
+    try {
+      if (secondaryRenderTaskRef.current) {
+        secondaryRenderTaskRef.current.cancel();
+      }
+    } catch (e) {}
 
     // Render Page 1 (Primary Page)
     pdfDocument.getPage(pdfPage).then((page) => {
@@ -539,21 +555,44 @@ export default function ResourceDetail() {
       const canvas = pdfCanvasRef.current;
       if (!canvas) return;
       const context = canvas.getContext('2d', { alpha: false });
-      
+
       // Internal buffer size multiplied by DPR for ultra-sharp vectors & text
       canvas.width = Math.floor(viewport.width);
       canvas.height = Math.floor(viewport.height);
+
+      // Pre-fill canvas with clean white background so black frame never shows while rendering complex vectors
+      context.save();
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.restore();
 
       // Display size stays locked to CSS scale so layout does not stretch
       const cssViewport = page.getViewport({ scale: pdfScale, rotation: pdfRotation });
       canvas.style.width = `${Math.floor(cssViewport.width)}px`;
       canvas.style.height = `${Math.floor(cssViewport.height)}px`;
 
-      page.render({ canvasContext: context, viewport }).promise.catch((error) => {
-        if (!cancelled) setPreviewError(error.message || 'Unable to render the PDF page.');
+      const renderTask = page.render({
+        canvasContext: context,
+        viewport,
+        background: 'rgb(255, 255, 255)',
       });
+      primaryRenderTaskRef.current = renderTask;
+
+      renderTask.promise
+        .then(() => {
+          if (!cancelled) setIsPageRendering(false);
+        })
+        .catch((error) => {
+          if (!cancelled && error?.name !== 'RenderingCancelledException') {
+            setPreviewError(error.message || 'Unable to render the PDF page.');
+            setIsPageRendering(false);
+          }
+        });
     }).catch((error) => {
-      if (!cancelled) setPreviewError(error.message || 'Unable to open the PDF page.');
+      if (!cancelled) {
+        setPreviewError(error.message || 'Unable to open the PDF page.');
+        setIsPageRendering(false);
+      }
     });
 
     // Render Page 2 (Right Page) if in Two-Page Book View
@@ -570,16 +609,38 @@ export default function ResourceDetail() {
         secondCanvas.width = Math.floor(secondViewport.width);
         secondCanvas.height = Math.floor(secondViewport.height);
 
+        secondContext.save();
+        secondContext.fillStyle = '#ffffff';
+        secondContext.fillRect(0, 0, secondCanvas.width, secondCanvas.height);
+        secondContext.restore();
+
         const secondCssViewport = secondPage.getViewport({ scale: pdfScale, rotation: pdfRotation });
         secondCanvas.style.width = `${Math.floor(secondCssViewport.width)}px`;
         secondCanvas.style.height = `${Math.floor(secondCssViewport.height)}px`;
 
-        secondPage.render({ canvasContext: secondContext, viewport: secondViewport }).promise.catch(() => {});
+        const secondRenderTask = secondPage.render({
+          canvasContext: secondContext,
+          viewport: secondViewport,
+          background: 'rgb(255, 255, 255)',
+        });
+        secondaryRenderTaskRef.current = secondRenderTask;
+
+        secondRenderTask.promise.catch((error) => {
+          if (error?.name !== 'RenderingCancelledException') {
+            console.warn('Secondary page render error:', error);
+          }
+        });
       }).catch(() => {});
     }
 
     return () => {
       cancelled = true;
+      try {
+        if (primaryRenderTaskRef.current) primaryRenderTaskRef.current.cancel();
+      } catch (e) {}
+      try {
+        if (secondaryRenderTaskRef.current) secondaryRenderTaskRef.current.cancel();
+      } catch (e) {}
     };
   }, [pdfDocument, pdfPage, pdfScale, pdfRotation, pdfPageViewMode, pdfPageCount]);
 
@@ -1084,11 +1145,17 @@ export default function ResourceDetail() {
                       )}
 
                       {/* Main PDF Canvas Area */}
-                      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-neutral-700" ref={pdfViewerAreaRef}>
+                      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-neutral-700 relative" ref={pdfViewerAreaRef}>
+                        {isPageRendering && (
+                          <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 text-xs px-3 py-1.5 rounded-full border border-neutral-700 pointer-events-none shadow-md">
+                            <div className="size-3 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                            <span>Rendering page...</span>
+                          </div>
+                        )}
                         <div className="relative mx-auto w-fit flex flex-col md:flex-row items-center justify-center gap-4 my-auto" onContextMenu={(event) => event.preventDefault()}>
                           {/* Page 1 Canvas */}
                           <div className="relative bg-white shadow-2xl">
-                            <canvas ref={pdfCanvasRef} className="block max-w-none select-none" />
+                            <canvas ref={pdfCanvasRef} className="block max-w-none select-none bg-white" />
                             <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
                               {Array.from({ length: 10 }).map((_, index) => (
                                 <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
@@ -1101,7 +1168,7 @@ export default function ResourceDetail() {
                           {/* Page 2 Canvas in Two-Page Book View */}
                           {pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount && (
                             <div className="relative bg-white shadow-2xl">
-                              <canvas ref={pdfSecondCanvasRef} className="block max-w-none select-none" />
+                              <canvas ref={pdfSecondCanvasRef} className="block max-w-none select-none bg-white" />
                               <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
                                 {Array.from({ length: 10 }).map((_, index) => (
                                   <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
