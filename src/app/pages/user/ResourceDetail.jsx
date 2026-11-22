@@ -99,7 +99,12 @@ export default function ResourceDetail() {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsPdfFullscreen(Boolean(document.fullscreenElement));
+      const isFullscreenNow = Boolean(document.fullscreenElement);
+      setIsPdfFullscreen(isFullscreenNow);
+      // In the main page preview (non-fullscreen), always enforce single page view
+      if (!isFullscreenNow) {
+        setPdfPageViewMode('single');
+      }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => {
@@ -654,9 +659,9 @@ export default function ResourceDetail() {
       }
     });
 
-    // Render Page 2 (Right Page) if in Two-Page Book View
+    // Render Page 2 (Right Page) only if in Fullscreen mode AND Two-Page Book View is selected
     const secondPageNum = pdfPage + 1;
-    if (pdfPageViewMode === 'two-page' && secondPageNum <= pdfPageCount && pdfSecondCanvasRef.current) {
+    if (isPdfFullscreen && pdfPageViewMode === 'two-page' && secondPageNum <= pdfPageCount && pdfSecondCanvasRef.current) {
       pdfDocument.getPage(secondPageNum).then((secondPage) => {
         if (cancelled) return;
         const dpr = Math.max(window.devicePixelRatio || 1, 2);
@@ -1268,8 +1273,8 @@ export default function ResourceDetail() {
                             </div>
                           </div>
 
-                          {/* Page 2 Canvas in Two-Page Book View */}
-                          {pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount && (
+                          {/* Page 2 Canvas in Two-Page Book View (Only in Fullscreen) */}
+                          {isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount && (
                             <div className="relative bg-white shadow-2xl">
                               <canvas ref={pdfSecondCanvasRef} className="block max-w-none select-none bg-white" />
                               <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
