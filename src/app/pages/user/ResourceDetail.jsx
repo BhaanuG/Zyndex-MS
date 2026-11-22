@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, X, ChevronDown, BookOpen, RotateCw, RotateCcw, BookOpenCheck, Square } from 'lucide-react';
+import { FileText, Tag, Star, Send, User, Heart, Lock, ShieldCheck, ChevronLeft, ChevronRight, Minus, Plus, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, X, ChevronDown, BookOpen, RotateCw, RotateCcw, BookOpenCheck, Square, MoveHorizontal, MoveVertical } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as pdfWorkerModule from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -57,6 +57,7 @@ export default function ResourceDetail() {
   const [pdfScale, setPdfScale] = useState(1.15);
   const [pdfRotation, setPdfRotation] = useState(0);
   const [pdfPageViewMode, setPdfPageViewMode] = useState('single'); // 'single' | 'two-page'
+  const [pdfFitMode, setPdfFitMode] = useState('page'); // 'page' (fit-to-page / top-to-bottom) | 'width' (fit-to-width)
   const [isPdfFullscreen, setIsPdfFullscreen] = useState(false);
   const [showPdfSidebar, setShowPdfSidebar] = useState(false);
   const [pdfSidebarTab, setPdfSidebarTab] = useState('thumbnails'); // 'thumbnails' | 'outline'
@@ -483,7 +484,7 @@ export default function ResourceDetail() {
     }
   }, [pdfPage, showPdfSidebar, pdfSidebarTab]);
 
-  // Automatically adjust scale in Fullscreen mode so the page fits top-to-bottom
+  // Automatically adjust scale in Fullscreen mode based on Fit Mode (Fit to Page / Top-to-Bottom vs Fit to Width)
   useEffect(() => {
     if (!isPdfFullscreen || !pdfDocument) return;
 
@@ -493,25 +494,36 @@ export default function ResourceDetail() {
       if (cancelled) return;
       const baseViewport = page.getViewport({ scale: 1, rotation: pdfRotation });
       const availableHeight = window.innerHeight - 75; // Account for 50px top toolbar and margins
-      if (availableHeight > 200 && baseViewport.height > 0) {
-        let fitScale = availableHeight / baseViewport.height;
-        // In two-page view, check if two pages fit horizontally
-        if (pdfPageViewMode === 'two-page') {
-          const sidebarWidth = showPdfSidebar ? 320 : 0;
-          const availableWidth = window.innerWidth - sidebarWidth - 60;
-          const totalWidthNeeded = baseViewport.width * 2;
-          if (totalWidthNeeded * fitScale > availableWidth) {
-            fitScale = availableWidth / totalWidthNeeded;
-          }
+      const sidebarWidth = showPdfSidebar ? 320 : 0;
+      const availableWidth = window.innerWidth - sidebarWidth - 60;
+
+      if (pdfFitMode === 'width') {
+        // Fit to width: page horizontally fills available viewing area
+        const totalWidthNeeded = pdfPageViewMode === 'two-page' ? baseViewport.width * 2 + 16 : baseViewport.width;
+        if (totalWidthNeeded > 0 && availableWidth > 200) {
+          const widthScale = availableWidth / totalWidthNeeded;
+          setPdfScale(Math.max(0.4, Number(widthScale.toFixed(2))));
         }
-        setPdfScale(Math.max(0.4, Number(fitScale.toFixed(2))));
+      } else {
+        // Fit to page: page fits cleanly top-to-bottom
+        if (availableHeight > 200 && baseViewport.height > 0) {
+          let fitScale = availableHeight / baseViewport.height;
+          // In two-page view, check if two pages fit horizontally as well
+          if (pdfPageViewMode === 'two-page') {
+            const totalWidthNeeded = baseViewport.width * 2 + 16;
+            if (totalWidthNeeded * fitScale > availableWidth) {
+              fitScale = availableWidth / totalWidthNeeded;
+            }
+          }
+          setPdfScale(Math.max(0.4, Number(fitScale.toFixed(2))));
+        }
       }
     }).catch(() => {});
 
     return () => {
       cancelled = true;
     };
-  }, [isPdfFullscreen, pdfRotation, pdfPageViewMode, showPdfSidebar, pdfPage, pdfDocument]);
+  }, [isPdfFullscreen, pdfRotation, pdfPageViewMode, pdfFitMode, showPdfSidebar, pdfPage, pdfDocument]);
 
   useEffect(() => {
     if (!pdfDocument || !pdfCanvasRef.current) return undefined;
@@ -825,6 +837,40 @@ export default function ResourceDetail() {
                               >
                                 <BookOpenCheck className="size-3.5" />
                                 <span className="hidden md:inline">Two-Page</span>
+                              </button>
+                            </div>
+                            <div className="h-5 w-px bg-neutral-700 mx-1" />
+                          </>
+                        )}
+                        {/* Fit Mode (Fit to Page vs Fit to Width) in Full Screen */}
+                        {isPdfFullscreen && (
+                          <>
+                            <div className="flex items-center bg-neutral-800 p-0.5 rounded-lg border border-neutral-700">
+                              <button
+                                type="button"
+                                onClick={() => setPdfFitMode('page')}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                                  pdfFitMode === 'page'
+                                    ? 'bg-neutral-700 text-orange-400 shadow-sm'
+                                    : 'text-neutral-400 hover:text-white'
+                                }`}
+                                title="Fit to Page (Top-to-Bottom)"
+                              >
+                                <MoveVertical className="size-3.5" />
+                                <span className="hidden lg:inline">Fit Page</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPdfFitMode('width')}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                                  pdfFitMode === 'width'
+                                    ? 'bg-neutral-700 text-orange-400 shadow-sm'
+                                    : 'text-neutral-400 hover:text-white'
+                                }`}
+                                title="Fit to Width"
+                              >
+                                <MoveHorizontal className="size-3.5" />
+                                <span className="hidden lg:inline">Fit Width</span>
                               </button>
                             </div>
                             <div className="h-5 w-px bg-neutral-700 mx-1" />
