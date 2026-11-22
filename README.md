@@ -715,7 +715,7 @@ This section provides an exhaustive, class-by-class and method-by-method technic
 
      - Inserts record into `payments` with status `PAYMENT_INITIATED`, generates `order_id` (`ORD_...`).
 
-     - Formats direct UPI URI (`upi://pay?pa=918897337687@waaxis&pn=Zyndex%20Digital&am=...`).
+     - Formats direct UPI URI (`upi://pay?pa=zyndex@icici&pn=Zyndex%20Digital&am=...`).
 
      - Constructs QR code URL using `api.qrserver.com`.
 
@@ -1299,7 +1299,7 @@ This section compiles all operational constraints, entitlement gates, pricing ta
 | **PhD Researcher Plan** | ₹499/mo (Tier 3) | `subscription-service/.../DbInitializer.java` | `initPlans` | `plans.price_paise = 49900` | Grants full research access, citation exports, and authorized document downloads. |
 | **University Plan** | ₹1,00,000/yr (Tier 4) | `subscription-service/.../DbInitializer.java` | `initPlans` | `plans.price_paise = 10000000` | Institutional campus-wide seats and bulk student provisioning. |
 | **Enterprise Plan** | ₹3,00,000 - ₹5,00,000/yr (Tier 5) | `subscription-service/.../DbInitializer.java` | `initPlans` | `plans.price_paise = 30000000` | Custom institutional SLA, dedicated support, and campus SSO integration. |
-| **Payment UPI Routing** | UPI Direct VPA `918897337687@waaxis` | `subscription-service/.../PaymentService.java` | `createCheckoutSession` | `payments.status = 'PAYMENT_INITIATED'` | Generates compliant UPI QR code and deep intent links. |
+| **Payment UPI Routing** | UPI Direct VPA `zyndex@icici` | `subscription-service/.../PaymentService.java` | `createCheckoutSession` | `payments.status = 'PAYMENT_INITIATED'` | Generates compliant UPI QR code and deep intent links. |
 | **UTR Review Hold** | Submission of 12-digit bank reference | `subscription-service/.../PaymentService.java` | `submitUtrForReview` | `payments.status = 'REVIEW_REQUIRED'` | Puts subscription on hold; alerts admins via email; shows In Hold badge. |
 | **Admin Payment Confirmation**| Admin manual approval in dashboard | `subscription-service/.../PaymentService.java` | `verifyAdminPayment` (`action=CONFIRM`) | `payments.status = 'SUCCESS'`, updates `subscriptions` | Activates membership, updates access service, sends upgrade email and invoice. |
 | **Inter-Service Isolation**| Direct service calls must provide `X-Gateway-Secret` | `*/.../GatewaySecretFilter.java` | `doFilter` | None | Blocks direct unauthorized port calls with HTTP 403 Forbidden. |
@@ -2297,7 +2297,7 @@ stateDiagram-v2
    - All standard navigation links and footers are cleanly isolated.
 
    - Left card displays the high-resolution UPI QR code generated from direct UPI URI:
-     `upi://pay?pa=918897337687@waaxis&pn=Zyndex%20Educational%20Excellence&am=199.00&tr=ORD_...`
+     `upi://pay?pa=zyndex@icici&pn=Zyndex%20Educational%20Excellence&am=199.00&tr=ORD_...`
    - Right card displays a live, running **analog circular clock** with moving minute and second hands alongside a synchronous 5-minute digital countdown.
 
    - If user clicks **Cancel Payment**, the payment status updates to `CANCELLED` and remains visible in audit records.
@@ -2413,7 +2413,7 @@ OTP_SMTP_HOST=smtp.gmail.com
 OTP_SMTP_PORT=587
 OTP_SMTP_USER=<YOUR_GMAIL_ADDRESS>
 OTP_SMTP_PASS=<YOUR_GMAIL_16_CHAR_APP_PASSWORD>
-RECEIVER_UPI_ID=918897337687@waaxis
+RECEIVER_UPI_ID=zyndex@icici
 ```
 
 ### 14.4 Step 3: Compile Backend Microservices

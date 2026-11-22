@@ -249,9 +249,9 @@ export default function Contact() {
     },
     {
       icon: Phone,
-      title: 'Phone',
+      title: 'Support Desk',
       items: [
-        '+91 8897337687',
+        'Live Chat / Portal Tickets',
         'Mon-Fri, 9AM-5PM IST'
       ],
       gradient: 'from-amber-500 to-orange-600',

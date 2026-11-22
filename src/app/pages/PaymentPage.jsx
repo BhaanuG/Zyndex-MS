@@ -775,7 +775,7 @@ export default function PaymentPage() {
                   <div className="flex flex-col items-center space-y-3">
                     <div className="p-3 bg-white rounded-2xl shadow-md border border-slate-200 relative group">
                       <img
-                        src={paymentData?.qrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi%3A%2F%2Fpay%3Fpa%3D918897337687%40waaxis%26am%3D${amount || 199}`}
+                        src={paymentData?.qrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi%3A%2F%2Fpay%3Fpa%3Dzyndex%40icici%26am%3D${amount || 199}`}
                         alt="Payment QR Code"
                         className="size-52 md:size-60 object-contain rounded-xl"
                       />

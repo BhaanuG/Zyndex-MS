@@ -38,7 +38,7 @@ public class PaymentService {
     @Value("${zyndex.otp-mail-from:}")
     private String mailFrom;
 
-    @Value("${zyndex.receiver-upi-id:918897337687@waaxis}")
+    @Value("${zyndex.receiver-upi-id:zyndex@icici}")
     private String receiverUpiId;
 
     public PaymentService(JdbcTemplate jdbc, RestTemplate restTemplate, JavaMailSender mailSender) {
@@ -114,7 +114,7 @@ public class PaymentService {
 
         // 4. Generate UPI URI & QR Code
         double amountRupees = pricePaise / 100.0;
-        String targetUpiId = (receiverUpiId != null && !receiverUpiId.isBlank()) ? receiverUpiId : "918897337687@waaxis";
+        String targetUpiId = (receiverUpiId != null && !receiverUpiId.isBlank()) ? receiverUpiId : "zyndex@icici";
         String upiUri = "upi://pay?pa=" + targetUpiId +
                 "&pn=ScholarSphere%20Digital" +
                 "&am=" + String.format(Locale.US, "%.2f", amountRupees) +
@@ -191,7 +191,7 @@ public class PaymentService {
         // Generate or include QR url and UPI URI if still pending/initiated
         if (!PaymentStatus.valueOf(currentStatusStr).isTerminal()) {
             double amountRupees = amtPaise / 100.0;
-            String targetUpiId = (receiverUpiId != null && !receiverUpiId.isBlank()) ? receiverUpiId : "918897337687@waaxis";
+            String targetUpiId = (receiverUpiId != null && !receiverUpiId.isBlank()) ? receiverUpiId : "zyndex@icici";
             String planId = String.valueOf(payment.get("plan_id"));
             try {
                 String upiUri = "upi://pay?pa=" + targetUpiId +
