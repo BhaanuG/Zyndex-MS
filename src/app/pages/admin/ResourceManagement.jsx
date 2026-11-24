@@ -1049,8 +1049,8 @@ export default function ResourceManagement() {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => setInfoResource(resource)} className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors cursor-pointer" title="View Detailed Resource Information"><Info className="size-4" /></button>
-                        <button onClick={() => openPreviewModal(resource)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors cursor-pointer" title="Preview Resource Modal"><Eye className="size-4" /></button>
+                        <button onClick={() => setInfoResource(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors cursor-pointer" title="View Detailed Resource Information"><Info className="size-4" /></button>
+                        <button onClick={() => openPreviewModal(resource)} className="p-2 hover:bg-amber-50 text-amber-600 rounded-lg transition-colors cursor-pointer" title="Preview Resource Modal"><Eye className="size-4" /></button>
                         <button onClick={() => openEditModal(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors cursor-pointer" title="Edit Resource"><Edit className="size-4" /></button>
                         <button onClick={() => handleDelete(resource.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors cursor-pointer" title="Delete Resource"><Trash2 className="size-4" /></button>
                       </div>
@@ -1291,13 +1291,13 @@ export default function ResourceManagement() {
                     </div>
                   )}
                   {formResource.resourceType !== 'article' && formResource.currentFileName && (
-                    <div className="flex items-start gap-3 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-3">
-                      <FileText className="size-4 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-3 text-sm text-orange-800 bg-orange-50 border border-orange-200 rounded-lg px-3 py-3">
+                      <FileText className="size-4 mt-0.5 flex-shrink-0 text-orange-600" />
                       <div>
-                        <p className="font-medium">Current resource file</p>
-                        <p>{formResource.currentFileName}</p>
+                        <p className="font-medium text-xs text-orange-900">Current resource file</p>
+                        <p className="text-xs text-orange-800 font-mono mt-0.5">{formResource.currentFileName}</p>
                         {formResource.currentFileUrl && (
-                          <p className="text-xs text-blue-600 mt-1 break-all">{formResource.currentFileUrl}</p>
+                          <p className="text-xs text-orange-600 mt-1 break-all">{formResource.currentFileUrl}</p>
                         )}
                       </div>
                     </div>

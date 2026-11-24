@@ -782,7 +782,7 @@ export default function ResourceDetail() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 items-center pt-2.5 gap-2 text-center sm:text-left">
                     <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
-                      <User className="size-3.5 text-blue-500" /> Author
+                      <User className="size-3.5 text-orange-500" /> Author
                     </span>
                     <span className="font-semibold text-slate-800 text-center sm:col-span-2 sm:text-center" title={resource.author || resource.subject || 'Zyndex Contributor'}>
                       {resource.author || resource.subject || 'Zyndex Contributor'}
@@ -1159,7 +1159,7 @@ export default function ResourceDetail() {
                                         <div
                                           className={`relative w-36 sm:w-40 aspect-[1/1.414] bg-white rounded-md overflow-hidden shadow transition-all flex items-center justify-center ${
                                             isCurrent
-                                              ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-[#2d2d2d] shadow-lg'
+                                              ? 'ring-2 ring-orange-500 ring-offset-2 ring-offset-[#2d2d2d] shadow-lg'
                                               : 'border border-neutral-700 group-hover:border-neutral-500 opacity-90 group-hover:opacity-100'
                                           }`}
                                         >
@@ -1179,7 +1179,7 @@ export default function ResourceDetail() {
                                         </div>
                                         <span
                                           className={`text-xs mt-1.5 font-medium transition-colors ${
-                                            isCurrent ? 'text-blue-400 font-bold' : 'text-neutral-400 group-hover:text-neutral-200'
+                                            isCurrent ? 'text-orange-400 font-bold' : 'text-neutral-400 group-hover:text-neutral-200'
                                           }`}
                                         >
                                           {pageNum}
