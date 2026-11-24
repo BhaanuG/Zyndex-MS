@@ -42,9 +42,13 @@ public class UserContentController {
         var rows = jdbc.queryForList("""
                 SELECT sr.saved_at, r.*
                 FROM saved_resources sr JOIN resources r ON r.id = sr.resource_id
-                WHERE sr.user_id = ? ORDER BY sr.saved_at DESC LIMIT ? OFFSET ?
+                WHERE sr.user_id = ? AND (r.is_published IS NULL OR r.is_published = 1)
+                ORDER BY sr.saved_at DESC LIMIT ? OFFSET ?
                 """, userId, pageParams.get("size"), pageParams.get("offset"));
-        long total = jdbc.queryForObject("SELECT COUNT(*) FROM saved_resources WHERE user_id = ?", Long.class, userId);
+        long total = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM saved_resources sr JOIN resources r ON r.id = sr.resource_id
+                WHERE sr.user_id = ? AND (r.is_published IS NULL OR r.is_published = 1)
+                """, Long.class, userId);
 
         List<Map<String, Object>> resources = rows.stream().map(row -> {
             Map<String, Object> res = sql.mapResource(row);
@@ -80,7 +84,7 @@ public class UserContentController {
         List<Map<String, Object>> resourcesList = new ArrayList<>();
         for (Map<String, Object> usage : usageList) {
             long resourceId = SqlSupport.number(usage.get("resource_id"));
-            var rows = jdbc.queryForList("SELECT * FROM resources WHERE id = ? LIMIT 1", resourceId);
+            var rows = jdbc.queryForList("SELECT * FROM resources WHERE id = ? AND (is_published IS NULL OR is_published = 1) LIMIT 1", resourceId);
             if (!rows.isEmpty()) {
                 Map<String, Object> resource = sql.mapResource(rows.get(0));
                 resource.put("viewedAt", usage.get("viewed_at"));

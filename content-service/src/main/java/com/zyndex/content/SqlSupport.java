@@ -42,6 +42,7 @@ public class SqlSupport {
         resource.put("downloadCount", number(first(row.get("downloads_count"), 0)));
         resource.put("viewCount", number(first(row.get("view_count"), 0)));
         resource.put("featured", bool(row.get("approved")));
+        resource.put("isPublished", row.get("is_published") == null || bool(row.get("is_published")));
         resource.put("uploadedBy", row.get("uploaded_by"));
         resource.put("uploadedByName", row.get("uploader_name"));
         resource.put("createdAt", row.get("created_at"));

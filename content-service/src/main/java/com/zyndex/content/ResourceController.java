@@ -35,26 +35,31 @@ class ResourceController {
     }
 
     @GetMapping
-    Map<String, Object> all(@RequestParam Map<String, String> query) {
-        return list(query);
+    Map<String, Object> all(@RequestParam Map<String, String> query, HttpServletRequest request) {
+        return list(query, request);
     }
 
     @GetMapping("/search")
-    Map<String, Object> search(@RequestParam Map<String, String> query) {
+    Map<String, Object> search(@RequestParam Map<String, String> query, HttpServletRequest request) {
         String q = query.get("query") != null ? query.get("query") : query.get("q");
         query.put("search", q != null ? q : "");
-        return list(query);
+        return list(query, request);
     }
 
     @GetMapping("/category/{category}")
-    Map<String, Object> category(@PathVariable("category") String category, @RequestParam Map<String, String> query) {
+    Map<String, Object> category(@PathVariable("category") String category, @RequestParam Map<String, String> query, HttpServletRequest request) {
         query.put("category", category);
-        return list(query);
+        return list(query, request);
     }
 
     @GetMapping("/{id}")
-    Map<String, Object> one(@PathVariable("id") long id) {
-        var rows = jdbc.queryForList("SELECT * FROM resources WHERE id = ? LIMIT 1", id);
+    Map<String, Object> one(@PathVariable("id") long id, HttpServletRequest request) {
+        String role = request.getHeader("X-User-Role");
+        boolean isAdmin = role != null && "admin".equalsIgnoreCase(role);
+        String sqlQuery = isAdmin
+                ? "SELECT * FROM resources WHERE id = ? LIMIT 1"
+                : "SELECT * FROM resources WHERE id = ? AND (is_published IS NULL OR is_published = 1) LIMIT 1";
+        var rows = jdbc.queryForList(sqlQuery, id);
         if (rows.isEmpty()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Resource not found.");
         }
@@ -62,8 +67,13 @@ class ResourceController {
     }
 
     @GetMapping("/categories")
-    Object categories() {
-        return jdbc.queryForList("SELECT category AS name, COUNT(*) AS count FROM resources GROUP BY category ORDER BY category ASC");
+    Object categories(HttpServletRequest request) {
+        String role = request.getHeader("X-User-Role");
+        boolean isAdmin = role != null && "admin".equalsIgnoreCase(role);
+        String sqlQuery = isAdmin
+                ? "SELECT category AS name, COUNT(*) AS count FROM resources GROUP BY category ORDER BY category ASC"
+                : "SELECT category AS name, COUNT(*) AS count FROM resources WHERE (is_published IS NULL OR is_published = 1) GROUP BY category ORDER BY category ASC";
+        return jdbc.queryForList(sqlQuery);
     }
 
     @GetMapping("/stats")
@@ -396,6 +406,52 @@ class ResourceController {
         return Map.of("message", "Resource deleted successfully.");
     }
 
+    @PutMapping("/{id}/publish")
+    Map<String, Object> setPublishStatus(
+            HttpServletRequest request,
+            @PathVariable("id") long id,
+            @RequestBody(required = false) Map<String, Object> body) {
+        String email = request.getHeader("X-User-Email");
+        boolean isPrimaryAdmin = email != null && email.equalsIgnoreCase(properties.mainAdminEmail());
+        if (!isPrimaryAdmin) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the Main Administrator can publish or unpublish resources.");
+        }
+
+        var rows = jdbc.queryForList("SELECT id, title, is_published FROM resources WHERE id = ? LIMIT 1", id);
+        if (rows.isEmpty()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Resource not found.");
+        }
+
+        boolean targetPublished;
+        if (body != null && body.containsKey("isPublished")) {
+            targetPublished = Boolean.TRUE.equals(body.get("isPublished"));
+        } else if (body != null && body.containsKey("published")) {
+            targetPublished = Boolean.TRUE.equals(body.get("published"));
+        } else {
+            // Toggle
+            boolean current = rows.get(0).get("is_published") == null || SqlSupport.bool(rows.get(0).get("is_published"));
+            targetPublished = !current;
+        }
+
+        jdbc.update("UPDATE resources SET is_published = ?, updated_at = NOW() WHERE id = ?", targetPublished ? 1 : 0, id);
+
+        String title = SqlSupport.str(rows.get(0).get("title"));
+        String clientIp = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For").split(",")[0].trim() : request.getRemoteAddr();
+        try {
+            jdbc.update("""
+                    INSERT INTO zyndex_auth.system_logs (timestamp, service, level, action, actor_email, details, ip_address, status)
+                    VALUES (NOW(), 'CONTENT-SERVICE', 'WARN', 'RESOURCE_PUBLISH_TOGGLE', ?, ?, ?, 'SUCCESS')
+                    """, email, "Main Administrator " + (targetPublished ? "PUBLISHED" : "UNPUBLISHED") + " resource #" + id + " (" + title + ")", clientIp);
+        } catch (Exception ignored) {}
+
+        return Map.of(
+                "success", true,
+                "resourceId", id,
+                "isPublished", targetPublished,
+                "message", targetPublished ? "Resource has been published and is now visible to all users." : "Resource has been unpublished and is hidden from all users."
+        );
+    }
+
     @PostMapping("/{id}/download-token")
     Map<String, Object> createDownloadToken(
             @PathVariable("id") long id,
@@ -460,6 +516,10 @@ class ResourceController {
         var rows = jdbc.queryForList("SELECT * FROM resources WHERE id = ? LIMIT 1", id);
         if (rows.isEmpty()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Resource not found.");
+        }
+        boolean isPublished = rows.get(0).get("is_published") == null || SqlSupport.bool(rows.get(0).get("is_published"));
+        if (!isPublished && !"admin".equalsIgnoreCase(role)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "This resource is currently unpublished.");
         }
         String fileUrl = SqlSupport.str(rows.get(0).get("file_url"));
         String title = SqlSupport.str(rows.get(0).get("title"));
@@ -559,6 +619,10 @@ class ResourceController {
         var rows = jdbc.queryForList("SELECT * FROM resources WHERE id = ? LIMIT 1", id);
         if (rows.isEmpty()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Resource not found.");
+        }
+        boolean isPublished = rows.get(0).get("is_published") == null || SqlSupport.bool(rows.get(0).get("is_published"));
+        if (!isPublished && !"admin".equalsIgnoreCase(role)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "This resource is currently unpublished.");
         }
         String fileUrl = SqlSupport.str(rows.get(0).get("file_url"));
         String title = SqlSupport.str(rows.get(0).get("title"));
@@ -683,26 +747,34 @@ class ResourceController {
         return Map.of("ratings", mappedRatings, "averageRating", SqlSupport.first(summary.get("averageRating"), 0), "totalRatings", summary.get("totalRatings"), "currentPage", page.get("page"));
     }
 
-    private Map<String, Object> list(Map<String, String> query) {
+    private Map<String, Object> list(Map<String, String> query, HttpServletRequest request) {
         var page = sql.page(query);
         String search = query.get("search") == null || query.get("search").isBlank() ? null : "%" + query.get("search") + "%";
         String category = query.get("category");
         String type = query.get("type") == null || "all".equals(query.get("type")) ? null : SqlSupport.dbType(query.get("type"));
         String order = "title".equals(query.get("sort")) ? "r.title ASC" : "popular".equals(query.get("sort")) ? "r.downloads_count DESC" : "COALESCE(r.updated_at, r.created_at) DESC";
+
+        String role = request != null ? request.getHeader("X-User-Role") : null;
+        boolean isAdmin = role != null && "admin".equalsIgnoreCase(role);
+
         var args = new Object[] { category, category, type, type, search, search, search, search };
+        String wherePublished = isAdmin ? "" : " AND (r.is_published IS NULL OR r.is_published = 1)";
+
         var rows = jdbc.queryForList("""
                 SELECT r.* FROM resources r
                                 WHERE (? IS NULL OR LOWER(TRIM(r.category)) = LOWER(TRIM(?)))
                   AND (? IS NULL OR r.type = ?)
                   AND (? IS NULL OR r.title LIKE ? OR r.description LIKE ? OR r.author LIKE ?)
+                  %s
                 ORDER BY %s LIMIT ? OFFSET ?
-                """.formatted(order), concat(args, page.get("size"), page.get("offset")));
+                """.formatted(wherePublished, order), concat(args, page.get("size"), page.get("offset")));
         long total = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM resources r
                                 WHERE (? IS NULL OR LOWER(TRIM(r.category)) = LOWER(TRIM(?)))
                   AND (? IS NULL OR r.type = ?)
                   AND (? IS NULL OR r.title LIKE ? OR r.description LIKE ? OR r.author LIKE ?)
-                """, Long.class, args);
+                  %s
+                """.formatted(wherePublished), Long.class, args);
         return sql.pageResult("resources", rows.stream().map(this::mapResourceWithDetails).toList(), total, page.get("page"), page.get("size"));
     }
 

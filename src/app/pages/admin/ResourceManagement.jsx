@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, RotateCw, Download, Clock, CheckCircle, CheckCircle2, HardDrive, Database, Activity, Cpu, Info, Shield, Layers, Calendar, User, Star, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, ChevronDown, BookOpen, BookOpenCheck, Square, MoveHorizontal, MoveVertical, Minus } from 'lucide-react';
+import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, EyeOff, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, RotateCw, Download, Clock, CheckCircle, CheckCircle2, HardDrive, Database, Activity, Cpu, Info, Shield, Layers, Calendar, User, Star, Maximize2, Minimize2, PanelLeft, LayoutGrid, ListTree, ChevronDown, BookOpen, BookOpenCheck, Square, MoveHorizontal, MoveVertical, Minus, Globe, Lock } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as pdfWorkerModule from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -57,7 +57,8 @@ function ArticleEditor({ value, onChange }) {
 }
 
 export default function ResourceManagement() {
-  const { user } = useAuth();
+  const { user, isPrimaryAdmin } = useAuth();
+  const isMainAdmin = isPrimaryAdmin || user?.email?.toLowerCase() === 'bhaanugali@gmail.com' || user?.isPrimaryAdmin === true;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [sortBy, setSortBy] = useState('newest');
@@ -662,6 +663,52 @@ export default function ResourceManagement() {
     }
   };
 
+  const handleTogglePublish = async (resource) => {
+    if (!isMainAdmin) {
+      setModalMessage({
+        type: 'error',
+        title: 'Access Restricted',
+        text: 'Only the Main Administrator has authority to publish or unpublish resources from the catalog.',
+        buttonText: 'Understood'
+      });
+      return;
+    }
+
+    const currentPublished = resource.isPublished !== false;
+    const actionLabel = currentPublished ? 'unpublish' : 'publish';
+    if (!window.confirm(`Are you sure you want to ${actionLabel} "${resource.title}"? ${currentPublished ? 'It will remain in the database but will be completely hidden from all users.' : 'It will become live and visible to all users.'}`)) {
+      return;
+    }
+
+    try {
+      const res = await resourceService.togglePublishStatus(resource.id, !currentPublished);
+      setModalMessage({
+        type: 'success',
+        title: currentPublished ? 'Resource Unpublished' : 'Resource Published',
+        text: res?.message || (currentPublished ? 'Resource unpublished and hidden from user catalog.' : 'Resource published and now live in user catalog.'),
+        buttonText: 'OK'
+      });
+
+      // Update local state immediately
+      setResources((prev) =>
+        prev.map((r) => (r.id === resource.id ? { ...r, isPublished: !currentPublished } : r))
+      );
+      if (infoResource && infoResource.id === resource.id) {
+        setInfoResource((prev) => ({ ...prev, isPublished: !currentPublished }));
+      }
+
+      await loadResources(searchTerm);
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || `Failed to ${actionLabel} resource.`;
+      setModalMessage({
+        type: 'error',
+        title: 'Action Failed',
+        text: errorMsg,
+        buttonText: 'OK'
+      });
+    }
+  };
+
   const formatBytes = (bytes) => {
     if (!bytes || bytes <= 0) return '0 B';
     const units = ['B', 'KB', 'MB', 'GB'];
@@ -1016,15 +1063,27 @@ export default function ResourceManagement() {
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Author of Resource</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Type</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Required Plan</th>
+                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Visibility Status</th>
                   <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAndSortedResources.length === 0 ? (
-                  <tr><td colSpan="6" className="text-center py-16 text-gray-400">No resources found matching criteria.</td></tr>
-                ) : filteredAndSortedResources.map((resource) => (
-                  <tr key={resource.id} className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
-                    <td className="py-4 px-6 font-medium text-gray-900">{resource.title}</td>
+                  <tr><td colSpan="7" className="text-center py-16 text-gray-400">No resources found matching criteria.</td></tr>
+                ) : filteredAndSortedResources.map((resource) => {
+                  const isPublished = resource.isPublished !== false;
+                  return (
+                  <tr key={resource.id} className={`border-b border-gray-200 hover:bg-gray-50/50 transition-colors ${!isPublished ? 'bg-amber-50/30' : ''}`}>
+                    <td className="py-4 px-6 font-medium text-gray-900">
+                      <div className="flex items-center gap-2">
+                        <span>{resource.title}</span>
+                        {!isPublished && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                            Unpublished
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="py-4 px-6">{resource.category}</td>
                     <td className="py-4 px-6">{resource.subject}</td>
                     <td className="py-4 px-6 uppercase text-xs font-semibold text-gray-500">
@@ -1048,7 +1107,31 @@ export default function ResourceManagement() {
                       </span>
                     </td>
                     <td className="py-4 px-6">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+                        isPublished
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-rose-50 text-rose-700 border-rose-200'
+                      }`}>
+                        <span className={`size-1.5 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                        {isPublished ? 'Live & Published' : 'Unpublished (Hidden)'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
+                        {/* Main Admin Only: Publish / Unpublish Toggle */}
+                        {isMainAdmin && (
+                          <button
+                            onClick={() => handleTogglePublish(resource)}
+                            className={`p-2 rounded-lg transition-colors cursor-pointer border ${
+                              isPublished
+                                ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
+                                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300'
+                            }`}
+                            title={isPublished ? 'Unpublish Resource (Hide from all users, keep in database)' : 'Publish Resource (Make visible in user catalog)'}
+                          >
+                            {isPublished ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                          </button>
+                        )}
                         <button onClick={() => setInfoResource(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors cursor-pointer" title="View Detailed Resource Information"><Info className="size-4" /></button>
                         <button onClick={() => openPreviewModal(resource)} className="p-2 hover:bg-amber-50 text-amber-600 rounded-lg transition-colors cursor-pointer" title="Preview Resource Modal"><Eye className="size-4" /></button>
                         <button onClick={() => openEditModal(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors cursor-pointer" title="Edit Resource"><Edit className="size-4" /></button>
@@ -1056,7 +1139,8 @@ export default function ResourceManagement() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -2222,26 +2306,53 @@ export default function ResourceManagement() {
                 )}
 
                 {/* Footer Actions */}
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const res = infoResource;
-                      setInfoResource(null);
-                      openPreviewModal(res);
-                    }}
-                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-orange-500/20 cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Eye className="size-3.5" />
-                    Open Reader Preview
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInfoResource(null)}
-                    className="px-5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
-                  >
-                    Close
-                  </button>
+                <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                  <div>
+                    {isMainAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePublish(infoResource)}
+                        className={`px-3.5 py-2 font-semibold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5 border ${
+                          infoResource.isPublished !== false
+                            ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
+                            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+                        }`}
+                      >
+                        {infoResource.isPublished !== false ? (
+                          <>
+                            <EyeOff className="size-3.5 text-amber-700" />
+                            Unpublish (Hide from Users)
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="size-3.5 text-emerald-700" />
+                            Publish to Live Catalog
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const res = infoResource;
+                        setInfoResource(null);
+                        openPreviewModal(res);
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-orange-500/20 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Eye className="size-3.5" />
+                      Open Reader Preview
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInfoResource(null)}
+                      className="px-5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>

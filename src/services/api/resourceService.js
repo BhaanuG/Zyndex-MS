@@ -135,6 +135,22 @@ const resourceService = {
   },
 
   /**
+   * Toggle resource published/unpublished status (Main Admin only)
+   * @param {string|number} resourceId - Resource ID
+   * @param {boolean} [isPublished] - Optional target published boolean
+   * @returns {Promise<Object>} - { success, resourceId, isPublished, message }
+   */
+  togglePublishStatus: async (resourceId, isPublished) => {
+    try {
+      const payload = isPublished !== undefined ? { isPublished } : {};
+      const response = await apiClient.put(`/resources/${resourceId}/publish`, payload);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Download resource file
    * @param {string} resourceId - Resource ID
    * @returns {Promise<Blob>} - File blob

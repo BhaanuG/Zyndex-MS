@@ -36,6 +36,9 @@ class DbInitializer implements CommandLineRunner {
                 )
                 """);
         try {
+            jdbc.execute("ALTER TABLE resources ADD COLUMN is_published BOOLEAN NOT NULL DEFAULT TRUE");
+        } catch (Exception ignored) {}
+        try {
             jdbc.execute("ALTER TABLE resources ADD COLUMN required_plan VARCHAR(50) NOT NULL DEFAULT 'FREE'");
         } catch (Exception ignored) {}
         try {
