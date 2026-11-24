@@ -2105,32 +2105,32 @@ export default function ResourceManagement() {
                 </div>
 
                 {/* Resource Technical File Profile Banner */}
-                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-lg shadow-slate-900/10 space-y-3">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
-                    <span className="flex items-center gap-1.5">
-                      <HardDrive className="size-4 text-orange-400" />
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                    <span className="flex items-center gap-1.5 text-slate-800">
+                      <HardDrive className="size-4 text-orange-600" />
                       Resource Technical & Storage Profile
                     </span>
-                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-orange-400 border border-slate-700 text-[10px] font-mono font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-mono font-bold">
                       Verified Content File
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
-                    <div className="bg-slate-800/90 border border-slate-700/60 rounded-lg p-2.5">
+                    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
                       <p className="text-[10px] uppercase font-bold text-slate-400">Document File Size</p>
-                      <p className="text-base font-bold text-white font-mono mt-0.5">
+                      <p className="text-base font-bold text-slate-900 font-mono mt-0.5">
                         {infoResource.fileSizeBytes ? formatStorageSize(infoResource.fileSizeBytes) : (infoResource.hasDownload ? 'Stored PDF' : 'Interactive Article')}
                       </p>
                     </div>
-                    <div className="bg-slate-800/90 border border-slate-700/60 rounded-lg p-2.5">
+                    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
                       <p className="text-[10px] uppercase font-bold text-slate-400">Content Format</p>
-                      <p className="text-base font-bold text-orange-300 mt-0.5 uppercase text-xs sm:text-sm font-mono">
+                      <p className="text-base font-bold text-orange-600 mt-0.5 uppercase text-xs sm:text-sm font-mono">
                         {infoResource.fileName ? infoResource.fileName.split('.').pop()?.toUpperCase() : (infoResource.hasDownload ? 'PDF' : 'HTML')}
                       </p>
                     </div>
-                    <div className="bg-slate-800/90 border border-slate-700/60 rounded-lg p-2.5 col-span-2 sm:col-span-1">
+                    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs col-span-2 sm:col-span-1">
                       <p className="text-[10px] uppercase font-bold text-slate-400">Catalog Access</p>
-                      <p className="text-base font-bold text-emerald-400 mt-0.5 text-xs sm:text-sm">
+                      <p className="text-base font-bold text-emerald-600 mt-0.5 text-xs sm:text-sm">
                         {infoResource.featured !== false ? 'Active & Published' : 'Draft / Unapproved'}
                       </p>
                     </div>
