@@ -2610,21 +2610,21 @@ Statistics were calculated using a native filesystem audit executed across all s
 | Metric Category | Measured Quantity | Description & Character Breakdown |
 | :--- | :--- | :--- |
 | **Total Source Files** | **216 Files** | Application-owned source, configuration, template, and schema manifests |
-| **Total Folders / Directories** | **106 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **60,119 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **225,279 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,734,491 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,490,281 Characters** | 54.50% of total character stream |
-| **Digits & Numbers (`0-9`)** | **67,615 Characters** | 2.47% of total character stream |
-| **Symbols, Operators & Punctuation** | **369,690 Characters** | 13.52% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **806,905 Characters** | 29.51% of total character stream (indentation, newlines) |
+| **Total Folders / Directories** | **104 Folders** | Structured source modules, microservice packages, and asset directories |
+| **Total Lines of Code (LOC)** | **60,498 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **226,963 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,756,923 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,500,281 Characters** | 54.42% of total character stream |
+| **Digits & Numbers (`0-9`)** | **67,964 Characters** | 2.47% of total character stream |
+| **Symbols, Operators & Punctuation** | **371,804 Characters** | 13.49% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **816,874 Characters** | 29.63% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
 | Extension | Category / Role | File Count | Line Count | Word Count | Character Count |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`.jsx`** | React UI Components & Pages | **99 Files** | **32,242 Lines** | **116,824 Words** | **1,501,407 Chars** |
-| **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,844 Lines** | **44,748 Words** | **551,972 Chars** |
+| **`.jsx`** | React UI Components & Pages | **99 Files** | **32,592 Lines** | **118,344 Words** | **1,522,176 Chars** |
+| **`.java`** | Spring Boot Microservices Backend | **64 Files** | **10,873 Lines** | **44,912 Words** | **553,635 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,028 Lines** | **16,503 Words** | **174,479 Chars** |
 | **`.json`** | Package & Dependency Manifests | **3 Files** | **6,167 Lines** | **11,760 Words** | **183,551 Chars** |
 | **`.md`** | Technical Architecture Documentation | **6 Files** | **3,671 Lines** | **31,371 Words** | **261,018 Chars** |
@@ -2632,7 +2632,7 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **13 Files** | **700 Lines** | **1,387 Words** | **21,599 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **528 Lines** | **565 Words** | **19,249 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **883 Chars** |
-| **Overall Total** | **Full Stack Application** | **216 Files** | **60,119 Lines** | **225,279 Words** | **2,734,491 Chars** |
+| **Overall Total** | **Full Stack Application** | **216 Files** | **60,498 Lines** | **226,963 Words** | **2,756,923 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 
