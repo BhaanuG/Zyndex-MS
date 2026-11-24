@@ -1564,56 +1564,71 @@ export default function ResourceManagement() {
                     <div className="flex-1 flex flex-col overflow-hidden">
                       {/* PDF Toolbar */}
                       <div className="flex flex-wrap items-center justify-between gap-2 bg-neutral-900 px-4 py-2 text-white select-none shrink-0 border-b border-neutral-700/80">
+                        {/* Page navigation */}
                         <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setShowPdfSidebar((prev) => !prev)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
-                              showPdfSidebar
-                                ? 'bg-orange-600/20 text-orange-400 border-orange-500/50'
-                                : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border-neutral-700 hover:text-white'
-                            }`}
-                            title={showPdfSidebar ? 'Hide Page Navigator' : 'Show Page Navigator'}
-                          >
-                            <PanelLeft className="size-3.5" />
-                            <span className="hidden sm:inline">Pages</span>
-                          </button>
-                          <div className="h-4 w-px bg-neutral-700 mx-0.5" />
+                          {/* Sidebar toggle only in fullscreen mode */}
+                          {isPdfFullscreen && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setShowPdfSidebar((prev) => !prev)}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                                  showPdfSidebar
+                                    ? 'bg-orange-600/20 text-orange-400 border-orange-500/50'
+                                    : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border-neutral-700 hover:text-white'
+                                }`}
+                                title={showPdfSidebar ? 'Hide Page Navigator' : 'Show Page Navigator'}
+                              >
+                                <PanelLeft className="size-3.5" />
+                                <span className="hidden sm:inline">Pages</span>
+                              </button>
+                              <div className="h-4 w-px bg-neutral-700 mx-0.5" />
+                            </>
+                          )}
 
                           <button
                             type="button"
                             disabled={pdfPage <= 1}
-                            onClick={() => setPdfPage((page) => Math.max(1, page - (pdfPageViewMode === 'two-page' ? 2 : 1)))}
+                            onClick={() => setPdfPage((page) => Math.max(1, page - (isPdfFullscreen && pdfPageViewMode === 'two-page' ? 2 : 1)))}
                             className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer"
                             title="Previous page"
                           >
                             <ChevronLeft className="size-4" />
                           </button>
-                          <div className="flex items-center gap-1.5 text-xs bg-neutral-800 px-2 py-0.5 rounded-lg border border-neutral-700">
-                            <span>Page</span>
-                            <input
-                              type="number"
-                              min={1}
-                              max={pdfPageCount}
-                              value={pdfPage}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value, 10);
-                                if (!isNaN(val) && val >= 1 && val <= pdfPageCount) {
-                                  setPdfPage(val);
-                                }
-                              }}
-                              className="w-10 text-center bg-neutral-950 text-white rounded border border-neutral-600 py-0.5 text-xs font-bold focus:outline-none focus:border-orange-500"
-                            />
-                            {pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount ? (
-                              <span className="text-neutral-400 font-mono">- {pdfPage + 1} of {pdfPageCount}</span>
-                            ) : (
-                              <span className="text-neutral-400">of {pdfPageCount}</span>
-                            )}
-                          </div>
+                          
+                          {/* In standard popup: simple clean "Page X / Y". In fullscreen: editable jump input */}
+                          {isPdfFullscreen ? (
+                            <div className="flex items-center gap-1.5 text-xs bg-neutral-800 px-2 py-0.5 rounded-lg border border-neutral-700">
+                              <span>Page</span>
+                              <input
+                                type="number"
+                                min={1}
+                                max={pdfPageCount}
+                                value={pdfPage}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  if (!isNaN(val) && val >= 1 && val <= pdfPageCount) {
+                                    setPdfPage(val);
+                                  }
+                                }}
+                                className="w-10 text-center bg-neutral-950 text-white rounded border border-neutral-600 py-0.5 text-xs font-bold focus:outline-none focus:border-orange-500"
+                              />
+                              {pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount ? (
+                                <span className="text-neutral-400 font-mono">- {pdfPage + 1} of {pdfPageCount}</span>
+                              ) : (
+                                <span className="text-neutral-400">of {pdfPageCount}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs font-medium text-neutral-300">
+                              Page {pdfPage} / {pdfPageCount}
+                            </span>
+                          )}
+
                           <button
                             type="button"
-                            disabled={pdfPage >= pdfPageCount || (pdfPageViewMode === 'two-page' && pdfPage + 1 >= pdfPageCount)}
-                            onClick={() => setPdfPage((page) => Math.min(pdfPageCount, page + (pdfPageViewMode === 'two-page' ? 2 : 1)))}
+                            disabled={pdfPage >= pdfPageCount || (isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPage + 1 >= pdfPageCount)}
+                            onClick={() => setPdfPage((page) => Math.min(pdfPageCount, page + (isPdfFullscreen && pdfPageViewMode === 'two-page' ? 2 : 1)))}
                             className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer"
                             title="Next page"
                           >
@@ -1651,95 +1666,100 @@ export default function ResourceManagement() {
                             <RotateCcw className="size-3.5" />
                           </button>
 
-                          <div className="h-4 w-px bg-neutral-700 mx-0.5" />
+                          {/* Extra advanced options (Rotation, Single/Two-Page, Fit Page/Width) shown ONLY when in Fullscreen */}
+                          {isPdfFullscreen && (
+                            <>
+                              <div className="h-4 w-px bg-neutral-700 mx-0.5" />
 
-                          {/* Rotation */}
-                          <button
-                            type="button"
-                            onClick={() => setPdfRotation((r) => (r - 90 + 360) % 360)}
-                            className="rounded p-1 hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer"
-                            title={`Rotate Counterclockwise (${(pdfRotation - 90 + 360) % 360}°)`}
-                          >
-                            <RotateCcw className="size-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPdfRotation((r) => (r + 90) % 360)}
-                            className="rounded p-1 hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer flex items-center gap-1"
-                            title={`Rotate Clockwise (${(pdfRotation + 90) % 360}°)`}
-                          >
-                            <RotateCw className="size-3.5" />
-                            {pdfRotation !== 0 && (
-                              <span className="text-[10px] font-mono text-orange-400 font-bold">{pdfRotation}°</span>
-                            )}
-                          </button>
+                              {/* Rotation */}
+                              <button
+                                type="button"
+                                onClick={() => setPdfRotation((r) => (r - 90 + 360) % 360)}
+                                className="rounded p-1 hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer"
+                                title={`Rotate Counterclockwise (${(pdfRotation - 90 + 360) % 360}°)`}
+                              >
+                                <RotateCcw className="size-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPdfRotation((r) => (r + 90) % 360)}
+                                className="rounded p-1 hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer flex items-center gap-1"
+                                title={`Rotate Clockwise (${(pdfRotation + 90) % 360}°)`}
+                              >
+                                <RotateCw className="size-3.5" />
+                                {pdfRotation !== 0 && (
+                                  <span className="text-[10px] font-mono text-orange-400 font-bold">{pdfRotation}°</span>
+                                )}
+                              </button>
 
-                          {/* View Mode (Single vs Two-Page) */}
-                          <div className="hidden sm:flex items-center bg-neutral-800 p-0.5 rounded-lg border border-neutral-700">
-                            <button
-                              type="button"
-                              onClick={() => setPdfPageViewMode('single')}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                pdfPageViewMode === 'single'
-                                  ? 'bg-neutral-700 text-orange-400 shadow-sm'
-                                  : 'text-neutral-400 hover:text-white'
-                              }`}
-                              title="Single Page View"
-                            >
-                              <Square className="size-3" />
-                              <span className="hidden md:inline">Single</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPdfPageViewMode('two-page')}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                pdfPageViewMode === 'two-page'
-                                  ? 'bg-neutral-700 text-orange-400 shadow-sm'
-                                  : 'text-neutral-400 hover:text-white'
-                              }`}
-                              title="Two-Page Book View"
-                            >
-                              <BookOpenCheck className="size-3" />
-                              <span className="hidden md:inline">Two-Page</span>
-                            </button>
-                          </div>
+                              {/* View Mode (Single vs Two-Page) */}
+                              <div className="hidden sm:flex items-center bg-neutral-800 p-0.5 rounded-lg border border-neutral-700">
+                                <button
+                                  type="button"
+                                  onClick={() => setPdfPageViewMode('single')}
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                                    pdfPageViewMode === 'single'
+                                      ? 'bg-neutral-700 text-orange-400 shadow-sm'
+                                      : 'text-neutral-400 hover:text-white'
+                                  }`}
+                                  title="Single Page View"
+                                >
+                                  <Square className="size-3" />
+                                  <span className="hidden md:inline">Single</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setPdfPageViewMode('two-page')}
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                                    pdfPageViewMode === 'two-page'
+                                      ? 'bg-neutral-700 text-orange-400 shadow-sm'
+                                      : 'text-neutral-400 hover:text-white'
+                                  }`}
+                                  title="Two-Page Book View"
+                                >
+                                  <BookOpenCheck className="size-3" />
+                                  <span className="hidden md:inline">Two-Page</span>
+                                </button>
+                              </div>
 
-                          {/* Fit Mode */}
-                          <div className="hidden md:flex items-center bg-neutral-800 p-0.5 rounded-lg border border-neutral-700">
-                            <button
-                              type="button"
-                              onClick={() => setPdfFitMode('page')}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                pdfFitMode === 'page'
-                                  ? 'bg-neutral-700 text-orange-400 shadow-sm'
-                                  : 'text-neutral-400 hover:text-white'
-                              }`}
-                              title="Fit Page (Top-to-Bottom)"
-                            >
-                              <MoveVertical className="size-3" />
-                              <span>Fit Page</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPdfFitMode('width')}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                pdfFitMode === 'width'
-                                  ? 'bg-neutral-700 text-orange-400 shadow-sm'
-                                  : 'text-neutral-400 hover:text-white'
-                              }`}
-                              title="Fit Width"
-                            >
-                              <MoveHorizontal className="size-3" />
-                              <span>Fit Width</span>
-                            </button>
-                          </div>
+                              {/* Fit Mode */}
+                              <div className="hidden md:flex items-center bg-neutral-800 p-0.5 rounded-lg border border-neutral-700">
+                                <button
+                                  type="button"
+                                  onClick={() => setPdfFitMode('page')}
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                                    pdfFitMode === 'page'
+                                      ? 'bg-neutral-700 text-orange-400 shadow-sm'
+                                      : 'text-neutral-400 hover:text-white'
+                                  }`}
+                                  title="Fit Page (Top-to-Bottom)"
+                                >
+                                  <MoveVertical className="size-3" />
+                                  <span>Fit Page</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setPdfFitMode('width')}
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                                    pdfFitMode === 'width'
+                                      ? 'bg-neutral-700 text-orange-400 shadow-sm'
+                                      : 'text-neutral-400 hover:text-white'
+                                  }`}
+                                  title="Fit Width"
+                                >
+                                  <MoveHorizontal className="size-3" />
+                                  <span>Fit Width</span>
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
 
                       {/* Main Reader View Area with Sidebar */}
                       <div className="flex-1 flex overflow-hidden bg-neutral-800 relative">
-                        {/* Sidebar (Thumbnails / TOC) */}
-                        {showPdfSidebar && (
+                        {/* Sidebar (Thumbnails / TOC) - enabled in fullscreen mode */}
+                        {isPdfFullscreen && showPdfSidebar && (
                           <div className="flex h-full w-64 sm:w-72 shrink-0 border-r border-neutral-700 bg-[#252525] text-neutral-200 select-none z-10 shadow-xl">
                             {/* Nav Strip */}
                             <div className="w-11 shrink-0 bg-[#1c1c1c] border-r border-neutral-700/80 flex flex-col items-center py-2.5 gap-2">
