@@ -40,7 +40,15 @@ export default function Privacy() {
         },
         {
           subtitle: 'User-Generated Content & Feedback',
-          text: 'Reviews, ratings (1 to 5 stars), commentary, feedback suggestions, and contact inquiries submitted directly through our verified messaging gateways.'
+          text: 'Reviews, ratings (continuous and fractional from 1.0 to 5.0 stars), commentary, feedback suggestions, and contact inquiries submitted directly through our verified messaging gateways.'
+        },
+        {
+          subtitle: 'Anonymous Review & Feedback Mode',
+          text: 'When submitting ratings or feedback on educational resources, users may choose to submit anonymously. In anonymous mode, your name, email address, and personal account identifiers are strictly decoupled and concealed from administrators, public cards, and reader feeds to protect academic whistleblowing and candid pedagogical evaluations.'
+        },
+        {
+          subtitle: 'Dual-Stack Public IP & Telemetry Transparency',
+          text: 'We capture accurate client network identifiers (IPv4 and IPv6 dual-stack public IP addresses) strictly for account security auditing, credential stuffing defense, and multi-device session recognition. We do NOT perform intrusive hardware tracking, Wi-Fi SSID probing, or GPS geolocation.'
         }
       ]
     },
@@ -252,7 +260,7 @@ export default function Privacy() {
             <div className="inline-flex items-center justify-center size-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl shadow-lg mb-6">
               <Shield className="size-10 text-white" />
             </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent pb-3 pt-1 leading-tight tracking-normal mb-4">
               Privacy Policy
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">

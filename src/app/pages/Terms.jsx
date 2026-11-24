@@ -121,6 +121,10 @@ export default function Terms() {
           text: 'Downloaded content for offline access:\n\n• May only be used on devices authorized by your account\n• Must not be transferred, shared, or distributed to others\n• May expire after a certain period (e.g., 30 days) and require re-authentication\n• May be limited in number based on your subscription tier'
         },
         {
+          subtitle: 'Content Ratings, Reviews & Whistleblowing',
+          text: 'Users may submit ratings, feedback, and critiques on academic materials. You warrant that all feedback represents your honest scholastic evaluation. When submitting feedback, you may elect to submit anonymously. Anonymous feedback is decoupled from your personal profile and visible only as an anonymized review, ensuring academic freedom while preventing retaliatory administrative bias.'
+        },
+        {
           subtitle: 'Account Termination Effects',
           text: 'If your account is terminated (by you or by us), you will immediately lose access to all downloaded content and must delete all Content from your devices. Failure to do so constitutes a violation of these Terms and applicable copyright laws.'
         }
@@ -334,7 +338,7 @@ export default function Terms() {
             <div className="inline-flex items-center justify-center size-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl shadow-lg mb-6">
               <Scale className="size-10 text-white" />
             </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent pb-3 pt-1 leading-tight tracking-normal mb-4">
               Terms of Service
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -360,8 +364,8 @@ export default function Terms() {
               <div>
                 <h3 className="text-2xl font-bold mb-3">Important Legal Agreement</h3>
                 <p className="text-red-50 leading-relaxed">
-                  By using Zyndex, you agree to be legally bound by these Terms of Service. These terms contain important 
-                  information about your rights and obligations, including limitations of liability and dispute resolution 
+                  By using Zyndex, you agree to be legally bound by these Terms of Service. These terms contain important
+                  information about your rights and obligations, including limitations of liability and dispute resolution
                   procedures. If you do not agree with these terms, you must not use the Service.
                 </p>
               </div>
