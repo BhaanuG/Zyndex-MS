@@ -19,10 +19,10 @@
 <p align="center">
   <a href="#core-architectural-highlights"><img src="https://img.shields.io/badge/Architecture-Poly--Service%20Microservices-blueviolet?style=for-the-badge" alt="Architecture" /></a>
   <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21 LTS" /></a>
-  <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Spring%20Boot-3.4.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 3.4.2" /></a>
-  <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Spring%20Cloud-2024.0.0-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Cloud" /></a>
+  <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Spring%20Boot-3.4.3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 3.4.3" /></a>
+  <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Spring%20Cloud-2024.0.1-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Cloud 2024.0.1" /></a>
   <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" /></a>
-  <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/Vite-6.0.5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 6" /></a>
+  <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/Vite-6.4.6-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 6" /></a>
   <a href="#database-runtime-specifications"><img src="https://img.shields.io/badge/MySQL-8.4%20LTS-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8.4" /></a>
 </p>
 
@@ -96,7 +96,7 @@ flowchart TD
         EUREKA["Eureka Service Registry (Port 8761)\nHeartbeat Monitoring & Distributed Registry"]
     end
 
-    subgraph ServiceMesh["⚙️ Autonomous Domain Microservices (Java 21 LTS + Spring Boot 3.4.2)"]
+    subgraph ServiceMesh["⚙️ Autonomous Domain Microservices (Java 21 LTS + Spring Boot 3.4.3)"]
         AUTH["auth-service (8081)\nIdentity, 4-Digit OTP, 24h Trust, BCrypt"]
         CONTENT["content-service (8082)\nCatalog, PDFBox Slicing, Metadata"]
         ACCESS["access-service (8083)\nTier Entitlements, Quotas, Token Issuance"]
@@ -211,8 +211,8 @@ Academic institutions and independent publishers face severe digital content dis
 | **Project Name** | **Zyndex** |
 | **Primary Domain** | Enterprise Academic Resource Management & Tiered Content Delivery |
 | **Architecture** | Poly-Service Microservices orchestrated via Netflix Eureka and Spring Cloud Gateway |
-| **Backend Stack** | Java 21 LTS, Spring Boot 3.4.2, Spring Cloud 2024.0.0, Spring Security 6, JJWT 0.11.5, Spring JDBC |
-| **Frontend Stack** | Pure React 18.3.1 (JavaScript + JSX), Vite 6.0.5, Tailwind CSS 3.4.17, Recharts 2.15.0, Lucide Icons |
+| **Backend Stack** | Java 21 LTS, Spring Boot 3.4.3, Spring Cloud 2024.0.1, Spring Security 6, JJWT 0.11.5, Spring JDBC |
+| **Frontend Stack** | Pure React 18.3.1 (JavaScript + JSX), Vite 6.4.6, Tailwind CSS 4.1.12, Recharts 2.15.2, Lucide Icons |
 | **Database Architecture** | MySQL 8.x with 5 isolated schemas (`zyndex_auth`, `zyndex_content`, `zyndex_access`, `zyndex_usage`, `zyndex_subscription`) |
 | **Authentication & Tokens**| JWT (HMAC-SHA256, 2h 30m session timeout, prompt at 2h), 4-digit numeric OTPs via SMTP, 24h trusted device bypass, BCrypt password hashing, RBAC |
 | **Payment Verification** | Direct UPI QR code generation, 180s/300s session timers, 12-digit UTR submission, 2-minute Verification Hold Processing modal, Admin Review Hold |
