@@ -1442,7 +1442,7 @@ export default function ResourceDetail() {
                         })}
                       </div>
 
-                      {/* Precise Decimal Slider & Quick Increments */}
+                      {/* Precise Decimal Slider */}
                       <div className="flex flex-wrap items-center gap-3 pt-1">
                         <input
                           type="range"
@@ -1456,18 +1456,6 @@ export default function ResourceDetail() {
                         <span className="font-mono text-sm font-bold text-gray-800">
                           {rating > 0 ? Number(rating).toFixed(1) : '5.0'} ★
                         </span>
-                        <div className="flex items-center gap-1">
-                          {[4.0, 4.2, 4.5, 4.8, 5.0].map((quickVal) => (
-                            <button
-                              key={quickVal}
-                              type="button"
-                              onClick={() => setRating(quickVal)}
-                              className={`px-2 py-0.5 text-[11px] rounded font-medium transition-all ${rating === quickVal ? 'bg-orange-600 text-white font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
-                            >
-                              {quickVal.toFixed(1)}
-                            </button>
-                          ))}
-                        </div>
                       </div>
                     </div>
                   </div>
