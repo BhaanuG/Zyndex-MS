@@ -1053,92 +1053,155 @@ export default function ResourceManagement() {
           </div>
         </form>
 
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px]">
-              <thead className="bg-gray-50 border-b border-gray-200">
+            <table className="w-full min-w-[960px] table-auto text-left border-collapse">
+              <thead className="bg-slate-50/90 border-b border-slate-200 text-xs uppercase font-bold text-slate-500 tracking-wider select-none">
                 <tr>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Title</th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Category</th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Author of Resource</th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Type</th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Required Plan</th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Visibility Status</th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Actions</th>
+                  <th className="py-3.5 px-5 w-[28%]">Title</th>
+                  <th className="py-3.5 px-4 w-[16%]">Category</th>
+                  <th className="py-3.5 px-4 w-[16%]">Author of Resource</th>
+                  <th className="py-3.5 px-3 w-[10%]">Type</th>
+                  <th className="py-3.5 px-4 w-[14%]">Required Plan</th>
+                  <th className="py-3.5 px-5 w-[16%] text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100 text-sm">
                 {filteredAndSortedResources.length === 0 ? (
-                  <tr><td colSpan="7" className="text-center py-16 text-gray-400">No resources found matching criteria.</td></tr>
+                  <tr>
+                    <td colSpan="6" className="text-center py-16 text-slate-400">
+                      No resources found matching criteria.
+                    </td>
+                  </tr>
                 ) : filteredAndSortedResources.map((resource) => {
                   const isPublished = resource.isPublished !== false;
                   return (
-                  <tr key={resource.id} className={`border-b border-gray-200 hover:bg-gray-50/50 transition-colors ${!isPublished ? 'bg-amber-50/30' : ''}`}>
-                    <td className="py-4 px-6 font-medium text-gray-900">
-                      <div className="flex items-center gap-2">
-                        <span>{resource.title}</span>
-                        {!isPublished && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-800 border border-amber-300">
-                            Unpublished
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">{resource.category}</td>
-                    <td className="py-4 px-6">{resource.subject}</td>
-                    <td className="py-4 px-6 uppercase text-xs font-semibold text-gray-500">
-                      {['article', 'paper'].includes(String(resource.resourceType || resource.type || '').toLowerCase()) ? 'ARTICLE' : (resource.resourceType || resource.type || 'PDF')}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        !resource.requiredPlan || resource.requiredPlan === 'FREE'
-                          ? 'bg-gray-100 text-gray-700'
-                          : resource.requiredPlan === 'STUDENT_BASIC'
-                          ? 'bg-blue-100 text-blue-700'
-                          : resource.requiredPlan === 'STUDENT_PLUS'
-                          ? 'bg-indigo-100 text-indigo-700'
-                          : resource.requiredPlan === 'RESEARCHER_PRO'
-                          ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                          : resource.requiredPlan === 'UNIVERSITY'
-                          ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-                          : 'bg-purple-100 text-purple-800 border border-purple-200'
-                      }`}>
-                        {PLATFORM_PLANS.find(p => p.id === resource.requiredPlan)?.name || (resource.requiredPlan || 'FREE').replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
-                        isPublished
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-rose-50 text-rose-700 border-rose-200'
-                      }`}>
-                        <span className={`size-1.5 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                        {isPublished ? 'Live & Published' : 'Unpublished (Hidden)'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        {/* Main Admin Only: Publish / Unpublish Toggle */}
-                        {isMainAdmin && (
+                    <tr
+                      key={resource.id}
+                      className={`hover:bg-slate-50/70 transition-colors ${!isPublished ? 'bg-amber-50/25' : ''}`}
+                    >
+                      {/* Title + inline status indicator */}
+                      <td className="py-3.5 px-5">
+                        <div className="flex flex-col gap-1 pr-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-900 line-clamp-1" title={resource.title}>
+                              {resource.title}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px]">
+                            <span className="font-mono text-slate-400">#{resource.id}</span>
+                            <span className="text-slate-300">•</span>
+                            <span className={`inline-flex items-center gap-1 font-medium ${
+                              isPublished ? 'text-emerald-700' : 'text-amber-700'
+                            }`}>
+                              <span className={`size-1.5 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                              {isPublished ? 'Live' : 'Unpublished (Hidden)'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-3.5 px-4 text-slate-700 font-medium whitespace-nowrap">
+                        <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-semibold">
+                          {resource.category || 'General'}
+                        </span>
+                      </td>
+
+                      {/* Author of Resource */}
+                      <td className="py-3.5 px-4 text-slate-700 font-medium">
+                        <span className="line-clamp-1" title={resource.subject || resource.author || 'Anonymous'}>
+                          {resource.subject || resource.author || 'Anonymous'}
+                        </span>
+                      </td>
+
+                      {/* Type */}
+                      <td className="py-3.5 px-3">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold tracking-wider uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                          {['article', 'paper'].includes(String(resource.resourceType || resource.type || '').toLowerCase()) ? 'ARTICLE' : (resource.resourceType || resource.type || 'PDF')}
+                        </span>
+                      </td>
+
+                      {/* Required Plan */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          !resource.requiredPlan || resource.requiredPlan === 'FREE'
+                            ? 'bg-slate-100 text-slate-700'
+                            : resource.requiredPlan === 'STUDENT_BASIC'
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : resource.requiredPlan === 'STUDENT_PLUS'
+                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                            : resource.requiredPlan === 'RESEARCHER_PRO'
+                            ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                            : resource.requiredPlan === 'UNIVERSITY'
+                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                            : 'bg-purple-50 text-purple-800 border border-purple-200'
+                        }`}>
+                          {PLATFORM_PLANS.find(p => p.id === resource.requiredPlan)?.name || (resource.requiredPlan || 'FREE').replace('_', ' ')}
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-5 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          {/* Info Button */}
                           <button
-                            onClick={() => handleTogglePublish(resource)}
-                            className={`p-2 rounded-lg transition-colors cursor-pointer border ${
-                              isPublished
-                                ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
-                                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300'
-                            }`}
-                            title={isPublished ? 'Unpublish Resource (Hide from all users, keep in database)' : 'Publish Resource (Make visible in user catalog)'}
+                            type="button"
+                            onClick={() => setInfoResource(resource)}
+                            className="p-1.5 text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-orange-200"
+                            title="View Detailed Resource Information"
                           >
-                            {isPublished ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                            <Info className="size-4" />
                           </button>
-                        )}
-                        <button onClick={() => setInfoResource(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors cursor-pointer" title="View Detailed Resource Information"><Info className="size-4" /></button>
-                        <button onClick={() => openPreviewModal(resource)} className="p-2 hover:bg-amber-50 text-amber-600 rounded-lg transition-colors cursor-pointer" title="Preview Resource Modal"><Eye className="size-4" /></button>
-                        <button onClick={() => openEditModal(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors cursor-pointer" title="Edit Resource"><Edit className="size-4" /></button>
-                        <button onClick={() => handleDelete(resource.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors cursor-pointer" title="Delete Resource"><Trash2 className="size-4" /></button>
-                      </div>
-                    </td>
-                  </tr>
+
+                          {/* View Preview Button */}
+                          <button
+                            type="button"
+                            onClick={() => openPreviewModal(resource)}
+                            className="p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-amber-200"
+                            title="Preview Resource Modal"
+                          >
+                            <Eye className="size-4" />
+                          </button>
+
+                          {/* Main Admin Only: Publish / Unpublish Toggle */}
+                          {isMainAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleTogglePublish(resource)}
+                              className={`p-1.5 rounded-lg transition-colors cursor-pointer border ${
+                                isPublished
+                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
+                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300'
+                              }`}
+                              title={isPublished ? 'Unpublish Resource (Hide from all users, keep in database)' : 'Publish Resource (Make visible in user catalog)'}
+                            >
+                              {isPublished ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                            </button>
+                          )}
+
+                          {/* Edit Button */}
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(resource)}
+                            className="p-1.5 text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-orange-200"
+                            title="Edit Resource"
+                          >
+                            <Edit className="size-4" />
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(resource.id)}
+                            className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                            title="Delete Resource"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
