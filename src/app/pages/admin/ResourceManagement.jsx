@@ -1427,17 +1427,17 @@ export default function ResourceManagement() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
-                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-start justify-between border-b border-orange-100 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-xl shadow-md shadow-emerald-500/20">
+                    <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 text-white rounded-xl shadow-md shadow-orange-500/20">
                       <FileText className="size-6" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
                           Resource ID #{infoResource.id}
                         </span>
-                        <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                        <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
                           {['article', 'paper'].includes(String(infoResource.resourceType || infoResource.type || '').toLowerCase()) ? 'ARTICLE / PAPER' : 'PDF DOCUMENT'}
                         </span>
                       </div>
@@ -1453,34 +1453,34 @@ export default function ResourceManagement() {
                   </button>
                 </div>
 
-                {/* Storage & Hardware Metrics Banner */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-lg space-y-3">
-                  <div className="flex items-center justify-between text-xs font-semibold text-emerald-400">
+                {/* Resource Technical File Profile Banner */}
+                <div className="p-4 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white shadow-md shadow-orange-500/20 space-y-3">
+                  <div className="flex items-center justify-between text-xs font-semibold text-white">
                     <span className="flex items-center gap-1.5">
-                      <HardDrive className="size-4" />
-                      Storage & Cloud Hardware Metrics
+                      <HardDrive className="size-4 text-amber-200" />
+                      Resource Technical & Storage Profile
                     </span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
-                      Persistent NVMe
+                    <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-mono font-bold">
+                      Verified Content File
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
-                    <div className="bg-white/10 rounded-lg p-2.5 backdrop-blur-xs">
-                      <p className="text-[10px] uppercase font-bold text-slate-400">Document File Size</p>
+                    <div className="bg-white/15 rounded-lg p-2.5 backdrop-blur-xs">
+                      <p className="text-[10px] uppercase font-bold text-amber-100">Document File Size</p>
                       <p className="text-base font-bold text-white font-mono mt-0.5">
-                        {infoResource.fileSizeBytes ? formatStorageSize(infoResource.fileSizeBytes) : (infoResource.hasDownload ? 'Stored' : 'Interactive text')}
+                        {infoResource.fileSizeBytes ? formatStorageSize(infoResource.fileSizeBytes) : (infoResource.hasDownload ? 'Stored PDF' : 'Interactive Article')}
                       </p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-2.5 backdrop-blur-xs">
-                      <p className="text-[10px] uppercase font-bold text-slate-400">Total Cloud Storage</p>
-                      <p className="text-base font-bold text-emerald-400 font-mono mt-0.5">
-                        {formatStorageSize(storageStats.totalBytes || 47320000000)}
+                    <div className="bg-white/15 rounded-lg p-2.5 backdrop-blur-xs">
+                      <p className="text-[10px] uppercase font-bold text-amber-100">Content Format</p>
+                      <p className="text-base font-bold text-white mt-0.5 uppercase text-xs sm:text-sm font-mono">
+                        {infoResource.fileName ? infoResource.fileName.split('.').pop()?.toUpperCase() : (infoResource.hasDownload ? 'PDF' : 'HTML')}
                       </p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-2.5 backdrop-blur-xs col-span-2 sm:col-span-1">
-                      <p className="text-[10px] uppercase font-bold text-slate-400">Storage Headroom</p>
-                      <p className="text-base font-bold text-amber-300 font-mono mt-0.5">
-                        {formatStorageSize(storageStats.freeBytes || 37240000000)} Free
+                    <div className="bg-white/15 rounded-lg p-2.5 backdrop-blur-xs col-span-2 sm:col-span-1">
+                      <p className="text-[10px] uppercase font-bold text-amber-100">Catalog Access</p>
+                      <p className="text-base font-bold text-white mt-0.5 text-xs sm:text-sm">
+                        {infoResource.featured !== false ? 'Active & Published' : 'Draft / Unapproved'}
                       </p>
                     </div>
                   </div>
@@ -1497,17 +1497,17 @@ export default function ResourceManagement() {
 
                   <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
                     <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-                      <User className="size-3 text-indigo-500" /> Author / Subject Attribution
+                      <User className="size-3 text-orange-600" /> Author / Subject Attribution
                     </span>
                     <p className="font-semibold text-slate-800 text-sm">{infoResource.subject || infoResource.author || 'Anonymous Author'}</p>
                   </div>
 
                   <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
                     <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-                      <Shield className="size-3 text-emerald-500" /> Required Access Plan
+                      <Shield className="size-3 text-amber-600" /> Required Access Plan
                     </span>
                     <div>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                         !infoResource.requiredPlan || infoResource.requiredPlan === 'FREE'
                           ? 'bg-gray-100 text-gray-700'
                           : infoResource.requiredPlan === 'STUDENT_BASIC'
@@ -1515,8 +1515,8 @@ export default function ResourceManagement() {
                           : infoResource.requiredPlan === 'STUDENT_PLUS'
                           ? 'bg-indigo-100 text-indigo-700'
                           : infoResource.requiredPlan === 'RESEARCHER_PRO'
-                          ? 'bg-orange-100 text-orange-700'
-                          : 'bg-purple-100 text-purple-800'
+                          ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                          : 'bg-purple-100 text-purple-800 border border-purple-200'
                       }`}>
                         {PLATFORM_PLANS.find(p => p.id === infoResource.requiredPlan)?.name || (infoResource.requiredPlan || 'FREE').replace('_', ' ')}
                       </span>
@@ -1535,7 +1535,7 @@ export default function ResourceManagement() {
 
                   <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
                     <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-                      <Activity className="size-3 text-blue-500" /> Engagement Telemetry
+                      <Activity className="size-3 text-orange-500" /> Engagement Telemetry
                     </span>
                     <p className="font-semibold text-slate-800 text-sm">
                       {infoResource.viewCount || 0} Views &bull; {infoResource.downloadCount || 0} Downloads
@@ -1554,16 +1554,16 @@ export default function ResourceManagement() {
 
                 {/* Stored Filename & Path */}
                 {infoResource.fileName && (
-                  <div className="p-3 bg-slate-100 rounded-xl text-xs space-y-1 font-mono">
-                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Cloud File Identifier:</span>
-                    <p className="text-slate-700 break-all">{infoResource.fileName}</p>
+                  <div className="p-3 bg-orange-50/70 border border-orange-100 rounded-xl text-xs space-y-1 font-mono">
+                    <span className="text-orange-700 font-bold uppercase tracking-wider text-[10px]">Cloud File Identifier:</span>
+                    <p className="text-slate-800 break-all">{infoResource.fileName}</p>
                   </div>
                 )}
 
                 {/* Description */}
                 {infoResource.description && (
                   <div className="space-y-1">
-                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Description & Summary:</span>
+                    <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Description & Summary:</span>
                     <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/60 leading-relaxed max-h-32 overflow-y-auto">
                       {infoResource.description}
                     </p>
@@ -1579,7 +1579,7 @@ export default function ResourceManagement() {
                       setInfoResource(null);
                       openPreviewModal(res);
                     }}
-                    className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-orange-500/20 cursor-pointer flex items-center gap-1.5"
                   >
                     <Eye className="size-3.5" />
                     Open Reader Preview
@@ -1587,7 +1587,7 @@ export default function ResourceManagement() {
                   <button
                     type="button"
                     onClick={() => setInfoResource(null)}
-                    className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                    className="px-5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
                   >
                     Close
                   </button>
