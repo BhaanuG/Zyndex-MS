@@ -24,6 +24,11 @@ export default function Login() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState('Student');
   const [otherDescription, setOtherDescription] = useState('');
+  // Format title case words for college/institution name (e.g. "G Bs School")
+  const formatCollegeName = (val) => {
+    return val.replace(/\b[a-zA-Z]/g, (char) => char.toUpperCase());
+  };
+
   const [institutionName, setInstitutionName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -630,7 +635,7 @@ export default function Login() {
                     )}
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">University / College name <span className="font-normal text-slate-400">(optional)</span></label>
-                      <input type="text" value={institutionName} onChange={(e) => { setInstitutionName(e.target.value); setError(''); setSuccessMessage(''); }} placeholder="Enter your university or college name" className="w-full px-4 py-3.5 bg-slate-50 border border-orange-300/35 rounded-xl focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all depth-3d-input" />
+                      <input type="text" value={institutionName} onChange={(e) => { setInstitutionName(formatCollegeName(e.target.value)); setError(''); setSuccessMessage(''); }} placeholder="Enter your university or college name" className="w-full px-4 py-3.5 bg-slate-50 border border-orange-300/35 rounded-xl focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all depth-3d-input" />
                     </div>
                   </>
                 )}

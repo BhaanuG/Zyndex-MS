@@ -781,7 +781,10 @@ export default function UserAccessManagement() {
                   )}
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">University / College name (Optional)</label>
-                    <input type="text" value={formUser.collegeName || formUser.universityName} onChange={(e) => setFormUser({ ...formUser, collegeName: e.target.value, universityName: '' })} placeholder="University or college name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                    <input type="text" value={formUser.collegeName || formUser.universityName} onChange={(e) => {
+                      const formatted = e.target.value.replace(/\b[a-zA-Z]/g, (char) => char.toUpperCase());
+                      setFormUser({ ...formUser, collegeName: formatted, universityName: '' });
+                    }} placeholder="University or college name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
                   </div>
 
                   {isEditing && (

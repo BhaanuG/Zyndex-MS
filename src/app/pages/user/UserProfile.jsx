@@ -269,7 +269,8 @@ export default function UserProfile() {
   };
 
   const handleCollegeUnivChange = (val) => {
-    setProfileData({ ...profileData, collegeName: val, universityName: val });
+    const formatted = val.replace(/\b[a-zA-Z]/g, (char) => char.toUpperCase());
+    setProfileData({ ...profileData, collegeName: formatted, universityName: formatted });
   };
 
   return (
