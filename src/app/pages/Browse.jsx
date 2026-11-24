@@ -16,55 +16,64 @@ export default function Features() {
     {
       icon: Search,
       title: 'Smart Academic Discovery',
-      description: 'Instant multi-attribute search across textbooks, research journals, lecture notes, and curriculum guides with real-time indexing.',
+      description: 'Instant multi-attribute search filtering across textbooks, peer-reviewed journals, and curriculum archives with sub-millisecond query execution, keyword auto-matching, and author attribution.',
+      highlights: ['Instant 2-Char Auto-Filter', 'Multi-Field Title & Author Search', 'Direct Category Facets'],
       gradient: 'from-orange-500 to-orange-600'
     },
     {
       icon: Filter,
       title: 'Academic Discipline Categories',
-      description: 'Curated archives spanning Artificial Intelligence, Machine Learning, Computer Science, Physics, Chemistry, Mathematics, Economics, History, Literature, and Biology.',
+      description: 'Comprehensive taxonomy spanning 10 core fields: Artificial Intelligence, Machine Learning, Computer Science, Physics, Chemistry, Mathematics, Economics, History, Literature, and Biology.',
+      highlights: ['10 Curated Disciplines', 'Deep Scholastic Classifications', 'Seamless Discipline Browsing'],
       gradient: 'from-amber-500 to-orange-600'
     },
     {
       icon: FileText,
       title: 'Interactive Full-Screen PDF Reader',
-      description: 'Immersive full-screen reading environment with continuous zoom (25% to 300%), dual-mode page fitting (Fit-to-Page & Fit-to-Width), single-page and two-page book spreads, 90° clockwise/counter-clockwise rotation, dynamic sidebar with visual page thumbnails & hierarchical document outline, jump-to-page navigation, and keyboard arrow controls.',
+      description: 'Immersive full-screen reading environment with continuous zoom (25% to 300%), dual-mode page fitting, single and two-page spreads, 90° rotation, thumbnails sidebar, document outline, and arrow controls.',
+      highlights: ['High-DPI 2x Retina Canvas', '512 KB Progressive Range Streaming', 'Thumbnails & Document Outline'],
       gradient: 'from-red-500 to-orange-600'
     },
     {
       icon: Clock,
       title: 'Live Reading Telemetry',
-      description: 'Smart session and active-minute logging with tab visibility awareness to provide authentic academic engagement analytics.',
+      description: 'Privacy-safe reading duration engine powered by HTML5 Page Visibility and Beacon APIs that logs authenticated study minutes and automatically pauses when switching tabs or minimizing.',
+      highlights: ['Visibility-Aware Tracking', 'Zero-Tracking Tab Pausing', 'Transparent Scholastic Metrics'],
       gradient: 'from-orange-600 to-red-600'
     },
     {
       icon: Star,
       title: 'Personalized Scholar Hub',
-      description: 'One-click resource bookmarking, favorite lists, and resume reading shortcuts highlighting your last 3 explored resources.',
+      description: 'Dedicated learning dashboard offering one-click bookmarking, favorite lists, continuous reading bookmarks, and instant resume shortcuts that surface your last 3 explored resources.',
+      highlights: ['Instant One-Click Favourites', 'Resume Reading History', 'Active Study Dashboards'],
       gradient: 'from-orange-500 to-amber-600'
     },
     {
       icon: Shield,
       title: 'Enterprise Multi-Factor Security',
-      description: 'Dynamic 4-digit numeric OTP authentication, 24-hour trusted device authorization, and 2h 30m idle session security monitoring.',
+      description: 'High-assurance authentication with single-use numeric email OTPs, 24-hour hardware-bound trusted device authorization, automatic midnight IST expirations, and active session management.',
+      highlights: ['4-Digit Numeric Email OTPs', '24h Hardware Device Tokens', 'Self-Service Session Revocation'],
       gradient: 'from-amber-500 to-orange-500'
     },
     {
       icon: Layers,
       title: 'Tiered Access Governance',
-      description: 'Fine-grained role and subscription management catering to Students, Teachers, PhD Researchers, and Academic Admins.',
+      description: 'Granular role-based entitlement engine protecting academic materials across tiered passes: Free Demo, Student Basic, Student Plus, PhD Researcher Pro, University Educator, and Distinguished Fellow.',
+      highlights: ['6 Plan Entitlement Tiers', 'Dynamic Gated Previews', 'Role-Based Permissions'],
       gradient: 'from-orange-600 to-amber-600'
     },
     {
       icon: Zap,
       title: 'Real-Time Telemetry Logs',
-      description: 'Live admin metrics monitoring total readers, active today/live users, average session lengths, and aggregated reading minutes.',
+      description: 'Live admin console streaming sub-second container memory usage, JVM garbage collection cycles, total reader traffic, engagement distributions, and immutable audit trails.',
+      highlights: ['Sub-Second JVM & RAM Profiles', 'Live Reader Engagement Charts', 'Continuous Audit Event Trails'],
       gradient: 'from-red-600 to-orange-600'
     },
     {
       icon: RefreshCw,
       title: 'Seamless Digital Payments',
-      description: 'UPI QR code checkout with automated UTR confirmation, 2-minute verification hold processing, and automated receipt issuance.',
+      description: 'Direct UPI QR checkout featuring automated 12-digit UTR verification, 5-minute checkout timers, anti-tampering route security, and cryptographic single-browser tax invoice downloads.',
+      highlights: ['Direct Merchant UPI QR', '12-Digit UTR Verification', 'Digitally Signed Tax Invoices'],
       gradient: 'from-amber-600 to-red-600'
     }
   ];
@@ -195,6 +204,20 @@ export default function Features() {
                   <p className="text-gray-600 leading-relaxed text-sm">
                     {feature.description}
                   </p>
+
+                  {/* Organized Feature Highlights */}
+                  {feature.highlights && (
+                    <div className="mt-5 pt-4 border-t border-orange-100/60 flex flex-wrap gap-2">
+                      {feature.highlights.map((item, hIdx) => (
+                        <span
+                          key={hIdx}
+                          className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200/60"
+                        >
+                          &bull; {item}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}
