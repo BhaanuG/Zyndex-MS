@@ -657,7 +657,7 @@ export default function ResourceManagement() {
               </button>
               <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors cursor-pointer shadow-sm">
                 <Plus className="size-5" />
-                Add New Resource
+                Add New Content
               </button>
             </div>
 
@@ -787,7 +787,7 @@ export default function ResourceManagement() {
             <motion.div className="fixed inset-0 flex items-center justify-center z-50 p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
               <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full p-6 max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">Add New Resource</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Add New Content</h2>
                   <button onClick={closeCreateModal} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X className="size-5 text-gray-500" /></button>
                 </div>
 
