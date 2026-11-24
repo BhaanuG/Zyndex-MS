@@ -27,6 +27,11 @@ spring:
             allowedOriginPatterns: "*"
             allowedMethods: "*"
             allowedHeaders: "*"
+            exposedHeaders:
+              - "Content-Range"
+              - "Accept-Ranges"
+              - "Content-Length"
+              - "Content-Disposition"
             allowCredentials: true
       default-filters:
         - SetResponseHeader=X-Content-Type-Options, nosniff

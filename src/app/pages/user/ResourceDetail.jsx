@@ -339,9 +339,10 @@ export default function ResourceDetail() {
       cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/cmaps/',
       cMapPacked: true,
       standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/standard_fonts/',
-      rangeChunkSize: 65536,
-      disableAutoFetch: true,
+      rangeChunkSize: 524288, // 512 KB chunks for fast progressive range streaming
+      disableAutoFetch: false, // Allow progressive background fetching of subsequent pages
       disableStream: false,
+      disableRange: false, // Enable byte range requests so initial pages render immediately
     });
 
     loadingTask.onProgress = ({ loaded, total }) => {
