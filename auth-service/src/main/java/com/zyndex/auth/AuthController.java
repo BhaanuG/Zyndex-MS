@@ -187,15 +187,26 @@ class AuthController {
             // If device info provided in login request, record/update device session in trusted_devices table
             String deviceToken = AuthSupport.str(body.get("deviceToken")).trim();
 
-            // Mark all prior active sessions for this account as logged out / inactive
-            jdbc.update("""
-                    UPDATE trusted_devices 
-                    SET is_active = FALSE,
-                        logged_out_at = NOW(),
-                        last_active_at = NOW(),
-                        total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
-                    WHERE LOWER(email) = LOWER(?) AND is_active = TRUE
-                    """, email);
+            // Mark prior active sessions for this specific device_token as inactive, and stamp logout
+            if (!deviceToken.isBlank()) {
+                jdbc.update("""
+                        UPDATE trusted_devices 
+                        SET is_active = FALSE,
+                            logged_out_at = NOW(),
+                            last_active_at = NOW(),
+                            total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
+                        WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_active = TRUE
+                        """, email, deviceToken);
+            } else {
+                jdbc.update("""
+                        UPDATE trusted_devices 
+                        SET is_active = FALSE,
+                            logged_out_at = NOW(),
+                            last_active_at = NOW(),
+                            total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
+                        WHERE LOWER(email) = LOWER(?) AND is_active = TRUE
+                        """, email);
+            }
 
             if (!deviceToken.isBlank()) {
                 String deviceName = AuthSupport.str(body.get("deviceName")).trim();
@@ -303,6 +314,11 @@ class AuthController {
                     total_active_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, trusted_at, NOW()))
                 WHERE LOWER(email) = LOWER(?) AND device_token = ? AND is_active = TRUE
                 """, email, deviceToken);
+
+        // Delete duplicate identical entries for same email and device token that occurred within last 5 seconds to prevent double entry
+        try {
+            jdbc.update("DELETE FROM trusted_devices WHERE LOWER(email) = LOWER(?) AND device_token = ? AND trusted_at >= DATE_SUB(NOW(), INTERVAL 5 SECOND)", email, deviceToken);
+        } catch (Exception ignored) {}
 
         String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
         String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);

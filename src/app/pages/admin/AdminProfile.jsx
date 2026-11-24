@@ -342,7 +342,7 @@ export default function AdminProfile() {
                   const currentToken = localStorage.getItem('zyndex_device_token') || localStorage.getItem('device_token') || '';
                   const otherRaw = (sessionsData.devices || []).filter((d) => !currentToken || d.device_token !== currentToken);
 
-                  // Group other sessions by device identity (operating_system + browser + device_token)
+                  // Group other sessions by device token or operating_system + browser, filtering out inactive sessions if there is an active one for the same device
                   const groupsMap = new Map();
                   otherRaw.forEach((sess) => {
                     const key = sess.device_token || `${sess.operating_system}_${sess.browser}_${sess.device_name}`;
@@ -357,7 +357,12 @@ export default function AdminProfile() {
                         sessions: []
                       });
                     }
-                    groupsMap.get(key).sessions.push(sess);
+                    const group = groupsMap.get(key);
+                    group.sessions.push(sess);
+                    // Keep the most recent or active session
+                    if (sess.is_active && !group.latestSession.is_active) {
+                      group.latestSession = sess;
+                    }
                   });
 
                   const deviceGroups = Array.from(groupsMap.values());

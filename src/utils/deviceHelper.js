@@ -68,8 +68,8 @@ export async function fetchClientPublicIp() {
   } catch (e) {}
 
   const endpoints = [
-    'https://api.ipify.org?format=json',
     'https://api64.ipify.org?format=json',
+    'https://api.ipify.org?format=json',
     'https://ipapi.co/json/'
   ];
 

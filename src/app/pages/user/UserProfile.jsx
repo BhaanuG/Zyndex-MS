@@ -542,7 +542,11 @@ export default function UserProfile() {
                             sessions: []
                           });
                         }
-                        groupsMap.get(key).sessions.push(sess);
+                        const group = groupsMap.get(key);
+                        group.sessions.push(sess);
+                        if (sess.is_active && !group.latestSession.is_active) {
+                          group.latestSession = sess;
+                        }
                       });
 
                       const deviceGroups = Array.from(groupsMap.values());
