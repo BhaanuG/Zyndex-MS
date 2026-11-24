@@ -471,7 +471,7 @@ export default function Login() {
             <Link to="/Zyndex/About/Contact" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Contact</Link>
             <Link to="/Zyndex/About/Pricing" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Pricing</Link>
             <span className="text-slate-300 px-1">|</span>
-            <Link to="/Zyndex/Resources/Browse" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Browse</Link>
+            <Link to="/Zyndex/Platform/Features.php" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Features</Link>
             <Link to="/Zyndex/Platform/Categories.php" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Categories</Link>
             <span className="text-slate-300 px-1">|</span>
             <Link to="/Zyndex/Support/Help-Center" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all">Help Center</Link>
@@ -508,7 +508,7 @@ export default function Login() {
               <Link to="/Zyndex/About/About-Us" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">About Us</Link>
               <Link to="/Zyndex/About/Contact" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Contact</Link>
               <Link to="/Zyndex/About/Pricing" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Pricing</Link>
-              <Link to="/Zyndex/Resources/Browse" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Browse Library</Link>
+              <Link to="/Zyndex/Platform/Features.php" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Features</Link>
               <Link to="/Zyndex/Platform/Categories.php" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Categories</Link>
               <Link to="/Zyndex/Support/Help-Center" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">Help Center</Link>
               <Link to="/Zyndex/Support/Frequently-Asked-Questions" onClick={() => setShowMobileMenu(false)} className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all">FAQ</Link>

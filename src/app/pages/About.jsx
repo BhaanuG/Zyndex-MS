@@ -289,7 +289,7 @@ export default function About() {
               </p>
               <div className="flex flex-wrap justify-center gap-4 pt-4">
                 <Link
-                  to="/Zyndex/Resources/Browse"
+                  to="/Zyndex/Platform/Features.php"
                   className="px-6 py-3.5 bg-white text-orange-600 font-bold rounded-xl shadow-lg hover:bg-orange-50 transition-all flex items-center gap-2 text-sm"
                 >
                   Explore Catalog <ArrowRight className="size-4" />
