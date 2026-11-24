@@ -153,32 +153,40 @@ const routeList = [
         element: <PageTransitionWrapper duration={3000}><Contact /></PageTransitionWrapper>
       },
       {
-        path: "Zyndex/Features",
+        path: "Zyndex/Platform/Features.php",
         element: <PageTransitionWrapper duration={3000}><Browse /></PageTransitionWrapper>
+      },
+      {
+        path: "Zyndex/Features",
+        element: <Navigate to="/Zyndex/Platform/Features.php" replace />
       },
       {
         path: "Zyndex/Resources/Features",
-        element: <Navigate to="/Zyndex/Features" replace />
+        element: <Navigate to="/Zyndex/Platform/Features.php" replace />
       },
       {
         path: "Zyndex/Resources/Browse",
-        element: <PageTransitionWrapper duration={3000}><Browse /></PageTransitionWrapper>
+        element: <Navigate to="/Zyndex/Platform/Features.php" replace />
       },
       {
-        path: "Zyndex/Resources/Categories",
+        path: "Zyndex/Platform/Categories.php",
         element: <PageTransitionWrapper duration={3000}><BrowseCategory /></PageTransitionWrapper>
       },
       {
+        path: "Zyndex/Resources/Categories",
+        element: <Navigate to="/Zyndex/Platform/Categories.php" replace />
+      },
+      {
         path: "Zyndex/Categories",
-        element: <Navigate to="/Zyndex/Resources/Categories" replace />
+        element: <Navigate to="/Zyndex/Platform/Categories.php" replace />
       },
       {
         path: "Resources/Categories",
-        element: <Navigate to="/Zyndex/Resources/Categories" replace />
+        element: <Navigate to="/Zyndex/Platform/Categories.php" replace />
       },
       {
         path: "Categories",
-        element: <Navigate to="/Zyndex/Resources/Categories" replace />
+        element: <Navigate to="/Zyndex/Platform/Categories.php" replace />
       },
       {
         path: "Zyndex/Browse-Category/:category",

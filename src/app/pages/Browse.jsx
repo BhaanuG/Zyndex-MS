@@ -221,7 +221,7 @@ export default function Features() {
                   Create Account
                 </Link>
                 <Link
-                  to="/Zyndex/Resources/Categories"
+                  to="/Zyndex/Platform/Categories.php"
                   className="px-8 py-3.5 bg-orange-700/60 border border-white/20 text-white font-semibold rounded-xl hover:bg-orange-700 transition-all text-sm"
                 >
                   Explore Categories

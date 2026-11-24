@@ -83,9 +83,9 @@ export default function PublicLayout({ children, showBack = true }) {
               </Link>
               <span className="text-slate-300">|</span>
               <Link
-                to="/Zyndex/Features"
+                to="/Zyndex/Platform/Features.php"
                 className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
-                  isActive('/Features') || isActive('/Resources/Browse')
+                  isActive('/Platform/Features.php') || isActive('/Features') || isActive('/Resources/Browse')
                     ? 'text-orange-600 bg-orange-50 font-semibold'
                     : 'text-slate-700 hover:text-orange-600 hover:bg-orange-50'
                 }`}
@@ -93,9 +93,9 @@ export default function PublicLayout({ children, showBack = true }) {
                 Features
               </Link>
               <Link
-                to="/Zyndex/Resources/Categories"
+                to="/Zyndex/Platform/Categories.php"
                 className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
-                  isActive('/Resources/Categories')
+                  isActive('/Platform/Categories.php') || isActive('/Resources/Categories') || isActive('/Categories')
                     ? 'text-orange-600 bg-orange-50 font-semibold'
                     : 'text-slate-700 hover:text-orange-600 hover:bg-orange-50'
                 }`}
@@ -204,13 +204,13 @@ export default function PublicLayout({ children, showBack = true }) {
                     Pricing
                   </Link>
                   <Link
-                    to="/Zyndex/Features"
+                    to="/Zyndex/Platform/Features.php"
                     className="px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
                   >
                     Features
                   </Link>
                   <Link
-                    to="/Zyndex/Resources/Categories"
+                    to="/Zyndex/Platform/Categories.php"
                     className="px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
                   >
                     Categories
