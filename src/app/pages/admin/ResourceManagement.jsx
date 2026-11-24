@@ -159,7 +159,7 @@ export default function ResourceManagement() {
     const mb = bytes / (1024 * 1024);
     return `${mb.toFixed(1)} MB`;
   };
-    const openPreviewModal = async (resource) => {
+  const openPreviewModal = async (resource) => {
     setPreviewResource(resource);
     setPreviewError('');
     setPreviewBlobUrl('');
@@ -190,7 +190,7 @@ export default function ResourceManagement() {
       try {
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-      } catch (e) {}
+      } catch (e) { }
     }
     setPreviewResource(null);
     setPreviewToken('');
@@ -236,7 +236,7 @@ export default function ResourceManagement() {
   }, []);
 
   const isPdfPreview = previewResource && (
-    /\.pdf($|\?)/i.test(previewResource.fileUrl || '') || 
+    /\.pdf($|\?)/i.test(previewResource.fileUrl || '') ||
     /\.pdf($|\?)/i.test(previewResource.fileName || '')
   );
 
@@ -324,7 +324,7 @@ export default function ResourceManagement() {
       cancelled = true;
       try {
         loadingTask?.destroy();
-      } catch (e) {}
+      } catch (e) { }
       if (fallbackBlobUrl) URL.revokeObjectURL(fallbackBlobUrl);
     };
   }, [previewFileUrl, isPdfPreview, previewResource]);
@@ -362,7 +362,7 @@ export default function ResourceManagement() {
                 return pageRef + 1;
               }
             }
-          } catch (e) {}
+          } catch (e) { }
           return null;
         }
 
@@ -419,7 +419,7 @@ export default function ResourceManagement() {
       await page.render({ canvasContext: thumbCtx, viewport: thumbViewport, background: 'rgb(255, 255, 255)' }).promise;
       const dataUrl = thumbCanvas.toDataURL('image/jpeg', 0.7);
       setThumbnailUrls((prev) => ({ ...prev, [pageNumber]: dataUrl }));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Thumbnail prefetching
@@ -479,7 +479,7 @@ export default function ResourceManagement() {
     try {
       if (primaryRenderTaskRef.current) primaryRenderTaskRef.current.cancel();
       if (secondaryRenderTaskRef.current) secondaryRenderTaskRef.current.cancel();
-    } catch (e) {}
+    } catch (e) { }
 
     // Render Page 1 (Primary Page)
     pdfDocument.getPage(pdfPage).then((page) => {
@@ -551,7 +551,7 @@ export default function ResourceManagement() {
         secondaryRenderTaskRef.current = secondRenderTask;
 
         secondRenderTask.promise.catch((error) => {
-          if (!cancelled && error?.name !== 'RenderingCancelledException') {}
+          if (!cancelled && error?.name !== 'RenderingCancelledException') { }
         });
       });
     }
@@ -561,7 +561,7 @@ export default function ResourceManagement() {
       try {
         if (primaryRenderTaskRef.current) primaryRenderTaskRef.current.cancel();
         if (secondaryRenderTaskRef.current) secondaryRenderTaskRef.current.cancel();
-      } catch (e) {}
+      } catch (e) { }
     };
   }, [pdfDocument, pdfPage, pdfScale, pdfRotation, pdfPageViewMode, pdfPageCount, isPdfFullscreen]);
 
@@ -655,7 +655,7 @@ export default function ResourceManagement() {
         actorEmail: user?.email || 'admin@zyndex.com',
         details: `Administrator deleted academic resource: ${target?.title || 'Resource'} (ID: ${resourceId}, Category: ${target?.category || 'N/A'})`,
         status: 'SUCCESS'
-      }).catch(() => {});
+      }).catch(() => { });
 
       await loadResources(searchTerm);
     } catch (error) {
@@ -803,7 +803,7 @@ export default function ResourceManagement() {
         actorEmail: user?.email || 'admin@zyndex.com',
         details: `Administrator uploaded new resource: ${createResource.title} (Category: ${createResource.category}, Type: ${createResource.resourceType}, Plan: ${createResource.requiredPlan || 'FREE'})`,
         status: 'SUCCESS'
-      }).catch(() => {});
+      }).catch(() => { });
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Upload failed.';
       setModalMessage({
@@ -875,7 +875,7 @@ export default function ResourceManagement() {
         actorEmail: user?.email || 'admin@zyndex.com',
         details: `Administrator updated resource: ${formResource.title} (ID: ${formResource.id}, Plan: ${formResource.requiredPlan || 'FREE'}, Category: ${formResource.category})`,
         status: 'SUCCESS'
-      }).catch(() => {});
+      }).catch(() => { });
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Failed to update resource.';
       setModalMessage({
@@ -1005,10 +1005,9 @@ export default function ResourceManagement() {
                 <span className="text-slate-500">{formatStorageSize(storageStats.totalBytes)}</span>
               </div>
               <div className="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden border border-slate-200">
-                <div 
-                  className={`h-full transition-all duration-500 ${
-                    storageStats.usedPercentage > 85 ? 'bg-rose-500' : storageStats.usedPercentage > 70 ? 'bg-amber-500' : 'bg-emerald-500'
-                  }`}
+                <div
+                  className={`h-full transition-all duration-500 ${storageStats.usedPercentage > 85 ? 'bg-rose-500' : storageStats.usedPercentage > 70 ? 'bg-amber-500' : 'bg-emerald-500'
+                    }`}
                   style={{ width: `${Math.min(100, Math.max(2, storageStats.usedPercentage))}%` }}
                 />
               </div>
@@ -1091,9 +1090,8 @@ export default function ResourceManagement() {
                           <div className="flex items-center gap-2 text-[11px]">
                             <span className="font-mono text-slate-400">#{resource.id}</span>
                             <span className="text-slate-300">•</span>
-                            <span className={`inline-flex items-center gap-1 font-medium ${
-                              isPublished ? 'text-emerald-700' : 'text-amber-700'
-                            }`}>
+                            <span className={`inline-flex items-center gap-1 font-medium ${isPublished ? 'text-emerald-700' : 'text-amber-700'
+                              }`}>
                               <span className={`size-1.5 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                               {isPublished ? 'Live' : 'Unpublished (Hidden)'}
                             </span>
@@ -1124,19 +1122,18 @@ export default function ResourceManagement() {
 
                       {/* Required Plan */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          !resource.requiredPlan || resource.requiredPlan === 'FREE'
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${!resource.requiredPlan || resource.requiredPlan === 'FREE'
                             ? 'bg-slate-100 text-slate-700'
                             : resource.requiredPlan === 'STUDENT_BASIC'
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : resource.requiredPlan === 'STUDENT_PLUS'
-                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                            : resource.requiredPlan === 'RESEARCHER_PRO'
-                            ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                            : resource.requiredPlan === 'UNIVERSITY'
-                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                            : 'bg-purple-50 text-purple-800 border border-purple-200'
-                        }`}>
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : resource.requiredPlan === 'STUDENT_PLUS'
+                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                : resource.requiredPlan === 'RESEARCHER_PRO'
+                                  ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                  : resource.requiredPlan === 'UNIVERSITY'
+                                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                    : 'bg-purple-50 text-purple-800 border border-purple-200'
+                          }`}>
                           {PLATFORM_PLANS.find(p => p.id === resource.requiredPlan)?.name || (resource.requiredPlan || 'FREE').replace('_', ' ')}
                         </span>
                       </td>
@@ -1169,11 +1166,10 @@ export default function ResourceManagement() {
                             <button
                               type="button"
                               onClick={() => handleTogglePublish(resource)}
-                              className={`p-1.5 rounded-lg transition-all cursor-pointer border shadow-2xs hover:scale-105 active:scale-95 ${
-                                isPublished
+                              className={`p-1.5 rounded-lg transition-all cursor-pointer border shadow-2xs hover:scale-105 active:scale-95 ${isPublished
                                   ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 hover:border-amber-400'
                                   : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300 hover:border-emerald-400'
-                              }`}
+                                }`}
                               title={isPublished ? 'Unpublish Resource (Hide from user catalog, keep in database)' : 'Publish Resource (Make visible in user catalog)'}
                             >
                               {isPublished ? <Lock className="size-4 text-amber-700" /> : <Globe className="size-4 text-emerald-700" />}
@@ -1263,23 +1259,23 @@ export default function ResourceManagement() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Description (Card Summary)</label>
-                    <textarea 
-                      name="description" 
-                      value={createResource.description} 
-                      onChange={(e) => setCreateResource((prev) => ({ ...prev, description: e.target.value }))} 
-                      rows={3} 
+                    <textarea
+                      name="description"
+                      value={createResource.description}
+                      onChange={(e) => setCreateResource((prev) => ({ ...prev, description: e.target.value }))}
+                      rows={3}
                       placeholder="Brief overview of the resource shown on search and category cards..."
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none" 
-                      required 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none"
+                      required
                     />
                   </div>
 
                   {createResource.resourceType === 'article' && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Article Studio Content</label>
-                      <ArticleEditor 
-                        value={createResource.articleContent || ''} 
-                        onChange={(val) => setCreateResource((prev) => ({ ...prev, articleContent: val }))} 
+                      <ArticleEditor
+                        value={createResource.articleContent || ''}
+                        onChange={(val) => setCreateResource((prev) => ({ ...prev, articleContent: val }))}
                       />
                     </div>
                   )}
@@ -1418,22 +1414,22 @@ export default function ResourceManagement() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Description (Card Summary)</label>
-                    <textarea 
-                      value={formResource.description} 
-                      onChange={(e) => setFormResource({ ...formResource, description: e.target.value })} 
-                      rows={3} 
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-none text-sm" 
-                      placeholder="Brief overview of the resource shown on search and category cards..." 
-                      required 
+                    <textarea
+                      value={formResource.description}
+                      onChange={(e) => setFormResource({ ...formResource, description: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-none text-sm"
+                      placeholder="Brief overview of the resource shown on search and category cards..."
+                      required
                     />
                   </div>
 
                   {formResource.resourceType === 'article' && (
                     <div>
                       <label className="block text-xs font-semibold text-gray-600 mb-1">Article Studio Content</label>
-                      <ArticleEditor 
-                        value={formResource.articleContent || ''} 
-                        onChange={(val) => setFormResource({ ...formResource, articleContent: val })} 
+                      <ArticleEditor
+                        value={formResource.articleContent || ''}
+                        onChange={(val) => setFormResource({ ...formResource, articleContent: val })}
                       />
                     </div>
                   )}
@@ -1534,22 +1530,20 @@ export default function ResourceManagement() {
               onClick={closePreviewModal}
             />
             <motion.div
-              className={`fixed z-50 ${
-                isPdfFullscreen
+              className={`fixed z-50 ${isPdfFullscreen
                   ? 'inset-0 p-0 m-0 w-screen h-screen'
                   : 'inset-0 flex items-center justify-center p-2 sm:p-4'
-              }`}
+                }`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
             >
               <div
                 ref={pdfContainerRef}
-                className={`bg-white shadow-2xl flex flex-col overflow-hidden ${
-                  isPdfFullscreen
+                className={`bg-white shadow-2xl flex flex-col overflow-hidden ${isPdfFullscreen
                     ? 'w-screen h-screen rounded-none border-0'
                     : 'rounded-2xl max-w-5xl w-full max-h-[92vh] border border-gray-200'
-                }`}
+                  }`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Modal Header */}
@@ -1635,11 +1629,10 @@ export default function ResourceManagement() {
                               <button
                                 type="button"
                                 onClick={() => setShowPdfSidebar((prev) => !prev)}
-                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
-                                  showPdfSidebar
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${showPdfSidebar
                                     ? 'bg-orange-600/20 text-orange-400 border-orange-500/50'
                                     : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border-neutral-700 hover:text-white'
-                                }`}
+                                  }`}
                                 title={showPdfSidebar ? 'Hide Page Navigator' : 'Show Page Navigator'}
                               >
                                 <PanelLeft className="size-3.5" />
@@ -1658,7 +1651,7 @@ export default function ResourceManagement() {
                           >
                             <ChevronLeft className="size-4" />
                           </button>
-                          
+
                           {/* In standard popup: simple clean "Page X / Y". In fullscreen: editable jump input */}
                           {isPdfFullscreen ? (
                             <div className="flex items-center gap-1.5 text-xs bg-neutral-800 px-2 py-0.5 rounded-lg border border-neutral-700">
@@ -1760,11 +1753,10 @@ export default function ResourceManagement() {
                                 <button
                                   type="button"
                                   onClick={() => setPdfPageViewMode('single')}
-                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                    pdfPageViewMode === 'single'
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${pdfPageViewMode === 'single'
                                       ? 'bg-neutral-700 text-orange-400 shadow-sm'
                                       : 'text-neutral-400 hover:text-white'
-                                  }`}
+                                    }`}
                                   title="Single Page View"
                                 >
                                   <Square className="size-3" />
@@ -1773,11 +1765,10 @@ export default function ResourceManagement() {
                                 <button
                                   type="button"
                                   onClick={() => setPdfPageViewMode('two-page')}
-                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                    pdfPageViewMode === 'two-page'
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${pdfPageViewMode === 'two-page'
                                       ? 'bg-neutral-700 text-orange-400 shadow-sm'
                                       : 'text-neutral-400 hover:text-white'
-                                  }`}
+                                    }`}
                                   title="Two-Page Book View"
                                 >
                                   <BookOpenCheck className="size-3" />
@@ -1790,11 +1781,10 @@ export default function ResourceManagement() {
                                 <button
                                   type="button"
                                   onClick={() => setPdfFitMode('page')}
-                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                    pdfFitMode === 'page'
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${pdfFitMode === 'page'
                                       ? 'bg-neutral-700 text-orange-400 shadow-sm'
                                       : 'text-neutral-400 hover:text-white'
-                                  }`}
+                                    }`}
                                   title="Fit Page (Top-to-Bottom)"
                                 >
                                   <MoveVertical className="size-3" />
@@ -1803,11 +1793,10 @@ export default function ResourceManagement() {
                                 <button
                                   type="button"
                                   onClick={() => setPdfFitMode('width')}
-                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                    pdfFitMode === 'width'
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold cursor-pointer transition-colors ${pdfFitMode === 'width'
                                       ? 'bg-neutral-700 text-orange-400 shadow-sm'
                                       : 'text-neutral-400 hover:text-white'
-                                  }`}
+                                    }`}
                                   title="Fit Width"
                                 >
                                   <MoveHorizontal className="size-3" />
@@ -1829,11 +1818,10 @@ export default function ResourceManagement() {
                               <button
                                 type="button"
                                 onClick={() => setPdfSidebarTab('thumbnails')}
-                                className={`p-2 rounded-lg transition-all cursor-pointer ${
-                                  pdfSidebarTab === 'thumbnails'
+                                className={`p-2 rounded-lg transition-all cursor-pointer ${pdfSidebarTab === 'thumbnails'
                                     ? 'bg-neutral-800 text-orange-400 border border-neutral-600 shadow-sm'
                                     : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
-                                }`}
+                                  }`}
                                 title="Page Thumbnails"
                               >
                                 <LayoutGrid className="size-4" />
@@ -1841,11 +1829,10 @@ export default function ResourceManagement() {
                               <button
                                 type="button"
                                 onClick={() => setPdfSidebarTab('outline')}
-                                className={`p-2 rounded-lg transition-all cursor-pointer ${
-                                  pdfSidebarTab === 'outline'
+                                className={`p-2 rounded-lg transition-all cursor-pointer ${pdfSidebarTab === 'outline'
                                     ? 'bg-neutral-800 text-orange-400 border border-neutral-600 shadow-sm'
                                     : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
-                                }`}
+                                  }`}
                                 title="Table of Contents"
                               >
                                 <ListTree className="size-4" />
@@ -1892,11 +1879,10 @@ export default function ResourceManagement() {
                                           className="group cursor-pointer flex flex-col items-center"
                                         >
                                           <div
-                                            className={`relative w-28 sm:w-32 aspect-[1/1.414] bg-white rounded overflow-hidden shadow transition-all flex items-center justify-center ${
-                                              isCurrent
+                                            className={`relative w-28 sm:w-32 aspect-[1/1.414] bg-white rounded overflow-hidden shadow transition-all flex items-center justify-center ${isCurrent
                                                 ? 'ring-2 ring-orange-500 ring-offset-2 ring-offset-[#262626] shadow-lg'
                                                 : 'border border-neutral-700 group-hover:border-neutral-500 opacity-90 group-hover:opacity-100'
-                                            }`}
+                                              }`}
                                           >
                                             {thumbnailUrls[pageNum] ? (
                                               <img
@@ -1913,9 +1899,8 @@ export default function ResourceManagement() {
                                             )}
                                           </div>
                                           <span
-                                            className={`text-[11px] mt-1 font-medium transition-colors ${
-                                              isCurrent ? 'text-orange-400 font-bold' : 'text-neutral-400 group-hover:text-neutral-200'
-                                            }`}
+                                            className={`text-[11px] mt-1 font-medium transition-colors ${isCurrent ? 'text-orange-400 font-bold' : 'text-neutral-400 group-hover:text-neutral-200'
+                                              }`}
                                           >
                                             {pageNum}
                                           </span>
@@ -1939,9 +1924,8 @@ export default function ResourceManagement() {
                                             return (
                                               <div key={item.key} className="space-y-1">
                                                 <div
-                                                  className={`w-full flex items-center justify-between rounded px-2 py-1 transition-colors group cursor-pointer ${
-                                                    item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'hover:bg-neutral-800 text-neutral-300'
-                                                  }`}
+                                                  className={`w-full flex items-center justify-between rounded px-2 py-1 transition-colors group cursor-pointer ${item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'hover:bg-neutral-800 text-neutral-300'
+                                                    }`}
                                                 >
                                                   {hasChildren ? (
                                                     <button
@@ -2127,13 +2111,12 @@ export default function ResourceManagement() {
 
                     <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
                       <div
-                        className={`h-full transition-all duration-500 ${
-                          storageStats.usedPercentage > 85
+                        className={`h-full transition-all duration-500 ${storageStats.usedPercentage > 85
                             ? 'bg-rose-500'
                             : storageStats.usedPercentage > 70
-                            ? 'bg-amber-500'
-                            : 'bg-gradient-to-r from-emerald-500 to-teal-500'
-                        }`}
+                              ? 'bg-amber-500'
+                              : 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                          }`}
                         style={{ width: `${Math.min(100, Math.max(2, storageStats.usedPercentage))}%` }}
                       />
                     </div>
@@ -2325,17 +2308,16 @@ export default function ResourceManagement() {
                       <Shield className="size-3 text-amber-600" /> Required Access Plan
                     </span>
                     <div>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        !infoResource.requiredPlan || infoResource.requiredPlan === 'FREE'
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${!infoResource.requiredPlan || infoResource.requiredPlan === 'FREE'
                           ? 'bg-gray-100 text-gray-700'
                           : infoResource.requiredPlan === 'STUDENT_BASIC'
-                          ? 'bg-blue-100 text-blue-700'
-                          : infoResource.requiredPlan === 'STUDENT_PLUS'
-                          ? 'bg-indigo-100 text-indigo-700'
-                          : infoResource.requiredPlan === 'RESEARCHER_PRO'
-                          ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                          : 'bg-purple-100 text-purple-800 border border-purple-200'
-                      }`}>
+                            ? 'bg-blue-100 text-blue-700'
+                            : infoResource.requiredPlan === 'STUDENT_PLUS'
+                              ? 'bg-indigo-100 text-indigo-700'
+                              : infoResource.requiredPlan === 'RESEARCHER_PRO'
+                                ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                                : 'bg-purple-100 text-purple-800 border border-purple-200'
+                        }`}>
                         {PLATFORM_PLANS.find(p => p.id === infoResource.requiredPlan)?.name || (infoResource.requiredPlan || 'FREE').replace('_', ' ')}
                       </span>
                     </div>
@@ -2395,11 +2377,10 @@ export default function ResourceManagement() {
                       <button
                         type="button"
                         onClick={() => handleTogglePublish(infoResource)}
-                        className={`px-3.5 py-2 font-semibold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5 border ${
-                          infoResource.isPublished !== false
+                        className={`px-3.5 py-2 font-semibold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5 border ${infoResource.isPublished !== false
                             ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
                             : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
-                        }`}
+                          }`}
                       >
                         {infoResource.isPublished !== false ? (
                           <>
@@ -2476,11 +2457,10 @@ export default function ResourceManagement() {
                       if (modalMessage.action) modalMessage.action();
                       setModalMessage(null);
                     }}
-                    className={`flex-1 py-2.5 text-white font-semibold rounded-xl text-xs hover:opacity-95 shadow-md ${
-                      modalMessage.type === 'success'
+                    className={`flex-1 py-2.5 text-white font-semibold rounded-xl text-xs hover:opacity-95 shadow-md ${modalMessage.type === 'success'
                         ? 'bg-gradient-to-r from-emerald-500 to-green-600 shadow-emerald-500/20'
                         : 'bg-gradient-to-r from-orange-500 to-red-600 shadow-orange-500/20'
-                    }`}
+                      }`}
                   >
                     {modalMessage.buttonText || 'OK'}
                   </button>
