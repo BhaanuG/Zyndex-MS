@@ -1144,35 +1144,35 @@ export default function ResourceManagement() {
                       {/* Actions */}
                       <td className="py-3.5 px-5 text-right whitespace-nowrap">
                         <div className="inline-flex items-center justify-end gap-1.5">
-                          {/* Info Button */}
+                          {/* 1. Info Button - Teal / Cyan */}
                           <button
                             type="button"
                             onClick={() => setInfoResource(resource)}
-                            className="p-1.5 text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-orange-200"
+                            className="p-1.5 text-teal-600 bg-teal-50/80 hover:bg-teal-100/90 border border-teal-200/80 hover:border-teal-300 rounded-lg transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
                             title="View Detailed Resource Information"
                           >
                             <Info className="size-4" />
                           </button>
 
-                          {/* View Preview Button */}
+                          {/* 2. View Preview Button - Indigo / Violet */}
                           <button
                             type="button"
                             onClick={() => openPreviewModal(resource)}
-                            className="p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-amber-200"
+                            className="p-1.5 text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100/90 border border-indigo-200/80 hover:border-indigo-300 rounded-lg transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
                             title="Preview Resource Modal"
                           >
                             <Eye className="size-4" />
                           </button>
 
-                          {/* Main Admin Only: Publish / Unpublish Toggle */}
+                          {/* 3. Main Admin Only: Publish / Unpublish Toggle - Emerald (Publish) / Amber (Unpublish) */}
                           {isMainAdmin && (
                             <button
                               type="button"
                               onClick={() => handleTogglePublish(resource)}
-                              className={`p-1.5 rounded-lg transition-colors cursor-pointer border ${
+                              className={`p-1.5 rounded-lg transition-all cursor-pointer border shadow-2xs hover:scale-105 active:scale-95 ${
                                 isPublished
-                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
-                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300'
+                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 hover:border-amber-400'
+                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300 hover:border-emerald-400'
                               }`}
                               title={isPublished ? 'Unpublish Resource (Hide from all users, keep in database)' : 'Publish Resource (Make visible in user catalog)'}
                             >
@@ -1180,21 +1180,21 @@ export default function ResourceManagement() {
                             </button>
                           )}
 
-                          {/* Edit Button */}
+                          {/* 4. Edit Button - Vibrant Brand Orange */}
                           <button
                             type="button"
                             onClick={() => openEditModal(resource)}
-                            className="p-1.5 text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-orange-200"
+                            className="p-1.5 text-orange-600 bg-orange-50/80 hover:bg-orange-100/90 border border-orange-200/80 hover:border-orange-300 rounded-lg transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
                             title="Edit Resource"
                           >
                             <Edit className="size-4" />
                           </button>
 
-                          {/* Delete Button */}
+                          {/* 5. Delete Button - Rose / Crimson Red */}
                           <button
                             type="button"
                             onClick={() => handleDelete(resource.id)}
-                            className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                            className="p-1.5 text-rose-600 bg-rose-50/80 hover:bg-rose-100/90 border border-rose-200/80 hover:border-rose-300 rounded-lg transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
                             title="Delete Resource"
                           >
                             <Trash2 className="size-4" />
