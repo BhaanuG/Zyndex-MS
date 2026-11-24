@@ -2620,72 +2620,72 @@ export default function AdminLogs() {
                     return (
                       <div className="space-y-4 max-h-[72vh] overflow-y-auto pr-1">
                         {/* Host Physical Server RAM */}
-                        <div className="p-3.5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl shadow-sm space-y-2">
+                        <div className="p-4 bg-gradient-to-br from-slate-50 to-indigo-50/50 rounded-2xl border border-slate-200 shadow-xs space-y-2.5">
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold flex items-center gap-1.5 text-indigo-200">
-                              <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="font-bold flex items-center gap-1.5 text-slate-800">
+                              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
                               Physical Cloud Server Memory (Oracle Ampere A1)
                             </span>
-                            <span className="font-black text-emerald-300">{hostFreeGb} GB Available Free</span>
+                            <span className="font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-mono">{hostFreeGb} GB Available Free</span>
                           </div>
-                          <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                          <div className="w-full bg-slate-200/80 rounded-full h-2.5 overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full"
+                              className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
                               style={{ width: `${Math.round((parseFloat(hostUsedGb) / parseFloat(hostTotalGb)) * 100)}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-[11px] text-slate-300 font-mono">
-                            <span>Total Hardware RAM: <strong>{hostTotalGb} GB</strong></span>
-                            <span>Containers In-Use: <strong>{hostUsedGb} GB</strong> ({Math.round((parseFloat(hostUsedGb) / parseFloat(hostTotalGb)) * 100)}%)</span>
-                            <span>Idle Headroom: <strong className="text-emerald-400">{hostFreeGb} GB</strong></span>
+                          <div className="flex justify-between text-[11px] text-slate-600 font-mono">
+                            <span>Total Hardware RAM: <strong className="text-slate-900">{hostTotalGb} GB</strong></span>
+                            <span>Containers In-Use: <strong className="text-slate-900">{hostUsedGb} GB</strong> ({Math.round((parseFloat(hostUsedGb) / parseFloat(hostTotalGb)) * 100)}%)</span>
+                            <span>Idle Headroom: <strong className="text-emerald-700">{hostFreeGb} GB</strong></span>
                           </div>
                         </div>
 
                         {/* JVM Heap Calculation Visualizer */}
-                        <div className="p-4 bg-purple-50/80 border border-purple-200 rounded-2xl space-y-3">
-                          <div className="flex justify-between text-xs font-bold text-purple-950">
+                        <div className="p-4 bg-orange-50/70 border border-orange-200/80 rounded-2xl space-y-3">
+                          <div className="flex justify-between text-xs font-bold text-orange-950">
                             <span className="flex items-center gap-1.5">
-                              <span className="size-2 rounded-full bg-purple-600 animate-ping" />
+                              <span className="size-2 rounded-full bg-orange-500 animate-ping" />
                               JVM Heap Allocation (Content Service Engine)
                             </span>
-                            <span className="font-mono">{usedMb.toFixed(1)} MB / {maxMb.toFixed(0)} MB ({Math.round((usedMb / maxMb) * 100)}%)</span>
+                            <span className="font-mono text-orange-900">{usedMb.toFixed(1)} MB / {maxMb.toFixed(0)} MB ({Math.round((usedMb / maxMb) * 100)}%)</span>
                           </div>
-                          <div className="w-full bg-purple-200/70 rounded-full h-3 overflow-hidden">
+                          <div className="w-full bg-orange-200/60 rounded-full h-2.5 overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-purple-600 to-indigo-600 transition-all duration-500 rounded-full"
+                              className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500 rounded-full"
                               style={{ width: `${Math.min(100, Math.max(3, (usedMb / maxMb) * 100))}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-[11px] text-purple-900 font-mono">
-                            <span>Currently Consumed: <strong>{usedMb.toFixed(1)} MB</strong></span>
+                          <div className="flex justify-between text-[11px] text-orange-950 font-mono">
+                            <span>Currently Consumed: <strong className="text-orange-900">{usedMb.toFixed(1)} MB</strong></span>
                             <span>Total Free Headroom: <strong className="text-emerald-700">{availableHeadroomMb.toFixed(1)} MB</strong></span>
                           </div>
                         </div>
 
                         {/* Pin-to-Pin Accurate Metric Cards */}
                         <div className="grid grid-cols-3 gap-3 text-center">
-                          <div className="p-3 bg-purple-50 border border-purple-200 rounded-2xl shadow-xs">
-                            <span className="text-[10px] font-bold text-purple-700 uppercase block tracking-wider">Actively Used Heap</span>
-                            <span className="text-lg font-black text-purple-950 mt-0.5 block font-mono">
+                          <div className="p-4 bg-gradient-to-br from-orange-50 to-amber-50/60 border border-orange-200/80 rounded-2xl shadow-xs">
+                            <span className="text-[11px] font-bold text-orange-700 uppercase block tracking-wider">Actively Used Heap</span>
+                            <span className="text-2xl font-black text-orange-950 mt-1 block font-mono">
                               {usedMb.toFixed(1)} MB
                             </span>
-                            <span className="text-[10px] text-purple-600">Live Java Object Heap</span>
+                            <span className="text-xs text-orange-600 mt-0.5 block">Live Java Object Heap</span>
                           </div>
 
-                          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-xs">
-                            <span className="text-[10px] font-bold text-emerald-800 uppercase block tracking-wider">Total Free Headroom</span>
-                            <span className="text-lg font-black text-emerald-950 mt-0.5 block font-mono">
+                          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50/60 border border-emerald-200/80 rounded-2xl shadow-xs">
+                            <span className="text-[11px] font-bold text-emerald-800 uppercase block tracking-wider">Total Free Headroom</span>
+                            <span className="text-2xl font-black text-emerald-950 mt-1 block font-mono">
                               {availableHeadroomMb.toFixed(1)} MB
                             </span>
-                            <span className="text-[10px] text-emerald-700">Remaining to Max Cap</span>
+                            <span className="text-xs text-emerald-700 mt-0.5 block">Remaining to Max Cap</span>
                           </div>
 
-                          <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl shadow-xs">
-                            <span className="text-[10px] font-bold text-indigo-700 uppercase block tracking-wider">Max Safe Ceiling</span>
-                            <span className="text-lg font-black text-indigo-950 mt-0.5 block font-mono">
+                          <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50/60 border border-blue-200/80 rounded-2xl shadow-xs">
+                            <span className="text-[11px] font-bold text-blue-800 uppercase block tracking-wider">Max Safe Ceiling</span>
+                            <span className="text-2xl font-black text-blue-950 mt-1 block font-mono">
                               {maxMb.toFixed(0)} MB
                             </span>
-                            <span className="text-[10px] text-indigo-600">Container Max Limit</span>
+                            <span className="text-xs text-blue-700 mt-0.5 block">Container Max Limit</span>
                           </div>
                         </div>
 
