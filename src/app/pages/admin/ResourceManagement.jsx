@@ -1154,17 +1154,17 @@ export default function ResourceManagement() {
                             <Info className="size-4" />
                           </button>
 
-                          {/* 2. View Preview Button - Indigo / Violet */}
+                          {/* 2. View Preview / Read Button - Indigo / Violet with BookOpen Icon */}
                           <button
                             type="button"
                             onClick={() => openPreviewModal(resource)}
                             className="p-1.5 text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100/90 border border-indigo-200/80 hover:border-indigo-300 rounded-lg transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
-                            title="Preview Resource Modal"
+                            title="Open Document Preview & Reader"
                           >
-                            <Eye className="size-4" />
+                            <BookOpen className="size-4" />
                           </button>
 
-                          {/* 3. Main Admin Only: Publish / Unpublish Toggle - Emerald (Publish) / Amber (Unpublish) */}
+                          {/* 3. Main Admin Only: Publish / Unpublish Toggle - Emerald (Globe / Public) vs Amber (Lock / Private) */}
                           {isMainAdmin && (
                             <button
                               type="button"
@@ -1174,9 +1174,9 @@ export default function ResourceManagement() {
                                   ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 hover:border-amber-400'
                                   : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300 hover:border-emerald-400'
                               }`}
-                              title={isPublished ? 'Unpublish Resource (Hide from all users, keep in database)' : 'Publish Resource (Make visible in user catalog)'}
+                              title={isPublished ? 'Unpublish Resource (Hide from user catalog, keep in database)' : 'Publish Resource (Make visible in user catalog)'}
                             >
-                              {isPublished ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                              {isPublished ? <Lock className="size-4 text-amber-700" /> : <Globe className="size-4 text-emerald-700" />}
                             </button>
                           )}
 
