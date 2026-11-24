@@ -459,18 +459,13 @@ export default function UserHome() {
                     whileHover={{ y: -8 }}
                     onClick={() => navigate(`/Zyndex/User/${getUrlSafeName()}/${getUrlSafeEmail()}/Resource/${resource.id}`)}
                   >
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={(e) => toggleFavorite(e, resource.id)}
-                        className={`absolute top-0 right-0 p-2 rounded-full transition-colors ${favoriteIds.includes(resource.id) ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400 hover:text-red-500'}`}
-                      >
-                        <Heart className={`size-4 ${favoriteIds.includes(resource.id) ? 'fill-current' : ''}`} />
-                      </button>
-                      <h3 className="font-bold text-gray-900 mb-2 text-lg">{resource.title}</h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
-                      <p className="text-sm text-gray-500 mb-4">Author of Resource: {resource.author || resource.subject}</p>
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                    <div className="flex flex-col h-full justify-between">
+                      <div>
+                        <h3 className="font-bold text-gray-900 mb-2 text-lg leading-snug">{resource.title}</h3>
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
+                        <p className="text-sm text-gray-500 mb-4">Author of Resource: {resource.author || resource.subject}</p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 mt-auto">
                         <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
                           <span className="text-xs text-gray-500 font-medium px-2 py-0.5 bg-gray-100 rounded-md shrink-0">{resource.category}</span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase shrink-0 ${
@@ -484,7 +479,17 @@ export default function UserHome() {
                             {getPlanName(resource.requiredPlan)}
                           </span>
                         </div>
-                        <span className="text-sm text-orange-600 font-bold shrink-0 ml-1">Viewed</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-sm text-orange-600 font-bold">Viewed</span>
+                          <button
+                            type="button"
+                            onClick={(e) => toggleFavorite(e, resource.id)}
+                            className={`p-1.5 rounded-full transition-colors cursor-pointer ${favoriteIds.includes(resource.id) ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
+                            title={favoriteIds.includes(resource.id) ? 'Remove from favorites' : 'Add to favorites'}
+                          >
+                            <Heart className={`size-4 ${favoriteIds.includes(resource.id) ? 'fill-current' : ''}`} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -515,18 +520,13 @@ export default function UserHome() {
                     whileHover={{ y: -8 }}
                     onClick={() => navigate(`/Zyndex/User/${getUrlSafeName()}/${getUrlSafeEmail()}/Resource/${resource.id}`)}
                   >
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={(e) => toggleFavorite(e, resource.id)}
-                        className={`absolute top-0 right-0 p-2 rounded-full transition-colors ${favoriteIds.includes(resource.id) ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400 hover:text-red-500'}`}
-                      >
-                        <Heart className={`size-4 ${favoriteIds.includes(resource.id) ? 'fill-current' : ''}`} />
-                      </button>
-                      <h3 className="font-bold text-gray-900 mb-2 text-lg">{resource.title}</h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
-                      <p className="text-sm text-gray-500 mb-4">Author of Resource: {resource.author || resource.subject}</p>
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                    <div className="flex flex-col h-full justify-between">
+                      <div>
+                        <h3 className="font-bold text-gray-900 mb-2 text-lg leading-snug">{resource.title}</h3>
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
+                        <p className="text-sm text-gray-500 mb-4">Author of Resource: {resource.author || resource.subject}</p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 mt-auto">
                         <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
                           <span className="text-xs text-gray-500 font-medium px-2 py-0.5 bg-gray-100 rounded-md shrink-0">{resource.category}</span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase shrink-0 ${
@@ -540,7 +540,17 @@ export default function UserHome() {
                             {getPlanName(resource.requiredPlan)}
                           </span>
                         </div>
-                        <span className="text-sm text-orange-600 font-bold shrink-0 ml-1">View</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-sm text-orange-600 font-bold">View</span>
+                          <button
+                            type="button"
+                            onClick={(e) => toggleFavorite(e, resource.id)}
+                            className={`p-1.5 rounded-full transition-colors cursor-pointer ${favoriteIds.includes(resource.id) ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
+                            title={favoriteIds.includes(resource.id) ? 'Remove from favorites' : 'Add to favorites'}
+                          >
+                            <Heart className={`size-4 ${favoriteIds.includes(resource.id) ? 'fill-current' : ''}`} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>

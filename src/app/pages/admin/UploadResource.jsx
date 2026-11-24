@@ -6,7 +6,7 @@ export default function UploadResource() {
 
   return (
     <Navigate
-      to={`/Zyndex/Admin/${getUrlSafeName()}/${getUrlSafeEmail()}/Resource-Management`}
+      to={`/Zyndex/Admin/${getUrlSafeName()}/${getUrlSafeEmail()}/Content-Management`}
       replace
     />
   );

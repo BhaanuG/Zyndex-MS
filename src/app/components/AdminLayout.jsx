@@ -338,22 +338,27 @@ export default function AdminLayout({ children }) {
             </div>
 
             {/* Menu Items */}
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
               {menuItems.map((item, index) => {
                 const Icon = item.icon;
-                const isActive = location.pathname === item.path;
+                const normalizedPath = item.path.toLowerCase();
+                const normalizedCurrent = location.pathname.toLowerCase();
+                const isActive = normalizedCurrent === normalizedPath ||
+                  (item.label === 'Content Management' && (normalizedCurrent.includes('/resource-management') || normalizedCurrent.includes('/upload-resource'))) ||
+                  (item.label === 'User Management' && normalizedCurrent.includes('/user-access'));
+
                 return (
-                  <div key={index} className="hover:translate-x-1 transition-transform">
+                  <div key={index} className="transition-transform">
                     <Link
                       to={item.path}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all shadow-xs ${
                         isActive
-                          ? 'bg-orange-50 text-orange-600'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20 font-bold'
+                          : 'text-gray-600 hover:bg-orange-50/70 hover:text-orange-600'
                       }`}
                     >
-                      <Icon className="size-5 flex-shrink-0" />
-                      <span className="text-sm font-medium truncate">{item.label}</span>
+                      <Icon className={`size-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                      <span className="text-sm truncate">{item.label}</span>
                     </Link>
                   </div>
                 );

@@ -151,33 +151,38 @@ export default function SearchResults() {
                   transition={{ duration: 0.5, delay: index * 0.08 }}
                   onClick={() => navigate(`/Zyndex/User/${getUrlSafeName()}/${getUrlSafeEmail()}/Resource/${resource.id}`)}
                 >
-                  <div className="flex justify-end mb-2">
-                    <button
-                      type="button"
-                      onClick={(e) => toggleFavorite(e, resource.id)}
-                      className={`p-2 rounded-full transition-colors ${favoriteIds.includes(resource.id) ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400 hover:text-red-500'}`}
-                    >
-                      <Heart className={`size-4 ${favoriteIds.includes(resource.id) ? 'fill-current' : ''}`} />
-                    </button>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{resource.title}</h3>
-                  <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap flex-1 min-w-0">
-                      <span className="font-medium text-gray-700 px-2 py-0.5 bg-gray-100 rounded-md shrink-0">{resource.category}</span>
-                      <span className="shrink-0 truncate max-w-[150px]">Author: {resource.subject || resource.author}</span>
-                      <span className={`uppercase text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                        isArticleResource(resource) 
-                          ? 'bg-amber-100/80 text-amber-900 border border-amber-200' 
-                          : 'bg-slate-100 text-slate-700'
-                      }`}>
-                        {getDisplayType(resource)}
-                      </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 inline-flex items-center ${getPlanBadgeClass(resource.requiredPlan)}`}>
-                        {getPlanName(resource.requiredPlan)}
-                      </span>
+                  <div className="flex flex-col h-full justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 leading-snug">{resource.title}</h3>
+                      <p className="text-gray-600 mb-3 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
+                      <p className="text-sm text-gray-500 mb-4">Author: {resource.subject || resource.author}</p>
                     </div>
-                    <span className="text-orange-600 font-medium text-sm shrink-0 ml-1">View</span>
+                    <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 mt-auto">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap flex-1 min-w-0">
+                        <span className="font-medium text-gray-700 px-2 py-0.5 bg-gray-100 rounded-md shrink-0">{resource.category}</span>
+                        <span className={`uppercase text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                          isArticleResource(resource) 
+                            ? 'bg-amber-100/80 text-amber-900 border border-amber-200' 
+                            : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {getDisplayType(resource)}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 inline-flex items-center ${getPlanBadgeClass(resource.requiredPlan)}`}>
+                          {getPlanName(resource.requiredPlan)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-orange-600 font-medium text-sm">View</span>
+                        <button
+                          type="button"
+                          onClick={(e) => toggleFavorite(e, resource.id)}
+                          className={`p-1.5 rounded-full transition-colors cursor-pointer ${favoriteIds.includes(resource.id) ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
+                          title={favoriteIds.includes(resource.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        >
+                          <Heart className={`size-4 ${favoriteIds.includes(resource.id) ? 'fill-current' : ''}`} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               ))}
