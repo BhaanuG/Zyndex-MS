@@ -338,7 +338,7 @@ export default function Terms() {
             <div className="inline-flex items-center justify-center size-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl shadow-lg mb-6">
               <Scale className="size-10 text-white" />
             </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent pb-3 pt-1 leading-tight tracking-normal mb-4">
+            <h1 className="text-5xl font-extrabold text-orange-600 mb-4 tracking-tight">
               Terms of Service
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">

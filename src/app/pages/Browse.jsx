@@ -27,8 +27,8 @@ export default function Features() {
     },
     {
       icon: FileText,
-      title: 'Interactive PDF Reader',
-      description: 'High-performance in-browser viewer with dynamic zoom, responsive multi-page rendering, document outline, and jump-to-page navigation.',
+      title: 'Interactive Full-Screen PDF Reader',
+      description: 'Immersive full-screen reading environment with continuous zoom (25% to 300%), dual-mode page fitting (Fit-to-Page & Fit-to-Width), single-page and two-page book spreads, 90° clockwise/counter-clockwise rotation, dynamic sidebar with visual page thumbnails & hierarchical document outline, jump-to-page navigation, and keyboard arrow controls.',
       gradient: 'from-red-500 to-orange-600'
     },
     {
