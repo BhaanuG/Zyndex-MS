@@ -23,7 +23,10 @@
   <a href="#backend-runtime-specifications"><img src="https://img.shields.io/badge/Spring%20Cloud-2024.0.1-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Cloud 2024.0.1" /></a>
   <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" /></a>
   <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/Vite-6.4.6-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 6" /></a>
+  <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/Tailwind%20CSS-4.1.12-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" /></a>
   <a href="#database-runtime-specifications"><img src="https://img.shields.io/badge/MySQL-8.4%20LTS-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8.4" /></a>
+  <a href="#containerization--orchestration"><img src="https://img.shields.io/badge/Docker-28.0%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker & Compose" /></a>
+  <a href="#frontend-runtime-specifications"><img src="https://img.shields.io/badge/Nginx-Reverse%20Proxy-009639?style=for-the-badge&logo=nginx&logoColor=white" alt="Nginx" /></a>
 </p>
 
 <p align="center">
@@ -2611,13 +2614,13 @@ Statistics were calculated using a native filesystem audit executed across all s
 | :--- | :--- | :--- |
 | **Total Source Files** | **217 Files** | Application-owned source, configuration, template, and schema manifests |
 | **Total Folders / Directories** | **105 Folders** | Structured source modules, microservice packages, and asset directories |
-| **Total Lines of Code (LOC)** | **61,939 Lines** | Formatted newline-delimited source code lines |
-| **Total Word Count** | **232,038 Words** | Complete lexical words across application codebase |
-| **Overall Character Count** | **2,887,171 Characters** | Total byte stream character volume |
-| **Alphabets / Letters (`a-z, A-Z`)** | **1,533,111 Characters** | 53.10% of total character stream |
-| **Digits & Numbers (`0-9`)** | **69,471 Characters** | 2.41% of total character stream |
-| **Symbols, Operators & Punctuation** | **379,541 Characters** | 13.15% of total character stream (brackets, tags, operators) |
-| **Whitespace & Formatting (`\s`)** | **905,048 Characters** | 31.35% of total character stream (indentation, newlines) |
+| **Total Lines of Code (LOC)** | **61,942 Lines** | Formatted newline-delimited source code lines |
+| **Total Word Count** | **232,058 Words** | Complete lexical words across application codebase |
+| **Overall Character Count** | **2,887,750 Characters** | Total byte stream character volume |
+| **Alphabets / Letters (`a-z, A-Z`)** | **1,533,508 Characters** | 53.10% of total character stream |
+| **Digits & Numbers (`0-9`)** | **69,504 Characters** | 2.41% of total character stream |
+| **Symbols, Operators & Punctuation** | **379,661 Characters** | 13.15% of total character stream (brackets, tags, operators) |
+| **Whitespace & Formatting (`\s`)** | **905,077 Characters** | 31.34% of total character stream (indentation, newlines) |
 
 ### 17.3 Breakdown by File Extension & Domain
 
@@ -2627,12 +2630,12 @@ Statistics were calculated using a native filesystem audit executed across all s
 | **`.java`** | Spring Boot Microservices Backend | **64 Files** | **11,029 Lines** | **45,420 Words** | **569,920 Chars** |
 | **`.js`** | JavaScript API Clients & Utilities | **17 Files** | **5,061 Lines** | **16,575 Words** | **180,097 Chars** |
 | **`.json`** | Package & Dependency Manifests | **3 Files** | **6,170 Lines** | **11,760 Words** | **189,705 Chars** |
-| **`.md`** | Technical Architecture Documentation | **6 Files** | **3,677 Lines** | **31,371 Words** | **264,195 Chars** |
+| **`.md`** | Technical Architecture Documentation | **6 Files** | **3,680 Lines** | **31,391 Words** | **264,774 Chars** |
 | **`.css`** | Tailwind CSS & Theme Stylesheets | **5 Files** | **913 Lines** | **2,053 Words** | **21,241 Chars** |
 | **`.yml / .yaml`** | Spring Cloud & Gateway Configurations| **14 Files** | **820 Lines** | **1,981 Words** | **27,384 Chars** |
 | **`.xml`** | Maven POM Multi-Module Descriptors | **8 Files** | **536 Lines** | **565 Words** | **19,777 Chars** |
 | **`.html`** | Single-Page Application Entry Root | **1 File** | **30 Lines** | **68 Words** | **912 Chars** |
-| **Overall Total** | **Full Stack Application** | **217 Files** | **61,939 Lines** | **232,038 Words** | **2,887,171 Chars** |
+| **Overall Total** | **Full Stack Application** | **217 Files** | **61,942 Lines** | **232,058 Words** | **2,887,750 Chars** |
 
 ### 17.4 Academic Catalog Categories & Curated Disciplines
 
