@@ -68,6 +68,9 @@ class DbInitializer implements CommandLineRunner {
                 )
                 """);
         try {
+            jdbc.execute("ALTER TABLE feedback MODIFY COLUMN rating DECIMAL(3,1) NOT NULL DEFAULT 0.0");
+        } catch (Exception ignored) {}
+        try {
             jdbc.execute("ALTER TABLE feedback ADD COLUMN admin_response TEXT NULL");
         } catch (Exception ignored) {}
         try {

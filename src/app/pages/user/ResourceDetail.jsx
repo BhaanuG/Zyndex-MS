@@ -74,6 +74,7 @@ export default function ResourceDetail() {
   const pdfContainerRef = useRef(null);
   const thumbnailsContainerRef = useRef(null);
   const hasTrackedView = useRef(false);
+  const feedbackTimerRef = useRef(null);
   const getProtocol = () => (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:');
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? `${getProtocol()}//${window.location.hostname}:8080/api` : 'http://localhost:8080/api');
 
@@ -263,13 +264,31 @@ export default function ResourceDetail() {
     e.preventDefault();
 
     try {
-      await feedbackService.rateResource(id, rating, feedback, isAnonymous);
+      const submittedRating = rating > 0 ? rating : 5.0;
+      await feedbackService.rateResource(id, submittedRating, feedback, isAnonymous);
 
       setMessage('Feedback submitted successfully.');
       setRating(0);
+      setHoveredRating(0);
       setFeedback('');
+
+      // Auto dismiss message after 10 seconds
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = setTimeout(() => {
+        setMessage('');
+      }, 10000);
+
+      // Refresh resource details to show updated average rating
+      try {
+        const refreshed = await resourceService.getResourceById(id);
+        if (refreshed) setResource(refreshed);
+      } catch (ignored) {}
     } catch (error) {
       setMessage(error.message || 'Failed to submit feedback.');
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = setTimeout(() => {
+        setMessage('');
+      }, 10000);
     }
   };
 
@@ -1369,13 +1388,87 @@ export default function ResourceDetail() {
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Leave Feedback</h2>
                 <form onSubmit={handleSubmitFeedback} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Rate this resource</label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button key={star} type="button" onClick={() => setRating(star)} onMouseEnter={() => setHoveredRating(star)} onMouseLeave={() => setHoveredRating(0)} className="focus:outline-none">
-                          <Star className={`size-8 transition-colors ${star <= (hoveredRating || rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
-                        </button>
-                      ))}
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">Rate this resource</label>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                        {rating > 0 ? `${Number(rating).toFixed(1)} / 5.0` : 'Tap stars to rate'}
+                      </span>
+                    </div>
+
+                    {/* Interactive 5-star rating with continuous fractional support */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        {[1, 2, 3, 4, 5].map((starIndex) => {
+                          const activeVal = hoveredRating || rating || 0;
+                          const fillPercent = Math.max(0, Math.min(100, (activeVal - (starIndex - 1)) * 100));
+
+                          return (
+                            <div
+                              key={starIndex}
+                              className="relative cursor-pointer select-none group"
+                              onClick={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const clickX = e.clientX - rect.left;
+                                const width = rect.width;
+                                const ratio = Math.max(0.1, Math.min(1.0, clickX / width));
+                                const preciseRating = Math.round(((starIndex - 1) + ratio) * 10) / 10;
+                                setRating(preciseRating);
+                              }}
+                              onMouseMove={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const moveX = e.clientX - rect.left;
+                                const width = rect.width;
+                                const ratio = Math.max(0.1, Math.min(1.0, moveX / width));
+                                const previewRating = Math.round(((starIndex - 1) + ratio) * 10) / 10;
+                                setHoveredRating(previewRating);
+                              }}
+                              onMouseLeave={() => setHoveredRating(0)}
+                              title={`Rate ${starIndex} stars`}
+                            >
+                              {/* Background empty star */}
+                              <Star className="size-8 text-gray-300 transition-transform group-hover:scale-110" />
+
+                              {/* Fractional filled star overlay */}
+                              {fillPercent > 0 && (
+                                <div
+                                  className="absolute top-0 left-0 overflow-hidden pointer-events-none transition-all"
+                                  style={{ width: `${fillPercent}%` }}
+                                >
+                                  <Star className="size-8 fill-yellow-400 text-yellow-400 shrink-0" />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Precise Decimal Slider & Quick Increments */}
+                      <div className="flex flex-wrap items-center gap-3 pt-1">
+                        <input
+                          type="range"
+                          min="1.0"
+                          max="5.0"
+                          step="0.1"
+                          value={rating || 5.0}
+                          onChange={(e) => setRating(parseFloat(e.target.value))}
+                          className="w-48 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
+                        />
+                        <span className="font-mono text-sm font-bold text-gray-800">
+                          {rating > 0 ? Number(rating).toFixed(1) : '5.0'} ★
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {[4.0, 4.2, 4.5, 4.8, 5.0].map((quickVal) => (
+                            <button
+                              key={quickVal}
+                              type="button"
+                              onClick={() => setRating(quickVal)}
+                              className={`px-2 py-0.5 text-[11px] rounded font-medium transition-all ${rating === quickVal ? 'bg-orange-600 text-white font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                            >
+                              {quickVal.toFixed(1)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
 

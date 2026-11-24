@@ -37,9 +37,11 @@ class FeedbackController {
             throw new ApiException(HttpStatus.BAD_REQUEST, "A logged-in user and resource are required.");
         }
         boolean isAnonymous = Boolean.TRUE.equals(body.get("isAnonymous")) || "true".equalsIgnoreCase(SqlSupport.str(body.get("isAnonymous")));
+        double ratingVal = SqlSupport.parseDouble(SqlSupport.str(body.get("rating")), 0.0);
         jdbc.update("INSERT INTO feedback (rating, created_at, resource_id, user_id, comment, is_anonymous) VALUES (?, NOW(), ?, ?, ?, ?)",
-                SqlSupport.parseInt(SqlSupport.str(body.get("rating")), 0), resourceId, userId, SqlSupport.str(body.get("message")), isAnonymous);
+                ratingVal, resourceId, userId, SqlSupport.str(body.get("message")), isAnonymous);
         long feedbackId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        jdbc.update("UPDATE resources SET rating = (SELECT COALESCE(ROUND(AVG(rating), 2), 0) FROM feedback WHERE resource_id = ?) WHERE id = ?", resourceId, resourceId);
 
         // Record granular audit log
         try {

@@ -642,15 +642,15 @@ class ResourceController {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
         }
         long userId = Long.parseLong(userIdStr);
-        int rating = SqlSupport.parseInt(SqlSupport.str(body.get("rating")), 0);
-        if (rating < 1 || rating > 5) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5.");
+        double rating = SqlSupport.parseDouble(SqlSupport.str(body.get("rating")), 0.0);
+        if (rating < 0.5 || rating > 5.0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Rating must be between 0.5 and 5.0.");
         }
         boolean isAnonymous = Boolean.TRUE.equals(body.get("isAnonymous")) || "true".equalsIgnoreCase(SqlSupport.str(body.get("isAnonymous")));
         jdbc.update("INSERT INTO feedback (rating, created_at, resource_id, user_id, comment, is_anonymous) VALUES (?, NOW(), ?, ?, ?, ?)",
                 rating, id, userId, SqlSupport.str(body.get("comment")), isAnonymous);
-        jdbc.update("UPDATE resources SET rating = (SELECT COALESCE(AVG(rating), 0) FROM feedback WHERE resource_id = ?) WHERE id = ?", id, id);
-        return Map.of("message", "Rating submitted successfully.");
+        jdbc.update("UPDATE resources SET rating = (SELECT COALESCE(ROUND(AVG(rating), 2), 0) FROM feedback WHERE resource_id = ?) WHERE id = ?", id, id);
+        return Map.of("message", "Rating submitted successfully.", "rating", rating);
     }
 
     @GetMapping("/{id}/ratings")

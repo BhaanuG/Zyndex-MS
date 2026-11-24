@@ -67,6 +67,14 @@ public class SqlSupport {
         }
     }
 
+    public static double parseDouble(String value, double fallback) {
+        try {
+            return value == null || value.isBlank() ? fallback : Double.parseDouble(value);
+        } catch (NumberFormatException error) {
+            return fallback;
+        }
+    }
+
     public static String str(Object value) {
         return value == null ? "" : String.valueOf(value);
     }
