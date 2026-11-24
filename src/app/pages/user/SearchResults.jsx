@@ -162,22 +162,22 @@ export default function SearchResults() {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{resource.title}</h3>
                   <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
-                      <span className="font-medium text-gray-700">{resource.category}</span>
-                      <span>Author: {resource.subject || resource.author}</span>
-                      <span className={`uppercase text-xs font-bold px-2 py-0.5 rounded-md ${
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap flex-1 min-w-0">
+                      <span className="font-medium text-gray-700 px-2 py-0.5 bg-gray-100 rounded-md shrink-0">{resource.category}</span>
+                      <span className="shrink-0 truncate max-w-[150px]">Author: {resource.subject || resource.author}</span>
+                      <span className={`uppercase text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
                         isArticleResource(resource) 
                           ? 'bg-amber-100/80 text-amber-900 border border-amber-200' 
                           : 'bg-slate-100 text-slate-700'
                       }`}>
                         {getDisplayType(resource)}
                       </span>
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getPlanBadgeClass(resource.requiredPlan)}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 inline-flex items-center ${getPlanBadgeClass(resource.requiredPlan)}`}>
                         {getPlanName(resource.requiredPlan)}
                       </span>
                     </div>
-                    <span className="text-orange-600 font-medium text-sm">View</span>
+                    <span className="text-orange-600 font-medium text-sm shrink-0 ml-1">View</span>
                   </div>
                 </motion.div>
               ))}

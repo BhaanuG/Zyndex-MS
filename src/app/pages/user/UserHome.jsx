@@ -470,21 +470,21 @@ export default function UserHome() {
                       <h3 className="font-bold text-gray-900 mb-2 text-lg">{resource.title}</h3>
                       <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
                       <p className="text-sm text-gray-500 mb-4">Author of Resource: {resource.author || resource.subject}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500 font-medium px-2.5 py-1 bg-gray-100 rounded-lg">{resource.category}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                        <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
+                          <span className="text-xs text-gray-500 font-medium px-2 py-0.5 bg-gray-100 rounded-md shrink-0">{resource.category}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase shrink-0 ${
                             isArticleResource(resource)
                               ? 'bg-amber-100 text-amber-900 border border-amber-200'
                               : 'bg-slate-100 text-slate-700'
                           }`}>
                             {getDisplayType(resource)}
                           </span>
-                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getPlanBadgeClass(resource.requiredPlan)}`}>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 inline-flex items-center ${getPlanBadgeClass(resource.requiredPlan)}`}>
                             {getPlanName(resource.requiredPlan)}
                           </span>
                         </div>
-                        <span className="text-sm text-orange-600 font-bold">Viewed</span>
+                        <span className="text-sm text-orange-600 font-bold shrink-0 ml-1">Viewed</span>
                       </div>
                     </div>
                   </motion.div>
@@ -526,21 +526,21 @@ export default function UserHome() {
                       <h3 className="font-bold text-gray-900 mb-2 text-lg">{resource.title}</h3>
                       <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">{getCleanDescription(resource)}</p>
                       <p className="text-sm text-gray-500 mb-4">Author of Resource: {resource.author || resource.subject}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500 font-medium px-2.5 py-1 bg-gray-100 rounded-lg">{resource.category}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                        <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
+                          <span className="text-xs text-gray-500 font-medium px-2 py-0.5 bg-gray-100 rounded-md shrink-0">{resource.category}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase shrink-0 ${
                             isArticleResource(resource)
                               ? 'bg-amber-100 text-amber-900 border border-amber-200'
                               : 'bg-slate-100 text-slate-700'
                           }`}>
                             {getDisplayType(resource)}
                           </span>
-                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getPlanBadgeClass(resource.requiredPlan)}`}>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 inline-flex items-center ${getPlanBadgeClass(resource.requiredPlan)}`}>
                             {getPlanName(resource.requiredPlan)}
                           </span>
                         </div>
-                        <span className="text-sm text-orange-600 font-bold">View</span>
+                        <span className="text-sm text-orange-600 font-bold shrink-0 ml-1">View</span>
                       </div>
                     </div>
                   </motion.div>
