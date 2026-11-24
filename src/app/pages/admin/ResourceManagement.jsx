@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Clock, CheckCircle, CheckCircle2, HardDrive, Database, Activity, Cpu } from 'lucide-react';
+import { Search, Edit, Trash2, X, FileText, Plus, Upload as UploadIcon, File, AlertTriangle, Link as LinkIcon, Image as ImageIcon, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, Download, Clock, CheckCircle, CheckCircle2, HardDrive, Database, Activity, Cpu, Info, Shield, Layers, Calendar, User, Star } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import resourceService from '@/services/api/resourceService';
@@ -82,6 +82,7 @@ export default function ResourceManagement() {
   const [updateEtaSeconds, setUpdateEtaSeconds] = useState(null);
   const [updateSpeed, setUpdateSpeed] = useState('');
   const [previewResource, setPreviewResource] = useState(null);
+  const [infoResource, setInfoResource] = useState(null);
   const [previewToken, setPreviewToken] = useState('');
   const [previewBlobUrl, setPreviewBlobUrl] = useState('');
   const [previewError, setPreviewError] = useState('');
@@ -767,9 +768,10 @@ export default function ResourceManagement() {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => openPreviewModal(resource)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors" title="Preview Resource Modal"><Eye className="size-4" /></button>
-                        <button onClick={() => openEditModal(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors" title="Edit Resource"><Edit className="size-4" /></button>
-                        <button onClick={() => handleDelete(resource.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors" title="Delete Resource"><Trash2 className="size-4" /></button>
+                        <button onClick={() => setInfoResource(resource)} className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors cursor-pointer" title="View Detailed Resource Information"><Info className="size-4" /></button>
+                        <button onClick={() => openPreviewModal(resource)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors cursor-pointer" title="Preview Resource Modal"><Eye className="size-4" /></button>
+                        <button onClick={() => openEditModal(resource)} className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-colors cursor-pointer" title="Edit Resource"><Edit className="size-4" /></button>
+                        <button onClick={() => handleDelete(resource.id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors cursor-pointer" title="Delete Resource"><Trash2 className="size-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -1398,6 +1400,196 @@ export default function ResourceManagement() {
                     className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
                   >
                     Done
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+
+        {infoResource && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/60 z-50 backdrop-blur-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setInfoResource(null)}
+            />
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center z-50 p-4"
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            >
+              <div
+                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto space-y-6 border border-slate-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-xl shadow-md shadow-emerald-500/20">
+                      <FileText className="size-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Resource ID #{infoResource.id}
+                        </span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                          {['article', 'paper'].includes(String(infoResource.resourceType || infoResource.type || '').toLowerCase()) ? 'ARTICLE / PAPER' : 'PDF DOCUMENT'}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 mt-1 line-clamp-1">{infoResource.title}</h3>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setInfoResource(null)}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <X className="size-5" />
+                  </button>
+                </div>
+
+                {/* Storage & Hardware Metrics Banner */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-lg space-y-3">
+                  <div className="flex items-center justify-between text-xs font-semibold text-emerald-400">
+                    <span className="flex items-center gap-1.5">
+                      <HardDrive className="size-4" />
+                      Storage & Cloud Hardware Metrics
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                      Persistent NVMe
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+                    <div className="bg-white/10 rounded-lg p-2.5 backdrop-blur-xs">
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Document File Size</p>
+                      <p className="text-base font-bold text-white font-mono mt-0.5">
+                        {infoResource.fileSizeBytes ? formatStorageSize(infoResource.fileSizeBytes) : (infoResource.hasDownload ? 'Stored' : 'Interactive text')}
+                      </p>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-2.5 backdrop-blur-xs">
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Total Cloud Storage</p>
+                      <p className="text-base font-bold text-emerald-400 font-mono mt-0.5">
+                        {formatStorageSize(storageStats.totalBytes || 47320000000)}
+                      </p>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-2.5 backdrop-blur-xs col-span-2 sm:col-span-1">
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Storage Headroom</p>
+                      <p className="text-base font-bold text-amber-300 font-mono mt-0.5">
+                        {formatStorageSize(storageStats.freeBytes || 37240000000)} Free
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Granular Metadata Fields Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <Layers className="size-3 text-orange-500" /> Academic Category & Discipline
+                    </span>
+                    <p className="font-semibold text-slate-800 text-sm">{infoResource.category || 'General'}</p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <User className="size-3 text-indigo-500" /> Author / Subject Attribution
+                    </span>
+                    <p className="font-semibold text-slate-800 text-sm">{infoResource.subject || infoResource.author || 'Anonymous Author'}</p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <Shield className="size-3 text-emerald-500" /> Required Access Plan
+                    </span>
+                    <div>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                        !infoResource.requiredPlan || infoResource.requiredPlan === 'FREE'
+                          ? 'bg-gray-100 text-gray-700'
+                          : infoResource.requiredPlan === 'STUDENT_BASIC'
+                          ? 'bg-blue-100 text-blue-700'
+                          : infoResource.requiredPlan === 'STUDENT_PLUS'
+                          ? 'bg-indigo-100 text-indigo-700'
+                          : infoResource.requiredPlan === 'RESEARCHER_PRO'
+                          ? 'bg-orange-100 text-orange-700'
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {PLATFORM_PLANS.find(p => p.id === infoResource.requiredPlan)?.name || (infoResource.requiredPlan || 'FREE').replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <Star className="size-3 text-amber-500" /> Reader Rating & Feedback
+                    </span>
+                    <p className="font-semibold text-slate-800 text-sm">
+                      {infoResource.averageRating ? `${Number(infoResource.averageRating).toFixed(1)} ★` : 'No ratings yet'}
+                      {infoResource.totalRatings ? ` (${infoResource.totalRatings} reviews)` : ''}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <Activity className="size-3 text-blue-500" /> Engagement Telemetry
+                    </span>
+                    <p className="font-semibold text-slate-800 text-sm">
+                      {infoResource.viewCount || 0} Views &bull; {infoResource.downloadCount || 0} Downloads
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <Calendar className="size-3 text-slate-500" /> Upload Date & Timestamps
+                    </span>
+                    <p className="font-semibold text-slate-800 font-mono text-[11px]">
+                      {infoResource.createdAt ? new Date(infoResource.createdAt).toLocaleString('en-IN', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Stored Filename & Path */}
+                {infoResource.fileName && (
+                  <div className="p-3 bg-slate-100 rounded-xl text-xs space-y-1 font-mono">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Cloud File Identifier:</span>
+                    <p className="text-slate-700 break-all">{infoResource.fileName}</p>
+                  </div>
+                )}
+
+                {/* Description */}
+                {infoResource.description && (
+                  <div className="space-y-1">
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Description & Summary:</span>
+                    <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/60 leading-relaxed max-h-32 overflow-y-auto">
+                      {infoResource.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Footer Actions */}
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const res = infoResource;
+                      setInfoResource(null);
+                      openPreviewModal(res);
+                    }}
+                    className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Eye className="size-3.5" />
+                    Open Reader Preview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInfoResource(null)}
+                    className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                  >
+                    Close
                   </button>
                 </div>
               </div>

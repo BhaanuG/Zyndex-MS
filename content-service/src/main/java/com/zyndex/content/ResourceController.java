@@ -716,6 +716,19 @@ class ResourceController {
         Map<String, Object> resource = sql.mapResource(row);
         resource.put("uploadedByName", uploaderName);
         resource.put("viewCount", viewCount);
+
+        // Compute storage and file metrics for administrative info
+        String fileUrl = SqlSupport.str(row.get("file_url"));
+        long fileSizeBytes = 0;
+        if (!fileUrl.isBlank() && !fileUrl.matches("(?i)^https?://.*")) {
+            try {
+                Path p = resolveStoredFile(fileUrl);
+                if (Files.exists(p)) {
+                    fileSizeBytes = Files.size(p);
+                }
+            } catch (Exception ignored) {}
+        }
+        resource.put("fileSizeBytes", fileSizeBytes);
         return resource;
     }
 
