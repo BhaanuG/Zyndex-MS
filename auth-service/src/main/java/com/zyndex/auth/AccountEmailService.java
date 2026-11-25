@@ -717,6 +717,9 @@ class AccountEmailService {
             String email,
             java.util.List<String> changeSummaries,
             String clientIp,
+            String clientBrowser,
+            String clientOs,
+            String clientDeviceName,
             String userAgent,
             String timestamp) {
         String subject = "Zyndex | Security Alert: Account Settings Updated";
@@ -729,8 +732,34 @@ class AccountEmailService {
             }
         }
 
-        String safeUserAgent = (userAgent == null || userAgent.isBlank()) ? "Standard Browser / Web Client" : userAgent;
         String safeIp = (clientIp == null || clientIp.isBlank()) ? "Unknown" : clientIp;
+
+        // Determine specific human-readable browser and operating system
+        String detectedBrowser = (clientBrowser != null && !clientBrowser.isBlank()) ? clientBrowser : "";
+        String detectedOs = (clientOs != null && !clientOs.isBlank()) ? clientOs : "";
+
+        if (detectedBrowser.isBlank() && userAgent != null) {
+            if (userAgent.contains("Edg/")) detectedBrowser = "Microsoft Edge";
+            else if (userAgent.contains("Chrome/")) detectedBrowser = "Google Chrome";
+            else if (userAgent.contains("Firefox/")) detectedBrowser = "Mozilla Firefox";
+            else if (userAgent.contains("Safari/") && !userAgent.contains("Chrome/")) detectedBrowser = "Apple Safari";
+            else detectedBrowser = "Web Browser";
+        }
+        if (detectedBrowser.isBlank()) detectedBrowser = "Web Browser";
+
+        if (detectedOs.isBlank() && userAgent != null) {
+            if (userAgent.contains("Win")) detectedOs = "Windows";
+            else if (userAgent.contains("Mac")) detectedOs = "macOS";
+            else if (userAgent.contains("Android")) detectedOs = "Android";
+            else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) detectedOs = "iOS";
+            else if (userAgent.contains("Linux")) detectedOs = "Linux";
+            else detectedOs = "Desktop / Mobile Device";
+        }
+        if (detectedOs.isBlank()) detectedOs = "Desktop / Mobile Device";
+
+        String specificDevice = (clientDeviceName != null && !clientDeviceName.isBlank()) 
+                ? clientDeviceName 
+                : (detectedBrowser + " on " + detectedOs);
 
         String text = """
                 Dear %s,
@@ -747,14 +776,12 @@ class AccountEmailService {
                 %s
                 === DEVICE & SECURITY DETAILS ===
                 - Device IP Address: %s
-                - Client / User-Agent: %s
+                - Browser: %s
+                - Operating System: %s
+                - Device: %s
 
                 If you performed these changes, no further action is required.
                 If you DID NOT authorize these updates, please immediately sign in to your Zyndex account, change your password, and contact our platform security team at %s.
-
-                Best regards,
-                Zyndex Platform Security & Account Services
-                %s
                 """.formatted(
                 username,
                 username,
@@ -762,9 +789,10 @@ class AccountEmailService {
                 timestamp,
                 changesText.toString(),
                 safeIp,
-                safeUserAgent,
-                properties.mainAdminEmail(),
-                properties.otpMailFrom()
+                detectedBrowser,
+                detectedOs,
+                specificDevice,
+                properties.mainAdminEmail()
         );
 
         try {

@@ -120,9 +120,12 @@ class UserController {
                 collegeName.isBlank() ? null : collegeName, universityName.isBlank() ? null : universityName,
                 registrationNo.isBlank() ? null : registrationNo, user.get("id"));
 
-        // Capture client IP and User-Agent
+        // Capture client IP and Device Info
         String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
         String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
+        String clientBrowser = AuthSupport.str(body.get("browser")).trim();
+        String clientOs = AuthSupport.str(body.get("os")).trim();
+        String clientDeviceName = AuthSupport.str(body.get("deviceName")).trim();
         String userAgent = request.getHeader("User-Agent");
         String timestamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"))
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss 'UTC'"));
@@ -134,6 +137,9 @@ class UserController {
                     email,
                     changeSummaries,
                     clientIp,
+                    clientBrowser,
+                    clientOs,
+                    clientDeviceName,
                     userAgent,
                     timestamp
             );

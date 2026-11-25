@@ -257,6 +257,7 @@ export default function UserProfile() {
     setIsSaving(true);
     try {
       const clientIp = getCachedClientIp() || await fetchClientPublicIp();
+      const devInfo = getDeviceInfo();
       const payload = {
         name: formatTitleCase(profileData.name.trim()),
         userType: profileData.userType,
@@ -264,6 +265,9 @@ export default function UserProfile() {
         universityName: formatTitleCase((profileData.universityName || '').trim()),
         registrationNo: (profileData.registrationNo || '').trim(),
         clientIp: clientIp || '',
+        deviceName: devInfo?.deviceName || '',
+        browser: devInfo?.browser || '',
+        os: devInfo?.os || '',
       };
       if (profileData.password) {
         payload.password = profileData.password;
@@ -618,7 +622,7 @@ export default function UserProfile() {
                             setProfileData({ ...profileData, collegeName: formatted, universityName: formatted });
                           }} 
                           disabled={!isEditing} 
-                          placeholder="e.g. National Institute of Technology, KL University, etc." 
+                          placeholder="e.g. National Institute of Technology or KL University, etc." 
                           className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm disabled:bg-gray-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" 
                         />
                       </div>
