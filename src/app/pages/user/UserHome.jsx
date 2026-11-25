@@ -311,7 +311,7 @@ export default function UserHome() {
                   <div className="h-7 w-px bg-slate-200 shrink-0" />
 
                   {/* Mixed In-Search Filter Dropdown Button */}
-                  <div className="relative shrink-0" ref={filterMenuRef}>
+                  <div className="relative shrink-0 z-20" ref={filterMenuRef}>
                     <button
                       type="button"
                       onClick={() => setShowFilterMenu((prev) => !prev)}
@@ -341,7 +341,7 @@ export default function UserHome() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 8, scale: 0.96 }}
                           transition={{ duration: 0.15 }}
-                          className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-3.5 space-y-3 z-50 text-left"
+                          className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200/90 p-3.5 space-y-3 z-[60] text-left ring-1 ring-black/5"
                         >
                           {/* Plan Filter Section */}
                           <div>
@@ -441,13 +441,13 @@ export default function UserHome() {
 
               {/* Instant Live Search Results Overlay Dropdown */}
               <AnimatePresence>
-                {showLiveDropdown && (searchQuery.trim().length > 0 || selectedPlanFilter !== 'ALL' || selectedTypeFilter !== 'ALL') && (
+                {showLiveDropdown && !showFilterMenu && (searchQuery.trim().length > 0 || selectedPlanFilter !== 'ALL' || selectedTypeFilter !== 'ALL') && (
                   <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.98 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-orange-100 overflow-hidden text-left z-50"
+                    className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-orange-100 overflow-hidden text-left z-40"
                   >
                     {/* Header bar */}
                     <div className="px-5 py-3.5 bg-gradient-to-r from-orange-50 to-amber-50/50 border-b border-orange-100/60 flex items-center justify-between">
