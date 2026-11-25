@@ -78,17 +78,83 @@ class UserController {
             universityName = AuthSupport.formatTitleCase(universityName);
         }
 
+        // Fetch current values before update for audit comparison
+        Map<String, Object> currentUserRow = auth.findUserById(AuthSupport.number(user.get("id")));
+        String oldName = AuthSupport.str(currentUserRow != null ? currentUserRow.get("username") : user.get("name"));
+        String oldUserType = AuthSupport.str(currentUserRow != null ? currentUserRow.get("user_type") : user.get("userType"));
+        String oldProfession = AuthSupport.str(currentUserRow != null ? currentUserRow.get("profession") : user.get("profession"));
+        String oldInstitution = AuthSupport.str(currentUserRow != null ? currentUserRow.get("college_name") : user.get("collegeName"));
+        if (oldInstitution.isBlank()) {
+            oldInstitution = AuthSupport.str(currentUserRow != null ? currentUserRow.get("university_name") : user.get("universityName"));
+        }
+        String oldRegNo = AuthSupport.str(currentUserRow != null ? currentUserRow.get("registration_no") : user.get("registrationNo"));
+        String oldBio = AuthSupport.str(currentUserRow != null ? currentUserRow.get("bio") : user.get("bio"));
+
+        java.util.List<String> changeSummaries = new java.util.ArrayList<>();
+
+        if (!name.equalsIgnoreCase(oldName)) {
+            changeSummaries.add("Full Name: Changed from '" + (oldName.isBlank() ? "None" : oldName) + "' to '" + name + "'");
+        }
+
+        String newUserType = userType.isBlank() ? "Student" : userType;
+        if (!newUserType.equalsIgnoreCase(oldUserType)) {
+            changeSummaries.add("User Type: Changed from '" + (oldUserType.isBlank() ? "Student" : oldUserType) + "' to '" + newUserType + "'");
+        }
+
+        String newProf = profession.isBlank() ? "" : profession;
+        if (!newProf.equalsIgnoreCase(oldProfession)) {
+            changeSummaries.add("Profession / Specialization: Changed from '" + (oldProfession.isBlank() ? "None" : oldProfession) + "' to '" + (newProf.isBlank() ? "None" : newProf) + "'");
+        }
+
+        String newInstitution = !collegeName.isBlank() ? collegeName : universityName;
+        if (!newInstitution.equalsIgnoreCase(oldInstitution)) {
+            changeSummaries.add("Institution: Changed from '" + (oldInstitution.isBlank() ? "None" : oldInstitution) + "' to '" + (newInstitution.isBlank() ? "None" : newInstitution) + "'");
+        }
+
+        String newReg = registrationNo.isBlank() ? "" : registrationNo;
+        if (!newReg.equalsIgnoreCase(oldRegNo)) {
+            changeSummaries.add("Registration / Roll No: Changed from '" + (oldRegNo.isBlank() ? "None" : oldRegNo) + "' to '" + (newReg.isBlank() ? "None" : newReg) + "'");
+        }
+
+        String newBioStr = bio.isBlank() ? "" : bio;
+        if (!newBioStr.equals(oldBio)) {
+            changeSummaries.add("Bio: Profile summary was modified");
+        }
+
         // If a new password is provided, validate strength and update hash
         if (!newPassword.isBlank()) {
             auth.validatePasswordStrength(newPassword);
             jdbc.update("UPDATE users SET password = ? WHERE id = ?", auth.passwordEncoder.encode(newPassword), user.get("id"));
+            changeSummaries.add("Password: Changed to new secure credentials");
         }
 
         jdbc.update(
                 "UPDATE users SET username = ?, user_type = ?, profession = ?, college_name = ?, university_name = ?, registration_no = ?, bio = ? WHERE id = ?",
-                name, userType.isBlank() ? "Student" : userType, profession.isBlank() ? null : profession,
+                name, newUserType, profession.isBlank() ? null : profession,
                 collegeName.isBlank() ? null : collegeName, universityName.isBlank() ? null : universityName,
                 registrationNo.isBlank() ? null : registrationNo, bio.isBlank() ? null : bio, user.get("id"));
+
+        // Capture client IP and User-Agent
+        String clientProvidedIp = AuthSupport.str(body.get("clientIp"));
+        String clientIp = AuthSupport.getClientIp(request, clientProvidedIp);
+        String userAgent = request.getHeader("User-Agent");
+        String timestamp = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss 'UTC'"));
+
+        // Send email alert to user about their profile update
+        try {
+            accountEmailService.sendProfileUpdatedEmail(
+                    name,
+                    email,
+                    changeSummaries,
+                    clientIp,
+                    userAgent,
+                    timestamp
+            );
+        } catch (Exception e) {
+            System.err.println("[USER CONTROLLER] Could not send profile update email: " + e.getMessage());
+        }
+
         Map<String, Object> updated = auth.sanitizeUser(auth.findUserById(AuthSupport.number(user.get("id"))));
         updated.put("token", auth.signToken(updated));
         return updated;

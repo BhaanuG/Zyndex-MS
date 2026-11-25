@@ -712,6 +712,71 @@ class AccountEmailService {
         return true;
     }
 
+    boolean sendProfileUpdatedEmail(
+            String username,
+            String email,
+            java.util.List<String> changeSummaries,
+            String clientIp,
+            String userAgent,
+            String timestamp) {
+        String subject = "Zyndex | Security Alert: Account Settings Updated";
+        StringBuilder changesText = new StringBuilder();
+        if (changeSummaries == null || changeSummaries.isEmpty()) {
+            changesText.append("- Account profile was saved (no structural field changes detected).\n");
+        } else {
+            for (String change : changeSummaries) {
+                changesText.append("- ").append(change).append("\n");
+            }
+        }
+
+        String safeUserAgent = (userAgent == null || userAgent.isBlank()) ? "Standard Browser / Web Client" : userAgent;
+        String safeIp = (clientIp == null || clientIp.isBlank()) ? "Unknown" : clientIp;
+
+        String text = """
+                Dear %s,
+
+                This is a confirmation and security notification that your Zyndex account settings have been modified.
+
+                === ACCOUNT DETAILS ===
+                - Name: %s
+                - Registered Email Address: %s
+                - Action: Account Profile & Settings Update
+                - Timestamp: %s (UTC)
+
+                === WHAT WAS CHANGED ===
+                %s
+                === DEVICE & SECURITY DETAILS ===
+                - Device IP Address: %s
+                - Client / User-Agent: %s
+
+                If you performed these changes, no further action is required.
+                If you DID NOT authorize these updates, please immediately sign in to your Zyndex account, change your password, and contact our platform security team at %s.
+
+                Best regards,
+                Zyndex Platform Security & Account Services
+                %s
+                """.formatted(
+                username,
+                username,
+                email,
+                timestamp,
+                changesText.toString(),
+                safeIp,
+                safeUserAgent,
+                properties.mainAdminEmail(),
+                properties.otpMailFrom()
+        );
+
+        try {
+            send(email, subject, text);
+            System.out.println("[ACCOUNT EMAIL] Profile update notification delivered to: " + email);
+            return true;
+        } catch (Exception e) {
+            System.err.println("[ACCOUNT EMAIL] Failed to deliver profile update notification to " + email + ": " + e.getMessage());
+            return false;
+        }
+    }
+
     private String escapeHtml(String value) {
         return value
                 .replace("&", "&amp;")

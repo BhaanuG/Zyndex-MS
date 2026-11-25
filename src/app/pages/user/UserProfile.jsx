@@ -256,6 +256,7 @@ export default function UserProfile() {
 
     setIsSaving(true);
     try {
+      const clientIp = getCachedClientIp() || await fetchClientPublicIp();
       const payload = {
         name: formatTitleCase(profileData.name.trim()),
         userType: profileData.userType,
@@ -264,6 +265,7 @@ export default function UserProfile() {
         universityName: formatTitleCase((profileData.universityName || '').trim()),
         registrationNo: (profileData.registrationNo || '').trim(),
         bio: profileData.bio || '',
+        clientIp: clientIp || '',
       };
       if (profileData.password) {
         payload.password = profileData.password;
