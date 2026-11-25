@@ -251,7 +251,8 @@ class UserController {
         }
 
         String name = AuthSupport.str(body.get("name"));
-        String email = AuthSupport.str(body.get("email"));
+        // Email is fixed after creation and cannot be changed by anyone, including administrators
+        String email = AuthSupport.str(existingUser.get("email"));
         String desiredRole = body.containsKey("role")
                 ? ("admin".equalsIgnoreCase(String.valueOf(body.get("role"))) ? "ADMIN" : "STUDENT")
                 : oldRole;
