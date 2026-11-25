@@ -744,6 +744,13 @@ export default function Login() {
                         {verifyingOtp ? 'Checking...' : 'Verify OTP'}
                       </button>
                     </div>
+
+                    <div className="pt-1 flex items-start gap-2 text-xs text-slate-600 leading-relaxed bg-white/60 p-2.5 rounded-xl border border-orange-200/60">
+                      <Mail className="size-4 text-orange-600 mt-0.5 shrink-0" />
+                      <p>
+                        The OTP verification email has been sent to <strong className="text-slate-900">{email}</strong>. Please check your <strong>Inbox</strong>. If you do not see it there, kindly check your <strong>Spam / Junk folder</strong>.
+                      </p>
+                    </div>
                   </motion.div>
                 )}
 
