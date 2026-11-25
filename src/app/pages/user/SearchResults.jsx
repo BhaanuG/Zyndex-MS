@@ -6,7 +6,7 @@ import UserLayout from '@/app/components/UserLayout';
 import resourceService from '@/services/api/resourceService';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
-import { getPlanName, getPlanBadgeClass } from '@/utils/planHelper';
+import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS } from '@/utils/planHelper';
 
 export default function SearchResults() {
   const navigate = useNavigate();
@@ -14,10 +14,13 @@ export default function SearchResults() {
   const [searchParams] = useSearchParams();
   const category = searchParams.get('category');
   const query = searchParams.get('query') || searchParams.get('q') || '';
+  const initialPlan = searchParams.get('plan') || 'all';
+  const initialType = searchParams.get('type') || 'all';
   const [filterOpen, setFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState([]);
-  const [selectedType, setSelectedType] = useState('all');
+  const [selectedType, setSelectedType] = useState(initialType);
+  const [selectedPlan, setSelectedPlan] = useState(initialPlan);
   const [selectedSort, setSelectedSort] = useState('recent');
   const [favoriteIds, setFavoriteIds] = useState([]);
 
@@ -38,7 +41,14 @@ export default function SearchResults() {
         }
 
         const response = resourceResult.value;
-        setResults(Array.isArray(response) ? response : response.resources || []);
+        let list = Array.isArray(response) ? response : response.resources || [];
+        if (selectedPlan && selectedPlan.toLowerCase() !== 'all') {
+          list = list.filter((r) => {
+            const plan = String(r.requiredPlan || 'FREE').toUpperCase();
+            return plan === selectedPlan.toUpperCase();
+          });
+        }
+        setResults(list);
 
         if (favoriteResult.status === 'fulfilled') {
           setFavoriteIds((favoriteResult.value.resources || []).map((resource) => resource.id));
@@ -55,7 +65,7 @@ export default function SearchResults() {
     }
 
     loadResults();
-  }, [category, query, selectedType, selectedSort]);
+  }, [category, query, selectedType, selectedPlan, selectedSort]);
 
   const isArticleResource = (resource) => {
     const t = String(resource?.type || resource?.resourceType || '').toLowerCase();
@@ -110,19 +120,28 @@ export default function SearchResults() {
           </motion.div>
 
           {filterOpen && (
-            <motion.div className="bg-white rounded-xl shadow-md p-6 mb-8" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-              <div className="grid md:grid-cols-2 gap-4">
+            <motion.div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-slate-100" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+              <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Resource Type</label>
-                  <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    <option value="all">All Types</option>
-                    <option value="pdf">PDF</option>
-                    <option value="article">Article</option>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Required Plan Tier</label>
+                  <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white">
+                    <option value="all">All Plan Tiers</option>
+                    {PLATFORM_PLANS.map((plan) => (
+                      <option key={plan.id} value={plan.id}>{plan.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Resource Format</label>
+                  <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white">
+                    <option value="all">All Formats (PDFs & Articles)</option>
+                    <option value="pdf">PDF Documents</option>
+                    <option value="article">Articles & Research Papers</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-                  <select value={selectedSort} onChange={(e) => setSelectedSort(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                  <select value={selectedSort} onChange={(e) => setSelectedSort(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white">
                     <option value="recent">Most Recent</option>
                     <option value="popular">Most Popular</option>
                     <option value="title">Title A-Z</option>

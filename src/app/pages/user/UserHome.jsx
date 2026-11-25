@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { Search, FlaskConical, Calculator, BookOpen, Landmark, Sparkles, TrendingUp, Heart, Brain, Cpu, Atom, Microscope, X, ArrowRight, Loader2, Coins, BookText, ScrollText } from 'lucide-react';
+import { Search, FlaskConical, Calculator, BookOpen, Landmark, Sparkles, TrendingUp, Heart, Brain, Cpu, Atom, Microscope, X, ArrowRight, Loader2, Coins, BookText, ScrollText, Filter, ChevronDown, Check } from 'lucide-react';
 import UserLayout from '@/app/components/UserLayout';
 import { useAuth } from '@/app/context/AuthContext';
 import { TransitionLoader } from '@/app/components/PageTransitionWrapper';
 import resourceService from '@/services/api/resourceService';
 import userService from '@/services/api/userService';
-import { getPlanName, getPlanBadgeClass } from '@/utils/planHelper';
+import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS } from '@/utils/planHelper';
 
 const categoryIcons = {
   'artificial intelligence': { icon: Brain, gradient: 'from-fuchsia-500 to-rose-500', bgColor: 'bg-fuchsia-100' },
@@ -55,6 +55,10 @@ export default function UserHome() {
   const [resources, setResources] = useState([]);
   const [recentViews, setRecentViews] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
+  const [selectedPlanFilter, setSelectedPlanFilter] = useState('ALL');
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState('ALL');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const filterMenuRef = useRef(null);
   const { getUrlSafeName, getUrlSafeEmail, user } = useAuth();
 
   const isArticleResource = (resource) => {
@@ -76,18 +80,21 @@ export default function UserHome() {
     return isArticleResource(resource) ? 'ARTICLE' : (resource?.type || 'PDF').toUpperCase();
   };
 
-  // Close live search dropdown when clicking outside
+  // Close live search dropdown and filter menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
         setShowLiveDropdown(false);
+      }
+      if (filterMenuRef.current && !filterMenuRef.current.contains(e.target)) {
+        setShowFilterMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch live search results as user types (debounced 250ms)
+  // Fetch live search results as user types (debounced 250ms), applying active plan & availability filters
   useEffect(() => {
     const trimmed = searchQuery.trim();
     if (trimmed.length === 0) {
@@ -106,9 +113,21 @@ export default function UserHome() {
 
     searchDebounceRef.current = setTimeout(async () => {
       try {
-        const res = await resourceService.searchResources({ query: trimmed, size: 8 });
-        const list = Array.isArray(res) ? res : (res?.resources || []);
-        setLiveSearchResults(list);
+        const queryParams = { query: trimmed, size: 16 };
+        if (selectedTypeFilter !== 'ALL') {
+          queryParams.type = selectedTypeFilter;
+        }
+        const res = await resourceService.searchResources(queryParams);
+        let list = Array.isArray(res) ? res : (res?.resources || []);
+        
+        // Filter by required plan if specified
+        if (selectedPlanFilter !== 'ALL') {
+          list = list.filter((item) => {
+            const plan = String(item.requiredPlan || 'FREE').toUpperCase();
+            return plan === selectedPlanFilter;
+          });
+        }
+        setLiveSearchResults(list.slice(0, 8));
       } catch (err) {
         console.error('Failed to perform live search:', err);
         setLiveSearchResults([]);
@@ -122,7 +141,7 @@ export default function UserHome() {
         clearTimeout(searchDebounceRef.current);
       }
     };
-  }, [searchQuery]);
+  }, [searchQuery, selectedPlanFilter, selectedTypeFilter]);
 
   useEffect(() => {
     async function loadHome() {
@@ -190,7 +209,15 @@ export default function UserHome() {
     setShowLiveDropdown(false);
     const userName = getUrlSafeName();
     const userEmail = getUrlSafeEmail();
-    navigate(`/Zyndex/User/${userName}/${userEmail}/Search?query=${encodeURIComponent(searchQuery)}`);
+    const params = new URLSearchParams();
+    params.set('query', searchQuery.trim());
+    if (selectedPlanFilter !== 'ALL') {
+      params.set('plan', selectedPlanFilter);
+    }
+    if (selectedTypeFilter !== 'ALL') {
+      params.set('type', selectedTypeFilter.toLowerCase());
+    }
+    navigate(`/Zyndex/User/${userName}/${userEmail}/Search?${params.toString()}`);
   };
 
   const handleSearch = (e) => {
@@ -252,11 +279,11 @@ export default function UserHome() {
               Explore our live collection of educational resources from the backend.
             </p>
 
-            {/* Interactive Live Search Bar */}
-            <div className="max-w-2xl mx-auto relative z-30" ref={searchContainerRef}>
-              <form onSubmit={handleSearch} className="flex gap-3">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+            {/* Interactive Live Search Bar with Integrated Plan & Resource Filters */}
+            <div className="max-w-3xl mx-auto relative z-30" ref={searchContainerRef}>
+              <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch gap-2.5">
+                <div className="flex-1 relative flex items-center bg-white rounded-2xl border border-orange-200 shadow-md focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 transition-all overflow-visible">
+                  <Search className="absolute left-4 size-5 text-gray-400 pointer-events-none" />
                   <input
                     type="text"
                     value={searchQuery}
@@ -265,7 +292,7 @@ export default function UserHome() {
                       if (searchQuery.trim().length > 0) setShowLiveDropdown(true);
                     }}
                     placeholder="Search by title, author, or keyword..."
-                    className="w-full pl-12 pr-10 py-4 rounded-2xl border border-orange-200 bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 placeholder-gray-400 text-base transition-all"
+                    className="w-full pl-12 pr-10 py-4 bg-transparent text-gray-800 placeholder-gray-400 text-base focus:outline-none"
                   />
                   {searchQuery && (
                     <button
@@ -275,16 +302,140 @@ export default function UserHome() {
                         setLiveSearchResults([]);
                         setShowLiveDropdown(false);
                       }}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-3.5 p-1 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                     >
-                      <X className="size-5" />
+                      <X className="size-4" />
                     </button>
                   )}
+
+                  {/* Divider line before filter selector */}
+                  <div className="h-7 w-px bg-slate-200 shrink-0" />
+
+                  {/* Mixed In-Search Filter Dropdown Button */}
+                  <div className="relative shrink-0" ref={filterMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterMenu((prev) => !prev)}
+                      className={`h-full px-3.5 py-3 flex items-center gap-1.5 text-xs font-semibold rounded-r-2xl transition-colors cursor-pointer select-none ${
+                        selectedPlanFilter !== 'ALL' || selectedTypeFilter !== 'ALL'
+                          ? 'bg-orange-50 text-orange-700'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                      title="Filter search by plans and resource formats"
+                    >
+                      <Filter className="size-3.5 text-orange-600" />
+                      <span className="max-w-[120px] truncate hidden md:inline">
+                        {selectedPlanFilter !== 'ALL'
+                          ? getPlanName(selectedPlanFilter)
+                          : selectedTypeFilter !== 'ALL'
+                          ? `${selectedTypeFilter}s`
+                          : 'All Plans'}
+                      </span>
+                      <ChevronDown className={`size-3 text-slate-400 transition-transform ${showFilterMenu ? 'rotate-180 text-orange-600' : ''}`} />
+                    </button>
+
+                    {/* Filter Popup Menu */}
+                    <AnimatePresence>
+                      {showFilterMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-3.5 space-y-3 z-50 text-left"
+                        >
+                          {/* Plan Filter Section */}
+                          <div>
+                            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Access Plan</span>
+                              {selectedPlanFilter !== 'ALL' && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedPlanFilter('ALL')}
+                                  className="text-[10px] text-orange-600 hover:underline font-semibold"
+                                >
+                                  Reset
+                                </button>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-1 gap-1 pt-1.5 max-h-44 overflow-y-auto">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPlanFilter('ALL')}
+                                className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors ${
+                                  selectedPlanFilter === 'ALL'
+                                    ? 'bg-orange-500 text-white font-bold'
+                                    : 'text-slate-700 hover:bg-slate-100'
+                                }`}
+                              >
+                                <span>All Access Plans</span>
+                                {selectedPlanFilter === 'ALL' && <Check className="size-3.5" />}
+                              </button>
+                              {PLATFORM_PLANS.map((plan) => (
+                                <button
+                                  key={plan.id}
+                                  type="button"
+                                  onClick={() => setSelectedPlanFilter(plan.id)}
+                                  className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors ${
+                                    selectedPlanFilter === plan.id
+                                      ? 'bg-orange-500 text-white font-bold'
+                                      : 'text-slate-700 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  <span>{plan.name}</span>
+                                  {selectedPlanFilter === plan.id && <Check className="size-3.5" />}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Resource Available Format Section */}
+                          <div className="pt-2 border-t border-slate-100">
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block pb-1.5">Resource Format</span>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {[
+                                { id: 'ALL', label: 'All' },
+                                { id: 'PDF', label: 'PDFs' },
+                                { id: 'ARTICLE', label: 'Articles' },
+                              ].map((item) => (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={() => setSelectedTypeFilter(item.id)}
+                                  className={`py-1.5 px-2 rounded-lg text-xs font-medium text-center transition-colors border ${
+                                    selectedTypeFilter === item.id
+                                      ? 'bg-orange-500 text-white font-bold border-orange-500 shadow-2xs'
+                                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  {item.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Footer Info */}
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                            <span>Instant filter applied</span>
+                            <button
+                              type="button"
+                              onClick={() => setShowFilterMenu(false)}
+                              className="text-xs font-bold text-orange-600 hover:text-orange-700"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
+
                 <button
                   type="submit"
-                  className="px-6 py-4 rounded-2xl bg-orange-600 text-white font-semibold hover:bg-orange-700 transition-colors shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-4 rounded-2xl bg-orange-600 text-white font-semibold hover:bg-orange-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer shrink-0"
                 >
+                  <Search className="size-4" />
                   <span>Search</span>
                 </button>
               </form>
