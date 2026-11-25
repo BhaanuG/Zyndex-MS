@@ -350,7 +350,10 @@ export default function UserHome() {
                               {selectedPlanFilter !== 'ALL' && (
                                 <button
                                   type="button"
-                                  onClick={() => setSelectedPlanFilter('ALL')}
+                                  onClick={() => {
+                                    setSelectedPlanFilter('ALL');
+                                    setShowFilterMenu(false);
+                                  }}
                                   className="text-[10px] text-orange-600 hover:underline font-semibold"
                                 >
                                   Reset
@@ -360,7 +363,10 @@ export default function UserHome() {
                             <div className="grid grid-cols-1 gap-1 pt-1.5 max-h-44 overflow-y-auto">
                               <button
                                 type="button"
-                                onClick={() => setSelectedPlanFilter('ALL')}
+                                onClick={() => {
+                                  setSelectedPlanFilter('ALL');
+                                  setShowFilterMenu(false);
+                                }}
                                 className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors ${
                                   selectedPlanFilter === 'ALL'
                                     ? 'bg-orange-500 text-white font-bold'
@@ -374,7 +380,10 @@ export default function UserHome() {
                                 <button
                                   key={plan.id}
                                   type="button"
-                                  onClick={() => setSelectedPlanFilter(plan.id)}
+                                  onClick={() => {
+                                    setSelectedPlanFilter(plan.id);
+                                    setShowFilterMenu(false);
+                                  }}
                                   className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors ${
                                     selectedPlanFilter === plan.id
                                       ? 'bg-orange-500 text-white font-bold'
@@ -400,7 +409,10 @@ export default function UserHome() {
                                 <button
                                   key={item.id}
                                   type="button"
-                                  onClick={() => setSelectedTypeFilter(item.id)}
+                                  onClick={() => {
+                                    setSelectedTypeFilter(item.id);
+                                    setShowFilterMenu(false);
+                                  }}
                                   className={`py-1.5 px-2 rounded-lg text-xs font-medium text-center transition-colors border ${
                                     selectedTypeFilter === item.id
                                       ? 'bg-orange-500 text-white font-bold border-orange-500 shadow-2xs'
