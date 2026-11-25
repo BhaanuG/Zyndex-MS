@@ -67,6 +67,24 @@ export function getPlanBadgeClass(planId) {
   return found?.badgeClass || 'bg-orange-50 text-orange-700 border border-orange-200';
 }
 
+export function toUrlSlug(text) {
+  if (!text) return 'item';
+  return String(text)
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+export function buildResourceUrl(userName, userEmail, category, title, id) {
+  const safeName = userName ? encodeURIComponent(String(userName).trim().replace(/\s+/g, '-')) : 'user';
+  const safeEmail = userEmail ? encodeURIComponent(String(userEmail).trim()) : 'email';
+  const safeCat = toUrlSlug(category || 'General');
+  const safeTitle = toUrlSlug(title || 'Resource');
+  const cleanId = String(id || '').replace(/\.php$/i, '');
+  return `/Zyndex/User/${safeName}/${safeEmail}/${safeCat}/Resource/${safeTitle}/${cleanId}.php`;
+}
+
 /**
  * Maps a User Type selected during registration or account settings to their ideal recommended subscription plan.
  * - Student -> STUDENT_PLUS (or STUDENT_BASIC for beginners)

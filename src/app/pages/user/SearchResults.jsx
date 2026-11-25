@@ -6,7 +6,7 @@ import UserLayout from '@/app/components/UserLayout';
 import resourceService from '@/services/api/resourceService';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
-import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS, isResourceAccessibleForPlan } from '@/utils/planHelper';
+import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS, isResourceAccessibleForPlan, buildResourceUrl } from '@/utils/planHelper';
 
 export default function SearchResults() {
   const navigate = useNavigate();
@@ -165,7 +165,7 @@ export default function SearchResults() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.08 }}
-                  onClick={() => navigate(`/Zyndex/User/${getUrlSafeName()}/${getUrlSafeEmail()}/Resource/${resource.id}`)}
+                  onClick={() => navigate(buildResourceUrl(getUrlSafeName(), getUrlSafeEmail(), resource.category, resource.title, resource.id))}
                 >
                   <div className="flex flex-col h-full justify-between">
                     <div>

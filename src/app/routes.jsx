@@ -251,7 +251,7 @@ const routeList = [
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><SearchResults /></PageTransitionWrapper></ProtectedRoute>
       },
       {
-        path: "Zyndex/User/:name/:email/Resource/:id",
+        path: "Zyndex/User/:name/:email/:category/Resource/:resourceName/:id",
         element: <ProtectedRoute role="user"><PageTransitionWrapper duration={3000}><ResourceDetail /></PageTransitionWrapper></ProtectedRoute>
       },
       {

@@ -14,7 +14,7 @@ import userService from '@/services/api/userService';
 import subscriptionService from '@/services/api/subscriptionService';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
 import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedClientIp, formatSessionDuration, formatDateTime, formatDateOnly, formatTimeOnly } from '@/utils/deviceHelper';
-import { getRecommendedPlanForUserType, getPlanName } from '@/utils/planHelper';
+import { getRecommendedPlanForUserType, getPlanName, buildResourceUrl } from '@/utils/planHelper';
 
 export default function UserProfile() {
   const { user, updateProfile } = useAuth();
@@ -426,8 +426,12 @@ export default function UserProfile() {
                   ) : (
                     <div className="space-y-3">
                       {favourites.map((favourite) => (
-                        <div key={favourite.id} className="border border-gray-200 rounded-lg p-4">
-                          <p className="font-semibold text-gray-900">{favourite.title}</p>
+                        <div 
+                          key={favourite.id} 
+                          onClick={() => navigate(buildResourceUrl(userName, userEmail, favourite.category, favourite.title, favourite.id))}
+                          className="border border-gray-200 hover:border-orange-300 hover:bg-orange-50/30 transition-all rounded-xl p-4 cursor-pointer group"
+                        >
+                          <p className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">{favourite.title}</p>
                           <p className="text-sm text-gray-500">{favourite.category} | Author of Resource: {favourite.subject}</p>
                         </div>
                       ))}

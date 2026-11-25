@@ -7,7 +7,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { TransitionLoader } from '@/app/components/PageTransitionWrapper';
 import resourceService from '@/services/api/resourceService';
 import userService from '@/services/api/userService';
-import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS, isResourceAccessibleForPlan } from '@/utils/planHelper';
+import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS, isResourceAccessibleForPlan, buildResourceUrl } from '@/utils/planHelper';
 
 const categoryIcons = {
   'artificial intelligence': { icon: Brain, gradient: 'from-fuchsia-500 to-rose-500', bgColor: 'bg-fuchsia-100' },
@@ -193,13 +193,17 @@ export default function UserHome() {
     navigate(`/Zyndex/User/${userName}/${userEmail}/Search?category=${encodeURIComponent(category)}`);
   };
 
-  const handleResourceClick = (resourceId) => {
+  const handleResourceClick = (resourceItem) => {
     setShowLiveDropdown(false);
     setIsBookTransitioning(true);
     const userName = getUrlSafeName();
     const userEmail = getUrlSafeEmail();
+    const targetUrl = typeof resourceItem === 'object' && resourceItem !== null
+      ? buildResourceUrl(userName, userEmail, resourceItem.category, resourceItem.title, resourceItem.id)
+      : `/Zyndex/User/${userName}/${userEmail}/General/Resource/Document/${resourceItem}.php`;
+
     setTimeout(() => {
-      navigate(`/Zyndex/User/${userName}/${userEmail}/Resource/${resourceId}`);
+      navigate(targetUrl);
     }, 3000);
   };
 
@@ -494,7 +498,7 @@ export default function UserHome() {
                         liveSearchResults.map((item) => (
                           <div
                             key={item.id}
-                            onClick={() => handleResourceClick(item.id)}
+                            onClick={() => handleResourceClick(item)}
                             className="p-4 hover:bg-orange-50/60 transition-all cursor-pointer flex items-center justify-between gap-4 group"
                           >
                             <div className="flex items-start gap-3.5 min-w-0">
@@ -632,7 +636,7 @@ export default function UserHome() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: index * 0.08 }}
                     whileHover={{ y: -8 }}
-                    onClick={() => navigate(`/Zyndex/User/${getUrlSafeName()}/${getUrlSafeEmail()}/Resource/${resource.id}`)}
+                    onClick={() => navigate(buildResourceUrl(getUrlSafeName(), getUrlSafeEmail(), resource.category, resource.title, resource.id))}
                   >
                     <div className="flex flex-col h-full justify-between">
                       <div>
@@ -693,7 +697,7 @@ export default function UserHome() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     whileHover={{ y: -8 }}
-                    onClick={() => navigate(`/Zyndex/User/${getUrlSafeName()}/${getUrlSafeEmail()}/Resource/${resource.id}`)}
+                    onClick={() => navigate(buildResourceUrl(getUrlSafeName(), getUrlSafeEmail(), resource.category, resource.title, resource.id))}
                   >
                     <div className="flex flex-col h-full justify-between">
                       <div>

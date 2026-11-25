@@ -37,7 +37,8 @@ const PLAN_NAMES = {
 };
 
 export default function ResourceDetail() {
-  const { id } = useParams();
+  const { id: rawId } = useParams();
+  const id = rawId ? rawId.replace(/\.php$/i, '') : '';
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
   const [resource, setResource] = useState(null);
