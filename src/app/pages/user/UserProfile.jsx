@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router';
 import { motion } from 'motion/react';
-import { User, Mail, Settings, Save, Heart, Edit, X, GraduationCap, Building, CreditCard, Hash, FileText, Download, Receipt, Printer, Trash2, Shield, Laptop, Smartphone, Globe, LogOut, CheckCircle2, Info, ChevronDown, ChevronUp, History, Clock } from 'lucide-react';
+import { User, Mail, Settings, Save, Heart, Edit, X, GraduationCap, Building, CreditCard, Hash, FileText, Download, Receipt, Printer, Trash2, Shield, Laptop, Smartphone, Globe, LogOut, CheckCircle2, Info, ChevronDown, ChevronUp, History, Clock, Lock, Eye, EyeOff, Briefcase } from 'lucide-react';
 import UserLayout from '@/app/components/UserLayout';
 import InvoiceModal from '@/app/components/InvoiceModal';
 import StatementModal from '@/app/components/StatementModal';
@@ -37,14 +37,30 @@ export default function UserProfile() {
   const [revokingDeviceId, setRevokingDeviceId] = useState(null);
   const [selectedDeviceInfo, setSelectedDeviceInfo] = useState(null);
 
+  const formatTitleCase = (str) => {
+    if (!str) return '';
+    return str.replace(/\b([a-zA-Z])([a-zA-Z]*)/g, (_, first, rest) => {
+      return first.toUpperCase() + rest.toLowerCase();
+    });
+  };
+
   const [profileData, setProfileData] = useState({ 
     name: '', 
     email: '', 
     bio: '', 
+    userType: 'Student',
+    profession: '',
     collegeName: '', 
     universityName: '',
-    registrationNo: ''
+    registrationNo: '',
+    password: '',
+    confirmPassword: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState('');
+  const [saveErrorMessage, setSaveErrorMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -52,9 +68,13 @@ export default function UserProfile() {
         name: user.name || '',
         email: user.email || '',
         bio: user.bio || '',
+        userType: user.userType || 'Student',
+        profession: user.profession || '',
         collegeName: user.collegeName || '',
         universityName: user.universityName || '',
         registrationNo: user.registrationNo || '',
+        password: '',
+        confirmPassword: ''
       });
     }
   }, [user]);
@@ -219,11 +239,54 @@ export default function UserProfile() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    setSaveErrorMessage('');
+    setSaveSuccessMessage('');
+
+    if (profileData.password) {
+      if (profileData.password.length < 8) {
+        setSaveErrorMessage('Password must be at least 8 characters long.');
+        return;
+      }
+      if (profileData.password !== profileData.confirmPassword) {
+        setSaveErrorMessage('New Password and Confirm Password do not match.');
+        return;
+      }
+    }
+
+    setIsSaving(true);
     try {
-      await updateProfile(profileData);
+      const payload = {
+        name: formatTitleCase(profileData.name.trim()),
+        userType: profileData.userType,
+        profession: profileData.userType === 'Other' ? profileData.profession : '',
+        collegeName: formatTitleCase((profileData.collegeName || '').trim()),
+        universityName: formatTitleCase((profileData.universityName || '').trim()),
+        registrationNo: (profileData.registrationNo || '').trim(),
+        bio: profileData.bio || '',
+      };
+      if (profileData.password) {
+        payload.password = profileData.password;
+      }
+
+      const updated = await updateProfile(payload);
+      setProfileData((prev) => ({
+        ...prev,
+        name: updated.name || prev.name,
+        userType: updated.userType || prev.userType,
+        profession: updated.profession || prev.profession,
+        collegeName: updated.collegeName || prev.collegeName,
+        universityName: updated.universityName || prev.universityName,
+        registrationNo: updated.registrationNo || prev.registrationNo,
+        password: '',
+        confirmPassword: ''
+      }));
+      setSaveSuccessMessage('Account settings updated successfully.');
       setIsEditing(false);
+      setTimeout(() => setSaveSuccessMessage(''), 5000);
     } catch (error) {
-      alert(error.message || 'Failed to update profile.');
+      setSaveErrorMessage(error.response?.data?.message || error.message || 'Failed to update profile.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -373,56 +436,260 @@ export default function UserProfile() {
 
                 <TabsContent value="settings" className="p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900">Account Settings</h2>
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">Account Settings</h2>
+                      <p className="text-xs text-gray-500 mt-0.5">Manage your academic profile credentials, personal details, and security.</p>
+                    </div>
                     {!isEditing ? (
-                      <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg font-medium"><Edit className="size-4" />Edit Profile</button>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setIsEditing(true);
+                          setSaveSuccessMessage('');
+                          setSaveErrorMessage('');
+                        }} 
+                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-medium text-xs sm:text-sm transition-all shadow-md shadow-orange-600/20 cursor-pointer"
+                      >
+                        <Edit className="size-4" />
+                        Edit Profile
+                      </button>
                     ) : (
-                      <button onClick={() => setIsEditing(false)} className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium"><X className="size-4" />Cancel</button>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setSaveErrorMessage('');
+                          if (user) {
+                            setProfileData({
+                              name: user.name || '',
+                              email: user.email || '',
+                              bio: user.bio || '',
+                              userType: user.userType || 'Student',
+                              profession: user.profession || '',
+                              collegeName: user.collegeName || '',
+                              universityName: user.universityName || '',
+                              registrationNo: user.registrationNo || '',
+                              password: '',
+                              confirmPassword: ''
+                            });
+                          }
+                        }} 
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-xs sm:text-sm transition-all cursor-pointer"
+                      >
+                        <X className="size-4" />
+                        Cancel
+                      </button>
                     )}
                   </div>
 
-                  <form onSubmit={handleSave} className="space-y-6">
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                      <input type="text" name="name" value={profileData.name} onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} disabled={!isEditing} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg disabled:bg-gray-50" />
+                  {saveSuccessMessage && (
+                    <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-2 font-medium">
+                      <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                      <span>{saveSuccessMessage}</span>
                     </div>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                      <input type="email" name="email" value={profileData.email} onChange={(e) => setProfileData({ ...profileData, email: e.target.value })} disabled={!isEditing} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg disabled:bg-gray-50" />
+                  )}
+
+                  {saveErrorMessage && (
+                    <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-2 font-medium">
+                      <Info className="size-4 text-rose-600 shrink-0" />
+                      <span>{saveErrorMessage}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSave} className="space-y-5">
+                    {/* Full Name */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                        Full Name <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                        <input 
+                          type="text" 
+                          name="name" 
+                          value={profileData.name} 
+                          onChange={(e) => setProfileData({ ...profileData, name: formatTitleCase(e.target.value) })} 
+                          disabled={!isEditing} 
+                          placeholder="e.g. Rahul Sharma"
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm disabled:bg-gray-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" 
+                          required
+                        />
+                      </div>
                     </div>
 
-                    {isStudentOrUnivPlan && (
-                      <>
+                    {/* Email (Immutable / Fixed after registration) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          Email Address
+                        </label>
+                        <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
+                          <Lock className="size-3 text-gray-400" /> Fixed (Non-changeable)
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                        <input 
+                          type="email" 
+                          name="email" 
+                          value={profileData.email} 
+                          disabled={true} 
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 bg-gray-100/80 text-gray-500 cursor-not-allowed rounded-xl text-sm select-none" 
+                        />
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-1">Your registered email address is permanently tied to your academic records and cannot be altered.</p>
+                    </div>
+
+                    {/* User Type & Other Profession */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                          User Type <span className="text-rose-500">*</span>
+                        </label>
                         <div className="relative">
-                          <Building className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                          <input 
-                            type="text" 
-                            name="collegeName" 
-                            value={profileData.collegeName} 
-                            onChange={(e) => handleCollegeUnivChange(e.target.value)} 
+                          <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                          <select 
+                            value={profileData.userType} 
+                            onChange={(e) => setProfileData({ ...profileData, userType: e.target.value })} 
                             disabled={!isEditing} 
-                            placeholder="College / University Name" 
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg disabled:bg-gray-50" 
-                            required 
-                          />
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm disabled:bg-gray-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all bg-white"
+                          >
+                            <option value="Student">Student</option>
+                            <option value="Teacher / Educator">Teacher / Educator</option>
+                            <option value="Researcher">Researcher</option>
+                            <option value="Professional">Professional</option>
+                            <option value="General Reader">General Reader</option>
+                            <option value="Other">Other</option>
+                          </select>
                         </div>
+                      </div>
+
+                      {profileData.userType === 'Other' && (
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                            Profession / Description
+                          </label>
+                          <div className="relative">
+                            <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                            <input 
+                              type="text" 
+                              value={profileData.profession} 
+                              onChange={(e) => setProfileData({ ...profileData, profession: formatTitleCase(e.target.value) })} 
+                              disabled={!isEditing} 
+                              placeholder="e.g. Data Scientist, Freelance Analyst" 
+                              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm disabled:bg-gray-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" 
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Registration / Roll No */}
+                      <div className={profileData.userType !== 'Other' ? 'sm:col-span-1' : ''}>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                          Registration / Roll No
+                        </label>
                         <div className="relative">
-                          <Hash className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                          <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                           <input 
                             type="text" 
                             name="registrationNo" 
                             value={profileData.registrationNo} 
                             onChange={(e) => setProfileData({ ...profileData, registrationNo: e.target.value })} 
                             disabled={!isEditing} 
-                            placeholder="Student ID / Registration Number" 
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg disabled:bg-gray-50" 
-                            required 
+                            placeholder="e.g. 2400030952 or SCH-892" 
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm disabled:bg-gray-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all uppercase" 
                           />
                         </div>
-                      </>
+                      </div>
+                    </div>
+
+                    {/* Institution / College Name */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                        Institution / College / University Name
+                      </label>
+                      <div className="relative">
+                        <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                        <input 
+                          type="text" 
+                          name="collegeName" 
+                          value={profileData.collegeName || profileData.universityName} 
+                          onChange={(e) => {
+                            const formatted = formatTitleCase(e.target.value);
+                            setProfileData({ ...profileData, collegeName: formatted, universityName: formatted });
+                          }} 
+                          disabled={!isEditing} 
+                          placeholder="e.g. Stanford University or Oxford College" 
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm disabled:bg-gray-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" 
+                        />
+                      </div>
+                    </div>
+
+                    {/* Optional Password Update when in Edit Mode */}
+                    {isEditing && (
+                      <div className="pt-4 border-t border-gray-100 space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Lock className="size-4 text-orange-600" />
+                          <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Update Password (Optional)</h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">New Password</label>
+                            <div className="relative">
+                              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                              <input 
+                                type={showPassword ? 'text' : 'password'} 
+                                value={profileData.password} 
+                                onChange={(e) => setProfileData({ ...profileData, password: e.target.value })} 
+                                placeholder="Min 8 chars, 1 uppercase, 1 digit, 1 special" 
+                                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-xl text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" 
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                              >
+                                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">Confirm New Password</label>
+                            <div className="relative">
+                              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                              <input 
+                                type={showConfirmPassword ? 'text' : 'password'} 
+                                value={profileData.confirmPassword} 
+                                onChange={(e) => setProfileData({ ...profileData, confirmPassword: e.target.value })} 
+                                placeholder="Re-enter new password" 
+                                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-xl text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" 
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                              >
+                                {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     )}
 
-                    {isEditing && <button type="submit" className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-lg font-medium"><Save className="size-4" />Save Changes</button>}
+                    {isEditing && (
+                      <div className="pt-2 flex items-center gap-3">
+                        <button 
+                          type="submit" 
+                          disabled={isSaving}
+                          className="flex items-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-orange-600/20 cursor-pointer disabled:opacity-50"
+                        >
+                          <Save className="size-4" />
+                          {isSaving ? 'Saving Changes...' : 'Save Changes'}
+                        </button>
+                      </div>
+                    )}
                   </form>
                   <PasswordChangePanel user={user} />
 

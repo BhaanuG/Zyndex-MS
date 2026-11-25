@@ -55,31 +55,38 @@ class UserController {
     Map<String, Object> updateProfile(HttpServletRequest request, @RequestBody Map<String, Object> body) {
         Map<String, Object> user = auth.requireUser(request);
         String name = AuthSupport.str(body.get("name"));
-        String email = AuthSupport.str(body.get("email"));
+        // Email is fixed after creation and cannot be changed by the user
+        String email = AuthSupport.str(user.get("email"));
         String collegeName = AuthSupport.str(body.get("collegeName"));
         String universityName = AuthSupport.str(body.get("universityName"));
         String registrationNo = AuthSupport.str(body.get("registrationNo"));
         String bio = AuthSupport.str(body.get("bio"));
         String userType = AuthSupport.str(body.get("userType"));
         String profession = AuthSupport.str(body.get("profession"));
+        String newPassword = AuthSupport.str(body.get("password"));
 
-        if (name.isBlank() || email.isBlank()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Name and email are required.");
+        if (name.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Full Name is required.");
         }
 
-        // If college/university details are supplied, verify them online
-        if (!collegeName.isBlank() || !universityName.isBlank()) {
-            boolean collegeVerified = collegeName.isBlank() || auth.verifyUniversity(collegeName);
-            boolean universityVerified = universityName.isBlank() || auth.verifyUniversity(universityName);
-            if (!collegeVerified && !universityVerified) {
-                throw new ApiException(HttpStatus.BAD_REQUEST,
-                        "Neither College Name nor University Name could be verified online. Please enter a valid name.");
-            }
+        // Capitalize first letter of each word in full name and institution
+        name = AuthSupport.formatTitleCase(name);
+        if (!collegeName.isBlank()) {
+            collegeName = AuthSupport.formatTitleCase(collegeName);
+        }
+        if (!universityName.isBlank()) {
+            universityName = AuthSupport.formatTitleCase(universityName);
+        }
+
+        // If a new password is provided, validate strength and update hash
+        if (!newPassword.isBlank()) {
+            auth.validatePasswordStrength(newPassword);
+            jdbc.update("UPDATE users SET password = ? WHERE id = ?", auth.passwordEncoder.encode(newPassword), user.get("id"));
         }
 
         jdbc.update(
-                "UPDATE users SET username = ?, email = ?, user_type = ?, profession = ?, college_name = ?, university_name = ?, registration_no = ?, bio = ? WHERE id = ?",
-                name, email, userType.isBlank() ? "Other" : userType, profession.isBlank() ? null : profession,
+                "UPDATE users SET username = ?, user_type = ?, profession = ?, college_name = ?, university_name = ?, registration_no = ?, bio = ? WHERE id = ?",
+                name, userType.isBlank() ? "Student" : userType, profession.isBlank() ? null : profession,
                 collegeName.isBlank() ? null : collegeName, universityName.isBlank() ? null : universityName,
                 registrationNo.isBlank() ? null : registrationNo, bio.isBlank() ? null : bio, user.get("id"));
         Map<String, Object> updated = auth.sanitizeUser(auth.findUserById(AuthSupport.number(user.get("id"))));

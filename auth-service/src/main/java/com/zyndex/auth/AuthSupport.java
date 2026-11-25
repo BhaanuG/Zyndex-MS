@@ -562,4 +562,22 @@ public class AuthSupport {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Password must contain at least one special character.");
         }
     }
+
+    public static String formatTitleCase(String str) {
+        if (str == null || str.isBlank()) return "";
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = true;
+        for (char c : str.toCharArray()) {
+            if (Character.isWhitespace(c) || c == '-' || c == '/' || c == '.') {
+                capitalizeNext = true;
+                result.append(c);
+            } else if (capitalizeNext) {
+                result.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+            } else {
+                result.append(Character.toLowerCase(c));
+            }
+        }
+        return result.toString();
+    }
 }
