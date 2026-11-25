@@ -598,10 +598,10 @@ export default function UserProfile() {
                       </div>
                     </div>
 
-                    {/* Institution / College Name */}
+                    {/* Institution */}
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
-                        Institution / College / University Name
+                        Institution
                       </label>
                       <div className="relative">
                         <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />

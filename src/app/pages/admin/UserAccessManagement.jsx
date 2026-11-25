@@ -167,7 +167,7 @@ export default function UserAccessManagement() {
       'Email',
       'Platform Role',
       'User Type',
-      'Institution / College',
+      'Institution',
       'Subscription Plan',
       'Time Left',
       'Date Joined'
@@ -797,7 +797,7 @@ export default function UserAccessManagement() {
                     </div>
                   )}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">University / College name (Optional)</label>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Institution <span className="font-normal text-gray-400">(Optional)</span></label>
                     <input type="text" value={formUser.collegeName || formUser.universityName} onChange={(e) => {
                       const formatted = e.target.value.replace(/\b[a-zA-Z]/g, (char) => char.toUpperCase());
                       setFormUser({ ...formUser, collegeName: formatted, universityName: '' });
