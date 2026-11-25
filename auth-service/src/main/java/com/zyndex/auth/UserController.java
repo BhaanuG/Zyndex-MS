@@ -60,9 +60,7 @@ class UserController {
         String collegeName = AuthSupport.str(body.get("collegeName"));
         String universityName = AuthSupport.str(body.get("universityName"));
         String registrationNo = AuthSupport.str(body.get("registrationNo"));
-        String bio = AuthSupport.str(body.get("bio"));
         String userType = AuthSupport.str(body.get("userType"));
-        String profession = AuthSupport.str(body.get("profession"));
         String newPassword = AuthSupport.str(body.get("password"));
 
         if (name.isBlank()) {
@@ -82,13 +80,11 @@ class UserController {
         Map<String, Object> currentUserRow = auth.findUserById(AuthSupport.number(user.get("id")));
         String oldName = AuthSupport.str(currentUserRow != null ? currentUserRow.get("username") : user.get("name"));
         String oldUserType = AuthSupport.str(currentUserRow != null ? currentUserRow.get("user_type") : user.get("userType"));
-        String oldProfession = AuthSupport.str(currentUserRow != null ? currentUserRow.get("profession") : user.get("profession"));
         String oldInstitution = AuthSupport.str(currentUserRow != null ? currentUserRow.get("college_name") : user.get("collegeName"));
         if (oldInstitution.isBlank()) {
             oldInstitution = AuthSupport.str(currentUserRow != null ? currentUserRow.get("university_name") : user.get("universityName"));
         }
         String oldRegNo = AuthSupport.str(currentUserRow != null ? currentUserRow.get("registration_no") : user.get("registrationNo"));
-        String oldBio = AuthSupport.str(currentUserRow != null ? currentUserRow.get("bio") : user.get("bio"));
 
         java.util.List<String> changeSummaries = new java.util.ArrayList<>();
 
@@ -101,11 +97,6 @@ class UserController {
             changeSummaries.add("User Type: Changed from '" + (oldUserType.isBlank() ? "Student" : oldUserType) + "' to '" + newUserType + "'");
         }
 
-        String newProf = profession.isBlank() ? "" : profession;
-        if (!newProf.equalsIgnoreCase(oldProfession)) {
-            changeSummaries.add("Profession / Specialization: Changed from '" + (oldProfession.isBlank() ? "None" : oldProfession) + "' to '" + (newProf.isBlank() ? "None" : newProf) + "'");
-        }
-
         String newInstitution = !collegeName.isBlank() ? collegeName : universityName;
         if (!newInstitution.equalsIgnoreCase(oldInstitution)) {
             changeSummaries.add("Institution: Changed from '" + (oldInstitution.isBlank() ? "None" : oldInstitution) + "' to '" + (newInstitution.isBlank() ? "None" : newInstitution) + "'");
@@ -116,11 +107,6 @@ class UserController {
             changeSummaries.add("Registration / Roll No: Changed from '" + (oldRegNo.isBlank() ? "None" : oldRegNo) + "' to '" + (newReg.isBlank() ? "None" : newReg) + "'");
         }
 
-        String newBioStr = bio.isBlank() ? "" : bio;
-        if (!newBioStr.equals(oldBio)) {
-            changeSummaries.add("Bio: Profile summary was modified");
-        }
-
         // If a new password is provided, validate strength and update hash
         if (!newPassword.isBlank()) {
             auth.validatePasswordStrength(newPassword);
@@ -129,10 +115,10 @@ class UserController {
         }
 
         jdbc.update(
-                "UPDATE users SET username = ?, user_type = ?, profession = ?, college_name = ?, university_name = ?, registration_no = ?, bio = ? WHERE id = ?",
-                name, newUserType, profession.isBlank() ? null : profession,
+                "UPDATE users SET username = ?, user_type = ?, college_name = ?, university_name = ?, registration_no = ? WHERE id = ?",
+                name, newUserType,
                 collegeName.isBlank() ? null : collegeName, universityName.isBlank() ? null : universityName,
-                registrationNo.isBlank() ? null : registrationNo, bio.isBlank() ? null : bio, user.get("id"));
+                registrationNo.isBlank() ? null : registrationNo, user.get("id"));
 
         // Capture client IP and User-Agent
         String clientProvidedIp = AuthSupport.str(body.get("clientIp"));

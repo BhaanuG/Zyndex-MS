@@ -260,11 +260,9 @@ export default function UserProfile() {
       const payload = {
         name: formatTitleCase(profileData.name.trim()),
         userType: profileData.userType,
-        profession: profileData.userType === 'Other' ? profileData.profession : '',
         collegeName: formatTitleCase((profileData.collegeName || '').trim()),
         universityName: formatTitleCase((profileData.universityName || '').trim()),
         registrationNo: (profileData.registrationNo || '').trim(),
-        bio: profileData.bio || '',
         clientIp: clientIp || '',
       };
       if (profileData.password) {
