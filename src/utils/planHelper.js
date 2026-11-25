@@ -66,3 +66,34 @@ export function getPlanBadgeClass(planId) {
   const found = PLATFORM_PLANS.find(p => p.id === key);
   return found?.badgeClass || 'bg-orange-50 text-orange-700 border border-orange-200';
 }
+
+/**
+ * Maps a User Type selected during registration or account settings to their ideal recommended subscription plan.
+ * - Student -> STUDENT_PLUS (or STUDENT_BASIC for beginners)
+ * - Teacher / Educator -> UNIVERSITY
+ * - Researcher -> RESEARCHER_PRO
+ * - Professional -> ENTERPRISE
+ * - General Reader -> STUDENT_BASIC
+ * - Other -> STUDENT_PLUS
+ */
+export function getRecommendedPlanForUserType(userType) {
+  if (!userType) return 'STUDENT_PLUS';
+  const clean = String(userType).trim().toLowerCase();
+
+  if (clean.includes('teacher') || clean.includes('educator') || clean.includes('faculty') || clean.includes('professor')) {
+    return 'UNIVERSITY';
+  }
+  if (clean.includes('researcher') || clean.includes('phd') || clean.includes('scholar')) {
+    return 'RESEARCHER_PRO';
+  }
+  if (clean.includes('professional') || clean.includes('distinguished') || clean.includes('fellow')) {
+    return 'ENTERPRISE';
+  }
+  if (clean.includes('reader')) {
+    return 'STUDENT_BASIC';
+  }
+  if (clean.includes('student')) {
+    return 'STUDENT_PLUS';
+  }
+  return 'STUDENT_PLUS';
+}

@@ -28,6 +28,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import subscriptionService from '@/services/api/subscriptionService';
 import { useNavigate, useLocation } from 'react-router';
 import { setRedirectIntent, clearRedirectIntent } from '@/utils/redirectHelper';
+import { getRecommendedPlanForUserType } from '@/utils/planHelper';
 
 export default function Pricing() {
   const { user, refreshUser } = useAuth();
@@ -612,6 +613,12 @@ export default function Pricing() {
                     ? `Active validity until ${new Date(activeSub.endDate || activeSub.end_date).toLocaleDateString()}`
                     : 'Standard Free Tier Access'}
                 </p>
+                {user?.userType && (
+                  <p className="text-xs text-indigo-600 font-semibold pt-1 flex items-center gap-1.5">
+                    <Sparkles className="size-3.5 text-indigo-500" />
+                    <span>User Profile: <strong>{user.userType}</strong> — Recommended Plan highlighted below</span>
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -653,6 +660,8 @@ export default function Pricing() {
               }
 
               const hasActivePaidSub = user && !loadingSub && isPaidActive && currentId !== 'FREE';
+              const recommendedPlanId = getRecommendedPlanForUserType(user?.userType);
+              const isRecommended = !!user && plan.id === recommendedPlanId;
 
               return (
                 <motion.div
@@ -660,6 +669,8 @@ export default function Pricing() {
                   className={`border rounded-2xl p-8 flex flex-col justify-between relative shadow-xl hover:shadow-2xl transition-all duration-300 ${plan.color} ${
                     isCurrent 
                       ? 'ring-2 ring-emerald-500 border-emerald-400 bg-white' 
+                      : isRecommended
+                      ? 'scale-105 border-indigo-500 ring-2 ring-indigo-500/80 bg-white'
                       : plan.popular 
                       ? 'scale-105 border-orange-500' 
                       : ''
@@ -672,21 +683,34 @@ export default function Pricing() {
                     <div className="mb-6">
                       <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                         <h3 className="text-xl font-bold tracking-tight text-slate-900">{plan.name}</h3>
-                        {loadingSub && user ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 animate-pulse">
-                            Loading status...
-                          </span>
-                        ) : isCurrent ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-xs">
-                            <CheckCircle2 className="size-3.5 text-emerald-600 stroke-[2.5]" />
-                            Current Plan
-                          </span>
-                        ) : plan.popular ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xs">
-                            <Sparkles className="size-3 text-white" />
-                            Most Popular
-                          </span>
-                        ) : null}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {loadingSub && user ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 animate-pulse">
+                              Loading status...
+                            </span>
+                          ) : isCurrent ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-xs">
+                              <CheckCircle2 className="size-3.5 text-emerald-600 stroke-[2.5]" />
+                              Current Plan
+                            </span>
+                          ) : null}
+
+                          {/* Most Popular badge - common for all users */}
+                          {plan.popular && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xs">
+                              <Sparkles className="size-3 text-white" />
+                              Most Popular
+                            </span>
+                          )}
+
+                          {/* Recommended Plan badge - tailored to the user's registered User Type */}
+                          {isRecommended && !isCurrent && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-xs" title={`Recommended for your profile as ${user?.userType || 'Scholar'}`}>
+                              <Sparkles className="size-3 text-white" />
+                              Recommended for {user?.userType || 'You'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <p className="text-xs opacity-75">{plan.target}</p>
                     </div>

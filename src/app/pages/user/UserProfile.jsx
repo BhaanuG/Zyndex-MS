@@ -14,6 +14,7 @@ import userService from '@/services/api/userService';
 import subscriptionService from '@/services/api/subscriptionService';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
 import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedClientIp, formatSessionDuration, formatDateTime, formatDateOnly, formatTimeOnly } from '@/utils/deviceHelper';
+import { getRecommendedPlanForUserType, getPlanName } from '@/utils/planHelper';
 
 export default function UserProfile() {
   const { user, updateProfile } = useAuth();
@@ -958,6 +959,37 @@ export default function UserProfile() {
                       </Link>
                     </div>
                   </div>
+
+                  {/* Tailored Plan Recommendation Banner based on User Type */}
+                  {user && (
+                    <div className="p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-orange-50/40 rounded-xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                      <div className="flex items-center gap-3">
+                        <div className="size-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                          <GraduationCap className="size-5" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100/80 px-2 py-0.5 rounded-full">
+                              Tailored for your profile
+                            </span>
+                            <span className="text-xs text-gray-500 font-medium">User Type: <strong>{user?.userType || 'Scholar'}</strong></span>
+                          </div>
+                          <p className="text-sm font-bold text-gray-900 mt-0.5">
+                            Recommended Plan: <span className="text-indigo-600">{getPlanName(getRecommendedPlanForUserType(user?.userType))}</span>
+                            <span className="ml-2 text-xs font-semibold text-orange-600 bg-orange-100/80 px-2 py-0.5 rounded-full">
+                              Most Popular across platform: Student Plus
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      <Link 
+                        to={`/Zyndex/User/${userName}/${userEmail}/Profile/Billing/Pricing`} 
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-all text-xs shadow-xs text-center shrink-0"
+                      >
+                        Explore Recommended Plan →
+                      </Link>
+                    </div>
+                  )}
 
                   {loadingBilling ? (
                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-3">
