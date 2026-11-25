@@ -7,7 +7,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { TransitionLoader } from '@/app/components/PageTransitionWrapper';
 import resourceService from '@/services/api/resourceService';
 import userService from '@/services/api/userService';
-import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS } from '@/utils/planHelper';
+import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS, isResourceAccessibleForPlan } from '@/utils/planHelper';
 
 const categoryIcons = {
   'artificial intelligence': { icon: Brain, gradient: 'from-fuchsia-500 to-rose-500', bgColor: 'bg-fuchsia-100' },
@@ -94,10 +94,12 @@ export default function UserHome() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch live search results as user types (debounced 250ms), applying active plan & availability filters
+  // Fetch live search results as user types or adjusts plan/format filters (debounced 250ms), applying cumulative plan & type filters
   useEffect(() => {
     const trimmed = searchQuery.trim();
-    if (trimmed.length === 0) {
+    const hasActiveFilter = selectedPlanFilter !== 'ALL' || selectedTypeFilter !== 'ALL';
+
+    if (trimmed.length === 0 && !hasActiveFilter) {
       setLiveSearchResults([]);
       setIsSearching(false);
       setShowLiveDropdown(false);
@@ -113,21 +115,18 @@ export default function UserHome() {
 
     searchDebounceRef.current = setTimeout(async () => {
       try {
-        const queryParams = { query: trimmed, size: 16 };
+        const queryParams = { query: trimmed, size: 24 };
         if (selectedTypeFilter !== 'ALL') {
           queryParams.type = selectedTypeFilter;
         }
         const res = await resourceService.searchResources(queryParams);
         let list = Array.isArray(res) ? res : (res?.resources || []);
         
-        // Filter by required plan if specified
+        // Filter by cumulative required plan
         if (selectedPlanFilter !== 'ALL') {
-          list = list.filter((item) => {
-            const plan = String(item.requiredPlan || 'FREE').toUpperCase();
-            return plan === selectedPlanFilter;
-          });
+          list = list.filter((item) => isResourceAccessibleForPlan(item.requiredPlan, selectedPlanFilter));
         }
-        setLiveSearchResults(list.slice(0, 8));
+        setLiveSearchResults(list.slice(0, 10));
       } catch (err) {
         console.error('Failed to perform live search:', err);
         setLiveSearchResults([]);
@@ -442,19 +441,23 @@ export default function UserHome() {
 
               {/* Instant Live Search Results Overlay Dropdown */}
               <AnimatePresence>
-                {showLiveDropdown && searchQuery.trim().length > 0 && (
+                {showLiveDropdown && (searchQuery.trim().length > 0 || selectedPlanFilter !== 'ALL' || selectedTypeFilter !== 'ALL') && (
                   <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.98 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-orange-100 overflow-hidden text-left"
+                    className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-orange-100 overflow-hidden text-left z-50"
                   >
                     {/* Header bar */}
                     <div className="px-5 py-3.5 bg-gradient-to-r from-orange-50 to-amber-50/50 border-b border-orange-100/60 flex items-center justify-between">
                       <div className="flex items-center gap-2 text-xs font-bold text-orange-900 uppercase tracking-wider">
                         <Sparkles className="size-3.5 text-orange-500" />
-                        <span>Live Search Results</span>
+                        <span>
+                          {selectedPlanFilter !== 'ALL' || selectedTypeFilter !== 'ALL'
+                            ? `Filtered Resources (${selectedPlanFilter !== 'ALL' ? getPlanName(selectedPlanFilter) : 'All Plans'}${selectedTypeFilter !== 'ALL' ? ` • ${selectedTypeFilter}` : ''})`
+                            : 'Live Search Results'}
+                        </span>
                       </div>
                       {isSearching ? (
                         <div className="flex items-center gap-1.5 text-xs text-orange-600 font-medium">
@@ -501,6 +504,9 @@ export default function UserHome() {
                                   }`}>
                                     {getDisplayType(item)}
                                   </span>
+                                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 ${getPlanBadgeClass(item.requiredPlan)}`}>
+                                    {getPlanName(item.requiredPlan)}
+                                  </span>
                                 </div>
                                 <p className="text-xs text-gray-500 line-clamp-1 mb-1">
                                   {getCleanDescription(item)}
@@ -521,7 +527,9 @@ export default function UserHome() {
                           <BookOpen className="size-10 text-gray-300 mx-auto mb-2" />
                           <p className="text-sm font-semibold text-gray-700 mb-1">No matching resources found</p>
                           <p className="text-xs text-gray-500">
-                            No materials matched &ldquo;{searchQuery}&rdquo;. Try another keyword or author.
+                            {searchQuery.trim()
+                              ? `No materials matched "${searchQuery}". Try another keyword or author.`
+                              : 'No materials found matching the selected plan/format filters.'}
                           </p>
                         </div>
                       )}
@@ -535,7 +543,11 @@ export default function UserHome() {
                           onClick={handleSeeAllResults}
                           className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
                         >
-                          <span>See all results for &ldquo;{searchQuery}&rdquo;</span>
+                          <span>
+                            {searchQuery.trim()
+                              ? `See all results for "${searchQuery}"`
+                              : 'See all matching resources in library'}
+                          </span>
                           <ArrowRight className="size-3" />
                         </button>
                       </div>

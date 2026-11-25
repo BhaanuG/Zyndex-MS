@@ -6,7 +6,7 @@ import UserLayout from '@/app/components/UserLayout';
 import resourceService from '@/services/api/resourceService';
 import { useAuth } from '@/app/context/AuthContext';
 import userService from '@/services/api/userService';
-import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS } from '@/utils/planHelper';
+import { getPlanName, getPlanBadgeClass, PLATFORM_PLANS, isResourceAccessibleForPlan } from '@/utils/planHelper';
 
 export default function SearchResults() {
   const navigate = useNavigate();
@@ -43,10 +43,7 @@ export default function SearchResults() {
         const response = resourceResult.value;
         let list = Array.isArray(response) ? response : response.resources || [];
         if (selectedPlan && selectedPlan.toLowerCase() !== 'all') {
-          list = list.filter((r) => {
-            const plan = String(r.requiredPlan || 'FREE').toUpperCase();
-            return plan === selectedPlan.toUpperCase();
-          });
+          list = list.filter((r) => isResourceAccessibleForPlan(r.requiredPlan, selectedPlan));
         }
         setResults(list);
 

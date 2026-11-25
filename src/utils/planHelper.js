@@ -7,6 +7,38 @@ export const PLAN_NAMES = {
   ENTERPRISE: 'Distinguished Fellow & Scholar',
 };
 
+export const PLAN_HIERARCHY = [
+  'FREE',
+  'STUDENT_BASIC',
+  'STUDENT_PLUS',
+  'RESEARCHER_PRO',
+  'UNIVERSITY',
+  'ENTERPRISE',
+];
+
+/**
+ * Returns true if the selected user plan tier can access a resource with requiredPlan.
+ * For example:
+ * - FREE tier accesses only FREE resources.
+ * - STUDENT_BASIC accesses FREE and STUDENT_BASIC.
+ * - STUDENT_PLUS accesses FREE, STUDENT_BASIC, and STUDENT_PLUS.
+ * - RESEARCHER_PRO accesses FREE, STUDENT_BASIC, STUDENT_PLUS, and RESEARCHER_PRO.
+ */
+export function isResourceAccessibleForPlan(resourcePlan, userSelectedPlan) {
+  if (!userSelectedPlan || userSelectedPlan === 'ALL') return true;
+  const resKey = String(resourcePlan || 'FREE').trim().toUpperCase();
+  const selectedKey = String(userSelectedPlan).trim().toUpperCase();
+
+  const userIndex = PLAN_HIERARCHY.indexOf(selectedKey);
+  const resourceIndex = PLAN_HIERARCHY.indexOf(resKey);
+
+  // If unknown, fallback to matching or index comparison
+  if (userIndex === -1 || resourceIndex === -1) {
+    return resKey === selectedKey;
+  }
+  return resourceIndex <= userIndex;
+}
+
 export const PLATFORM_PLANS = [
   { id: 'FREE', name: 'Free / Demo', badgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
   { id: 'STUDENT_BASIC', name: 'Student Basic', badgeClass: 'bg-blue-50 text-blue-700 border border-blue-200' },
