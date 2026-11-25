@@ -517,16 +517,11 @@ export default function UserProfile() {
                       </div>
                     </div>
 
-                    {/* Email (Immutable / Fixed after registration) */}
+                    {/* Email (Immutable after registration) */}
                     <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          Email Address
-                        </label>
-                        <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1">
-                          <Lock className="size-3 text-gray-400" /> Fixed (Non-changeable)
-                        </span>
-                      </div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                        Email Address
+                      </label>
                       <div className="relative">
                         <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                         <input 
@@ -537,7 +532,6 @@ export default function UserProfile() {
                           className="w-full pl-10 pr-4 py-2.5 border border-gray-200 bg-gray-100/80 text-gray-500 cursor-not-allowed rounded-xl text-sm select-none" 
                         />
                       </div>
-                      <p className="text-[11px] text-gray-400 mt-1">Your registered email address is permanently tied to your academic records and cannot be altered.</p>
                     </div>
 
                     {/* User Type & Other Profession */}
