@@ -1054,21 +1054,20 @@ export default function ResourceManagement() {
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[960px] table-auto text-left border-collapse">
+            <table className="w-full min-w-[880px] table-auto text-left border-collapse">
               <thead className="bg-slate-50/90 border-b border-slate-200 text-xs uppercase font-bold text-slate-500 tracking-wider select-none">
                 <tr>
-                  <th className="py-3.5 px-5 w-[28%]">Title</th>
-                  <th className="py-3.5 px-4 w-[16%]">Category</th>
-                  <th className="py-3.5 px-4 w-[16%]">Author of Resource</th>
-                  <th className="py-3.5 px-3 w-[10%]">Type</th>
-                  <th className="py-3.5 px-4 w-[14%]">Required Plan</th>
+                  <th className="py-3.5 px-5 w-[32%]">Title</th>
+                  <th className="py-3.5 px-4 w-[18%]">Category</th>
+                  <th className="py-3.5 px-4 w-[18%]">Author of Resource</th>
+                  <th className="py-3.5 px-4 w-[16%]">Required Plan</th>
                   <th className="py-3.5 px-5 w-[16%] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
                 {filteredAndSortedResources.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-16 text-slate-400">
+                    <td colSpan="5" className="text-center py-16 text-slate-400">
                       No resources found matching criteria.
                     </td>
                   </tr>
@@ -1110,13 +1109,6 @@ export default function ResourceManagement() {
                       <td className="py-3.5 px-4 text-slate-700 font-medium">
                         <span className="line-clamp-1" title={resource.subject || resource.author || 'Anonymous'}>
                           {resource.subject || resource.author || 'Anonymous'}
-                        </span>
-                      </td>
-
-                      {/* Type */}
-                      <td className="py-3.5 px-3">
-                        <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold tracking-wider uppercase bg-slate-100 text-slate-600 border border-slate-200">
-                          {['article', 'paper'].includes(String(resource.resourceType || resource.type || '').toLowerCase()) ? 'ARTICLE' : (resource.resourceType || resource.type || 'PDF')}
                         </span>
                       </td>
 
