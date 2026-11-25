@@ -251,7 +251,7 @@ class UserController {
         }
 
         String name = AuthSupport.str(body.get("name"));
-        // Email is fixed after creation and cannot be changed by anyone, including administrators
+        // Email is permanently locked once the account is created — even for the main admin
         String email = AuthSupport.str(existingUser.get("email"));
         String desiredRole = body.containsKey("role")
                 ? ("admin".equalsIgnoreCase(String.valueOf(body.get("role"))) ? "ADMIN" : "STUDENT")
