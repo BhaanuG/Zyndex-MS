@@ -87,17 +87,20 @@ export function buildResourceUrl(userName, userEmail, category, title, id) {
 
 /**
  * Maps a User Type selected during registration or account settings to their ideal recommended subscription plan.
- * - Student -> STUDENT_PLUS (or STUDENT_BASIC for beginners)
- * - Teacher / Educator -> UNIVERSITY
- * - Researcher -> RESEARCHER_PRO
- * - Professional -> ENTERPRISE
- * - General Reader -> STUDENT_BASIC
+ * - Student -> STUDENT_BASIC (Student Basic)
+ * - Teacher / Educator -> UNIVERSITY (Academic Faculty & Educator)
+ * - Researcher -> RESEARCHER_PRO (PhD Scholar / Researcher)
+ * - Professional -> ENTERPRISE (Distinguished Fellow & Scholar)
+ * - General Reader -> STUDENT_PLUS (Student Plus)
  * - Other -> STUDENT_PLUS
  */
 export function getRecommendedPlanForUserType(userType) {
-  if (!userType) return 'STUDENT_PLUS';
+  if (!userType) return 'STUDENT_BASIC';
   const clean = String(userType).trim().toLowerCase();
 
+  if (clean.includes('student')) {
+    return 'STUDENT_BASIC';
+  }
   if (clean.includes('teacher') || clean.includes('educator') || clean.includes('faculty') || clean.includes('professor')) {
     return 'UNIVERSITY';
   }
@@ -108,9 +111,6 @@ export function getRecommendedPlanForUserType(userType) {
     return 'ENTERPRISE';
   }
   if (clean.includes('reader')) {
-    return 'STUDENT_BASIC';
-  }
-  if (clean.includes('student')) {
     return 'STUDENT_PLUS';
   }
   return 'STUDENT_PLUS';
