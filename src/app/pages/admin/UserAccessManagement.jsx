@@ -801,7 +801,7 @@ export default function UserAccessManagement() {
                     <input type="text" value={formUser.collegeName || formUser.universityName} onChange={(e) => {
                       const formatted = e.target.value.replace(/\b[a-zA-Z]/g, (char) => char.toUpperCase());
                       setFormUser({ ...formUser, collegeName: formatted, universityName: '' });
-                    }} placeholder="University or college name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                    }} placeholder="Enter institution name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
                   </div>
 
                   {isEditing && (

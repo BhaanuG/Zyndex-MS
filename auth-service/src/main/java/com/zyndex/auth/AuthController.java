@@ -71,7 +71,7 @@ class AuthController {
                 "INSERT INTO system_logs (timestamp, service, level, action, actor_email, details, ip_address, status) " +
                 "VALUES (NOW(), 'AUTH-SERVICE', 'INFO', 'USER_REGISTERED', ?, ?, '127.0.0.1', 'SUCCESS')",
                 email,
-                String.format("New student/reader account created: %s <%s> (User Type: %s, College/University: %s). OTP verified.",
+                String.format("New student/reader account created: %s <%s> (User Type: %s, Institution: %s). OTP verified.",
                     name, email, userType, collegeName.isBlank() ? (universityName.isBlank() ? "N/A" : universityName) : collegeName)
             );
         } catch (Exception ignored) {}

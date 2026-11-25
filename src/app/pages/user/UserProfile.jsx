@@ -618,7 +618,7 @@ export default function UserProfile() {
                             setProfileData({ ...profileData, collegeName: formatted, universityName: formatted });
                           }} 
                           disabled={!isEditing} 
-                          placeholder="e.g. Stanford University or Oxford College" 
+                          placeholder="e.g. National Institute of Technology, KL University, etc." 
                           className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm disabled:bg-gray-50 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all" 
                         />
                       </div>
