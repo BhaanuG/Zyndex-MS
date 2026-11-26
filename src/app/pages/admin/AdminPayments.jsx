@@ -691,75 +691,177 @@ export default function AdminPayments() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
               >
-                <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-xl bg-orange-50 text-orange-600">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100">
                         <CreditCard className="size-5" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900 text-base">Payment Details</h3>
+                        <h3 className="font-bold text-slate-900 text-base">Payment & Subscription Details</h3>
                         <p className="text-xs text-slate-500 font-mono">{viewModalPayment.id}</p>
                       </div>
                     </div>
                     <button
                       onClick={() => setViewModalPayment(null)}
-                      className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                     >
                       <X className="size-5" />
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div>
-                      <span className="text-slate-500 block">User Name</span>
-                      <span className="font-bold text-slate-800">{viewModalPayment.user_name || 'N/A'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">User Email</span>
-                      <span className="font-bold text-slate-800">{viewModalPayment.user_email || 'N/A'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">Plan</span>
-                      <span className="font-bold text-slate-800">{(viewModalPayment.plan_id || 'N/A').replace(/_/g, ' ')}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">Amount</span>
-                      <span className="font-bold text-slate-800">₹{((viewModalPayment.amount_paise || 0) / 100).toFixed(2)}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">Status</span>
-                      <span className="font-bold">{getStatusBadge(viewModalPayment.status)}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">UTR Reference</span>
-                      <span className="font-mono font-bold text-slate-900">{viewModalPayment.utr || 'Not Submitted'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">Order ID</span>
-                      <span className="font-mono text-slate-700">{viewModalPayment.order_id || 'N/A'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">Created At</span>
-                      <span className="text-slate-700">{viewModalPayment.created_at ? new Date(viewModalPayment.created_at).toLocaleString() : 'N/A'}</span>
+                  {/* Customer Information Card */}
+                  <div className="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/80 space-y-2.5">
+                    <span className="text-[11px] font-bold text-orange-700 uppercase tracking-wider block">Customer Details</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">User Name</span>
+                        <span className="font-bold text-slate-900 text-sm">{viewModalPayment.user_name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Email Address</span>
+                        <span className="font-bold text-slate-900 font-mono select-all">{viewModalPayment.user_email || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">User ID</span>
+                        <span className="font-mono text-slate-700">#{viewModalPayment.user_id || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Status</span>
+                        <div className="mt-0.5">{getStatusBadge(viewModalPayment.status)}</div>
+                      </div>
                     </div>
                   </div>
 
+                  {/* Plan & Pricing Information Card */}
+                  <div className="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/80 space-y-2.5">
+                    <span className="text-[11px] font-bold text-orange-700 uppercase tracking-wider block">Plan & Amount Details</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Present Plan (Purchased)</span>
+                        <span className="font-bold text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded text-[11px] inline-block mt-0.5">
+                          {(viewModalPayment.plan_id || 'N/A').replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Previous Plan</span>
+                        <span className="font-semibold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded text-[11px] inline-block mt-0.5">
+                          {(viewModalPayment.previous_plan || 'FREE').replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Amount Paid</span>
+                        <span className="font-black text-slate-900 text-sm block mt-0.5">
+                          ₹{((viewModalPayment.amount_paise || 0) / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Transaction & Reference Details */}
+                  <div className="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/80 space-y-2.5">
+                    <span className="text-[11px] font-bold text-orange-700 uppercase tracking-wider block">Transaction & Reference Identifiers</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">UTR / Reference Number</span>
+                        {viewModalPayment.utr ? (
+                          <span className="font-mono font-bold text-orange-950 bg-orange-100/70 border border-orange-200 px-2.5 py-1 rounded text-xs select-all inline-block mt-0.5">
+                            {viewModalPayment.utr}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">Not Submitted</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Order ID</span>
+                        <span className="font-mono text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded text-[11px] select-all inline-block mt-0.5">
+                          {viewModalPayment.order_id || 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Payment ID</span>
+                        <span className="font-mono text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded text-[11px] select-all inline-block mt-0.5">
+                          {viewModalPayment.id || 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Payment Method / Gateway</span>
+                        <span className="font-semibold text-slate-800">
+                          {viewModalPayment.payment_method || 'UPI_QR'} ({viewModalPayment.gateway || 'INTERNAL_UPI'})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Timestamp & Timing Details */}
+                  <div className="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/80 space-y-2.5">
+                    <span className="text-[11px] font-bold text-orange-700 uppercase tracking-wider block">Timestamps & Dates</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Date & Time (Created)</span>
+                        <span className="text-slate-800 font-medium block mt-0.5">
+                          {viewModalPayment.created_at ? new Date(viewModalPayment.created_at).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          }) : 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Paid At Timestamp</span>
+                        <span className="text-slate-800 font-medium block mt-0.5">
+                          {viewModalPayment.paid_at ? new Date(viewModalPayment.paid_at).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          }) : 'Pending / Not Paid'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[11px]">Expires At (QR Window)</span>
+                        <span className="text-slate-800 font-medium block mt-0.5">
+                          {viewModalPayment.expires_at ? new Date(viewModalPayment.expires_at).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Admin Note or Review Reason */}
                   {viewModalPayment.review_reason && (
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
                       <span className="font-bold block mb-0.5">Admin Note / Review Reason:</span>
-                      <p>{viewModalPayment.review_reason}</p>
+                      <p className="leading-relaxed">{viewModalPayment.review_reason}</p>
+                    </div>
+                  )}
+
+                  {/* Failure Reason if any */}
+                  {viewModalPayment.failure_reason && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900">
+                      <span className="font-bold block mb-0.5">Failure / Decline Reason:</span>
+                      <p className="leading-relaxed">{viewModalPayment.failure_reason}</p>
                     </div>
                   )}
 
                   <div className="flex justify-end pt-2">
                     <button
                       onClick={() => setViewModalPayment(null)}
-                      className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                      className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
                     >
-                      Close
+                      Close Details
                     </button>
                   </div>
                 </div>
