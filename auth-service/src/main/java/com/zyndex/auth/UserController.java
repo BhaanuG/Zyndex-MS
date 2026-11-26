@@ -268,7 +268,7 @@ class UserController {
 
         try {
             Map<String, Object> createdUser = auth.sanitizeUser(auth.findUserById(userId));
-            String plan = subscriptionPlan.isBlank() || "FREE".equalsIgnoreCase(subscriptionPlan) ? "Free / Demo"
+            String plan = subscriptionPlan.isBlank() || "FREE".equalsIgnoreCase(subscriptionPlan) ? "Free"
                     : subscriptionPlan.replace("_", " ");
             String validUntil = String.valueOf(createdUser.getOrDefault("subscriptionExpiresAt", "No expiry"));
             accountEmailService.sendSignupConfirmationEmail(name, email, plan, validUntil);

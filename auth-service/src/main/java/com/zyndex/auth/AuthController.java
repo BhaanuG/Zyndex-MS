@@ -77,7 +77,7 @@ class AuthController {
         } catch (Exception ignored) {}
         Map<String, Object> user = auth.sanitizeUser(auth.findUserByEmail(email));
         try {
-            accountEmailService.sendSignupConfirmationEmail(name, email, "Free / Demo", "No expiry");
+            accountEmailService.sendSignupConfirmationEmail(name, email, "Free", "No expiry");
             return Map.of(
                     "message", "Account created successfully. Confirmation email sent.",
                     "user", user,

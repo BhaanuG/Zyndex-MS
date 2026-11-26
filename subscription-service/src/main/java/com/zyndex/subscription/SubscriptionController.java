@@ -187,8 +187,8 @@ public class SubscriptionController {
         free.put("id", null);
         free.put("planId", "FREE");
         free.put("plan_id", "FREE");
-        free.put("planName", "Free / Demo");
-        free.put("plan_name", "Free / Demo");
+        free.put("planName", "Free");
+        free.put("plan_name", "Free");
         free.put("status", "FREE");
         free.put("price", 0.0);
         free.put("pricePaise", 0L);
@@ -277,7 +277,7 @@ public class SubscriptionController {
 
     private String currentPlan(Long userId) {
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT plan_id FROM subscriptions WHERE user_id = ? AND status = 'ACTIVE' ORDER BY end_date DESC LIMIT 1", userId);
-        return rows.isEmpty() ? "Free / Demo" : String.valueOf(rows.get(0).get("plan_id")).replace("_", " ");
+        return rows.isEmpty() ? "Free" : String.valueOf(rows.get(0).get("plan_id")).replace("_", " ");
     }
 
     private boolean sendPlanUpgradeEmail(

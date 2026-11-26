@@ -132,7 +132,7 @@ public class SubscriptionExpiryScheduler {
         try {
             jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
             org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(mimeMessage, true, "UTF-8");
-            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@scholarsphere.com";
+            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@zyndex.com";
             if (!from.contains("<")) {
                 helper.setFrom(from, "Zyndex Subscriptions");
             } else {
@@ -152,7 +152,7 @@ public class SubscriptionExpiryScheduler {
                     - You can continue exploring open textbooks and previews at any time.
 
                     To regain unlimited access to full textbooks, research papers, and offline reading, you can upgrade your plan whenever you're ready:
-                    http://localhost:5173/pricing
+                    /Zyndex/About/Pricing
                     """,
                     userName, planId.replace("_", " ")
             );
@@ -190,7 +190,7 @@ public class SubscriptionExpiryScheduler {
                                     <p style="margin: 4px 0;">• <strong>Graceful Transition:</strong> Your account is safely on the Free Academic tier.</p>
                                     <p style="margin: 4px 0;">• <strong>Continuous Learning:</strong> You can still preview chapters and open academic resources.</p>
                                 </div>
-                                <p style="margin: 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">To renew or choose another tier, visit the <a href="http://localhost:5173/pricing" style="color: #ea580c; font-weight: 600;">Zyndex Pricing Page</a>.</p>
+                                <p style="margin: 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">To renew or choose another tier, visit the <a href="/Zyndex/About/Pricing" style="color: #ea580c; font-weight: 600;">Zyndex Pricing Page</a>.</p>
                                 <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                     <p style="margin: 0;">Best regards,</p>
                                     <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
@@ -213,7 +213,7 @@ public class SubscriptionExpiryScheduler {
         try {
             jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
             org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(mimeMessage, true, "UTF-8");
-            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@scholarsphere.com";
+            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@zyndex.com";
             if (!from.contains("<")) {
                 helper.setFrom(from, "Zyndex Subscriptions");
             } else {
@@ -229,9 +229,9 @@ public class SubscriptionExpiryScheduler {
 
                     Important information regarding your account:
                     - Zyndex does NOT automatically charge your card or UPI without your consent.
-                    - After expiry, your account will smoothly revert to the Free / Demo plan.
+                    - After expiry, your account will smoothly revert to the Free plan.
                     - If you wish to continue uninterrupted reading and downloads, please renew or choose a plan from the pricing page:
-                      http://localhost:5173/pricing
+                      /Zyndex/About/Pricing
 
                     Thank you for being part of the Zyndex scholar community!
                     """,
@@ -271,7 +271,7 @@ public class SubscriptionExpiryScheduler {
                                     <p style="margin: 4px 0;">• After expiry, you'll still have access to the Free Academic plan.</p>
                                     <p style="margin: 4px 0;">• To avoid interruption, you can renew anytime from your dashboard.</p>
                                 </div>
-                                <p style="margin: 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">Visit the <a href="http://localhost:5173/pricing" style="color: #d97706; font-weight: 600;">Pricing Page</a> to renew or upgrade your plan.</p>
+                                <p style="margin: 16px 0; font-size: 13px; color: #475569; line-height: 1.6;">Visit the <a href="/Zyndex/About/Pricing" style="color: #d97706; font-weight: 600;">Pricing Page</a> to renew or upgrade your plan.</p>
                                 <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
                                     <p style="margin: 0;">Warm regards,</p>
                                     <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>

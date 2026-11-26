@@ -601,7 +601,7 @@ public class PaymentService {
 
     private String currentPlan(Long userId) {
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT plan_id FROM subscriptions WHERE user_id = ? AND status = 'ACTIVE' ORDER BY end_date DESC LIMIT 1", userId);
-        return rows.isEmpty() ? "Free / Demo" : String.valueOf(rows.get(0).get("plan_id")).replace("_", " ");
+        return rows.isEmpty() ? "Free" : String.valueOf(rows.get(0).get("plan_id")).replace("_", " ");
     }
 
     private boolean sendPlanUpgradeEmail(
@@ -644,7 +644,7 @@ public class PaymentService {
         try {
             jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
             org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(mimeMessage, true, "UTF-8");
-            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@scholarsphere.com";
+            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@zyndex.com";
             if (!from.contains("<")) {
                 helper.setFrom(from, "Zyndex Team");
             } else {
@@ -866,7 +866,7 @@ public class PaymentService {
 
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
-            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@scholarsphere.com";
+            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@zyndex.com";
             if (!from.contains("<")) {
                 msg.setFrom("Zyndex Team <" + from + ">");
             } else {
@@ -1100,7 +1100,7 @@ public class PaymentService {
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@scholarsphere.com";
+            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "support@zyndex.com";
             if (!from.contains("<")) {
                 message.setFrom("Zyndex Billing <" + from + ">");
             } else {

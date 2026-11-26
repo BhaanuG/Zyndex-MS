@@ -145,7 +145,7 @@ public class AccessController {
             case 3 -> "PhD Scholar / Researcher";
             case 2 -> "Student Plus";
             case 1 -> "Student Basic";
-            default -> "Free / Demo";
+            default -> "Free";
         };
     }
 

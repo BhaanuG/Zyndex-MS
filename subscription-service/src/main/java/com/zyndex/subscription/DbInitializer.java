@@ -122,7 +122,7 @@ public class DbInitializer implements CommandLineRunner {
                 """);
 
         // 6. Seed default plans
-        seedPlan("FREE", "Free / Demo", "Explore the platform with limited previews", 0L, "Forever");
+        seedPlan("FREE", "Free", "Explore the platform with limited previews", 0L, "Forever");
         seedPlan("STUDENT_BASIC", "Student Basic", "Online reading for individual students", 9900L, "MONTH");
         seedPlan("STUDENT_PLUS", "Student Plus", "Entire catalog with offline browser saving", 19900L, "MONTH");
         seedPlan("RESEARCHER_PRO", "PhD Scholar / Researcher", "Complete research collection and downloads", 49900L, "MONTH");

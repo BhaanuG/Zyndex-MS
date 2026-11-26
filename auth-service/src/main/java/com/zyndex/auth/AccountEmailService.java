@@ -298,7 +298,7 @@ class AccountEmailService {
                 Request Status: Approved
                 Approved On: %s
 
-                Your administrator privileges are now active. Login to Zyndex: %s
+                Your administrator privileges are now active. You can sign in directly at the Zyndex Admin Portal: %s/Zyndex/Admin/Log-In.php
                 """.formatted(fullName, fullName, displayName, email, dateTime, properties.frontendUrl()) : """
                 Dear %s,
 
