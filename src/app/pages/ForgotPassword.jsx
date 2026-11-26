@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Mail, Lock, User, ArrowRight, Menu, X, Eye, EyeOff, KeyRound, CheckCircle2, Loader2 } from 'lucide-react';
+import { BookOpen, Mail, Lock, User, ArrowRight, Menu, X, Eye, EyeOff, KeyRound, CheckCircle2, Loader2, ShieldAlert, AlertCircle } from 'lucide-react';
 import authService from '@/services/api/authService';
 import apiClient from '@/services/api/apiClient';
 
@@ -83,6 +83,7 @@ export default function ForgotPassword() {
   const [showLoader, setShowLoader] = useState(false);
   const [loaderMessage, setLoaderMessage] = useState('');
   const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(true);
 
   // OTP Countdown timer
   useEffect(() => {
@@ -255,6 +256,68 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Maintenance Centered Modal */}
+      {isMaintenanceActive && showMaintenanceModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            className="bg-white rounded-[28px] max-w-md w-full shadow-2xl border border-slate-200/80 overflow-hidden text-center relative"
+          >
+            <div className="bg-gradient-to-b from-[#e61919] via-[#f43f14] to-[#f95716] p-7 text-white text-center relative overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowMaintenanceModal(false)}
+                className="absolute top-4 right-4 p-1.5 text-white/80 hover:text-white rounded-full bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="size-5" />
+              </button>
+              <div className="size-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-3.5 shadow-inner ring-4 ring-white/10">
+                <ShieldAlert className="size-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-extrabold tracking-tight text-white">
+                Platform Under Maintenance
+              </h3>
+              <p className="text-xs text-orange-100 font-semibold mt-1">
+                Password Resets Suspended
+              </p>
+            </div>
+
+            <div className="p-6 pt-5 space-y-4">
+              <div className="p-4 bg-[#fffbeb] border border-[#fef3c7] rounded-2xl text-left flex items-start gap-3 shadow-xs">
+                <AlertCircle className="size-5 text-[#d97706] shrink-0 mt-0.5" />
+                <div className="text-xs text-[#92400e] leading-relaxed">
+                  <p className="font-bold text-sm text-[#78350f] mb-1">
+                    Maintenance Notice
+                  </p>
+                  <p>The Zyndex platform is currently undergoing scheduled maintenance. Password reset and verification services are temporarily suspended.</p>
+                  <p className="mt-2 text-slate-600 font-medium">
+                    Please try again once maintenance is concluded or contact our support team.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                  to="/Zyndex/Contact/Contact-Us"
+                  className="w-full py-3 px-5 rounded-2xl text-sm font-bold text-white bg-[#e50914] hover:bg-[#c70812] shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  Contact Support
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowMaintenanceModal(false)}
+                  className="w-full py-3 px-5 rounded-2xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer"
+                >
+                  Close Notice
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
       {/* Submission Loader */}
       <AnimatePresence>
         {showLoader && <SubmissionLoader message={loaderMessage} />}
@@ -536,10 +599,10 @@ export default function ForgotPassword() {
                     <button
                       type="button"
                       onClick={sendOtp}
-                      disabled={otpSending || !email || otpCountdown > 0}
+                      disabled={isMaintenanceActive || otpSending || !email || otpCountdown > 0}
                       className="px-4 py-3 bg-[#0b1f3a] text-white rounded-xl disabled:opacity-50 transition-all font-medium text-sm"
                     >
-                      {otpSending ? 'Sending...' : otpCountdown > 0 ? `Resend (${otpCountdown}s)` : 'Send OTP'}
+                      {otpSending ? 'Sending...' : isMaintenanceActive ? 'Maintenance' : otpCountdown > 0 ? `Resend (${otpCountdown}s)` : 'Send OTP'}
                     </button>
                     <button type="button" onClick={verifyOtp} disabled={!otp || otpVerified} className="px-4 py-3 bg-orange-600 text-white rounded-xl disabled:opacity-50">{otpVerified ? 'Verified' : 'Verify'}</button>
                   </div>

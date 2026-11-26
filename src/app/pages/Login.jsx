@@ -358,8 +358,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Centered Modal Popup for Login page during active maintenance mode (No auto-closing period) */}
-      {isMaintenanceActive && showMaintenanceModal && activeTab !== 'admin' && (
+      {/* Centered Modal Popup during active maintenance mode for User Login, Signup, or Non-Primary Admin Login */}
+      {isMaintenanceActive && showMaintenanceModal && !(activeTab === 'admin' && !isSignUpMode && email.trim().toLowerCase() === 'bhaanugali@gmail.com') && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -397,7 +397,7 @@ export default function Login() {
                   <p className="font-bold text-sm text-[#78350f] mb-1">
                     Maintenance Notice
                   </p>
-                  <p>The Zyndex platform is currently undergoing scheduled maintenance. Sign in and account registration are temporarily suspended.</p>
+                  <p>The Zyndex platform is currently undergoing scheduled maintenance. User sign in, account registration, and password changes are temporarily suspended.</p>
                   <p className="mt-2 text-slate-600 font-medium">
                     If you have any inquiries, please visit our contact page and submit your message to our support team.
                   </p>
@@ -409,15 +409,14 @@ export default function Login() {
                   to="/Zyndex/Contact/Contact-Us"
                   className="w-full py-3 px-5 rounded-2xl text-sm font-bold text-white bg-[#e50914] hover:bg-[#c70812] shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Mail className="size-4" />
-                  <span>Go to Contact Page</span>
+                  Contact Support
                 </Link>
                 <button
                   type="button"
                   onClick={() => setShowMaintenanceModal(false)}
-                  className="w-full sm:w-auto py-3 px-5 rounded-2xl text-sm font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer whitespace-nowrap"
+                  className="w-full py-3 px-5 rounded-2xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer"
                 >
-                  Dismiss
+                  Close Notice
                 </button>
               </div>
             </div>
@@ -674,10 +673,12 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={handleSendSignupOtp}
-                        disabled={sendingOtp || (otpSent && otpCountdown > 0) || otpVerified}
+                        disabled={isMaintenanceActive || sendingOtp || (otpSent && otpCountdown > 0) || otpVerified}
                         className={`px-4 py-3.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all shadow-sm ${
                           otpVerified
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default'
+                            : isMaintenanceActive
+                            ? 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60'
                             : 'bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60'
                         }`}
                       >
@@ -685,6 +686,8 @@ export default function Login() {
                           ? 'Sending...'
                           : otpVerified
                           ? '✓ Verified'
+                          : isMaintenanceActive
+                          ? 'Maintenance'
                           : otpSent
                           ? otpCountdown > 0
                             ? `Resend (${otpCountdown}s)`
@@ -895,32 +898,69 @@ export default function Login() {
                   </div>
                 )}
 
-                <div className="relative group">
-                  <button
-                    type="submit"
-                    disabled={submitting || (isSignUpMode && !otpVerified) || isTerminatedUser || (isMaintenanceActive && activeTab !== 'admin')}
-                    className={`w-full relative group transition-all ${
-                      (isSignUpMode && !otpVerified) || isTerminatedUser || (isMaintenanceActive && activeTab !== 'admin') ? 'opacity-60 cursor-not-allowed' : 'disabled:opacity-70'
-                    }`}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
-                    <div className="relative flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-600/30">
-                      {submitting ? (
-                        isSignUpMode ? 'Creating account...' : 'Checking...'
-                      ) : isSignUpMode ? (
-                        'Create Account'
-                      ) : (
-                        'Sign In'
+                {/* Determine if Sign In / Create Account button is allowed during maintenance */}
+                {(() => {
+                  const isMainAdminEmail = email.trim().toLowerCase() === 'bhaanugali@gmail.com';
+                  const isMaintenanceBlocked = isMaintenanceActive && (
+                    isSignUpMode || 
+                    activeTab === 'user' || 
+                    (activeTab === 'admin' && !isMainAdminEmail)
+                  );
+                  const isSubmitDisabled = submitting || 
+                    (isSignUpMode && !otpVerified) || 
+                    isTerminatedUser || 
+                    isMaintenanceBlocked;
+
+                  return (
+                    <div className="relative group">
+                      <button
+                        type="submit"
+                        disabled={isSubmitDisabled}
+                        className={`w-full relative group transition-all ${
+                          isSubmitDisabled ? 'opacity-60 cursor-not-allowed' : 'disabled:opacity-70'
+                        }`}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+                        <div className="relative flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-600/30">
+                          {submitting ? (
+                            isSignUpMode ? 'Creating account...' : 'Checking...'
+                          ) : isMaintenanceBlocked ? (
+                            isSignUpMode 
+                              ? 'Registration Suspended (Maintenance)'
+                              : activeTab === 'admin' 
+                              ? 'Admin Access Restricted (Maintenance)' 
+                              : 'Sign In Disabled (Maintenance)'
+                          ) : isSignUpMode ? (
+                            'Create Account'
+                          ) : (
+                            'Sign In'
+                          )}
+                          <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </button>
+                      {isSignUpMode && !otpVerified && !isMaintenanceActive && (
+                        <p className="text-center text-xs text-slate-500 mt-2 font-medium">
+                          Please verify email OTP to enable account creation.
+                        </p>
                       )}
-                      <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform" />
+                      {isMaintenanceActive && isSignUpMode && (
+                        <p className="text-center text-xs text-rose-600 mt-2 font-medium">
+                          Account registration is temporarily disabled during platform maintenance.
+                        </p>
+                      )}
+                      {isMaintenanceActive && activeTab === 'admin' && !isSignUpMode && !isMainAdminEmail && (
+                        <p className="text-center text-xs text-rose-600 mt-2 font-medium">
+                          Maintenance mode: Only Primary Admin (Bhaanugali@gmail.com) can sign in.
+                        </p>
+                      )}
+                      {isMaintenanceActive && activeTab === 'user' && !isSignUpMode && (
+                        <p className="text-center text-xs text-rose-600 mt-2 font-medium">
+                          User sign in is temporarily disabled during platform maintenance.
+                        </p>
+                      )}
                     </div>
-                  </button>
-                  {isSignUpMode && !otpVerified && (
-                    <p className="text-center text-xs text-slate-500 mt-2 font-medium">
-                      Please verify email OTP to enable account creation.
-                    </p>
-                  )}
-                </div>
+                  );
+                })()}
 
                 <div className="text-center pt-4">
                   {isSignUpMode ? (

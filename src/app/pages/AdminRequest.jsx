@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Mail, User, Lock, Shield, CheckCircle, Sparkles, ArrowLeft, KeyRound } from 'lucide-react';
+import { BookOpen, Mail, User, Lock, Shield, CheckCircle, Sparkles, ArrowLeft, KeyRound, ShieldAlert, AlertCircle, X } from 'lucide-react';
 import { useNavigate, Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import authService from '@/services/api/authService';
@@ -202,6 +202,7 @@ export default function AdminRequest() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(true);
 
   // OTP Verification States
   const [otpCode, setOtpCode] = useState('');
@@ -417,6 +418,68 @@ export default function AdminRequest() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Maintenance Centered Modal */}
+      {isMaintenanceActive && showMaintenanceModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            className="bg-white rounded-[28px] max-w-md w-full shadow-2xl border border-slate-200/80 overflow-hidden text-center relative"
+          >
+            <div className="bg-gradient-to-b from-[#e61919] via-[#f43f14] to-[#f95716] p-7 text-white text-center relative overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowMaintenanceModal(false)}
+                className="absolute top-4 right-4 p-1.5 text-white/80 hover:text-white rounded-full bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="size-5" />
+              </button>
+              <div className="size-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-3.5 shadow-inner ring-4 ring-white/10">
+                <ShieldAlert className="size-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-extrabold tracking-tight text-white">
+                Platform Under Maintenance
+              </h3>
+              <p className="text-xs text-orange-100 font-semibold mt-1">
+                Admin Requests Suspended
+              </p>
+            </div>
+
+            <div className="p-6 pt-5 space-y-4">
+              <div className="p-4 bg-[#fffbeb] border border-[#fef3c7] rounded-2xl text-left flex items-start gap-3 shadow-xs">
+                <AlertCircle className="size-5 text-[#d97706] shrink-0 mt-0.5" />
+                <div className="text-xs text-[#92400e] leading-relaxed">
+                  <p className="font-bold text-sm text-[#78350f] mb-1">
+                    Maintenance Notice
+                  </p>
+                  <p>The Zyndex platform is currently undergoing scheduled maintenance. Admin account creation and requests are temporarily unavailable.</p>
+                  <p className="mt-2 text-slate-600 font-medium">
+                    Please try again once maintenance is concluded or contact the primary platform administrator.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                  to="/Zyndex/Contact/Contact-Us"
+                  className="w-full py-3 px-5 rounded-2xl text-sm font-bold text-white bg-[#e50914] hover:bg-[#c70812] shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  Contact Support
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowMaintenanceModal(false)}
+                  className="w-full py-3 px-5 rounded-2xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer"
+                >
+                  Close Notice
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-amber-50">
         <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[size:32px_32px]" />
@@ -599,10 +662,12 @@ export default function AdminRequest() {
                     <button
                       type="button"
                       onClick={handleSendOtp}
-                      disabled={sendingOtp || (otpSent && otpCountdown > 0) || otpVerified}
+                      disabled={isMaintenanceActive || sendingOtp || (otpSent && otpCountdown > 0) || otpVerified}
                       className={`px-4 py-3.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all shadow-sm ${
                         otpVerified
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default'
+                          : isMaintenanceActive
+                          ? 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60'
                           : 'bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60'
                       }`}
                     >
@@ -610,6 +675,8 @@ export default function AdminRequest() {
                         ? 'Sending...'
                         : otpVerified
                         ? '✓ Verified'
+                        : isMaintenanceActive
+                        ? 'Maintenance'
                         : otpSent
                         ? otpCountdown > 0
                           ? `Resend (${otpCountdown}s)`
