@@ -713,7 +713,7 @@ export const additionalHelpArticles = [
             <li>Check spam/junk folder</li>
             <li>Verify email address was typed correctly</li>
             <li>Wait 5-10 minutes for email to arrive</li>
-            <li>Add noreply@zyndex.com to contacts</li>
+            <li>Add lmno1432@gmail.com to contacts</li>
             <li>Try submitting request again</li>
           </ul>
         </div>

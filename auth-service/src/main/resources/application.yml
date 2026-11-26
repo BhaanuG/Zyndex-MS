@@ -47,7 +47,7 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
 
 zyndex:
-  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  frontend-url: ${FRONTEND_URL:https://zyndex-ms.vercel.app}
   jwt-secret: ${JWT_SECRET:replace-this-with-a-long-random-secret}
   main-admin-email: ${MAIN_ADMIN_EMAIL:Bhaanugali@gmail.com}
   main-admin-password: ${MAIN_ADMIN_PASSWORD:}

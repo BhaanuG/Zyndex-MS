@@ -45,7 +45,7 @@ export default function FAQ() {
     },
     {
       question: 'What should I do if I did not receive my verification OTP email?',
-      answer: 'Check your spam or junk folder first. OTPs are valid for 2 minutes. If needed, click the "Resend OTP" button on the authenticator page to generate a brand-new code. Make sure your email provider allows messages from support@zyndex.com or our official notification address.',
+      answer: 'Check your spam or junk folder first. OTPs are valid for 2 minutes. If needed, click the "Resend OTP" button on the authenticator page to generate a brand-new code. Make sure your email provider allows messages from our official notification address (lmno1432@gmail.com).',
     },
     {
       question: 'How do I submit reviews, ratings, or report content issues?',
@@ -105,7 +105,7 @@ export default function FAQ() {
     },
     {
       question: 'How can I contact support and what is the typical turnaround time?',
-      answer: 'You can submit an inquiry via our Contact Us portal or email support directly at support@zyndex.com. Our administrative and support desk operates with average response times under 24 hours for all learner inquiries and under 2 hours for payment assistance.',
+      answer: 'You can submit an inquiry via our Contact Us portal or reach our administrative support desk directly at lmno1432@gmail.com or via https://zyndex-ms.vercel.app. Our administrative and support desk operates with average response times under 24 hours for all learner inquiries and under 2 hours for payment assistance.',
     },
   ];
 

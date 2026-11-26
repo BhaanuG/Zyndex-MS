@@ -120,7 +120,7 @@ export const additionalHelpArticles2 = [
 
         <div class="section-block">
           <h3 class="section-heading">Reporting Copyright Violations:</h3>
-          <p>If you believe content violates copyright, contact us immediately at legal@zyndex.com with details.</p>
+          <p>If you believe content violates copyright, contact us immediately at lmno1432@gmail.com with details.</p>
         </div>
       </div>
     `,
@@ -150,7 +150,7 @@ export const additionalHelpArticles2 = [
         <div class="section-block">
           <h3 class="section-heading">Request Data Deletion:</h3>
           <ol class="article-list">
-            <li>Contact support at privacy@zyndex.com</li>
+            <li>Contact support at lmno1432@gmail.com</li>
             <li>Provide your registered email</li>
             <li>Verification may be required</li>
             <li>Data deleted within 30 days</li>
@@ -254,7 +254,7 @@ export const additionalHelpArticles2 = [
 
         <div class="section-block">
           <h3 class="section-heading">Exercising Your Rights:</h3>
-          <p>Contact privacy@zyndex.com with your request. We'll respond within 30 days.</p>
+          <p>Contact lmno1432@gmail.com with your request. We'll respond within 30 days.</p>
         </div>
       </div>
     `,
@@ -357,7 +357,7 @@ export const additionalHelpArticles2 = [
         <div class="section-block">
           <h3 class="section-heading">How to Report:</h3>
           <ol class="article-list">
-            <li>Email security@zyndex.com immediately</li>
+            <li>Email lmno1432@gmail.com immediately</li>
             <li>Include detailed description of the issue</li>
             <li>Provide steps to reproduce (if applicable)</li>
             <li>Do NOT exploit the vulnerability</li>
