@@ -894,9 +894,6 @@ public class PaymentService {
 
                     Action Required:
                     Please verify this UTR in your bank statement (Union Bank / UPI app) and Confirm or Decline the payment in the Admin Portal Payments page.
-
-                    Best regards,
-                    Zyndex Automation System
                     """,
                     userName, userEmail, now.toString(), utr,
                     presentPlan.replace("_", " "), previousPlan.replace("_", " "),
@@ -1131,9 +1128,6 @@ public class PaymentService {
                     %s
 
                     If you believe this is an error or have an updated transaction reference (UTR) from your bank, please log in to Zyndex and retry payment or contact our support team with your bank statement.
-
-                    Best regards,
-                    Zyndex Billing & Verification Team
                     """,
                     userName, statusTitle, paymentId, orderId, planId.replace("_", " "),
                     amountRupees, (utr != null ? utr : "N/A"), reason

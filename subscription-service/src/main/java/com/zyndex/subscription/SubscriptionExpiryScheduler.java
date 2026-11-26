@@ -153,9 +153,6 @@ public class SubscriptionExpiryScheduler {
 
                     To regain unlimited access to full textbooks, research papers, and offline reading, you can upgrade your plan whenever you're ready:
                     http://localhost:5173/pricing
-
-                    Best regards,
-                    Zyndex Academic Platform Team
                     """,
                     userName, planId.replace("_", " ")
             );
@@ -237,9 +234,6 @@ public class SubscriptionExpiryScheduler {
                       http://localhost:5173/pricing
 
                     Thank you for being part of the Zyndex scholar community!
-
-                    Warm regards,
-                    Zyndex Subscriptions & Support
                     """,
                     userName, planId.replace("_", " "), String.valueOf(endDate)
             );

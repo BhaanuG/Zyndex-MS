@@ -56,11 +56,7 @@ class ContactEmailService {
                 Submitted On: %s
 
                 If you need to provide additional information, you can reply directly to this email.
-
-                Best regards,
-                Zyndex Team
-                %s
-                """.formatted(name, subject, message, dateTime, properties.otpMailFrom()));
+                """.formatted(name, subject, message, dateTime));
             return Map.of("adminEmailSent", adminSent, "requesterEmailSent", requesterSent);
     }
 
@@ -194,13 +190,9 @@ class ContactEmailService {
                 Response Time: %s
 
                 Thank you for helping us improve the academic learning experience on Zyndex!
-
-                Best regards,
-                Zyndex Team
-                %s
                 """.formatted(
                 userName, resourceTitle, resourceTitle, rating, feedbackDate, userComment,
-                adminComment, adminName, LocalDateTime.now().toString().replace('T', ' '), properties.otpMailFrom()
+                adminComment, adminName, LocalDateTime.now().toString().replace('T', ' ')
         );
 
         return sendSafely(toEmail, subject, text);
