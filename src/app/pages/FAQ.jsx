@@ -32,8 +32,8 @@ export default function FAQ() {
       answer: 'No. Zyndex adheres to a transparent, non-recurring billing model. We never store credit card secrets or trigger surprise auto-debits. When your subscription period concludes, your account gracefully transitions to our Free Academic Plan without penalties, and advance reminder notices are delivered 24 hours prior.',
     },
     {
-      question: 'Can I download textbooks and papers for offline study?',
-      answer: 'Yes! Download entitlements are governed by subscription plans. Paid tiers allow full offline PDF downloads with watermarking, while Free tier readers can preview and study documents within our secure in-browser reader.',
+      question: 'Can I download textbooks and papers from the platform?',
+      answer: 'No. To ensure academic integrity and digital copyright protection, direct file downloading is completely disabled across all user and administrative roles. All textbooks, research papers, and educational resources are accessed exclusively within our high-speed, secure online reader with interactive controls and watermarking.',
     },
     {
       question: 'How do Admin Requests and privileges work?',
@@ -69,7 +69,7 @@ export default function FAQ() {
     },
     {
       question: 'How does Zyndex stream PDF previews efficiently without lag?',
-      answer: 'Zyndex utilizes an enterprise backend powered by Spring Boot and Apache PDFBox with in-memory page slicing. Rather than downloading heavy 100MB+ documents to your browser, preview pages are rendered and streamed dynamically on-demand, ensuring ultra-fast load times even on mobile connections.',
+      answer: 'Zyndex utilizes an enterprise backend powered by Spring Boot and Apache PDFBox with in-memory page slicing. Rather than loading heavy 100MB+ documents all at once, preview pages are rendered and streamed dynamically on-demand, ensuring ultra-fast load times even on mobile connections.',
     },
     {
       question: 'How does Zyndex handle academic integrity and citations?',

@@ -457,17 +457,8 @@ class ResourceController {
     Map<String, Object> createDownloadToken(
             @PathVariable("id") long id,
             HttpServletRequest request) {
-        String email = request.getHeader("X-User-Email");
-        String role = request.getHeader("X-User-Role");
-        String userIdStr = request.getHeader("X-User-Id");
-        boolean isPrimaryAdmin = email != null && email.equalsIgnoreCase(properties.mainAdminEmail());
-
-        if (!isPrimaryAdmin) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Download tokens are disabled for users and regular admins. Use the online reader.");
-        }
-
-        long userId = (userIdStr != null && !userIdStr.isBlank()) ? Long.parseLong(userIdStr) : 0L;
-        String token = UUID.randomUUID().toString();
+        throw new ApiException(HttpStatus.FORBIDDEN, "Direct downloading of resources is disabled across user and administrator portals. Please use the secure online reader.");
+    }
 
         jdbc.update("INSERT INTO download_tokens (token, resource_id, user_id, role, created_at) VALUES (?, ?, ?, ?, NOW())",
                 token, id, userId, role != null ? role : "ADMIN");
@@ -607,51 +598,7 @@ class ResourceController {
 
     @GetMapping("/{id}/download")
     ResponseEntity<?> download(HttpServletRequest request, @PathVariable("id") long id) {
-        String role = request.getHeader("X-User-Role");
-        String email = request.getHeader("X-User-Email");
-        String userIdStr = request.getHeader("X-User-Id");
-        boolean isPrimaryAdmin = email != null && email.equalsIgnoreCase(properties.mainAdminEmail());
-
-        // Downloading is completely disabled for students, regular users, and regular admins.
-        if (!isPrimaryAdmin) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Direct downloading of resources has been disabled. Please read and study documents within the secure online reader.");
-        }
-
-        long userId = (userIdStr != null && !userIdStr.isBlank()) ? Long.parseLong(userIdStr) : 0L;
-
-        var rows = jdbc.queryForList("SELECT * FROM resources WHERE id = ? LIMIT 1", id);
-        if (rows.isEmpty()) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Resource not found.");
-        }
-        boolean isPublished = rows.get(0).get("is_published") == null || SqlSupport.bool(rows.get(0).get("is_published"));
-        if (!isPublished && !"admin".equalsIgnoreCase(role)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "This resource is currently unpublished.");
-        }
-        String fileUrl = SqlSupport.str(rows.get(0).get("file_url"));
-        String title = SqlSupport.str(rows.get(0).get("title"));
-        String category = SqlSupport.str(rows.get(0).get("category"));
-        String type = SqlSupport.str(rows.get(0).get("type"));
-
-        boolean isAuthorized = checkAccess(userId, id, "DOWNLOAD", role, category, type);
-        if (!isAuthorized) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "You do not have access entitlement to download this resource.");
-        }
-
-        jdbc.update("UPDATE resources SET downloads_count = downloads_count + 1 WHERE id = ?", id);
-
-        logUsageEvent(userId, id, "DOWNLOAD");
-
-        if (fileUrl.matches("(?i)^https?://.*")) {
-            return downloadExternalFile(fileUrl, title);
-        }
-        Path file = Path.of(fileUrl).isAbsolute() ? Path.of(fileUrl) : Path.of(properties.uploadDir()).getParent().resolve(fileUrl).normalize();
-        if (!Files.exists(file)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Resource file is missing from the server.");
-        }
-        return ResponseEntity.ok()
-                .contentType(contentTypeForFile(file.getFileName().toString()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName() + "\"")
-                .body(new FileSystemResource(file));
+        throw new ApiException(HttpStatus.FORBIDDEN, "Direct downloading of resources is disabled across user and administrator portals. Please use the secure online reader.");
     }
 
     @PostMapping("/{id}/track")

@@ -86,7 +86,7 @@ export default function Terms() {
         },
         {
           subtitle: 'Restrictions - No Redistribution or Resale',
-          text: 'You may NOT:\n\n• Copy, reproduce, distribute, transmit, broadcast, display, sell, license, or otherwise exploit any Content for any purpose without our express written consent or that of our licensors\n• Systematically download, store, or archive Content\n• Use automated systems (bots, scrapers) to access the Service\n• Remove, alter, or obscure any copyright, trademark, or proprietary notices\n• Create derivative works based on the Content\n• Share your account credentials or subscription access with others\n• Upload or distribute any Content that infringes third-party intellectual property rights\n\nViolation of these restrictions may result in immediate termination of your account and legal action.'
+          text: 'You may NOT:\n\n• Copy, reproduce, distribute, transmit, broadcast, display, sell, license, or otherwise exploit any Content for any purpose without our express written consent or that of our licensors\n• Systematically scrape, store, extract, or archive Content\n• Use automated systems (bots, scrapers) to access the Service\n• Remove, alter, or obscure any copyright, trademark, or proprietary notices\n• Create derivative works based on the Content\n• Share your account credentials or subscription access with others\n• Upload or distribute any Content that infringes third-party intellectual property rights\n\nViolation of these restrictions may result in immediate termination of your account and legal action.'
         }
       ]
     },
@@ -113,12 +113,12 @@ export default function Terms() {
           text: 'Certain Content is protected by Digital Rights Management (DRM) and dynamic server-side streaming controls to prevent unauthorized reproduction and extraction. Free and tier-restricted users accessing higher-tier resources are granted an online preview of the first 7 pages, allowing readers to evaluate resource relevance and view the total page count before upgrading. Free users retain complete, unlimited page access to all resources designated for their authorized tier. Attempting to bypass, decompile, or intercept pages beyond the authorized preview cap violates these Terms.'
         },
         {
-          subtitle: 'Download Limits',
-          text: 'Depending on your subscription tier, you may have limits on the number of resources you can download per month. These limits are designed to prevent abuse and ensure fair access for all users. Excessive downloading may result in temporary or permanent restrictions on your account.'
+          subtitle: 'Online Access & Security DRM',
+          text: 'Zyndex is strictly an online digital reading platform. Direct file downloading is permanently disabled across all accounts and roles. All content is rendered through server-side streaming controls to prevent unauthorized reproduction or bulk extraction.'
         },
         {
-          subtitle: 'Offline Access Rules',
-          text: 'Downloaded content for offline access:\n\n• May only be used on devices authorized by your account\n• Must not be transferred, shared, or distributed to others\n• May expire after a certain period (e.g., 30 days) and require re-authentication\n• May be limited in number based on your subscription tier'
+          subtitle: 'Device Security & Session Integrity',
+          text: 'Reading sessions are secured with authenticated streaming. Users must not attempt to decompile, intercept, cache, or extract raw stream slices outside of the authorized online reader interface.'
         },
         {
           subtitle: 'Content Ratings, Reviews & Whistleblowing',

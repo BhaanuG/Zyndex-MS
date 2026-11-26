@@ -840,7 +840,7 @@ export default function ResourceDetail() {
                         This is seeded demo metadata from the database. Upload a real PDF or article file from the admin panel to replace it with actual preview content.
                       </p>
                     )}
-                    {!resource.hasDownload && (
+                    {!resource.fileUrl && (
                       <p className="mt-4 text-sm text-amber-700">
                         This resource currently has description data only. Upload or attach a file from the admin panel to make it previewable.
                       </p>

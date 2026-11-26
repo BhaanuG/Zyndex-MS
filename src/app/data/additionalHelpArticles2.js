@@ -15,7 +15,7 @@ export const additionalHelpArticles2 = [
           <h3 class="section-heading">What We Collect:</h3>
           <ul class="article-list">
             <li>Name and email address for account creation</li>
-            <li>Usage data (pages visited, resources downloaded)</li>
+            <li>Usage data (pages visited, reading sessions completed)</li>
             <li>Technical data (browser type, IP address)</li>
           </ul>
         </div>
@@ -109,7 +109,7 @@ export const additionalHelpArticles2 = [
         </div>
 
         <div class="section-block">
-          <h3 class="section-heading">For Users Downloading:</h3>
+          <h3 class="section-heading">For Readers Streaming Documents:</h3>
           <ul class="article-list">
             <li>Use resources for personal educational purposes</li>
             <li>Do not redistribute without permission</li>
@@ -285,7 +285,7 @@ export const additionalHelpArticles2 = [
           <h3 class="section-heading">What Gets Deleted:</h3>
           <ul class="article-list">
             <li>Profile information</li>
-            <li>Download and favorite history</li>
+            <li>Reading and favorite history</li>
             <li>Account credentials</li>
             <li>Personal settings</li>
           </ul>
@@ -402,7 +402,7 @@ export const additionalHelpArticles2 = [
             <li>Favorite resources immediately when you find them valuable</li>
             <li>Regularly review and remove outdated favorites</li>
             <li>Use specific search terms to filter favorites</li>
-            <li>Download frequently-used resources for offline access</li>
+            <li>Bookmark frequently-used resources for fast access</li>
           </ul>
         </div>
 
@@ -465,20 +465,20 @@ export const additionalHelpArticles2 = [
   {
     id: 93,
     category: 'Tips & Best Practices',
-    title: 'Maximizing download organization',
-    description: 'Manage downloaded resources efficiently',
+    title: 'Maximizing reading library organization',
+    description: 'Organize your digital library and reading lists efficiently',
     content: `
       <div class="article-content">
-        <h2 class="article-heading">Download Management Tips</h2>
-        <p class="article-intro">Keep your downloaded resources organized and accessible.</p>
+        <h2 class="article-heading">Library Organization Tips</h2>
+        <p class="article-intro">Keep your bookmarked and favorite resources organized and accessible.</p>
         
         <div class="section-block">
           <h3 class="section-heading">File Organization:</h3>
           <ul class="article-list">
             <li>Create folders by subject on your device</li>
-            <li>Use descriptive filenames (rename after download)</li>
+            <li>Create topic-specific bookmark categories</li>
             <li>Organize by semester or unit</li>
-            <li>Keep a master folder for all Zyndex downloads</li>
+            <li>Maintain custom reading lists for your coursework</li>
           </ul>
         </div>
 
@@ -500,11 +500,11 @@ Zyndex Resources/
 
         <div class="tip-box">
           <h4 class="tip-heading">💡 Efficiency Tip:</h4>
-          <p>Set your browser to prompt for download location so you can save directly to the right folder.</p>
+          <p>Use custom tags and favorites to organize your research bibliography.</p>
         </div>
       </div>
     `,
-    tags: ['downloads', 'organization', 'files', 'management', 'tips'],
+    tags: ['library', 'organization', 'bookmarks', 'management', 'tips'],
     readTime: '3 min read'
   },
   {
@@ -562,7 +562,7 @@ Zyndex Resources/
           <ul class="article-list">
             <li>Browse resources before the school year starts</li>
             <li>Create favorites collections for each unit</li>
-            <li>Download materials in advance for offline access</li>
+            <li>Review syllabi in advance using the online reader</li>
             <li>Share resource links with students</li>
           </ul>
         </div>

@@ -75,7 +75,7 @@ export const additionalHelpArticles = [
           <ul class="article-list">
             <li><strong>Edit:</strong> Update resource details</li>
             <li><strong>Delete:</strong> Remove resources permanently</li>
-            <li><strong>View Stats:</strong> See download and favorite counts</li>
+            <li><strong>View Stats:</strong> See reading views and favorite counts</li>
             <li><strong>Update Status:</strong> Mark as featured or archived</li>
           </ul>
         </div>
@@ -187,7 +187,7 @@ export const additionalHelpArticles = [
             <li>See user activity and statistics</li>
             <li>Manage account status (active/suspended)</li>
             <li>Grant or revoke admin privileges</li>
-            <li>View download and favorite histories</li>
+            <li>View reading and favorite histories</li>
           </ul>
         </div>
 
@@ -220,9 +220,9 @@ export const additionalHelpArticles = [
           <ul class="article-list">
             <li><strong>Total Users:</strong> Registered user count</li>
             <li><strong>Total Resources:</strong> Number of uploaded materials</li>
-            <li><strong>Total Downloads:</strong> Platform-wide download count</li>
+            <li><strong>Total Readers:</strong> Platform-wide reading session count</li>
             <li><strong>Active Users:</strong> Recent login activity</li>
-            <li><strong>Popular Resources:</strong> Most downloaded items</li>
+            <li><strong>Popular Resources:</strong> Most viewed reading items</li>
             <li><strong>Growth Trends:</strong> User and content growth over time</li>
           </ul>
         </div>
@@ -351,7 +351,7 @@ export const additionalHelpArticles = [
             <li>View how the resource will appear to users</li>
             <li>Check file rendering and formatting</li>
             <li>Verify all metadata is correct</li>
-            <li>Test download functionality</li>
+            <li>Verify reader streaming functionality</li>
           </ul>
         </div>
 
@@ -448,7 +448,7 @@ export const additionalHelpArticles = [
           <h3 class="section-heading">Available Reports:</h3>
           <ul class="article-list">
             <li>User activity reports</li>
-            <li>Download statistics</li>
+            <li>Reading view statistics</li>
             <li>Resource performance metrics</li>
             <li>Growth and trend analysis</li>
             <li>Feedback summaries</li>
@@ -618,15 +618,15 @@ export const additionalHelpArticles = [
   {
     id: 68,
     category: 'Technical Support',
-    title: 'Download issues and solutions',
-    description: 'Fix download problems',
+    title: 'Reader streaming issues and solutions',
+    description: 'Troubleshoot reader loading and streaming',
     content: `
       <div class="article-content">
-        <h2 class="article-heading">Download Troubleshooting</h2>
-        <p class="article-intro">Having trouble downloading resources? Here's how to fix common issues:</p>
+        <h2 class="article-heading">Online Reader Troubleshooting</h2>
+        <p class="article-intro">Having trouble loading reader previews or resources? Here's how to fix common issues:</p>
         
         <div class="section-block">
-          <h3 class="section-heading">Download Won't Start:</h3>
+          <h3 class="section-heading">Document Won't Load:</h3>
           <ul class="article-list">
             <li>Check your internet connection</li>
             <li>Disable browser pop-up blockers</li>
@@ -636,10 +636,10 @@ export const additionalHelpArticles = [
         </div>
 
         <div class="section-block">
-          <h3 class="section-heading">Download Fails or Corrupts:</h3>
+          <h3 class="section-heading">Document Stream Interrupts:</h3>
           <ul class="article-list">
             <li>Ensure sufficient storage space</li>
-            <li>Try downloading again</li>
+            <li>Try refreshing the reader or clearing cache</li>
             <li>Check antivirus isn't blocking</li>
             <li>Try a different browser</li>
           </ul>
@@ -649,13 +649,13 @@ export const additionalHelpArticles = [
           <h3 class="section-heading">File Won't Open:</h3>
           <ul class="article-list">
             <li>Ensure you have the correct software (e.g., PDF reader)</li>
-            <li>Download may be incomplete - check file size</li>
+            <li>Page stream may be interrupted - check internet connection</li>
             <li>Try opening in a different program</li>
           </ul>
         </div>
       </div>
     `,
-    tags: ['download', 'troubleshooting', 'files', 'issues', 'fix'],
+    tags: ['reader', 'troubleshooting', 'streaming', 'issues', 'fix'],
     readTime: '3 min read'
   },
   {
@@ -792,7 +792,7 @@ export const additionalHelpArticles = [
           <h3 class="section-heading">Mobile Tips:</h3>
           <ul class="article-list">
             <li>Add Zyndex to home screen for app-like experience</li>
-            <li>Use WiFi for downloading large files</li>
+            <li>Use high-speed network for streaming high-resolution documents</li>
             <li>Enable "Desktop site" if needed</li>
             <li>Update browser for best performance</li>
           </ul>

@@ -2384,7 +2384,7 @@ export default function ResourceManagement() {
                       <Activity className="size-3 text-orange-500" /> Engagement Telemetry
                     </span>
                     <p className="font-semibold text-slate-800 text-sm">
-                      {infoResource.viewCount || 0} Views &bull; {infoResource.downloadCount || 0} Downloads
+                      {infoResource.viewCount || 0} Total Reading Views
                     </p>
                   </div>
 
