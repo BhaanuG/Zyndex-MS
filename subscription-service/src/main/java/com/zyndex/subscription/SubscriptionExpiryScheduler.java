@@ -39,9 +39,10 @@ public class SubscriptionExpiryScheduler {
     }
 
     /**
-     * Check every 5 minutes for expired subscriptions and automatically revert them to FREE.
+     * Check every 2 minutes for expired subscriptions (including 12-hour provisional grace periods)
+     * and automatically revert them to FREE.
      */
-    @Scheduled(fixedRate = 300000, initialDelay = 15000)
+    @Scheduled(fixedRate = 120000, initialDelay = 15000)
     public void processExpiredSubscriptions() {
         try {
             // Find active subscriptions whose end_date has passed
@@ -63,10 +64,22 @@ public class SubscriptionExpiryScheduler {
                 String userEmail = sub.get("user_email") != null ? String.valueOf(sub.get("user_email")) : null;
                 String userName = String.valueOf(sub.get("user_name"));
 
-                log.info("Subscription {} for user {} ({}) has expired. Automatically reverting to Free plan.", subId, userId, userEmail);
+                boolean isProvisional = subId.startsWith("SUB_PROV_");
+                log.info("Subscription {} (provisional={}) for user {} ({}) has expired. Automatically reverting to Free plan.",
+                        subId, isProvisional, userId, userEmail);
 
                 // 1. Mark subscription as EXPIRED
                 jdbc.update("UPDATE subscriptions SET status = 'EXPIRED', auto_renew = FALSE WHERE id = ?", subId);
+
+                // If provisional grace period expired and associated payment is still in REVIEW_REQUIRED, mark payment as EXPIRED
+                if (isProvisional) {
+                    jdbc.update("""
+                            UPDATE payments 
+                            SET status = 'EXPIRED', 
+                                failure_reason = '12-hour provisional grace period expired without admin verification.' 
+                            WHERE user_id = ? AND status = 'REVIEW_REQUIRED'
+                            """, userId);
+                }
 
                 // 2. Synchronize Access Service to revert user entitlement to FREE tier (tier 0)
                 try {
@@ -81,11 +94,52 @@ public class SubscriptionExpiryScheduler {
 
                 // 3. Send subscription expiration notification email to customer
                 if (userEmail != null && !userEmail.isBlank() && !"N/A".equalsIgnoreCase(userEmail)) {
-                    sendExpiryNotificationEmail(userName, userEmail, planId);
+                    if (isProvisional) {
+                        sendProvisionalGraceExpiredEmail(userName, userEmail, planId);
+                    } else {
+                        sendExpiryNotificationEmail(userName, userEmail, planId);
+                    }
                 }
             }
         } catch (Exception e) {
             log.error("Error running processExpiredSubscriptions scheduler: {}", e.getMessage());
+        }
+    }
+
+    private void sendProvisionalGraceExpiredEmail(String userName, String userEmail, String planId) {
+        try {
+            jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(mimeMessage, true, "UTF-8");
+            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "lmno1432@gmail.com";
+            if (!from.contains("<")) {
+                helper.setFrom(from, "Zyndex Subscriptions");
+            } else {
+                helper.setFrom(from);
+            }
+            helper.setTo(userEmail);
+            helper.setSubject("Zyndex 12-Hour Grace Period Expired (" + planId.replace("_", " ") + ")");
+
+            String body = """
+                    <!DOCTYPE html>
+                    <html>
+                    <body style="font-family: sans-serif; padding: 20px; color: #1e293b; background: #f8fafc;">
+                      <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px;">
+                        <h2 style="color: #ea580c; margin-top: 0;">12-Hour Provisional Access Expired</h2>
+                        <p>Hello %s,</p>
+                        <p>The 12-hour provisional grace period for your <strong>%s</strong> subscription has concluded and your account has smoothly reverted back to the <strong>Free</strong> tier.</p>
+                        <p>You can continue accessing all Free Tier resources at any time. If you believe this is in error or need assistance with your bank transaction, please contact our support team.</p>
+                        <br>
+                        <p style="color: #64748b; font-size: 13px;">Best regards,<br><strong>Zyndex Team</strong></p>
+                      </div>
+                    </body>
+                    </html>
+                    """.formatted(userName, planId.replace("_", " "));
+
+            helper.setText(body, true);
+            mailSender.send(mimeMessage);
+            log.info("Provisional grace expired notification sent to {}", userEmail);
+        } catch (Exception e) {
+            log.warn("Failed to send provisional grace expired notification: {}", e.getMessage());
         }
     }
 

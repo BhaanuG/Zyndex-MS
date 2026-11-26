@@ -532,24 +532,27 @@ export default function PaymentPage() {
 
             <div className="space-y-2 max-w-lg mx-auto">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wide">
-                Under Admin Verification
+                Under Admin Verification • 12-Hour Grace Period Active
               </span>
               <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900">
                 Payment Verification On Hold
               </h2>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Your 12-digit UTR (<span className="font-mono font-bold text-slate-900">{paymentData?.utr || utrNumber}</span>) has been securely registered and an automated notification has been dispatched to <strong className="text-slate-800">Bhaanugali@gmail.com</strong>.
+                Your 12-digit UTR (<span className="font-mono font-bold text-slate-900">{paymentData?.utr || utrNumber}</span>) has been securely registered and an automated notification has been dispatched to our administration team.
               </p>
             </div>
 
-            <div className="p-5 bg-amber-50/70 border border-amber-200 rounded-2xl max-w-md mx-auto text-left text-xs text-amber-900 space-y-2">
-              <div className="flex items-center gap-2 font-bold text-sm text-amber-950">
-                <CheckCircle2 className="size-4 text-amber-600" />
-                <span>What happens next?</span>
+            <div className="p-5 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl max-w-md mx-auto text-left text-xs text-orange-950 space-y-2.5">
+              <div className="flex items-center gap-2 font-bold text-sm text-orange-900">
+                <Clock className="size-4 text-orange-600" />
+                <span>12-Hour Provisional Access Granted</span>
               </div>
-              <p className="leading-relaxed">1. The administrator audits bank statement credit against your UTR.</p>
-              <p className="leading-relaxed">2. Upon confirmation, your plan status and access entitlements automatically activate.</p>
-              <p className="leading-relaxed">3. An automated status email with timestamps and comments will be delivered.</p>
+              <p className="leading-relaxed">
+                You do not have to wait! You have been granted <strong>12 hours of provisional access</strong> to your selected plan right now.
+              </p>
+              <p className="leading-relaxed text-slate-700">
+                Before this 12-hour grace period ends, the administrator will verify your UTR in the bank statement. If approved, your full 30-day subscription will continue without interruption. If declined or expired, your account will smoothly revert back to the Free tier.
+              </p>
             </div>
 
             <div className="pt-2 flex justify-center">

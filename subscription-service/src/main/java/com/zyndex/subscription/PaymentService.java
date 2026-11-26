@@ -802,10 +802,15 @@ public class PaymentService {
     }
 
     /**
-     * Submits customer UTR number, holds subscription in REVIEW_REQUIRED,
+     * Submits customer UTR number, activates 12-hour PROVISIONAL grace period access to the selected plan,
+     * holds payment in REVIEW_REQUIRED, sends full confirmation email to the user with device/IP/timestamp/grace-period details,
      * and sends notification email to administrators.
      */
     public Map<String, Object> submitUtrForReview(Long userId, String paymentId, String utrNumber) {
+        return submitUtrForReview(userId, paymentId, utrNumber, "N/A", "Web Browser");
+    }
+
+    public Map<String, Object> submitUtrForReview(Long userId, String paymentId, String utrNumber, String clientIp, String deviceAgent) {
         if (userId == null || userId <= 0) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
         }
@@ -837,16 +842,47 @@ public class PaymentService {
                 UPDATE payments
                 SET status = 'REVIEW_REQUIRED',
                     utr = ?,
-                    review_reason = 'User submitted UTR for manual verification. Subscription on hold.'
+                    review_reason = 'User submitted UTR for manual verification. 12-hour provisional grace period granted.'
                 WHERE id = ?
                 """,
                 cleanUtr, paymentId
         );
 
         auditLog(paymentId, orderId, userId, "UTR_SUBMITTED_HOLD", currentStatusStr, PaymentStatus.REVIEW_REQUIRED.name(), cleanUtr,
-                "Customer submitted UTR: " + cleanUtr + ". Placed on review hold.");
+                "Customer submitted UTR: " + cleanUtr + ". 12-hour provisional access activated. IP: " + clientIp);
 
-        // Send email simultaneously to Bhaanugali@gmail.com and Bhaanugali99sai@gmail.com
+        // 12-Hour Provisional Grace Period Activation
+        // Insert or update active subscription with 12 hours duration so user has instant access while waiting for verification
+        String subscriptionId = "SUB_PROV_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        java.sql.Timestamp nowTs = new java.sql.Timestamp(System.currentTimeMillis());
+        java.sql.Timestamp graceEndTs = new java.sql.Timestamp(System.currentTimeMillis() + (12L * 60L * 60L * 1000L)); // 12 hours
+
+        // Revoke any previous active subscription for this user
+        jdbc.update("UPDATE subscriptions SET status = 'REVOKED' WHERE user_id = ? AND status = 'ACTIVE'", userId);
+
+        // Create the provisional 12-hour subscription
+        jdbc.update(
+                """
+                INSERT INTO subscriptions (
+                    id, user_id, plan_id, status, start_date, end_date, auto_renew
+                ) VALUES (?, ?, ?, 'ACTIVE', ?, ?, FALSE)
+                """,
+                subscriptionId, userId, planId, nowTs, graceEndTs
+        );
+
+        jdbc.update("UPDATE payments SET subscription_id = ? WHERE id = ?", subscriptionId, paymentId);
+
+        // Sync access service to give user immediate active access to the purchased plan
+        try {
+            syncAccessSubscription(userId, planId, 1); // 1-day minimum interval in access_entitlements
+        } catch (Exception e) {
+            log.warn("Failed to sync access entitlement for provisional subscription: {}", e.getMessage());
+        }
+
+        // Send email to user with full details (Device, IP, Timestamp, 12-hr grace period notice, etc.)
+        sendUserHoldWithGracePeriodEmail(paymentId, orderId, userId, cleanUtr, planId, previousPlan, amountRupees, clientIp, deviceAgent, graceEndTs);
+
+        // Send notification email to administrators
         sendAdminHoldNotificationEmail(paymentId, orderId, userId, cleanUtr, planId, previousPlan, amountRupees);
 
         return Map.of(
@@ -854,8 +890,141 @@ public class PaymentService {
                 "paymentId", paymentId,
                 "orderId", orderId,
                 "utr", cleanUtr,
-                "message", "UTR submitted successfully. Your payment is being verified by admin. Subscription is on temporary hold."
+                "gracePeriodHours", 12,
+                "gracePeriodEndsAt", graceEndTs.toString(),
+                "message", "UTR submitted successfully. Your payment is placed on review hold with 12-hour provisional access granted."
         );
+    }
+
+    private void sendUserHoldWithGracePeriodEmail(
+            String paymentId,
+            String orderId,
+            Long userId,
+            String utr,
+            String presentPlan,
+            String previousPlan,
+            double amountRupees,
+            String clientIp,
+            String deviceAgent,
+            java.sql.Timestamp graceEndTs) {
+        Map<String, Object> user = getUserDetails(userId);
+        String userName = String.valueOf(user.get("name"));
+        String userEmail = String.valueOf(user.get("email"));
+        if (userEmail == null || userEmail.isBlank() || "N/A".equalsIgnoreCase(userEmail)) {
+            return;
+        }
+
+        String submissionTime = LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String graceEndTime = graceEndTs.toLocalDateTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        try {
+            jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(mimeMessage, true, "UTF-8");
+            String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "lmno1432@gmail.com";
+            if (!from.contains("<")) {
+                helper.setFrom(from, "Zyndex Team");
+            } else {
+                helper.setFrom(from);
+            }
+            helper.setTo(userEmail);
+            helper.setSubject("Zyndex Payment Verification & 12-Hour Provisional Access Granted (" + presentPlan.replace("_", " ") + ")");
+
+            String htmlBody = """
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <title>Zyndex Payment Under Verification - 12-Hour Grace Period</title>
+                      <style>
+                        body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                        .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                        .header-box { background: linear-gradient(135deg, #ea580c 0%%, #c2410c 100%%); padding: 24px 20px; text-align: center; }
+                        .content-box { padding: 24px 20px; }
+                        .table-style td { padding: 6px 0; font-size: 13px; word-break: break-word; }
+                        .grace-banner { background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 16px; margin: 18px 0; }
+                      </style>
+                    </head>
+                    <body>
+                        <div class="email-wrapper">
+                            <div class="header-box">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
+                                <p style="color: #ffedd5; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Payment Verification & Provisional Access</p>
+                            </div>
+                            <div class="content-box">
+                                <p style="margin: 0 0 14px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Hello %s,</p>
+                                <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
+                                    We have received your payment reference (UTR) for the <strong>%s</strong> plan. Your payment has been placed on <strong>HOLD</strong> pending manual verification by our administration team.
+                                </p>
+
+                                <div class="grace-banner">
+                                    <div style="font-weight: 700; color: #c2410c; font-size: 14px; margin-bottom: 6px;">
+                                        ⏱️ 12-Hour Provisional Access Granted
+                                    </div>
+                                    <p style="margin: 0; font-size: 13px; color: #7c2d12; line-height: 1.5;">
+                                        To ensure an uninterrupted experience, you have been granted <strong>12 hours of instant provisional access</strong> to your requested <strong>%s</strong> plan right now!
+                                        Before this 12-hour grace period ends, our administrator will verify the payment against bank statements.
+                                    </p>
+                                    <p style="margin: 8px 0 0 0; font-size: 12px; color: #9a3412;">
+                                        <strong>Grace Period Valid Until:</strong> %s
+                                    </p>
+                                </div>
+
+                                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 18px 0;">
+                                    <h3 style="margin: 0 0 10px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #ea580c; letter-spacing: 0.5px;">Transaction & Security Details</h3>
+                                    <table class="table-style" style="width: 100%%; font-size: 13px; color: #334155; border-collapse: collapse;">
+                                        <tr><td style="width: 45%%; color: #64748b; font-weight: 600;">Customer Name:</td><td style="font-weight: 500;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Email Address:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Present Plan (Purchased):</td><td><strong style="color: #ea580c;">%s</strong></td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Previous Plan:</td><td>%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Amount Paid:</td><td><strong>₹%.2f</strong></td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">UTR / UPI Reference:</td><td style="font-family: monospace; font-weight: 700; color: #ea580c;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Order ID:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Payment ID:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Submission Timestamp:</td><td>%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Originating Device IP:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Device / Browser Agent:</td><td style="font-size: 11px; color: #64748b;">%s</td></tr>
+                                    </table>
+                                </div>
+
+                                <div style="background-color: #f1f5f9; border-left: 4px solid #0284c7; padding: 12px 14px; border-radius: 6px; margin: 18px 0; font-size: 12px; color: #0f172a; line-height: 1.5;">
+                                    <strong>What happens next?</strong><br>
+                                    • If approved by admin, your full 30-day subscription will activate and you will receive a complete receipt.<br>
+                                    • If declined or if the 12-hour grace period expires without valid payment confirmation, your account will smoothly revert back to the Free plan.
+                                </div>
+
+                                <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
+                                    <p style="margin: 0;">Best regards,</p>
+                                    <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Support Team</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                    """.formatted(
+                            userName,
+                            presentPlan.replace("_", " "),
+                            presentPlan.replace("_", " "),
+                            graceEndTime,
+                            userName,
+                            userEmail,
+                            presentPlan.replace("_", " "),
+                            previousPlan.replace("_", " "),
+                            amountRupees,
+                            utr,
+                            orderId,
+                            paymentId,
+                            submissionTime,
+                            clientIp,
+                            deviceAgent
+                    );
+
+            helper.setText(htmlBody, true);
+            mailSender.send(mimeMessage);
+            log.info("12-hour grace period hold notification email sent to user: {}", userEmail);
+        } catch (Exception e) {
+            log.warn("Failed to send grace period email to user {}: {}", userEmail, e.getMessage());
+        }
     }
 
     private void sendAdminHoldNotificationEmail(String paymentId, String orderId, Long userId, String utr, String presentPlan, String previousPlan, double amountRupees) {
@@ -1017,16 +1186,34 @@ public class PaymentService {
             String declineReason = (note != null && !note.isBlank()) ? note.trim() : "Payment declined by administrator during verification.";
             jdbc.update("UPDATE payments SET status = 'FAILED', failure_reason = ?, utr = COALESCE(?, utr) WHERE id = ?", declineReason, adminUtr, paymentId);
             auditLog(paymentId, orderId, userId, "ADMIN_PAYMENT_DECLINED", currentStatusStr, PaymentStatus.FAILED.name(), effectiveUtr, declineReason);
+
+            // Revert any provisional or active subscription back to FREE immediately
+            try {
+                jdbc.update("UPDATE subscriptions SET status = 'REVOKED' WHERE user_id = ? AND status = 'ACTIVE'", userId);
+                syncAccessSubscription(userId, "FREE", 36500);
+            } catch (Exception e) {
+                log.warn("Failed to revert subscription to FREE upon DECLINE: {}", e.getMessage());
+            }
+
             sendPaymentStatusNotificationEmail(userName, userEmail, "DECLINED", paymentId, orderId, planId, amountPaise, effectiveUtr, declineReason);
-            return Map.of("status", "FAILED", "message", "Payment declined and notification sent to " + userEmail + ".");
+            return Map.of("status", "FAILED", "message", "Payment declined and user access smoothly reverted to Free tier. Notification sent to " + userEmail + ".");
 
         } else if ("NOT_RECEIVED".equals(normalizedAction) || "NOT_RECIVED".equals(normalizedAction) || "NOT RECEIVED".equals(normalizedAction)) {
             String reason = (note != null && !note.isBlank()) ? note.trim() : "Payment not credited to bank account / UTR not found in bank statement.";
             jdbc.update("UPDATE payments SET status = 'FAILED', failure_reason = ?, review_reason = ?, utr = COALESCE(?, utr) WHERE id = ?",
                     "NOT RECEIVED: " + reason, reason, adminUtr, paymentId);
             auditLog(paymentId, orderId, userId, "ADMIN_PAYMENT_NOT_RECEIVED", currentStatusStr, PaymentStatus.FAILED.name(), effectiveUtr, reason);
+
+            // Revert any provisional or active subscription back to FREE immediately
+            try {
+                jdbc.update("UPDATE subscriptions SET status = 'REVOKED' WHERE user_id = ? AND status = 'ACTIVE'", userId);
+                syncAccessSubscription(userId, "FREE", 36500);
+            } catch (Exception e) {
+                log.warn("Failed to revert subscription to FREE upon NOT_RECEIVED: {}", e.getMessage());
+            }
+
             sendPaymentStatusNotificationEmail(userName, userEmail, "NOT RECEIVED", paymentId, orderId, planId, amountPaise, effectiveUtr, reason);
-            return Map.of("status", "FAILED", "message", "Payment marked as not received and reason sent to " + userEmail + ".");
+            return Map.of("status", "FAILED", "message", "Payment marked as not received and user reverted to Free tier. Reason sent to " + userEmail + ".");
 
         } else if ("CANCEL".equals(normalizedAction) || "CANCELLED".equals(normalizedAction)) {
             String cancelReason = (note != null && !note.isBlank()) ? note.trim() : "Payment cancelled by administrator.";

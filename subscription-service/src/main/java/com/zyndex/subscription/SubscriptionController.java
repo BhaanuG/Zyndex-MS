@@ -349,7 +349,24 @@ public class SubscriptionController {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
         }
         String utr = body.get("utr") != null ? String.valueOf(body.get("utr")) : null;
-        return paymentService.submitUtrForReview(userId, paymentId, utr);
+
+        // Extract client IP and device / user agent for security logging & email confirmation
+        String clientIp = request.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isBlank() || "unknown".equalsIgnoreCase(clientIp)) {
+            clientIp = request.getHeader("X-Real-IP");
+        }
+        if (clientIp == null || clientIp.isBlank() || "unknown".equalsIgnoreCase(clientIp)) {
+            clientIp = request.getRemoteAddr();
+        }
+        if (clientIp != null && clientIp.contains(",")) {
+            clientIp = clientIp.split(",")[0].trim();
+        }
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent == null || userAgent.isBlank()) {
+            userAgent = "Web Browser / Unknown Device";
+        }
+
+        return paymentService.submitUtrForReview(userId, paymentId, utr, clientIp, userAgent);
     }
 
     @GetMapping("/admin/payments")
