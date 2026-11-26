@@ -353,13 +353,19 @@ export default function ResourceDetail() {
     const token = localStorage.getItem('auth_token') || '';
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
+    const wasmUrl = window.location.origin + '/pdfjs-wasm/';
+    const cMapUrl = window.location.origin + '/pdfjs-cmaps/';
+    const standardFontDataUrl = window.location.origin + '/pdfjs-fonts/';
+
     loadingTask = pdfjsLib.getDocument({
       url: previewUrlWithVersion,
       httpHeaders: headers,
       withCredentials: false,
-      cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/cmaps/',
+      wasmUrl,
+      cMapUrl,
       cMapPacked: true,
-      standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/standard_fonts/',
+      standardFontDataUrl,
+      isOffscreenCanvasSupported: false,
       rangeChunkSize: 524288, // 512 KB chunks for fast progressive range streaming
       disableAutoFetch: false, // Allow progressive background fetching of subsequent pages
       disableStream: false,
@@ -397,7 +403,14 @@ export default function ResourceDetail() {
           })
           .then((blob) => {
             fallbackBlobUrl = URL.createObjectURL(blob);
-            const fallbackTask = pdfjsLib.getDocument({ url: fallbackBlobUrl });
+            const fallbackTask = pdfjsLib.getDocument({
+              url: fallbackBlobUrl,
+              wasmUrl,
+              cMapUrl,
+              cMapPacked: true,
+              standardFontDataUrl,
+              isOffscreenCanvasSupported: false,
+            });
             return fallbackTask.promise.then((doc) => {
               if (cancelled) {
                 doc.destroy();
