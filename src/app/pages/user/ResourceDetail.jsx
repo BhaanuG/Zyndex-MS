@@ -227,7 +227,13 @@ export default function ResourceDetail() {
 
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('mousemove', handleUserActivity, { passive: true });
-    window.addEventListener('keydown', handleUserActivity, { passive: true });
+    const handleKeyDown = (e) => {
+      handleUserActivity();
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U')) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('scroll', handleUserActivity, { passive: true });
     window.addEventListener('touchstart', handleUserActivity, { passive: true });
 
@@ -266,7 +272,7 @@ export default function ResourceDetail() {
       clearInterval(heartbeatInterval);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('mousemove', handleUserActivity);
-      window.removeEventListener('keydown', handleUserActivity);
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('scroll', handleUserActivity);
       window.removeEventListener('touchstart', handleUserActivity);
       window.removeEventListener('pagehide', onExit);

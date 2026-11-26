@@ -460,12 +460,6 @@ class ResourceController {
         throw new ApiException(HttpStatus.FORBIDDEN, "Direct downloading of resources is disabled across user and administrator portals. Please use the secure online reader.");
     }
 
-        jdbc.update("INSERT INTO download_tokens (token, resource_id, user_id, role, created_at) VALUES (?, ?, ?, ?, NOW())",
-                token, id, userId, role != null ? role : "ADMIN");
-
-        return Map.of("token", token);
-    }
-
     @GetMapping("/{id}/file")
     ResponseEntity<?> serveFile(
             @PathVariable("id") long id,
@@ -585,7 +579,8 @@ class ResourceController {
                 }
             } catch (Exception e) {
                 System.err.println("Failed to slice PDF file: " + e.getMessage());
-                // Fallback to serving the full document if slicing fails for some reason
+                // Never leak the full document if slicing fails for a capped user
+                throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "PDF_ENCRYPTION_ERROR", "Unable to generate secure preview slice. Full document access is restricted.");
             }
         }
 
@@ -593,6 +588,9 @@ class ResourceController {
                 .contentType(contentTypeForFile(file.getFileName().toString()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFileName() + "\"")
                 .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .header("X-Content-Type-Options", "nosniff")
+                .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                .header("Pragma", "no-cache")
                 .body(new FileSystemResource(file));
     }
 
@@ -1005,7 +1003,9 @@ class ResourceController {
             String filename = externalFilename(fileUrl, title);
             return ResponseEntity.ok()
                     .contentType(contentTypeForFile(filename))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                    .header("X-Content-Type-Options", "nosniff")
+                    .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
                     .body(bytes);
         } catch (IOException error) {
             throw new ApiException(HttpStatus.BAD_GATEWAY, "Failed to download the external resource file.");
