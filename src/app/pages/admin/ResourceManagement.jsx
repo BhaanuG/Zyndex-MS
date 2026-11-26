@@ -207,7 +207,7 @@ export default function ResourceManagement() {
     const mb = bytes / (1024 * 1024);
     return `${mb.toFixed(1)} MB`;
   };
-  const openPreviewModal = async (resource) => {
+  const openPreviewModal = (resource) => {
     setPreviewResource(resource);
     setPreviewError('');
     setPreviewBlobUrl('');
@@ -223,14 +223,6 @@ export default function ResourceManagement() {
     setThumbnailUrls({});
     setPdfOutline([]);
     setDownloadProgress(0);
-
-    try {
-      const tokenRes = await resourceService.getPreviewToken(resource.id);
-      setPreviewToken(tokenRes?.token || '');
-    } catch (err) {
-      console.error('Failed to get preview token:', err);
-      setPreviewToken('');
-    }
   };
 
   const closePreviewModal = () => {
@@ -289,7 +281,7 @@ export default function ResourceManagement() {
   );
 
   const previewFileUrl = previewResource?.fileUrl
-    ? (previewToken ? `${apiBaseUrl}/resources/${previewResource.id}/file?token=${encodeURIComponent(previewToken)}` : '')
+    ? `${apiBaseUrl}/resources/${previewResource.id}/file?v=${encodeURIComponent(previewResource.updatedAt || previewResource.createdAt || '')}`
     : '';
 
   // Stream & load PDF document progressively
@@ -495,11 +487,11 @@ export default function ResourceManagement() {
 
   // Responsive scale & fit
   useEffect(() => {
-    if (!pdfDocument || !isPdfFullscreen) return;
+    if (!pdfDocument) return;
     let cancelled = false;
 
     const pagePromises = [pdfDocument.getPage(pdfPage)];
-    if (pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount) {
+    if (isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount) {
       pagePromises.push(pdfDocument.getPage(pdfPage + 1));
     }
 
@@ -507,24 +499,38 @@ export default function ResourceManagement() {
       if (cancelled || !page1) return;
       const vp1 = page1.getViewport({ scale: 1, rotation: pdfRotation });
       const vp2 = page2 ? page2.getViewport({ scale: 1, rotation: pdfRotation }) : null;
-      const availableHeight = Math.max(200, window.innerHeight - 70);
-      const sidebarWidth = showPdfSidebar ? 320 : 0;
-      const availableWidth = Math.max(200, window.innerWidth - sidebarWidth - 64);
 
-      if (pdfFitMode === 'width') {
-        const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
-        if (totalWidthNeeded > 0 && availableWidth > 200) {
-          const widthScale = availableWidth / totalWidthNeeded;
-          setPdfScale(Math.max(0.35, Math.min(2.5, Number(widthScale.toFixed(2)))));
+      if (isPdfFullscreen) {
+        const availableHeight = Math.max(200, window.innerHeight - 70);
+        const sidebarWidth = showPdfSidebar ? 320 : 0;
+        const availableWidth = Math.max(200, window.innerWidth - sidebarWidth - 64);
+
+        if (pdfFitMode === 'width') {
+          const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
+          if (totalWidthNeeded > 0 && availableWidth > 200) {
+            const widthScale = availableWidth / totalWidthNeeded;
+            setPdfScale(Math.max(0.35, Math.min(2.5, Number(widthScale.toFixed(2)))));
+          }
+        } else {
+          const maxHeightNeeded = vp2 ? Math.max(vp1.height, vp2.height) : vp1.height;
+          if (maxHeightNeeded > 0 && availableHeight > 200) {
+            const pageScale = (availableHeight - 40) / maxHeightNeeded;
+            setPdfScale(Math.max(0.35, Math.min(2.5, Number(pageScale.toFixed(2)))));
+          }
         }
       } else {
-        const maxHeightNeeded = vp2 ? Math.max(vp1.height, vp2.height) : vp1.height;
-        if (maxHeightNeeded > 0 && availableHeight > 200) {
-          const pageScale = (availableHeight - 40) / maxHeightNeeded;
-          setPdfScale(Math.max(0.35, Math.min(2.5, Number(pageScale.toFixed(2)))));
+        // Modal standard preview: compute responsive scale based on modal container width
+        const containerWidth = pdfViewerAreaRef.current?.clientWidth || window.innerWidth;
+        const isMobileScreen = window.innerWidth < 640;
+        const padding = isMobileScreen ? 16 : 48;
+        const availableWidth = Math.max(160, containerWidth - padding);
+
+        if (vp1.width > 0 && availableWidth > 0) {
+          const responsiveScale = Math.min(1.15, availableWidth / vp1.width);
+          setPdfScale(Math.max(0.35, Math.min(2.0, Number(responsiveScale.toFixed(2)))));
         }
       }
-    });
+    }).catch(() => { });
 
     return () => {
       cancelled = true;
@@ -2043,20 +2049,20 @@ export default function ResourceManagement() {
                         {/* PDF Canvas Viewport Area */}
                         <div
                           ref={pdfViewerAreaRef}
-                          className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center bg-neutral-800 relative"
+                          className="flex-1 overflow-auto p-1.5 sm:p-6 flex items-center justify-center bg-neutral-800 relative min-h-[300px]"
                         >
                           {isPageRendering && (
-                            <div className="absolute top-3 right-3 z-20 flex items-center gap-2 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 text-xs px-3 py-1 rounded-full border border-neutral-700 pointer-events-none shadow-md">
-                              <div className="size-3 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 flex items-center gap-1.5 sm:gap-2 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border border-neutral-700 pointer-events-none shadow-md">
+                              <div className="size-2.5 sm:size-3 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
                               <span>Rendering...</span>
                             </div>
                           )}
 
-                          <div className="relative mx-auto w-fit flex flex-col md:flex-row items-center justify-center gap-4 my-auto shrink-0 select-none">
+                          <div className="relative mx-auto w-fit max-w-full flex flex-col md:flex-row items-center justify-center gap-4 my-auto shrink-0 select-none">
                             {/* Page 1 Canvas */}
-                            <div className="relative bg-white shadow-2xl shrink-0">
-                              <canvas ref={pdfCanvasRef} className="block select-none bg-white" />
-                              <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-4 gap-6 p-6 select-none overflow-hidden">
+                            <div className="relative bg-white shadow-2xl shrink-0 max-w-full">
+                              <canvas ref={pdfCanvasRef} className="block select-none bg-white max-w-full" />
+                              <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-4 gap-6 p-4 sm:p-6 select-none overflow-hidden">
                                 {Array.from({ length: 8 }).map((_, i) => (
                                   <div key={i} className="flex items-center justify-center -rotate-25 text-[10px] font-semibold text-gray-900/[0.18] whitespace-nowrap">
                                     Administrator Inspection • Zyndex Library
