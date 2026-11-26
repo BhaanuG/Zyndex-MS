@@ -2309,19 +2309,19 @@ export default function ResourceManagement() {
                     <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
                       <p className="text-[10px] uppercase font-bold text-slate-400">Total Pages</p>
                       <p className="text-base font-bold text-slate-900 font-mono mt-0.5">
-                        {infoResource.pageCount ? `${infoResource.pageCount} Pages` : (['article', 'paper'].includes(String(infoResource.resourceType || infoResource.type || '').toLowerCase()) ? 'Single Article' : (infoResource.hasDownload ? 'Detecting Pages...' : 'Interactive Article'))}
+                        {infoResource.pageCount ? `${infoResource.pageCount} Pages` : (['article', 'paper'].includes(String(infoResource.resourceType || infoResource.type || '').toLowerCase()) ? 'Single Article' : (Boolean(infoResource.fileUrl) ? 'Detecting Pages...' : 'Interactive Article'))}
                       </p>
                     </div>
                     <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
                       <p className="text-[10px] uppercase font-bold text-slate-400">Document File Size</p>
                       <p className="text-base font-bold text-slate-900 font-mono mt-0.5">
-                        {infoResource.fileSizeBytes ? formatStorageSize(infoResource.fileSizeBytes) : (infoResource.hasDownload ? 'Stored PDF' : 'Interactive Article')}
+                        {infoResource.fileSizeBytes ? formatStorageSize(infoResource.fileSizeBytes) : (Boolean(infoResource.fileUrl) ? 'Stored PDF' : 'Interactive Article')}
                       </p>
                     </div>
                     <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
                       <p className="text-[10px] uppercase font-bold text-slate-400">Content Format</p>
                       <p className="text-base font-bold text-orange-600 mt-0.5 uppercase text-xs sm:text-sm font-mono">
-                        {infoResource.fileName ? infoResource.fileName.split('.').pop()?.toUpperCase() : (infoResource.hasDownload ? 'PDF' : 'HTML')}
+                        {infoResource.fileName ? infoResource.fileName.split('.').pop()?.toUpperCase() : (Boolean(infoResource.fileUrl) ? 'PDF' : 'HTML')}
                       </p>
                     </div>
                     <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">

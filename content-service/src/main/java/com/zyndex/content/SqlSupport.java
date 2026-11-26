@@ -37,7 +37,7 @@ public class SqlSupport {
         resource.put("articleContent", first(row.get("article_content"), ""));
         resource.put("fileName", fileUrl.isBlank() ? "" : Path.of(fileUrl).getFileName().toString());
         resource.put("fileUrl", fileUrl);
-        resource.put("hasDownload", !fileUrl.isBlank());
+        resource.put("hasFile", !fileUrl.isBlank());
         resource.put("isExternalFile", fileUrl.matches("(?i)^https?://.*"));
         resource.put("downloadCount", number(first(row.get("downloads_count"), 0)));
         resource.put("viewCount", number(first(row.get("view_count"), 0)));
