@@ -524,45 +524,62 @@ export default function PaymentPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full bg-white rounded-3xl border border-amber-200 shadow-xl p-8 md:p-10 space-y-6 text-center"
+            className="w-full bg-white rounded-3xl border border-amber-200 shadow-xl p-8 md:p-12 space-y-8 text-center max-w-xl mx-auto"
           >
-            <div className="size-20 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-sm">
-              <Receipt className="size-10" />
+            {/* Top Icon Badge */}
+            <div className="size-20 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mx-auto shadow-2xs">
+              <Receipt className="size-10 text-amber-600" />
             </div>
 
-            <div className="space-y-2 max-w-lg mx-auto">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wide">
-                Under Admin Verification • 12-Hour Grace Period Active
-              </span>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900">
-                Payment Verification On Hold
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Your 12-digit UTR (<span className="font-mono font-bold text-slate-900">{paymentData?.utr || utrNumber}</span>) has been securely registered and an automated notification has been dispatched to our administration team.
+            {/* Main Header & Subheading with Clean Breathing Room */}
+            <div className="space-y-4 max-w-lg mx-auto">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 uppercase tracking-wider mb-3">
+                  <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                  Under Admin Verification • 12-Hour Grace Period Active
+                </span>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mt-2">
+                  Payment Verification On Hold
+                </h2>
+              </div>
+
+              <p className="text-sm text-slate-600 leading-relaxed max-w-md mx-auto pt-1">
+                Your 12-digit UTR (<span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{paymentData?.utr || utrNumber}</span>) has been securely registered and an automated notification has been dispatched to our administration team.
               </p>
             </div>
 
-            <div className="p-5 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl max-w-md mx-auto text-left text-xs text-orange-950 space-y-2.5">
-              <div className="flex items-center gap-2 font-bold text-sm text-orange-900">
-                <Clock className="size-4 text-orange-600" />
+            {/* 12-Hour Provisional Access Card with Generous Spacing */}
+            <div className="p-6 bg-gradient-to-br from-orange-50/90 via-amber-50/70 to-amber-50/40 border border-orange-200/90 rounded-2xl text-left text-xs text-orange-950 space-y-4 shadow-2xs">
+              <div className="flex items-center gap-2.5 font-bold text-sm text-orange-900 pb-2 border-b border-orange-200/60">
+                <div className="p-1.5 bg-orange-100 rounded-lg text-orange-600">
+                  <Clock className="size-4" />
+                </div>
                 <span>12-Hour Provisional Access Granted</span>
               </div>
-              <p className="leading-relaxed">
-                You do not have to wait! You have been granted <strong>12 hours of provisional access</strong> to your selected plan right now.
+
+              <p className="leading-relaxed text-slate-800 font-medium">
+                You do not have to wait! You have been granted <strong className="text-orange-950 font-bold">12 hours of provisional access</strong> to your selected plan right now.
               </p>
-              <p className="leading-relaxed text-slate-700">
-                Before this 12-hour grace period ends, the administrator will verify your UTR in the bank statement. If approved, your full 30-day subscription will continue without interruption. If declined or expired, your account will smoothly revert back to the Free tier.
-              </p>
+
+              <div className="space-y-2 pt-1 border-t border-orange-200/50 text-slate-600 leading-relaxed text-[11.5px]">
+                <p>
+                  Before this 12-hour grace period ends, the administrator will verify your UTR in the bank statement.
+                </p>
+                <p>
+                  If approved, your full 30-day subscription will continue without interruption. If declined or expired, your account will smoothly revert back to the Free tier.
+                </p>
+              </div>
             </div>
 
-            <div className="pt-2 flex justify-center">
+            {/* Return Action Button */}
+            <div className="pt-3 flex justify-center">
               <button
                 type="button"
                 onClick={() => {
                   sessionStorage.setItem(`payment_returned_${orderId}`, 'true');
                   navigate(billingProfilePath, { replace: true });
                 }}
-                className="px-6 py-3.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                className="px-8 py-3.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/25 hover:shadow-orange-600/35 transition-all flex items-center gap-2 cursor-pointer active:scale-98"
               >
                 <span>Return to User Portal</span>
               </button>
