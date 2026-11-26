@@ -10,6 +10,7 @@ import DeviceInfoModal from '@/app/components/DeviceInfoModal';
 import { generateSingleInvoiceHtml, openPrintableDocument } from '@/utils/invoiceGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { useAuth } from '@/app/context/AuthContext';
+import { useDialog } from '@/app/context/DialogContext';
 import userService from '@/services/api/userService';
 import subscriptionService from '@/services/api/subscriptionService';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
@@ -18,6 +19,7 @@ import { getRecommendedPlanForUserType, getPlanName, buildResourceUrl } from '@/
 
 export default function UserProfile() {
   const { user, updateProfile } = useAuth();
+  const { showConfirm, showAlert } = useDialog();
   const location = useLocation();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -139,9 +141,14 @@ export default function UserProfile() {
   }, [user?.id]);
 
   const handleRevokeOtherSessions = async () => {
-    if (!window.confirm('Log out from all other devices?\n\nYou will remain logged in on this browser, but all other active logins and recognized sessions will be immediately signed out.')) {
-      return;
-    }
+    const confirmed = await showConfirm({
+      title: 'Log Out Other Devices',
+      message: 'Log out from all other devices?\n\nYou will remain logged in on this browser, but all other active logins and recognized sessions will be immediately signed out.',
+      confirmText: 'Log Out Others',
+      isDestructive: true
+    });
+    if (!confirmed) return;
+
     setRevokingSessions(true);
     try {
       const currentToken = localStorage.getItem('zyndex_device_token') || localStorage.getItem('device_token') || '';
@@ -157,17 +164,31 @@ export default function UserProfile() {
       if (refreshedSess) {
         setSessionsData(refreshedSess);
       }
+      await showAlert({
+        title: 'Sessions Terminated',
+        message: 'All other device sessions have been successfully logged out.',
+        statusType: 'success'
+      });
     } catch (err) {
-      alert(err.message || 'Failed to log out from other devices.');
+      await showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Failed to log out from other devices.',
+        statusType: 'error'
+      });
     } finally {
       setRevokingSessions(false);
     }
   };
 
   const handleRevokeDevice = async (deviceId, deviceName) => {
-    if (!window.confirm(`Log out ${deviceName || 'this device'}?\n\nThis will immediately terminate the session and require OTP verification for any future sign-in.`)) {
-      return;
-    }
+    const confirmed = await showConfirm({
+      title: 'Terminate Device Session',
+      message: `Log out ${deviceName || 'this device'}?\n\nThis will immediately terminate the session and require OTP verification for any future sign-in.`,
+      confirmText: 'Terminate Session',
+      isDestructive: true
+    });
+    if (!confirmed) return;
+
     setRevokingDeviceId(deviceId);
     // Optimistically update UI so device card immediately disappears
     setSessionsData((prev) => ({
@@ -180,8 +201,17 @@ export default function UserProfile() {
       if (refreshedSess) {
         setSessionsData(refreshedSess);
       }
+      await showAlert({
+        title: 'Device Logged Out',
+        message: `${deviceName || 'The selected device'} has been logged out successfully.`,
+        statusType: 'success'
+      });
     } catch (err) {
-      alert(err.message || 'Failed to revoke device session.');
+      await showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Failed to revoke device session.',
+        statusType: 'error'
+      });
       const refreshedSess = await userService.getActiveSessions();
       if (refreshedSess) {
         setSessionsData(refreshedSess);

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { FolderOpen, Users, MessageSquare, BarChart3, Activity, TrendingUp, Wrench } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
+import { useDialog } from '@/app/context/DialogContext';
 import resourceService from '@/services/api/resourceService';
 import userService from '@/services/api/userService';
 import feedbackService from '@/services/api/feedbackService';
@@ -12,6 +13,7 @@ import authService from '@/services/api/authService';
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { getUrlSafeName, getUrlSafeEmail, user, isPrimaryAdmin } = useAuth();
+  const { showConfirm, showAlert } = useDialog();
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [togglingMaintenance, setTogglingMaintenance] = useState(false);
 
@@ -31,15 +33,30 @@ export default function AdminDashboard() {
     const confirmMsg = nextState
       ? 'Are you sure you want to activate Platform Maintenance Mode?\n\n• An announcement email will be dispatched to all users and regular admins.\n• A 15-minute countdown timer will run on user & regular admin portals.\n• When the 15-minute timer expires, all user and regular admin sessions will be terminated and a maintenance modal displayed.'
       : 'Are you sure you want to deactivate Maintenance Mode and restore normal platform access?\n\nAn announcement email will be sent notifying everyone that Zyndex is back online.';
-    if (!window.confirm(confirmMsg)) return;
+    
+    const confirmed = await showConfirm({
+      title: nextState ? 'Activate Maintenance Mode' : 'Deactivate Maintenance Mode',
+      message: confirmMsg,
+      confirmText: nextState ? 'Activate Now' : 'Restore Access',
+      isDestructive: nextState
+    });
+    if (!confirmed) return;
 
     setTogglingMaintenance(true);
     try {
       const res = await userService.setMaintenanceMode(nextState);
       setMaintenanceMode(Boolean(res?.maintenanceMode));
-      alert(res?.message || 'Maintenance mode updated.');
+      await showAlert({
+        title: 'Maintenance Updated',
+        message: res?.message || 'Platform maintenance status updated successfully.',
+        statusType: 'success'
+      });
     } catch (err) {
-      alert(err.message || 'Failed to update maintenance mode.');
+      await showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Failed to update maintenance mode.',
+        statusType: 'error'
+      });
     } finally {
       setTogglingMaintenance(false);
     }

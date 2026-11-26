@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { User, Mail, Save, Shield, Edit, X, Trash2, Laptop, Smartphone, Globe, LogOut, Check, Radio, Info, ChevronDown, ChevronUp, History, Clock } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
+import { useDialog } from '@/app/context/DialogContext';
 import userService from '@/services/api/userService';
 import PasswordChangePanel from '@/app/components/PasswordChangePanel';
 import DeleteAccountModal from '@/app/components/DeleteAccountModal';
@@ -11,6 +12,7 @@ import { getOrCreateDeviceToken, getDeviceInfo, fetchClientPublicIp, getCachedCl
 
 export default function AdminProfile() {
   const { user, updateProfile, isPrimaryAdmin } = useAuth();
+  const { showConfirm, showAlert } = useDialog();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [profileData, setProfileData] = useState({ name: '', email: '', bio: '', role: 'Administrator' });
@@ -91,9 +93,14 @@ export default function AdminProfile() {
   }, []);
 
   const handleRevokeOtherSessions = async () => {
-    if (!window.confirm('Log out from all other devices?\n\nYou will remain logged in on this browser, but all other active admin logins and recognized sessions will be immediately signed out.')) {
-      return;
-    }
+    const confirmed = await showConfirm({
+      title: 'Log Out Other Devices',
+      message: 'Log out from all other devices?\n\nYou will remain logged in on this browser, but all other active admin logins and recognized sessions will be immediately signed out.',
+      confirmText: 'Log Out Others',
+      isDestructive: true
+    });
+    if (!confirmed) return;
+
     setRevokingSessions(true);
     try {
       const currentToken = localStorage.getItem('zyndex_device_token') || localStorage.getItem('device_token') || '';
@@ -109,17 +116,31 @@ export default function AdminProfile() {
       if (refreshedSess) {
         setSessionsData(refreshedSess);
       }
+      await showAlert({
+        title: 'Sessions Terminated',
+        message: 'All other device sessions have been successfully logged out.',
+        statusType: 'success'
+      });
     } catch (err) {
-      alert(err.message || 'Failed to log out from other devices.');
+      await showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Failed to log out from other devices.',
+        statusType: 'error'
+      });
     } finally {
       setRevokingSessions(false);
     }
   };
 
   const handleRevokeDevice = async (deviceId, deviceName) => {
-    if (!window.confirm(`Log out ${deviceName || 'this device'}?\n\nThis will immediately terminate the session and require OTP verification for any future sign-in.`)) {
-      return;
-    }
+    const confirmed = await showConfirm({
+      title: 'Terminate Device Session',
+      message: `Log out ${deviceName || 'this device'}?\n\nThis will immediately terminate the session and require OTP verification for any future sign-in.`,
+      confirmText: 'Terminate Session',
+      isDestructive: true
+    });
+    if (!confirmed) return;
+
     setRevokingDeviceId(deviceId);
     setSessionsData((prev) => ({
       ...prev,
@@ -131,8 +152,17 @@ export default function AdminProfile() {
       if (refreshedSess) {
         setSessionsData(refreshedSess);
       }
+      await showAlert({
+        title: 'Device Logged Out',
+        message: `${deviceName || 'The selected device'} has been logged out successfully.`,
+        statusType: 'success'
+      });
     } catch (err) {
-      alert(err.message || 'Failed to revoke device session.');
+      await showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Failed to revoke device session.',
+        statusType: 'error'
+      });
       const refreshedSess = await userService.getActiveSessions();
       if (refreshedSess) {
         setSessionsData(refreshedSess);
@@ -147,8 +177,17 @@ export default function AdminProfile() {
     try {
       await updateProfile(profileData);
       setIsEditing(false);
+      await showAlert({
+        title: 'Profile Updated',
+        message: 'Your administrator profile details have been saved successfully.',
+        statusType: 'success'
+      });
     } catch (error) {
-      alert(error.message || 'Failed to update profile.');
+      await showAlert({
+        title: 'Update Failed',
+        message: error.message || 'Failed to update profile.',
+        statusType: 'error'
+      });
     }
   };
 

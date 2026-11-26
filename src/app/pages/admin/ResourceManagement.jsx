@@ -54,6 +54,7 @@ import * as pdfWorkerModule from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
+import { useDialog } from '@/app/context/DialogContext';
 import resourceService from '@/services/api/resourceService';
 import logService from '@/services/api/logService';
 import DOMPurify from 'dompurify';
@@ -106,6 +107,7 @@ function ArticleEditor({ value, onChange }) {
 
 export default function ResourceManagement() {
   const { user, isPrimaryAdmin } = useAuth();
+  const { showConfirm, showAlert } = useDialog();
   const isMainAdmin = isPrimaryAdmin || user?.email?.toLowerCase() === 'bhaanugali@gmail.com' || user?.isPrimaryAdmin === true;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -714,7 +716,13 @@ export default function ResourceManagement() {
 
   const handleDelete = async (resourceId) => {
     const target = resources.find((r) => r.id === resourceId);
-    if (!window.confirm('Are you sure you want to delete this resource?')) return;
+    const confirmed = await showConfirm({
+      title: 'Delete Academic Resource',
+      message: `Are you sure you want to permanently delete "${target?.title || 'this resource'}"? All related bookmarks and user records will also be updated.`,
+      confirmText: 'Delete Resource',
+      isDestructive: true
+    });
+    if (!confirmed) return;
     try {
       await resourceService.deleteResource(resourceId);
       logService.createLog({
@@ -745,7 +753,13 @@ export default function ResourceManagement() {
 
     const currentPublished = resource.isPublished !== false;
     const actionLabel = currentPublished ? 'unpublish' : 'publish';
-    if (!window.confirm(`Are you sure you want to ${actionLabel} "${resource.title}"? ${currentPublished ? 'It will remain in the database but will be completely hidden from all users.' : 'It will become live and visible to all users.'}`)) {
+    const confirmed = await showConfirm({
+      title: currentPublished ? 'Unpublish Resource' : 'Publish Resource',
+      message: `Are you sure you want to ${actionLabel} "${resource.title}"? ${currentPublished ? 'It will remain in the database but will be completely hidden from all users.' : 'It will become live and visible to all users.'}`,
+      confirmText: currentPublished ? 'Unpublish Now' : 'Publish Now',
+      isDestructive: currentPublished
+    });
+    if (!confirmed) {
       return;
     }
 

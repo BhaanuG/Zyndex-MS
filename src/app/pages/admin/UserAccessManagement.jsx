@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, Plus, Edit, Trash2, X, User, Mail, Lock, Hash, KeyRound, Eye, EyeOff, Download, LogOut, Wrench, ArrowUpDown, ArrowUp, ArrowDown, ShieldCheck, CheckCircle } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAuth } from '@/app/context/AuthContext';
+import { useDialog } from '@/app/context/DialogContext';
 import userService from '@/services/api/userService';
 import authService from '@/services/api/authService';
 import logService from '@/services/api/logService';
@@ -36,6 +37,7 @@ const PLATFORM_PLANS = [
 
 export default function UserAccessManagement() {
   const { user: currentUser, refreshUser, isPrimaryAdmin } = useAuth();
+  const { showConfirm, showAlert } = useDialog();
   const canManageUsers = currentUser?.role === 'admin' || isPrimaryAdmin === true;
   const [showModal, setShowModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
@@ -57,7 +59,12 @@ export default function UserAccessManagement() {
 
   const handleRestoreUserAccess = async (u) => {
     if (!isPrimaryAdmin) return;
-    if (!window.confirm(`Restore platform access for ${u.name || u.email}?\n\nThe user will be allowed to sign in normally.`)) return;
+    const confirmed = await showConfirm({
+      title: 'Restore User Access',
+      message: `Restore platform access for ${u.name || u.email}?\n\nThe user will be allowed to sign in normally.`,
+      confirmText: 'Restore Access'
+    });
+    if (!confirmed) return;
 
     setRestoringUser(u.id);
     try {
@@ -71,10 +78,18 @@ export default function UserAccessManagement() {
         status: 'SUCCESS'
       }).catch(() => {});
 
-      alert(`Access has been successfully restored for ${u.name || u.email}.`);
+      await showAlert({
+        title: 'Access Restored',
+        message: `Access has been successfully restored for ${u.name || u.email}.`,
+        statusType: 'success'
+      });
       await loadUsers(searchTerm);
     } catch (err) {
-      alert(err.message || 'Failed to restore user access.');
+      await showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Failed to restore user access.',
+        statusType: 'error'
+      });
     } finally {
       setRestoringUser(null);
     }
@@ -84,7 +99,13 @@ export default function UserAccessManagement() {
 
   const handleForceLogoutUser = async (u) => {
     if (!isPrimaryAdmin) return;
-    if (!window.confirm(`Terminate active session for ${u.name || u.email}?\n\nThe user will receive a session termination popup.`)) return;
+    const confirmed = await showConfirm({
+      title: 'Terminate User Session',
+      message: `Terminate active session for ${u.name || u.email}?\n\nThe user will receive a session termination popup.`,
+      confirmText: 'Terminate Session',
+      isDestructive: true
+    });
+    if (!confirmed) return;
 
     setLoggingOutUser(u.id);
     try {
@@ -98,10 +119,18 @@ export default function UserAccessManagement() {
         status: 'SUCCESS'
       }).catch(() => {});
 
-      alert(`Session for ${u.name || u.email} has been terminated.`);
+      await showAlert({
+        title: 'Session Terminated',
+        message: `Session for ${u.name || u.email} has been terminated.`,
+        statusType: 'success'
+      });
       await loadUsers(searchTerm);
     } catch (err) {
-      alert(err.message || 'Failed to terminate user session.');
+      await showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Failed to terminate user session.',
+        statusType: 'error'
+      });
     } finally {
       setLoggingOutUser(null);
     }
@@ -109,7 +138,13 @@ export default function UserAccessManagement() {
 
   const handleForceLogoutAll = async () => {
     if (!isPrimaryAdmin) return;
-    if (!window.confirm('Are you sure you want to terminate ALL active user sessions?\n\nAll active users will receive an administrative logout notification.')) return;
+    const confirmed = await showConfirm({
+      title: 'Global Session Termination',
+      message: 'Are you sure you want to terminate ALL active user sessions?\n\nAll active users will receive an administrative logout notification.',
+      confirmText: 'Terminate All Sessions',
+      isDestructive: true
+    });
+    if (!confirmed) return;
 
     setLoggingOutAll(true);
     try {
@@ -123,10 +158,18 @@ export default function UserAccessManagement() {
         status: 'SUCCESS'
       }).catch(() => {});
 
-      alert(res?.message || 'All active user sessions have been terminated.');
+      await showAlert({
+        title: 'Sessions Terminated',
+        message: res?.message || 'All active user sessions have been terminated.',
+        statusType: 'success'
+      });
       await loadUsers(searchTerm);
     } catch (err) {
-      alert(err.message || 'Failed to logout all active users.');
+      await showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Failed to logout all active users.',
+        statusType: 'error'
+      });
     } finally {
       setLoggingOutAll(false);
     }
@@ -284,7 +327,11 @@ export default function UserAccessManagement() {
     } catch (error) {
       // Revert if error
       setAdminRequests((current) => [request, ...current]);
-      window.alert(error.message || 'Unable to update admin request.');
+      await showAlert({
+        title: 'Action Failed',
+        message: error.message || 'Unable to update admin request.',
+        statusType: 'error'
+      });
     } finally {
       setProcessingRequestId(null);
     }
@@ -438,7 +485,13 @@ export default function UserAccessManagement() {
 
   const handleDeleteUser = async (userId) => {
     const targetUser = users.find((u) => u.id === userId);
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    const confirmed = await showConfirm({
+      title: 'Delete User Account',
+      message: `Are you sure you want to permanently delete user account: ${targetUser?.name || 'User'} (${targetUser?.email || ''})? All associated subscriptions and activity records will be deleted.`,
+      confirmText: 'Delete User',
+      isDestructive: true
+    });
+    if (!confirmed) return;
     try {
       await userService.deleteUser(userId);
       logService.createLog({
@@ -450,9 +503,18 @@ export default function UserAccessManagement() {
         status: 'SUCCESS'
       }).catch(() => {});
 
+      await showAlert({
+        title: 'User Deleted',
+        message: 'User account has been permanently removed.',
+        statusType: 'success'
+      });
       await loadUsers(searchTerm);
     } catch (error) {
-      alert(error.message || 'Failed to delete user.');
+      await showAlert({
+        title: 'Action Failed',
+        message: error.message || 'Failed to delete user.',
+        statusType: 'error'
+      });
     }
   };
 

@@ -2,9 +2,11 @@ import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star, Trash2, Mail, MessageSquare, Send, CheckCircle2, User, BookOpen, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import AdminLayout from '@/app/components/AdminLayout';
+import { useDialog } from '@/app/context/DialogContext';
 import feedbackService from '@/services/api/feedbackService';
 
 export default function FeedbackReview() {
+  const { showConfirm, showAlert } = useDialog();
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [respondingId, setRespondingId] = useState(null);
@@ -34,7 +36,13 @@ export default function FeedbackReview() {
   }, []);
 
   const handleDelete = async (feedbackId) => {
-    if (!window.confirm('Are you sure you want to delete this feedback entry?')) return;
+    const confirmed = await showConfirm({
+      title: 'Delete Feedback Entry',
+      message: 'Are you sure you want to permanently delete this user feedback entry? This action cannot be undone.',
+      confirmText: 'Delete Feedback',
+      isDestructive: true
+    });
+    if (!confirmed) return;
     try {
       await feedbackService.deleteFeedback(feedbackId);
       setActionSuccess('Feedback deleted successfully.');

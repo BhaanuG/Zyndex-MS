@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { AuthProvider, useAuth } from '@/app/context/AuthContext';
+import { DialogProvider } from '@/app/context/DialogContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen } from 'lucide-react';
 
@@ -130,8 +131,10 @@ function LayoutContent() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <LayoutContent />
-    </AuthProvider>
+    <DialogProvider>
+      <AuthProvider>
+        <LayoutContent />
+      </AuthProvider>
+    </DialogProvider>
   );
 }
