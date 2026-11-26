@@ -948,11 +948,6 @@ export default function Login() {
                           Account registration is temporarily disabled during platform maintenance.
                         </p>
                       )}
-                      {isMaintenanceActive && activeTab === 'admin' && !isSignUpMode && !isMainAdminEmail && (
-                        <p className="text-center text-xs text-rose-600 mt-2 font-medium">
-                          Maintenance mode: Only Primary Admin (Bhaanugali@gmail.com) can sign in.
-                        </p>
-                      )}
                       {isMaintenanceActive && activeTab === 'user' && !isSignUpMode && (
                         <p className="text-center text-xs text-rose-600 mt-2 font-medium">
                           User sign in is temporarily disabled during platform maintenance.
