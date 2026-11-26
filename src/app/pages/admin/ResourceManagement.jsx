@@ -2305,7 +2305,13 @@ export default function ResourceManagement() {
                       Verified Content File
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Total Pages</p>
+                      <p className="text-base font-bold text-slate-900 font-mono mt-0.5">
+                        {infoResource.pageCount ? `${infoResource.pageCount} Pages` : (['article', 'paper'].includes(String(infoResource.resourceType || infoResource.type || '').toLowerCase()) ? 'Single Article' : (infoResource.hasDownload ? 'Detecting Pages...' : 'Interactive Article'))}
+                      </p>
+                    </div>
                     <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
                       <p className="text-[10px] uppercase font-bold text-slate-400">Document File Size</p>
                       <p className="text-base font-bold text-slate-900 font-mono mt-0.5">
@@ -2318,7 +2324,7 @@ export default function ResourceManagement() {
                         {infoResource.fileName ? infoResource.fileName.split('.').pop()?.toUpperCase() : (infoResource.hasDownload ? 'PDF' : 'HTML')}
                       </p>
                     </div>
-                    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs col-span-2 sm:col-span-1">
+                    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
                       <p className="text-[10px] uppercase font-bold text-slate-400">Catalog Access</p>
                       <p className="text-base font-bold text-emerald-600 mt-0.5 text-xs sm:text-sm">
                         {infoResource.featured !== false ? 'Active & Published' : 'Draft / Unapproved'}
