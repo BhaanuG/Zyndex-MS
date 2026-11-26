@@ -1318,19 +1318,19 @@ export default function ResourceDetail() {
                         )}
                         {/* When on a locked page (Page 8+), show the Unlock Paywall Prompt */}
                         {isCurrentlyOnLockedPage ? (
-                          <div className="relative mx-auto w-full max-w-xl bg-gradient-to-br from-white via-orange-50/70 to-orange-100/90 border border-orange-200/80 rounded-2xl p-8 sm:p-10 text-center shadow-2xl my-auto text-gray-900">
-                            <div className="size-16 bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg shadow-orange-500/25">
+                          <div className="relative mx-auto w-full max-w-xl bg-white border border-slate-200 rounded-2xl p-8 sm:p-10 text-center shadow-xl my-auto text-slate-900">
+                            <div className="size-16 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-5 border border-orange-100 shadow-sm">
                               <Lock className="size-8" />
                             </div>
-                            <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900 mb-2">
+                            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 tracking-tight">
                               Preview Cap Reached (7 of {displayTotalPages} Pages)
                             </h3>
-                            <p className="text-sm text-gray-600 max-w-md mx-auto mb-6 leading-relaxed">
-                              You have reached the end of the free 7-page preview for this resource. To unlock and read all <strong className="text-gray-900 font-bold">{displayTotalPages} pages</strong>, please upgrade to the <span className="font-bold text-orange-600">{PLAN_NAMES[requiredPlan] || requiredPlan}</span> plan or higher.
+                            <p className="text-sm text-slate-600 max-w-md mx-auto mb-6 leading-relaxed">
+                              You have reached the end of the free 7-page preview for this resource. To unlock and read all <strong className="text-slate-900 font-bold">{displayTotalPages} pages</strong>, please upgrade to the <span className="font-bold text-orange-600">{PLAN_NAMES[requiredPlan] || requiredPlan}</span> plan or higher.
                             </p>
                             {userPlan && (
-                              <p className="text-xs text-orange-900 font-medium mb-6 bg-white/90 rounded-lg py-2 px-4 inline-block border border-orange-200/70 shadow-xs">
-                                Your current active plan: <strong className="text-orange-950 font-bold">{PLAN_NAMES[userPlan] || userPlan}</strong> {isSubExpired && '(Expired)'}
+                              <p className="text-xs text-slate-600 font-medium mb-6 bg-slate-50 rounded-lg py-2 px-4 inline-block border border-slate-200">
+                                Your current active plan: <strong className="text-slate-900 font-bold">{PLAN_NAMES[userPlan] || userPlan}</strong> {isSubExpired && '(Expired)'}
                               </p>
                             )}
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -1345,7 +1345,7 @@ export default function ResourceDetail() {
                                     navigate('/Zyndex/About/Pricing');
                                   }
                                 }}
-                                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-600 text-white font-semibold rounded-xl text-sm hover:from-orange-600 hover:to-amber-700 shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                className="w-full sm:w-auto px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                               >
                                 <ShieldCheck className="size-4" />
                                 Upgrade Plan to Unlock All {displayTotalPages} Pages
@@ -1353,7 +1353,7 @@ export default function ResourceDetail() {
                               <button
                                 type="button"
                                 onClick={() => setPdfPage(PREVIEW_CAP)}
-                                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-orange-50 text-gray-700 hover:text-gray-900 rounded-xl text-sm font-semibold transition-colors cursor-pointer border border-orange-200 shadow-xs"
+                                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-semibold transition-colors cursor-pointer border border-slate-300 shadow-xs"
                               >
                                 Back to Page {PREVIEW_CAP}
                               </button>
