@@ -722,6 +722,7 @@ class UserController {
                             """,
                     admin.get("email"));
 
+            jdbc.update("DELETE FROM system_settings WHERE setting_key = 'MAINTENANCE_ACTIVE_DISPATCHED'");
             jdbc.update(
                     """
                             INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
@@ -772,6 +773,7 @@ class UserController {
                     admin.get("email"));
 
             jdbc.update("DELETE FROM system_settings WHERE setting_key = 'MAINTENANCE_SCHEDULED_AT'");
+            jdbc.update("DELETE FROM system_settings WHERE setting_key = 'MAINTENANCE_ACTIVE_DISPATCHED'");
 
             final boolean cancelledBeforeTimer = isCancelledBeforeTimer;
 
@@ -848,6 +850,21 @@ class UserController {
                 }
             } catch (Exception ignored) {
             }
+        }
+
+        // Ensure atomic, one-time-only execution per maintenance window
+        // Uses MAINTENANCE_ACTIVE_DISPATCHED setting to prevent duplicate email blasts
+        int inserted = jdbc.update(
+                """
+                        INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
+                        SELECT 'MAINTENANCE_ACTIVE_DISPATCHED', 'true', NOW(), 'system'
+                        FROM DUAL
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM system_settings WHERE setting_key = 'MAINTENANCE_ACTIVE_DISPATCHED' AND setting_value = 'true'
+                        )
+                        """);
+        if (inserted <= 0) {
+            return Map.of("message", "Maintenance active notification has already been dispatched for this cycle.");
         }
 
         var adminRows = jdbc.queryForList("SELECT id, email FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1",

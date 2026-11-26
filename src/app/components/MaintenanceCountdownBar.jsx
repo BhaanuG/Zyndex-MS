@@ -13,6 +13,7 @@ export default function MaintenanceCountdownBar({ isPrimaryAdmin, mode = 'user' 
   const [scheduledAt, setScheduledAt] = useState(null);
   const [secondsRemaining, setSecondsRemaining] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
+  const finalizedCyclesRef = React.useRef(new Set());
 
   useEffect(() => {
     const checkMaintenance = async () => {
@@ -38,7 +39,11 @@ export default function MaintenanceCountdownBar({ isPrimaryAdmin, mode = 'user' 
           setSecondsRemaining(remainingSecs);
 
           if (remainingSecs <= 0 && res?.isOfficiallyActive && !isPrimaryAdmin) {
-            userService.finalizeMaintenanceActive().catch(() => {});
+            const cycleKey = String(res.scheduledAt);
+            if (!finalizedCyclesRef.current.has(cycleKey)) {
+              finalizedCyclesRef.current.add(cycleKey);
+              userService.finalizeMaintenanceActive().catch(() => {});
+            }
           }
         } else {
           setScheduledAt(null);
@@ -59,8 +64,12 @@ export default function MaintenanceCountdownBar({ isPrimaryAdmin, mode = 'user' 
     const ticker = setInterval(() => {
       setSecondsRemaining(prev => {
         if (prev <= 1) {
-          if (!isPrimaryAdmin) {
-            userService.finalizeMaintenanceActive().catch(() => {});
+          if (!isPrimaryAdmin && scheduledAt) {
+            const cycleKey = String(scheduledAt);
+            if (!finalizedCyclesRef.current.has(cycleKey)) {
+              finalizedCyclesRef.current.add(cycleKey);
+              userService.finalizeMaintenanceActive().catch(() => {});
+            }
           }
           return 0;
         }
