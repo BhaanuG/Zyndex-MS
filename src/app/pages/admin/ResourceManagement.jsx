@@ -460,7 +460,7 @@ export default function ResourceManagement() {
       const thumbCanvas = document.createElement('canvas');
       thumbCanvas.width = Math.floor(thumbViewport.width);
       thumbCanvas.height = Math.floor(thumbViewport.height);
-      const thumbCtx = thumbCanvas.getContext('2d', { alpha: false });
+      const thumbCtx = thumbCanvas.getContext('2d');
       thumbCtx.fillStyle = '#ffffff';
       thumbCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
 
@@ -536,7 +536,7 @@ export default function ResourceManagement() {
       const viewport = page.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
       const canvas = pdfCanvasRef.current;
       if (!canvas) return;
-      const context = canvas.getContext('2d', { alpha: false });
+      const context = canvas.getContext('2d');
 
       canvas.width = Math.floor(viewport.width);
       canvas.height = Math.floor(viewport.height);
@@ -577,7 +577,7 @@ export default function ResourceManagement() {
         const secondViewport = secondPage.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
         const secondCanvas = pdfSecondCanvasRef.current;
         if (!secondCanvas) return;
-        const secondContext = secondCanvas.getContext('2d', { alpha: false });
+        const secondContext = secondCanvas.getContext('2d');
 
         secondCanvas.width = Math.floor(secondViewport.width);
         secondCanvas.height = Math.floor(secondViewport.height);

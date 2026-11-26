@@ -565,17 +565,16 @@ class ResourceController {
             try (org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.Loader.loadPDF(file.toFile())) {
                 int pageCount = document.getNumberOfPages();
                 if (pageCount > pageLimit) {
-                    try (org.apache.pdfbox.pdmodel.PDDocument sliced = new org.apache.pdfbox.pdmodel.PDDocument()) {
-                        for (int i = 0; i < pageLimit; i++) {
-                            sliced.addPage(document.getPage(i));
-                        }
-                        sliced.save(cachedSlice.toFile());
-                        return ResponseEntity.ok()
-                                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
-                                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cachedSlice.getFileName() + "\"")
-                                .header("X-Page-Limit", String.valueOf(pageLimit))
-                                .body(new FileSystemResource(cachedSlice));
+                    // Remove pages from the end backwards so document resources, fonts, and structures remain intact
+                    for (int i = pageCount - 1; i >= pageLimit; i--) {
+                        document.removePage(i);
                     }
+                    document.save(cachedSlice.toFile());
+                    return ResponseEntity.ok()
+                            .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cachedSlice.getFileName() + "\"")
+                            .header("X-Page-Limit", String.valueOf(pageLimit))
+                            .body(new FileSystemResource(cachedSlice));
                 }
             } catch (Exception e) {
                 System.err.println("Failed to slice PDF file: " + e.getMessage());
@@ -910,44 +909,9 @@ class ResourceController {
         String name = UUID.randomUUID() + (extension == null ? "" : "." + extension);
         Path targetPath = dir.resolve(name);
 
-        // Save file immediately so upload responds instantly
+        // Save file directly
         file.transferTo(targetPath);
-
-        // If it's a PDF, run stream compression asynchronously in the background so HTTP client never times out
-        if ("pdf".equalsIgnoreCase(extension)) {
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                try {
-                    Path tempCompressed = dir.resolve(name + ".cmp");
-                    compressPdf(targetPath, tempCompressed);
-                    if (Files.exists(tempCompressed) && Files.size(tempCompressed) > 0) {
-                        Files.move(tempCompressed, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                    }
-                } catch (Exception e) {
-                    System.err.println("Async PDF compression skipped: " + e.getMessage());
-                }
-            });
-        }
         return "uploads/" + name;
-    }
-
-    /**
-     * Lossless PDF stream compression and optimization using Apache PDFBox 3.x
-     */
-    private void compressPdf(Path source, Path destination) throws IOException {
-        try (org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.Loader.loadPDF(source.toFile())) {
-            // Compress all uncompressed content streams without altering vector/text fidelity
-            for (org.apache.pdfbox.pdmodel.PDPage page : document.getPages()) {
-                java.util.Iterator<org.apache.pdfbox.pdmodel.common.PDStream> streams = page.getContentStreams();
-                while (streams != null && streams.hasNext()) {
-                    org.apache.pdfbox.pdmodel.common.PDStream stream = streams.next();
-                    if (stream != null && (stream.getFilters() == null || stream.getFilters().isEmpty())) {
-                        stream.setFilters(java.util.List.of(org.apache.pdfbox.cos.COSName.FLATE_DECODE));
-                    }
-                }
-            }
-            // Save with Flate compression enabled to minimize stored bytes
-            document.save(destination.toFile());
-        }
     }
 
     private Path resolveStoredFile(String fileUrl) {
