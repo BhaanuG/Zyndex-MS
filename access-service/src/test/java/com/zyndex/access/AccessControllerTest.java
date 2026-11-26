@@ -56,7 +56,8 @@ class AccessControllerTest {
                 .thenReturn(0);
 
         Map<String, Object> res = controller.check(1L, 2L, "READ", "user", "Physics", "TEXTBOOK", "STUDENT_BASIC");
-        assertThat(res.get("authorized")).isEqualTo(false);
-        assertThat(res.get("reason")).asString().contains("locked for your current plan");
+        assertThat(res.get("authorized")).isEqualTo(true);
+        assertThat(res.get("pageLimit")).isEqualTo(7);
+        assertThat(res.get("previewOnly")).isEqualTo(true);
     }
 }

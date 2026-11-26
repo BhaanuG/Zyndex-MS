@@ -75,8 +75,14 @@ public class AccessController {
 
         // 3. Check minimum required plan tier
         if (userTier < reqTier) {
-            return Map.of("authorized", false, "reason",
-                "This resource is locked for your current plan. It requires the " + getPlanNameByTier(reqTier) + " plan or higher. Please upgrade to unlock.");
+            // For resources requiring a higher plan, grant a 7-page preview cap so users can preview the document
+            return Map.of(
+                "authorized", true,
+                "pageLimit", 7,
+                "previewOnly", true,
+                "requiredPlan", requiredPlan,
+                "reason", "This resource is locked for your current plan. It requires the " + getPlanNameByTier(reqTier) + " plan or higher. Showing first 7 pages preview."
+            );
         }
 
         // 4. Evaluate action-specific gating rules (e.g. downloads)
@@ -88,38 +94,34 @@ public class AccessController {
         }
 
         if (userTier == 0) { // Free tier reading limits
-            boolean isPublic = "Public".equalsIgnoreCase(category) || "Demo".equalsIgnoreCase(category) || "Public".equalsIgnoreCase(type) || "Demo".equalsIgnoreCase(type) || reqTier == 0;
-            if (isPublic) {
-                int limit = System.getenv("FREE_DAILY_READ_LIMIT") != null 
-                        ? Integer.parseInt(System.getenv("FREE_DAILY_READ_LIMIT")) 
-                        : 5;
-                try {
-                    Map<?, ?> usageStats = restTemplate.getForObject("http://usage-service/api/usage/views/user/" + userId + "/today", Map.class);
-                    if (usageStats != null) {
-                        int todayCount = ((Number) usageStats.get("count")).intValue();
-                        List<?> viewedResourceIds = (List<?>) usageStats.get("resourceIds");
-                        
-                        boolean alreadyViewed = false;
-                        if (resourceId != null && viewedResourceIds != null) {
-                            for (Object idObj : viewedResourceIds) {
-                                if (idObj != null && ((Number) idObj).longValue() == resourceId.longValue()) {
-                                    alreadyViewed = true;
-                                    break;
-                                }
+            int limit = System.getenv("FREE_DAILY_READ_LIMIT") != null 
+                    ? Integer.parseInt(System.getenv("FREE_DAILY_READ_LIMIT")) 
+                    : 5;
+            try {
+                Map<?, ?> usageStats = restTemplate.getForObject("http://usage-service/api/usage/views/user/" + userId + "/today", Map.class);
+                if (usageStats != null) {
+                    int todayCount = ((Number) usageStats.get("count")).intValue();
+                    List<?> viewedResourceIds = (List<?>) usageStats.get("resourceIds");
+                    
+                    boolean alreadyViewed = false;
+                    if (resourceId != null && viewedResourceIds != null) {
+                        for (Object idObj : viewedResourceIds) {
+                            if (idObj != null && ((Number) idObj).longValue() == resourceId.longValue()) {
+                                alreadyViewed = true;
+                                break;
                             }
                         }
-                        
-                        if (todayCount >= limit && !alreadyViewed) {
-                            return Map.of("authorized", false, "reason", "Daily free reading limit reached (" + limit + " documents/day). Please upgrade your plan to continue reading.");
-                        }
                     }
-                } catch (Exception e) {
-                    System.err.println("Failed to check daily limit from usage-service: " + e.getMessage());
+                    
+                    if (todayCount >= limit && !alreadyViewed) {
+                        return Map.of("authorized", false, "reason", "Daily free reading limit reached (" + limit + " documents/day). Please upgrade your plan to continue reading.");
+                    }
                 }
-                return Map.of("authorized", true, "pageLimit", 10);
-            } else {
-                return Map.of("authorized", false, "reason", "This content requires a Student Basic or higher subscription plan.");
+            } catch (Exception e) {
+                System.err.println("Failed to check daily limit from usage-service: " + e.getMessage());
             }
+            // Free users have full access to read all pages of any resource they have access to!
+            return Map.of("authorized", true);
         }
 
         return Map.of("authorized", true);

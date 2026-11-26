@@ -26,6 +26,7 @@ class ResourceController {
     private final SqlSupport sql;
     private final AppProperties properties;
     private final RestTemplate restTemplate;
+    private final Map<String, Integer> pageCountCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     ResourceController(JdbcTemplate jdbc, SqlSupport sql, AppProperties properties, RestTemplate restTemplate) {
         this.jdbc = jdbc;
@@ -572,6 +573,7 @@ class ResourceController {
                 return ResponseEntity.ok()
                         .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cachedSlice.getFileName() + "\"")
+                        .header("X-Page-Limit", String.valueOf(pageLimit))
                         .body(new FileSystemResource(cachedSlice));
             }
 
@@ -586,6 +588,7 @@ class ResourceController {
                         return ResponseEntity.ok()
                                 .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
                                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cachedSlice.getFileName() + "\"")
+                                .header("X-Page-Limit", String.valueOf(pageLimit))
                                 .body(new FileSystemResource(cachedSlice));
                     }
                 }
@@ -801,6 +804,24 @@ class ResourceController {
             } catch (Exception ignored) {}
         }
         resource.put("fileSizeBytes", fileSizeBytes);
+
+        // Compute total page count for PDF documents
+        int pageCount = 0;
+        if (!fileUrl.isBlank() && fileUrl.toLowerCase().endsWith(".pdf")) {
+            pageCount = pageCountCache.computeIfAbsent(fileUrl, url -> {
+                try {
+                    Path p = resolveStoredFile(url);
+                    if (Files.exists(p)) {
+                        try (org.apache.pdfbox.pdmodel.PDDocument doc = org.apache.pdfbox.Loader.loadPDF(p.toFile())) {
+                            return doc.getNumberOfPages();
+                        }
+                    }
+                } catch (Exception ignored) {}
+                return 0;
+            });
+        }
+        resource.put("pageCount", pageCount);
+
         return resource;
     }
 

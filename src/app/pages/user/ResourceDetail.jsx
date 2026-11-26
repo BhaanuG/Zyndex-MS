@@ -95,6 +95,20 @@ export default function ResourceDetail() {
   const requiredTier = PLAN_TIERS[requiredPlan] ?? 0;
   const hasPlanAccess = isAdmin || (userTier >= requiredTier);
 
+  // 7-Page preview cap rule for higher-tier resources:
+  const isPreviewCapped = !hasPlanAccess;
+  const PREVIEW_CAP = 7;
+  // Total actual pages of the full resource (from resource metadata, fallback to pdfDocument numPages)
+  const totalActualPages = resource?.pageCount || (pdfDocument ? pdfDocument.numPages : 0);
+  // Display total pages in toolbar: if capped, show full totalActualPages (e.g. 1 / 45) so scholars know total length
+  const displayTotalPages = totalActualPages > 0 ? totalActualPages : (pdfDocument ? pdfDocument.numPages : 0);
+  // Navigable maximum page in the reader:
+  // If capped, allow navigating up to PREVIEW_CAP + 1 (the 8th page shows the upgrade paywall unlock modal)
+  const maxNavigablePage = isPreviewCapped 
+    ? (displayTotalPages > 0 ? Math.min(displayTotalPages, PREVIEW_CAP + 1) : PREVIEW_CAP + 1)
+    : (pdfDocument ? pdfDocument.numPages : 1);
+  const isCurrentlyOnLockedPage = isPreviewCapped && pdfPage > PREVIEW_CAP;
+
   useEffect(() => {
     refreshUser();
   }, []);
@@ -632,6 +646,12 @@ export default function ResourceDetail() {
       }
     } catch (e) {}
 
+    // If current page is beyond preview document pages (e.g. page 8 lock screen), skip rendering
+    if (isPreviewCapped && pdfPage > PREVIEW_CAP) {
+      setIsPageRendering(false);
+      return undefined;
+    }
+
     // Render Page 1 (Primary Page)
     pdfDocument.getPage(pdfPage).then((page) => {
       if (cancelled) return;
@@ -835,41 +855,8 @@ export default function ResourceDetail() {
                   <h2 className="text-xl font-semibold text-gray-900">Preview Resource</h2>
                 </div>
 
-                {!hasPlanAccess ? (
-                  <div className="border border-orange-200 bg-gradient-to-br from-orange-50/80 via-white to-amber-50/50 rounded-2xl p-10 text-center space-y-4">
-                    <div className="size-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                      <Lock className="size-8" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">Resource Locked Under Your Current Plan</h3>
-                      <p className="text-sm text-gray-600 max-w-md mx-auto">
-                        This resource requires the <span className="font-semibold text-orange-700">{PLAN_NAMES[requiredPlan] || requiredPlan}</span> plan or higher.
-                        {userPlan && (
-                          <span className="block mt-1 text-xs text-gray-500">
-                            Your current plan: <strong>{PLAN_NAMES[userPlan] || userPlan}</strong> {isSubExpired && '(Expired)'}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <div className="pt-2 flex justify-center gap-3">
-                      <button
-                        onClick={() => {
-                          if (user) {
-                            const safeName = user?.name ? encodeURIComponent(user.name.replace(/\s+/g, '-')) : 'user';
-                            const safeEmail = user?.email ? encodeURIComponent(user.email) : 'email';
-                            navigate(`/Zyndex/User/${safeName}/${safeEmail}/Profile/Billing/Pricing`);
-                          } else {
-                            navigate('/Zyndex/About/Pricing');
-                          }
-                        }}
-                        className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl text-sm hover:from-orange-700 hover:to-red-700 shadow-md transition-all flex items-center gap-2 cursor-pointer"
-                      >
-                        <ShieldCheck className="size-4" />
-                        Upgrade Plan to Unlock
-                      </button>
-                    </div>
-                  </div>
-                ) : previewUrl && isPdfPreview && pdfDocument ? (
+                {/* Reader View: Allowed if user has plan access OR for 7-page preview */}
+                {previewUrl && isPdfPreview && pdfDocument ? (
                   <div
                     ref={pdfContainerRef}
                     className={`overflow-hidden rounded-xl border border-gray-200 bg-neutral-800 flex flex-col ${
@@ -904,24 +891,24 @@ export default function ResourceDetail() {
                           <input
                             type="number"
                             min={1}
-                            max={pdfPageCount}
+                            max={maxNavigablePage}
                             value={pdfPage}
                             onChange={(e) => {
                               const val = parseInt(e.target.value, 10);
-                              if (!isNaN(val) && val >= 1 && val <= pdfPageCount) {
+                              if (!isNaN(val) && val >= 1 && val <= maxNavigablePage) {
                                 setPdfPage(val);
                               }
                             }}
                             className="w-12 text-center bg-neutral-950 text-white rounded border border-neutral-600 py-0.5 text-xs font-bold focus:outline-none focus:border-orange-500"
                             title="Enter page number to jump directly"
                           />
-                          {pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount ? (
-                            <span className="text-neutral-400 font-mono">- {pdfPage + 1} of {pdfPageCount}</span>
+                          {pdfPageViewMode === 'two-page' && pdfPage + 1 <= displayTotalPages ? (
+                            <span className="text-neutral-400 font-mono">- {pdfPage + 1} of {displayTotalPages}</span>
                           ) : (
-                            <span className="text-neutral-400">of {pdfPageCount}</span>
+                            <span className="text-neutral-400">of {displayTotalPages}</span>
                           )}
                         </div>
-                        <button type="button" disabled={pdfPage >= pdfPageCount || (pdfPageViewMode === 'two-page' && pdfPage + 1 >= pdfPageCount)} onClick={() => setPdfPage((page) => Math.min(pdfPageCount, page + (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
+                        <button type="button" disabled={pdfPage >= maxNavigablePage || (pdfPageViewMode === 'two-page' && pdfPage + 1 >= maxNavigablePage)} onClick={() => setPdfPage((page) => Math.min(maxNavigablePage, page + (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
                       </div>
                       <div className="flex items-center gap-2">
                         <button type="button" disabled={pdfScale <= 0.8} onClick={() => setPdfScale((scale) => Math.max(0.8, Number((scale - 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom out" title="Zoom out"><Minus className="size-4" /></button>
@@ -1138,17 +1125,28 @@ export default function ResourceDetail() {
                             <div className="flex-1 overflow-y-auto p-3" ref={thumbnailsContainerRef}>
                               {pdfSidebarTab === 'thumbnails' ? (
                                 <div className="space-y-4">
-                                  {Array.from({ length: pdfPageCount }).map((_, idx) => {
+                                  {Array.from({ length: displayTotalPages > 0 ? displayTotalPages : pdfPageCount }).map((_, idx) => {
                                     const pageNum = idx + 1;
                                     const isCurrent = pageNum === pdfPage;
+                                    const isLockedThumbnail = isPreviewCapped && pageNum > PREVIEW_CAP;
                                     return (
                                       <div
                                         key={pageNum}
                                         data-thumb-page={pageNum}
-                                        onClick={() => setPdfPage(pageNum)}
-                                        onMouseEnter={() => renderThumbnail(pageNum)}
+                                        onClick={() => {
+                                          if (isLockedThumbnail) {
+                                            setPdfPage(PREVIEW_CAP + 1);
+                                          } else {
+                                            setPdfPage(pageNum);
+                                          }
+                                        }}
+                                        onMouseEnter={() => {
+                                          if (!isLockedThumbnail) {
+                                            renderThumbnail(pageNum);
+                                          }
+                                        }}
                                         ref={(node) => {
-                                          if (node && !thumbnailUrls[pageNum]) {
+                                          if (node && !isLockedThumbnail && !thumbnailUrls[pageNum]) {
                                             // Trigger initial load for nearby pages
                                             if (Math.abs(pageNum - pdfPage) <= 3) {
                                               renderThumbnail(pageNum);
@@ -1164,7 +1162,13 @@ export default function ResourceDetail() {
                                               : 'border border-neutral-700 group-hover:border-neutral-500 opacity-90 group-hover:opacity-100'
                                           }`}
                                         >
-                                          {thumbnailUrls[pageNum] ? (
+                                          {isLockedThumbnail ? (
+                                            <div className="flex flex-col items-center justify-center text-amber-400 gap-1.5 p-3 text-center bg-neutral-900/90 w-full h-full">
+                                              <Lock className="size-5 text-amber-400" />
+                                              <span className="text-[10px] text-amber-200 font-semibold">Locked</span>
+                                              <span className="text-[9px] text-neutral-400">Page {pageNum}</span>
+                                            </div>
+                                          ) : thumbnailUrls[pageNum] ? (
                                             <img
                                               src={thumbnailUrls[pageNum]}
                                               alt={`Page ${pageNum}`}
@@ -1183,7 +1187,7 @@ export default function ResourceDetail() {
                                             isCurrent ? 'text-orange-400 font-bold' : 'text-neutral-400 group-hover:text-neutral-200'
                                           }`}
                                         >
-                                          {pageNum}
+                                          Page {pageNum} {isLockedThumbnail && '🔒'}
                                         </span>
                                       </div>
                                     );
@@ -1325,23 +1329,54 @@ export default function ResourceDetail() {
                             <span>Rendering page...</span>
                           </div>
                         )}
-                        <div className="relative mx-auto w-fit flex flex-col md:flex-row items-center justify-center gap-4 my-auto shrink-0" onContextMenu={(event) => event.preventDefault()}>
-                          {/* Page 1 Canvas */}
-                          <div className="relative bg-white shadow-2xl shrink-0">
-                            <canvas ref={pdfCanvasRef} className="block select-none bg-white" />
-                            <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
-                              {Array.from({ length: 10 }).map((_, index) => (
-                                <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
-                                  {user?.name || user?.username || 'Zyndex User'} • {user?.email || 'user@example.com'} • Zyndex Digital Library
-                                </div>
-                              ))}
+                        {/* When on a locked page (Page 8+), show the Unlock Paywall Prompt */}
+                        {isCurrentlyOnLockedPage ? (
+                          <div className="relative mx-auto w-full max-w-xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 border border-orange-500/30 rounded-2xl p-8 sm:p-10 text-center shadow-2xl my-auto text-white">
+                            <div className="size-16 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center mx-auto mb-5 border border-orange-500/40 shadow-inner">
+                              <Lock className="size-8" />
+                            </div>
+                            <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                              Preview Cap Reached (7 of {displayTotalPages} Pages)
+                            </h3>
+                            <p className="text-sm text-neutral-300 max-w-md mx-auto mb-6 leading-relaxed">
+                              You have reached the end of the free 7-page preview for this resource. To unlock and read all <strong className="text-white">{displayTotalPages} pages</strong>, please upgrade to the <span className="font-semibold text-orange-400">{PLAN_NAMES[requiredPlan] || requiredPlan}</span> plan or higher.
+                            </p>
+                            {userPlan && (
+                              <p className="text-xs text-neutral-400 mb-6 bg-neutral-800/80 rounded-lg py-2 px-4 inline-block border border-neutral-700">
+                                Your current active plan: <strong className="text-neutral-200">{PLAN_NAMES[userPlan] || userPlan}</strong> {isSubExpired && '(Expired)'}
+                              </p>
+                            )}
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (user) {
+                                    const safeName = user?.name ? encodeURIComponent(user.name.replace(/\s+/g, '-')) : 'user';
+                                    const safeEmail = user?.email ? encodeURIComponent(user.email) : 'email';
+                                    navigate(`/Zyndex/User/${safeName}/${safeEmail}/Profile/Billing/Pricing`);
+                                  } else {
+                                    navigate('/Zyndex/About/Pricing');
+                                  }
+                                }}
+                                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl text-sm hover:from-orange-700 hover:to-red-700 shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                              >
+                                <ShieldCheck className="size-4" />
+                                Upgrade Plan to Unlock All {displayTotalPages} Pages
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPdfPage(PREVIEW_CAP)}
+                                className="w-full sm:w-auto px-5 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl text-sm font-medium transition-colors cursor-pointer border border-neutral-700"
+                              >
+                                Back to Page {PREVIEW_CAP}
+                              </button>
                             </div>
                           </div>
-
-                          {/* Page 2 Canvas in Two-Page Book View (Only in Fullscreen) */}
-                          {isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount && (
+                        ) : (
+                          <div className="relative mx-auto w-fit flex flex-col md:flex-row items-center justify-center gap-4 my-auto shrink-0" onContextMenu={(event) => event.preventDefault()}>
+                            {/* Page 1 Canvas */}
                             <div className="relative bg-white shadow-2xl shrink-0">
-                              <canvas ref={pdfSecondCanvasRef} className="block select-none bg-white" />
+                              <canvas ref={pdfCanvasRef} className="block select-none bg-white" />
                               <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
                                 {Array.from({ length: 10 }).map((_, index) => (
                                   <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
@@ -1350,8 +1385,22 @@ export default function ResourceDetail() {
                                 ))}
                               </div>
                             </div>
-                          )}
-                        </div>
+
+                            {/* Page 2 Canvas in Two-Page Book View (Only in Fullscreen) */}
+                            {isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount && (
+                              <div className="relative bg-white shadow-2xl shrink-0">
+                                <canvas ref={pdfSecondCanvasRef} className="block select-none bg-white" />
+                                <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
+                                  {Array.from({ length: 10 }).map((_, index) => (
+                                    <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
+                                      {user?.name || user?.username || 'Zyndex User'} • {user?.email || 'user@example.com'} • Zyndex Digital Library
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
