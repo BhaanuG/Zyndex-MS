@@ -558,6 +558,7 @@ class ResourceController {
                 return ResponseEntity.ok()
                         .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cachedSlice.getFileName() + "\"")
+                        .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                         .header("X-Page-Limit", String.valueOf(pageLimit))
                         .body(new FileSystemResource(cachedSlice));
             }
@@ -573,6 +574,7 @@ class ResourceController {
                     return ResponseEntity.ok()
                             .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
                             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cachedSlice.getFileName() + "\"")
+                            .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                             .header("X-Page-Limit", String.valueOf(pageLimit))
                             .body(new FileSystemResource(cachedSlice));
                 }

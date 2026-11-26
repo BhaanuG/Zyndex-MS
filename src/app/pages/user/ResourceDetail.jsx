@@ -601,14 +601,14 @@ export default function ResourceDetail() {
     }
   }, [pdfPage, showPdfSidebar, pdfSidebarTab]);
 
-  // Automatically adjust scale in Fullscreen mode based on Fit Mode (Fit to Page / Top-to-Bottom vs Fit to Width)
+  // Automatically adjust scale responsively based on screen size, container width, and fit mode
   useEffect(() => {
-    if (!isPdfFullscreen || !pdfDocument) return;
+    if (!pdfDocument) return;
 
     let cancelled = false;
 
     const pagePromises = [pdfDocument.getPage(pdfPage)];
-    if (pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount) {
+    if (isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount) {
       pagePromises.push(pdfDocument.getPage(pdfPage + 1));
     }
 
@@ -617,28 +617,41 @@ export default function ResourceDetail() {
       const vp1 = page1.getViewport({ scale: 1, rotation: pdfRotation });
       const vp2 = page2 ? page2.getViewport({ scale: 1, rotation: pdfRotation }) : null;
 
-      // Available space inside viewer container
-      const availableHeight = Math.max(100, window.innerHeight - 80);
-      const sidebarWidth = showPdfSidebar ? 320 : 0;
-      const availableWidth = Math.max(200, window.innerWidth - sidebarWidth - 64);
+      if (isPdfFullscreen) {
+        // Available space inside fullscreen viewer container
+        const availableHeight = Math.max(100, window.innerHeight - 80);
+        const sidebarWidth = showPdfSidebar ? 320 : 0;
+        const availableWidth = Math.max(200, window.innerWidth - sidebarWidth - 64);
 
-      if (pdfFitMode === 'width') {
-        // Fit to width: horizontally fills available viewing area
-        const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
-        if (totalWidthNeeded > 0 && availableWidth > 200) {
-          const widthScale = availableWidth / totalWidthNeeded;
-          setPdfScale(Math.max(0.35, Math.min(2.5, Number(widthScale.toFixed(2)))));
+        if (pdfFitMode === 'width') {
+          const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
+          if (totalWidthNeeded > 0 && availableWidth > 200) {
+            const widthScale = availableWidth / totalWidthNeeded;
+            setPdfScale(Math.max(0.35, Math.min(2.5, Number(widthScale.toFixed(2)))));
+          }
+        } else {
+          const maxPageHeight = vp2 ? Math.max(vp1.height, vp2.height) : vp1.height;
+          const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
+
+          let fitScale = availableHeight / maxPageHeight;
+          if (totalWidthNeeded * fitScale > availableWidth) {
+            fitScale = availableWidth / totalWidthNeeded;
+          }
+          setPdfScale(Math.max(0.25, Math.min(2.5, Number(fitScale.toFixed(2)))));
         }
       } else {
-        // Fit to page (default): ensure both height and width fit without any 3/4 or side cropping
-        const maxPageHeight = vp2 ? Math.max(vp1.height, vp2.height) : vp1.height;
-        const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
+        // Non-fullscreen standard viewer: fit page within container / viewport responsively
+        const containerWidth = pdfViewerAreaRef.current?.clientWidth || window.innerWidth;
+        const isMobileScreen = window.innerWidth < 640;
+        const padding = isMobileScreen ? 16 : 48;
+        const availableWidth = Math.max(160, containerWidth - padding);
 
-        let fitScale = availableHeight / maxPageHeight;
-        if (totalWidthNeeded * fitScale > availableWidth) {
-          fitScale = availableWidth / totalWidthNeeded;
+        if (vp1.width > 0 && availableWidth > 0) {
+          // On mobile screens, fit page width so text is readable without side-cut
+          // On desktop, keep comfortable zoom up to 1.15
+          const responsiveScale = Math.min(1.15, availableWidth / vp1.width);
+          setPdfScale(Math.max(0.35, Math.min(2.0, Number(responsiveScale.toFixed(2)))));
         }
-        setPdfScale(Math.max(0.25, Math.min(2.5, Number(fitScale.toFixed(2)))));
       }
     }).catch(() => { });
 
@@ -674,8 +687,9 @@ export default function ResourceDetail() {
     // Render Page 1 (Primary Page)
     pdfDocument.getPage(pdfPage).then((page) => {
       if (cancelled) return;
-      // High-DPI (Retina / 4K / Mobile) rendering: scale canvas internal pixels by window.devicePixelRatio
-      const dpr = Math.max(window.devicePixelRatio || 1, 2);
+      // High-DPI (Retina / 4K / Mobile) rendering: cap DPR between 1.25 and 2.0 to balance crispness with fast mobile decode
+      const rawDpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(2.0, Math.max(1.25, rawDpr));
       const viewport = page.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
       const canvas = pdfCanvasRef.current;
       if (!canvas) return;
@@ -725,7 +739,8 @@ export default function ResourceDetail() {
     if (isPdfFullscreen && pdfPageViewMode === 'two-page' && secondPageNum <= pdfPageCount && pdfSecondCanvasRef.current) {
       pdfDocument.getPage(secondPageNum).then((secondPage) => {
         if (cancelled) return;
-        const dpr = Math.max(window.devicePixelRatio || 1, 2);
+        const rawDpr = window.devicePixelRatio || 1;
+        const dpr = Math.min(2.0, Math.max(1.25, rawDpr));
         const secondViewport = secondPage.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
         const secondCanvas = pdfSecondCanvasRef.current;
         if (!secondCanvas) return;
@@ -868,7 +883,7 @@ export default function ResourceDetail() {
                 )}
               </motion.div>
 
-              {!isArticle && <motion.div className="bg-white rounded-xl shadow-md p-8 mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              {!isArticle && <motion.div className="bg-white rounded-xl shadow-md p-3 sm:p-8 mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
                   <h2 className="text-xl font-semibold text-gray-900">Preview Resource</h2>
                 </div>
@@ -881,8 +896,8 @@ export default function ResourceDetail() {
                       }`}
                     onContextMenu={(event) => event.preventDefault()}
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-900 px-4 py-2.5 text-white select-none">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-neutral-900 px-2.5 sm:px-4 py-2 sm:py-2.5 text-white select-none">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
                         {isPdfFullscreen && (
                           <>
                             <button
@@ -901,9 +916,9 @@ export default function ResourceDetail() {
                             <div className="h-5 w-px bg-neutral-700 mx-0.5" />
                           </>
                         )}
-                        <button type="button" disabled={pdfPage <= 1} onClick={() => setPdfPage((page) => Math.max(1, page - (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Previous page" title="Previous page"><ChevronLeft className="size-5" /></button>
-                        <div className="flex items-center gap-1.5 text-xs sm:text-sm bg-neutral-800 px-2.5 py-1 rounded-lg border border-neutral-700">
-                          <span>Page</span>
+                        <button type="button" disabled={pdfPage <= 1} onClick={() => setPdfPage((page) => Math.max(1, page - (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Previous page" title="Previous page"><ChevronLeft className="size-5" /></button>
+                        <div className="flex items-center gap-1 text-xs sm:text-sm bg-neutral-800 px-2 sm:px-2.5 py-1 rounded-lg border border-neutral-700">
+                          <span className="hidden xs:inline">Page</span>
                           <input
                             type="number"
                             min={1}
@@ -915,21 +930,21 @@ export default function ResourceDetail() {
                                 setPdfPage(val);
                               }
                             }}
-                            className="w-12 text-center bg-neutral-950 text-white rounded border border-neutral-600 py-0.5 text-xs font-bold focus:outline-none focus:border-orange-500"
+                            className="w-10 sm:w-12 text-center bg-neutral-950 text-white rounded border border-neutral-600 py-0.5 text-xs font-bold focus:outline-none focus:border-orange-500"
                             title="Enter page number to jump directly"
                           />
                           {pdfPageViewMode === 'two-page' && pdfPage + 1 <= displayTotalPages ? (
-                            <span className="text-neutral-400 font-mono">- {pdfPage + 1} of {displayTotalPages}</span>
+                            <span className="text-neutral-400 font-mono text-xs">- {pdfPage + 1} of {displayTotalPages}</span>
                           ) : (
-                            <span className="text-neutral-400">of {displayTotalPages}</span>
+                            <span className="text-neutral-400 text-xs">/ {displayTotalPages}</span>
                           )}
                         </div>
-                        <button type="button" disabled={pdfPage >= maxNavigablePage || (pdfPageViewMode === 'two-page' && pdfPage + 1 >= maxNavigablePage)} onClick={() => setPdfPage((page) => Math.min(maxNavigablePage, page + (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
+                        <button type="button" disabled={pdfPage >= maxNavigablePage || (pdfPageViewMode === 'two-page' && pdfPage + 1 >= maxNavigablePage)} onClick={() => setPdfPage((page) => Math.min(maxNavigablePage, page + (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button type="button" disabled={pdfScale <= 0.8} onClick={() => setPdfScale((scale) => Math.max(0.8, Number((scale - 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom out" title="Zoom out"><Minus className="size-4" /></button>
-                        <span className="w-12 text-center text-xs font-semibold">{Math.round(pdfScale * 100)}%</span>
-                        <button type="button" disabled={pdfScale >= 2.5} onClick={() => setPdfScale((scale) => Math.min(2.5, Number((scale + 0.15).toFixed(2))))} className="rounded p-1.5 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom in" title="Zoom in"><Plus className="size-4" /></button>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <button type="button" disabled={pdfScale <= 0.35} onClick={() => setPdfScale((scale) => Math.max(0.35, Number((scale - 0.15).toFixed(2))))} className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom out" title="Zoom out"><Minus className="size-4" /></button>
+                        <span className="w-9 sm:w-12 text-center text-[11px] sm:text-xs font-semibold">{Math.round(pdfScale * 100)}%</span>
+                        <button type="button" disabled={pdfScale >= 2.5} onClick={() => setPdfScale((scale) => Math.min(2.5, Number((scale + 0.15).toFixed(2))))} className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom in" title="Zoom in"><Plus className="size-4" /></button>
                         <div className="h-5 w-px bg-neutral-700 mx-1" />
                         {/* Continuous rotation controls in Full Screen */}
                         {isPdfFullscreen && (
@@ -1302,31 +1317,31 @@ export default function ResourceDetail() {
                       )}
 
                       {/* Main PDF Canvas Area */}
-                      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-neutral-700 relative" ref={pdfViewerAreaRef}>
+                      <div className="flex-1 overflow-auto p-1.5 sm:p-4 flex items-center justify-center bg-neutral-700 relative min-h-[350px]" ref={pdfViewerAreaRef}>
                         {isPageRendering && (
-                          <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 text-xs px-3 py-1.5 rounded-full border border-neutral-700 pointer-events-none shadow-md">
-                            <div className="size-3 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 flex items-center gap-1.5 sm:gap-2 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-neutral-700 pointer-events-none shadow-md">
+                            <div className="size-2.5 sm:size-3 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
                             <span>Rendering page...</span>
                           </div>
                         )}
                         {/* When on a locked page (Page 8+), show the Unlock Paywall Prompt */}
                         {isCurrentlyOnLockedPage ? (
-                          <div className="relative mx-auto w-full max-w-xl bg-white border border-slate-200 rounded-2xl p-8 sm:p-10 text-center shadow-xl my-auto text-slate-900">
-                            <div className="size-16 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-5 border border-orange-100 shadow-sm">
-                              <Lock className="size-8" />
+                          <div className="relative mx-auto w-full max-w-xl bg-white border border-slate-200 rounded-2xl p-5 sm:p-10 text-center shadow-xl my-auto text-slate-900">
+                            <div className="size-12 sm:size-16 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5 border border-orange-100 shadow-sm">
+                              <Lock className="size-6 sm:size-8" />
                             </div>
-                            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 tracking-tight">
+                            <h3 className="text-lg sm:text-2xl font-bold text-slate-900 mb-2 tracking-tight">
                               Preview Cap Reached (7 of {displayTotalPages} Pages)
                             </h3>
-                            <p className="text-sm text-slate-600 max-w-md mx-auto mb-6 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto mb-5 sm:mb-6 leading-relaxed">
                               You have reached the end of the free 7-page preview for this resource. To unlock and read all <strong className="text-slate-900 font-bold">{displayTotalPages} pages</strong>, please upgrade to the <span className="font-bold text-orange-600">{PLAN_NAMES[requiredPlan] || requiredPlan}</span> plan or higher.
                             </p>
                             {userPlan && (
-                              <p className="text-xs text-slate-600 font-medium mb-6 bg-slate-50 rounded-lg py-2 px-4 inline-block border border-slate-200">
+                              <p className="text-[11px] sm:text-xs text-slate-600 font-medium mb-5 sm:mb-6 bg-slate-50 rounded-lg py-1.5 px-3 sm:py-2 sm:px-4 inline-block border border-slate-200">
                                 Your current active plan: <strong className="text-slate-900 font-bold">{PLAN_NAMES[userPlan] || userPlan}</strong> {isSubExpired && '(Expired)'}
                               </p>
                             )}
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1338,7 +1353,7 @@ export default function ResourceDetail() {
                                     navigate('/Zyndex/About/Pricing');
                                   }
                                 }}
-                                className="w-full sm:w-auto px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                               >
                                 <ShieldCheck className="size-4" />
                                 Upgrade Plan to Unlock All {displayTotalPages} Pages
@@ -1346,20 +1361,20 @@ export default function ResourceDetail() {
                               <button
                                 type="button"
                                 onClick={() => setPdfPage(PREVIEW_CAP)}
-                                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-semibold transition-colors cursor-pointer border border-slate-300 shadow-xs"
+                                className="w-full sm:w-auto px-4 sm:px-5 py-2.5 sm:py-3 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer border border-slate-300 shadow-xs"
                               >
                                 Back to Page {PREVIEW_CAP}
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <div className="relative mx-auto w-fit flex flex-col md:flex-row items-center justify-center gap-4 my-auto shrink-0" onContextMenu={(event) => event.preventDefault()}>
+                          <div className="relative mx-auto w-fit max-w-full flex flex-col md:flex-row items-center justify-center gap-4 my-auto shrink-0" onContextMenu={(event) => event.preventDefault()}>
                             {/* Page 1 Canvas */}
-                            <div className="relative bg-white shadow-2xl shrink-0">
-                              <canvas ref={pdfCanvasRef} className="block select-none bg-white" />
-                              <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-8">
+                            <div className="relative bg-white shadow-2xl shrink-0 max-w-full">
+                              <canvas ref={pdfCanvasRef} className="block select-none bg-white max-w-full" />
+                              <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-5 gap-8 overflow-hidden p-4 sm:p-8">
                                 {Array.from({ length: 10 }).map((_, index) => (
-                                  <div key={index} className="flex items-center justify-center -rotate-25 text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
+                                  <div key={index} className="flex items-center justify-center -rotate-25 text-[10px] sm:text-xs font-semibold text-gray-900/[0.22] whitespace-nowrap select-none">
                                     {user?.name || user?.username || 'Zyndex User'} • {user?.email || 'user@example.com'} • Zyndex Digital Library
                                   </div>
                                 ))}

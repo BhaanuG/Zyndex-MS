@@ -545,7 +545,8 @@ export default function ResourceManagement() {
     // Render Page 1 (Primary Page)
     pdfDocument.getPage(pdfPage).then((page) => {
       if (cancelled) return;
-      const dpr = Math.max(window.devicePixelRatio || 1, 2);
+      const rawDpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(2.0, Math.max(1.25, rawDpr));
       const viewport = page.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
       const canvas = pdfCanvasRef.current;
       if (!canvas) return;
@@ -586,7 +587,8 @@ export default function ResourceManagement() {
     if (isPdfFullscreen && pdfPageViewMode === 'two-page' && secondPageNum <= pdfPageCount && pdfSecondCanvasRef.current) {
       pdfDocument.getPage(secondPageNum).then((secondPage) => {
         if (cancelled) return;
-        const dpr = Math.max(window.devicePixelRatio || 1, 2);
+        const rawDpr = window.devicePixelRatio || 1;
+        const dpr = Math.min(2.0, Math.max(1.25, rawDpr));
         const secondViewport = secondPage.getViewport({ scale: pdfScale * dpr, rotation: pdfRotation });
         const secondCanvas = pdfSecondCanvasRef.current;
         if (!secondCanvas) return;
