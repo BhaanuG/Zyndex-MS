@@ -1234,26 +1234,25 @@ public class PaymentService {
             return Map.of("status", "CANCELLED", "message", "Payment cancelled and notification sent to " + userEmail + ".");
 
         } else if ("DELETE".equals(normalizedAction) || "REMOVE".equals(normalizedAction)) {
-            // Admin deletion of payment record (e.g. duplicate payment)
-            String deleteReason = (note != null && !note.isBlank()) ? note.trim() : "Duplicate payment record removed by administrator.";
-            
-            // If deleting an approved/success payment, check if any other active payment exists for user; if not, revert to FREE
-            if ("SUCCESS".equals(currentStatusStr)) {
-                Integer remainingSuccess = jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM payments WHERE user_id = ? AND status = 'SUCCESS' AND id != ?",
-                        Integer.class, userId, paymentId
-                );
-                if (remainingSuccess == null || remainingSuccess == 0) {
-                    try {
-                        jdbc.update("UPDATE subscriptions SET status = 'REVOKED' WHERE user_id = ? AND status = 'ACTIVE'", userId);
-                        syncAccessSubscription(userId, "FREE", 36500);
-                    } catch (Exception e) {
-                        log.warn("Failed to revert subscription on delete: {}", e.getMessage());
-                    }
+            // Admin deletion of payment record
+            String deleteReason = (note != null && !note.isBlank()) ? note.trim() : "Payment record removed by administrator.";
+
+            // Revoke active / provisional subscription if no other active SUCCESS or valid REVIEW_REQUIRED payment exists for this user
+            Integer remainingValidPayments = jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM payments WHERE user_id = ? AND status IN ('SUCCESS', 'REVIEW_REQUIRED') AND id != ?",
+                    Integer.class, userId, paymentId
+            );
+            if (remainingValidPayments == null || remainingValidPayments == 0) {
+                try {
+                    jdbc.update("UPDATE subscriptions SET status = 'REVOKED' WHERE user_id = ? AND status = 'ACTIVE'", userId);
+                    syncAccessSubscription(userId, "FREE", 36500);
+                    log.info("Reverted user #{} to FREE tier after payment {} was deleted by admin", userId, paymentId);
+                } catch (Exception e) {
+                    log.warn("Failed to revert subscription on delete: {}", e.getMessage());
                 }
             }
 
-            // Remove associated delivery logs and payment record
+            // Remove associated delivery logs, audit logs, and payment record
             try {
                 jdbc.update("DELETE FROM payment_webhook_deliveries WHERE payment_id = ?", paymentId);
             } catch (Exception ignored) {}
@@ -1263,7 +1262,7 @@ public class PaymentService {
             jdbc.update("DELETE FROM payments WHERE id = ?", paymentId);
 
             auditLog(paymentId, orderId, userId, "ADMIN_PAYMENT_DELETED", currentStatusStr, "DELETED", effectiveUtr, deleteReason);
-            return Map.of("status", "DELETED", "message", "Payment record deleted successfully.");
+            return Map.of("status", "DELETED", "message", "Payment record deleted and user subscription revoked.");
 
         } else {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid action. Supported actions: ACCEPT/CONFIRM, DECLINE, NOT_RECEIVED, CANCEL.");
