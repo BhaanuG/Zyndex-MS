@@ -458,47 +458,48 @@ export default function AdminPayments() {
         {/* Payments Table */}
         <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[980px]">
+            <table className="w-full text-left border-collapse min-w-[860px]">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-4 w-12 text-center">Sl No</th>
                   <th className="py-3.5 px-4 cursor-pointer hover:text-slate-900" onClick={() => toggleSort('name')}>
                     User Name
                   </th>
                   <th className="py-3.5 px-4 cursor-pointer hover:text-slate-900" onClick={() => toggleSort('email')}>
                     Email Address
                   </th>
-                  <th className="py-3.5 px-4 cursor-pointer hover:text-slate-900" onClick={() => toggleSort('created_at')}>
-                    Date & Time
+                  <th className="py-3.5 px-4">
+                    UTR Number
                   </th>
-                  <th className="py-3.5 px-4">UTR Number</th>
-                  <th className="py-3.5 px-4">Present Plan (Paid)</th>
-                  <th className="py-3.5 px-4">Previous Plan</th>
+                  <th className="py-3.5 px-4">
+                    Present Plan
+                  </th>
                   <th className="py-3.5 px-4 cursor-pointer hover:text-slate-900" onClick={() => toggleSort('amount')}>
                     Amount Paid
                   </th>
                   <th className="py-3.5 px-4 cursor-pointer hover:text-slate-900" onClick={() => toggleSort('status')}>
                     Status
                   </th>
-                  <th className="py-3.5 px-4 text-center">Admin Verification Action</th>
+                  <th className="py-3.5 px-4 text-center">
+                    Verification Action
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {loading && payments.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="py-12 text-center text-slate-400 font-medium">
+                    <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                       <RefreshCw className="size-6 animate-spin mx-auto mb-2 text-orange-500" />
                       Loading payments history...
                     </td>
                   </tr>
                 ) : filteredPayments.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="py-12 text-center text-slate-400 font-medium">
+                    <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                       No payments found matching the selected filters.
                     </td>
                   </tr>
                 ) : (
-                  filteredPayments.map((p, idx) => {
+                  filteredPayments.map((p) => {
                     const isHold = p.status === 'REVIEW_REQUIRED';
                     const amountRupees = ((p.amount_paise || 0) / 100).toFixed(2);
                     return (
@@ -508,11 +509,6 @@ export default function AdminPayments() {
                           isHold ? 'bg-amber-50/30 font-medium' : ''
                         }`}
                       >
-                        {/* Sl No */}
-                        <td className="py-3 px-4 text-center text-slate-400 font-mono text-[11px]">
-                          {idx + 1}
-                        </td>
-
                         {/* User Name */}
                         <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">
                           {p.user_name || 'N/A'}
@@ -521,17 +517,6 @@ export default function AdminPayments() {
                         {/* Email Address */}
                         <td className="py-3 px-4 text-slate-600 font-mono text-[11px] whitespace-nowrap">
                           {p.user_email || 'N/A'}
-                        </td>
-
-                        {/* Date & Time */}
-                        <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
-                          {p.created_at ? new Date(p.created_at).toLocaleString('en-IN', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          }) : 'N/A'}
                         </td>
 
                         {/* UTR Number */}
@@ -549,13 +534,6 @@ export default function AdminPayments() {
                         <td className="py-3 px-4">
                           <span className="font-bold text-slate-900 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px]">
                             {(p.plan_id || 'N/A').replace(/_/g, ' ')}
-                          </span>
-                        </td>
-
-                        {/* Previous Plan */}
-                        <td className="py-3 px-4 text-slate-600">
-                          <span className="text-slate-500 text-[11px]">
-                            {(p.previous_plan || 'FREE').replace(/_/g, ' ')}
                           </span>
                         </td>
 
