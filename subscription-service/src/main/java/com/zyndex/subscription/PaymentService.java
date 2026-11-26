@@ -753,52 +753,9 @@ public class PaymentService {
     }
 
     public Map<String, Object> confirmSimulatedPayment(Long userId, String paymentId) {
-        if (userId == null || userId <= 0) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
-        }
-
-        List<Map<String, Object>> payments = jdbc.queryForList(
-                "SELECT * FROM payments WHERE id = ? AND user_id = ?",
-                paymentId, userId
-        );
-
-        if (payments.isEmpty()) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Payment transaction record not found.");
-        }
-
-        Map<String, Object> payment = payments.get(0);
-        String currentStatusStr = String.valueOf(payment.get("status")).toUpperCase();
-        String orderId = String.valueOf(payment.get("order_id"));
-
-        if ("SUCCESS".equals(currentStatusStr)) {
-            return Map.of("status", "SUCCESS", "paymentId", paymentId, "orderId", orderId, "message", "Payment already confirmed.");
-        }
-
-        String planId = String.valueOf(payment.get("plan_id"));
-        long amountPaise = ((Number) payment.get("amount_paise")).longValue();
-        String simGatewayPaymentId = payment.get("gateway_payment_id") != null ? String.valueOf(payment.get("gateway_payment_id")) : "SIM_" + UUID.randomUUID().toString().substring(0, 8);
-        String utr = "UTR" + System.currentTimeMillis();
-
-        activateSuccessfulSubscription(
-                paymentId,
-                orderId,
-                userId,
-                planId,
-                amountPaise,
-                simGatewayPaymentId,
-                utr,
-                "manual_test_delivery_" + System.currentTimeMillis(),
-                1,
-                "MANUAL_TEST_CONFIRMED"
-        );
-
-        return Map.of(
-                "status", "SUCCESS",
-                "paymentId", paymentId,
-                "orderId", orderId,
-                "utr", utr,
-                "message", "Payment successfully verified and subscription activated."
-        );
+        // Direct simulated automatic activation is disabled in production to protect platform revenue integrity.
+        // All payments must be verified via official UPI UTR submission or admin confirmation.
+        throw new ApiException(HttpStatus.BAD_REQUEST, "Direct automated settlement is temporarily unavailable for this payment method. Please use the UPI / Dynamic QR option and submit your bank UTR reference.");
     }
 
     /**

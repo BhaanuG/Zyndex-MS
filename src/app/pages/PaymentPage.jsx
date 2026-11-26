@@ -745,45 +745,49 @@ export default function PaymentPage() {
               >
                 <QrCode className="size-4" />
                 <span>UPI / QR</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Active</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedMethod('card')}
-                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
                   selectedMethod === 'card'
                     ? 'bg-white text-orange-600 shadow-sm border border-slate-200/80'
-                    : 'text-slate-600 hover:text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <CreditCard className="size-4" />
                 <span>Cards</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Soon</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedMethod('netbanking')}
-                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
                   selectedMethod === 'netbanking'
                     ? 'bg-white text-orange-600 shadow-sm border border-slate-200/80'
-                    : 'text-slate-600 hover:text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <Landmark className="size-4" />
                 <span>Net Banking</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Soon</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedMethod('wallet')}
-                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
                   selectedMethod === 'wallet'
                     ? 'bg-white text-orange-600 shadow-sm border border-slate-200/80'
-                    : 'text-slate-600 hover:text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 <Wallet className="size-4" />
                 <span>Wallets</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Soon</span>
               </button>
             </div>
 
@@ -919,317 +923,131 @@ export default function PaymentPage() {
 
             {/* TAB CONTENT: CREDIT / DEBIT CARDS */}
             {selectedMethod === 'card' && (
-              <form onSubmit={handleCardPayment} className="space-y-6 max-w-xl mx-auto">
-                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                  <div className="absolute right-4 top-4 opacity-10">
-                    <CreditCard className="size-32" />
-                  </div>
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="size-10 rounded-lg bg-amber-400/20 border border-amber-300/40 flex items-center justify-center">
-                      <div className="size-6 rounded bg-amber-400/50" />
-                    </div>
-                    <span className="text-xs font-mono uppercase tracking-widest text-slate-400">Debit / Credit</span>
-                  </div>
-                  <div className="font-mono text-lg sm:text-xl tracking-widest mb-4">
-                    {cardData.number || '•••• •••• •••• ••••'}
-                  </div>
-                  <div className="flex justify-between items-end text-xs">
-                    <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Cardholder</span>
-                      <span className="font-semibold uppercase truncate block max-w-44">{cardData.name || 'SCHOLAR NAME'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Expires</span>
-                      <span className="font-mono font-semibold">{cardData.expiry || 'MM/YY'}</span>
-                    </div>
-                  </div>
+              <div className="space-y-6 max-w-xl mx-auto text-center py-6">
+                <div className="size-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-2xs">
+                  <CreditCard className="size-8" />
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Card Number</label>
-                    <input
-                      type="text"
-                      maxLength={19}
-                      value={cardData.number}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
-                        setCardData(prev => ({ ...prev, number: val }));
-                        setCardError('');
-                      }}
-                      placeholder="4532 •••• •••• 8892"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-semibold focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Cardholder Name</label>
-                    <input
-                      type="text"
-                      value={cardData.name}
-                      onChange={(e) => {
-                        setCardData(prev => ({ ...prev, name: e.target.value }));
-                        setCardError('');
-                      }}
-                      placeholder="Name as printed on card"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Expiry Date</label>
-                      <input
-                        type="text"
-                        maxLength={5}
-                        value={cardData.expiry}
-                        onChange={(e) => {
-                          let val = e.target.value.replace(/\D/g, '');
-                          if (val.length >= 3) {
-                            val = `${val.slice(0, 2)}/${val.slice(2, 4)}`;
-                          }
-                          setCardData(prev => ({ ...prev, expiry: val }));
-                          setCardError('');
-                        }}
-                        placeholder="MM/YY"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-semibold focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-center"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">CVV / CVC</label>
-                      <input
-                        type="password"
-                        maxLength={4}
-                        value={cardData.cvv}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                          setCardData(prev => ({ ...prev, cvv: val }));
-                          setCardError('');
-                        }}
-                        placeholder="•••"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-semibold focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none text-center"
-                      />
-                    </div>
-                  </div>
-
-                  {cardError && (
-                    <p className="text-xs font-semibold text-red-600 flex items-center gap-1.5">
-                      <AlertCircle className="size-3.5" />
-                      <span>{cardError}</span>
-                    </p>
-                  )}
+                <div className="space-y-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200 uppercase tracking-wider">
+                    Feature In Progress
+                  </span>
+                  <h3 className="text-xl font-bold text-slate-900">Card Payments Coming Soon</h3>
+                  <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                    Credit and Debit card gateway integration is currently undergoing security compliance upgrades. Please complete your transaction using our instant <strong className="text-slate-900">UPI / QR Code</strong> method.
+                  </p>
                 </div>
-
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600 text-left space-y-1.5">
+                  <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <ShieldCheck className="size-4 text-emerald-600" />
+                    Recommended Fast Alternative:
+                  </p>
+                  <p>Switch to the <strong>UPI / QR</strong> tab to scan and pay from Google Pay, PhonePe, Paytm, or BHIM with instant 12-hour grace period access.</p>
+                </div>
                 <div className="pt-2 flex flex-col sm:flex-row gap-3">
                   <button
-                    type="submit"
-                    disabled={processingCard}
-                    className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                    type="button"
+                    onClick={() => setSelectedMethod('upi')}
+                    className="flex-1 py-3.5 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    {processingCard ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        <span>Authorizing with Bank 3DS...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="size-4" />
-                        <span>Pay ₹{amount || paymentData?.amountRupees || '199'} Securely</span>
-                      </>
-                    )}
+                    <QrCode className="size-4" />
+                    <span>Switch to UPI / QR Code</span>
                   </button>
                   <button
                     type="button"
                     onClick={handleCancelPayment}
-                    disabled={cancelling || processingCard}
-                    className="py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all disabled:opacity-50 cursor-pointer"
+                    disabled={cancelling}
+                    className="py-3.5 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                 </div>
-              </form>
+              </div>
             )}
 
             {/* TAB CONTENT: NET BANKING */}
             {selectedMethod === 'netbanking' && (
-              <form onSubmit={handleNetBankingPayment} className="space-y-6 max-w-xl mx-auto">
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-slate-700 uppercase">Popular Indian Banks</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                    {[
-                      { id: 'HDFC', name: 'HDFC Bank' },
-                      { id: 'SBI', name: 'State Bank of India' },
-                      { id: 'ICICI', name: 'ICICI Bank' },
-                      { id: 'AXIS', name: 'Axis Bank' },
-                      { id: 'KOTAK', name: 'Kotak Mahindra' },
-                      { id: 'PNB', name: 'Punjab National' }
-                    ].map(bank => (
-                      <button
-                        key={bank.id}
-                        type="button"
-                        onClick={() => setSelectedBank(bank.id)}
-                        className={`p-3 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${
-                          selectedBank === bank.id
-                            ? 'bg-orange-50 border-orange-500 text-orange-950 shadow-2xs'
-                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span className="truncate">{bank.name}</span>
-                        {selectedBank === bank.id && <Check className="size-3.5 text-orange-600 shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
+              <div className="space-y-6 max-w-xl mx-auto text-center py-6">
+                <div className="size-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-2xs">
+                  <Landmark className="size-8" />
                 </div>
-
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-700 uppercase">All Other Banks</label>
-                  <select
-                    value={selectedBank}
-                    onChange={(e) => setSelectedBank(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:border-orange-500 outline-none"
-                  >
-                    <option value="HDFC">HDFC Bank</option>
-                    <option value="SBI">State Bank of India</option>
-                    <option value="ICICI">ICICI Bank</option>
-                    <option value="AXIS">Axis Bank</option>
-                    <option value="KOTAK">Kotak Mahindra Bank</option>
-                    <option value="PNB">Punjab National Bank</option>
-                    <option value="BOB">Bank of Baroda</option>
-                    <option value="CANARA">Canara Bank</option>
-                    <option value="UNION">Union Bank of India</option>
-                    <option value="IDBI">IDBI Bank</option>
-                    <option value="YES">Yes Bank</option>
-                    <option value="INDUSIND">IndusInd Bank</option>
-                  </select>
-                </div>
-
-                {bankError && (
-                  <p className="text-xs font-semibold text-red-600 flex items-center gap-1.5">
-                    <AlertCircle className="size-3.5" />
-                    <span>{bankError}</span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200 uppercase tracking-wider">
+                    Feature In Progress
+                  </span>
+                  <h3 className="text-xl font-bold text-slate-900">Net Banking Coming Soon</h3>
+                  <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                    Direct net banking gateway links for Indian banks are currently being connected. Please use the instant <strong className="text-slate-900">UPI / QR Code</strong> method to complete your subscription.
                   </p>
-                )}
-
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-1">
-                  <div className="flex items-center gap-2 font-bold text-slate-800">
-                    <ShieldCheck className="size-4 text-emerald-600" />
-                    <span>Direct Bank Gateway Authorization</span>
-                  </div>
-                  <p>You will be securely routed through your bank’s official payment portal to approve the transaction.</p>
                 </div>
-
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600 text-left space-y-1.5">
+                  <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <ShieldCheck className="size-4 text-emerald-600" />
+                    Instant UPI Option Available:
+                  </p>
+                  <p>All major banks (HDFC, SBI, ICICI, Axis, Kotak, PNB) support direct UPI scanning via their official mobile apps.</p>
+                </div>
                 <div className="pt-2 flex flex-col sm:flex-row gap-3">
                   <button
-                    type="submit"
-                    disabled={processingBank}
-                    className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                    type="button"
+                    onClick={() => setSelectedMethod('upi')}
+                    className="flex-1 py-3.5 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    {processingBank ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        <span>Connecting to Bank Gateway...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Landmark className="size-4" />
-                        <span>Proceed to Pay ₹{amount || paymentData?.amountRupees || '199'}</span>
-                      </>
-                    )}
+                    <QrCode className="size-4" />
+                    <span>Switch to UPI / QR Code</span>
                   </button>
                   <button
                     type="button"
                     onClick={handleCancelPayment}
-                    disabled={cancelling || processingBank}
-                    className="py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all disabled:opacity-50 cursor-pointer"
+                    disabled={cancelling}
+                    className="py-3.5 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                 </div>
-              </form>
+              </div>
             )}
 
             {/* TAB CONTENT: DIGITAL WALLETS */}
             {selectedMethod === 'wallet' && (
-              <form onSubmit={handleWalletPayment} className="space-y-6 max-w-xl mx-auto">
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-slate-700 uppercase">Select Wallet</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {[
-                      { id: 'paytm', name: 'Paytm Wallet' },
-                      { id: 'phonepe', name: 'PhonePe Wallet' },
-                      { id: 'mobikwik', name: 'MobiKwik' },
-                      { id: 'amazonpay', name: 'Amazon Pay' }
-                    ].map(w => (
-                      <button
-                        key={w.id}
-                        type="button"
-                        onClick={() => setSelectedWallet(w.id)}
-                        className={`p-3 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
-                          selectedWallet === w.id
-                            ? 'bg-orange-50 border-orange-500 text-orange-950 shadow-2xs'
-                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span>{w.name}</span>
-                      </button>
-                    ))}
-                  </div>
+              <div className="space-y-6 max-w-xl mx-auto text-center py-6">
+                <div className="size-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-2xs">
+                  <Wallet className="size-8" />
                 </div>
-
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-700 uppercase">
-                    Registered Mobile Number
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-3.5 text-sm font-bold text-slate-500 font-mono">+91</span>
-                    <input
-                      type="tel"
-                      maxLength={10}
-                      value={walletPhone}
-                      onChange={(e) => {
-                        setWalletPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
-                        setWalletError('');
-                      }}
-                      placeholder="98765 43210"
-                      className="w-full pl-14 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
-                    />
-                  </div>
-                  {walletError && (
-                    <p className="text-xs font-semibold text-red-600 flex items-center gap-1.5 mt-1">
-                      <AlertCircle className="size-3.5" />
-                      <span>{walletError}</span>
-                    </p>
-                  )}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200 uppercase tracking-wider">
+                    Feature In Progress
+                  </span>
+                  <h3 className="text-xl font-bold text-slate-900">Wallet Payments Coming Soon</h3>
+                  <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                    Direct wallet debit (Paytm, PhonePe, MobiKwik, Amazon Pay) is being upgraded. Please use our instant <strong className="text-slate-900">UPI / QR Code</strong> method to complete payment.
+                  </p>
                 </div>
-
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600 text-left space-y-1.5">
+                  <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <ShieldCheck className="size-4 text-emerald-600" />
+                    Pay via UPI with Your Wallet App:
+                  </p>
+                  <p>You can open Paytm or PhonePe, select 'Scan Any QR', and scan our dynamic QR code directly.</p>
+                </div>
                 <div className="pt-2 flex flex-col sm:flex-row gap-3">
                   <button
-                    type="submit"
-                    disabled={processingWallet || walletPhone.length !== 10}
-                    className="flex-1 py-4 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                    type="button"
+                    onClick={() => setSelectedMethod('upi')}
+                    className="flex-1 py-3.5 px-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    {processingWallet ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        <span>Sending Debit Request to Wallet...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Wallet className="size-4" />
-                        <span>Pay ₹{amount || paymentData?.amountRupees || '199'} with Wallet</span>
-                      </>
-                    )}
+                    <QrCode className="size-4" />
+                    <span>Switch to UPI / QR Code</span>
                   </button>
                   <button
                     type="button"
                     onClick={handleCancelPayment}
-                    disabled={cancelling || processingWallet}
-                    className="py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all disabled:opacity-50 cursor-pointer"
+                    disabled={cancelling}
+                    className="py-3.5 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                 </div>
-              </form>
+              </div>
             )}
           </motion.div>
         )}
