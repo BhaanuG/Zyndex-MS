@@ -104,7 +104,7 @@ export default function ResourceDetail() {
   const displayTotalPages = totalActualPages > 0 ? totalActualPages : (pdfDocument ? pdfDocument.numPages : 0);
   // Navigable maximum page in the reader:
   // If capped, allow navigating up to PREVIEW_CAP + 1 (the 8th page shows the upgrade paywall unlock modal)
-  const maxNavigablePage = isPreviewCapped 
+  const maxNavigablePage = isPreviewCapped
     ? (displayTotalPages > 0 ? Math.min(displayTotalPages, PREVIEW_CAP + 1) : PREVIEW_CAP + 1)
     : (pdfDocument ? pdfDocument.numPages : 1);
   const isCurrentlyOnLockedPage = isPreviewCapped && pdfPage > PREVIEW_CAP;
@@ -244,7 +244,7 @@ export default function ResourceDetail() {
         : (totalSeconds >= 15 ? Math.max(1, Math.round(totalSeconds / 60)) : 0);
 
       if (totalMinutes > 0) {
-        resourceService.trackReadingDuration(id, totalMinutes).catch(() => {});
+        resourceService.trackReadingDuration(id, totalMinutes).catch(() => { });
       }
     };
 
@@ -297,7 +297,7 @@ export default function ResourceDetail() {
       try {
         const refreshed = await resourceService.getResourceById(id);
         if (refreshed) setResource(refreshed);
-      } catch (ignored) {}
+      } catch (ignored) { }
     } catch (error) {
       setMessage(error.message || 'Failed to submit feedback.');
       if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
@@ -411,7 +411,7 @@ export default function ResourceDetail() {
       cancelled = true;
       try {
         loadingTask?.destroy();
-      } catch (e) {}
+      } catch (e) { }
       if (fallbackBlobUrl) URL.revokeObjectURL(fallbackBlobUrl);
     };
   }, [previewUrlWithVersion, isPdfPreview]);
@@ -621,7 +621,7 @@ export default function ResourceDetail() {
         }
         setPdfScale(Math.max(0.25, Math.min(2.5, Number(fitScale.toFixed(2)))));
       }
-    }).catch(() => {});
+    }).catch(() => { });
 
     return () => {
       cancelled = true;
@@ -639,12 +639,12 @@ export default function ResourceDetail() {
       if (primaryRenderTaskRef.current) {
         primaryRenderTaskRef.current.cancel();
       }
-    } catch (e) {}
+    } catch (e) { }
     try {
       if (secondaryRenderTaskRef.current) {
         secondaryRenderTaskRef.current.cancel();
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // If current page is beyond preview document pages (e.g. page 8 lock screen), skip rendering
     if (isPreviewCapped && pdfPage > PREVIEW_CAP) {
@@ -736,17 +736,17 @@ export default function ResourceDetail() {
             console.warn('Secondary page render error:', error);
           }
         });
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     return () => {
       cancelled = true;
       try {
         if (primaryRenderTaskRef.current) primaryRenderTaskRef.current.cancel();
-      } catch (e) {}
+      } catch (e) { }
       try {
         if (secondaryRenderTaskRef.current) secondaryRenderTaskRef.current.cancel();
-      } catch (e) {}
+      } catch (e) { }
     };
   }, [pdfDocument, pdfPage, pdfScale, pdfRotation, pdfPageViewMode, pdfPageCount]);
 
@@ -813,11 +813,10 @@ export default function ResourceDetail() {
 
                 {/* Membership & Entitlement Status */}
                 <div className="flex items-center gap-2 flex-wrap mb-6">
-                  <span className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs ${
-                    requiredTier === 0
+                  <span className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs ${requiredTier === 0
                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                       : 'bg-orange-50 text-orange-800 border border-orange-200'
-                  }`}>
+                    }`}>
                     <span className={`size-1.5 rounded-full ${requiredTier === 0 ? 'bg-emerald-500' : 'bg-orange-500'}`} />
                     {requiredTier === 0 ? 'Free Access Resource' : `Requires: ${PLAN_NAMES[requiredPlan] || requiredPlan}`}
                   </span>
@@ -826,7 +825,7 @@ export default function ResourceDetail() {
                 {isArticle ? (
                   <div className="mt-4 pt-4 border-t border-slate-100">
                     <div className="article-reader-container bg-white rounded-2xl p-2 sm:p-6">
-                      <div 
+                      <div
                         className="article-content text-slate-800 leading-relaxed font-serif text-[16px] sm:text-[17px] space-y-4"
                         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resource.articleContent || resource.description || '') }}
                       />
@@ -859,9 +858,8 @@ export default function ResourceDetail() {
                 {previewUrl && isPdfPreview && pdfDocument ? (
                   <div
                     ref={pdfContainerRef}
-                    className={`overflow-hidden rounded-xl border border-gray-200 bg-neutral-800 flex flex-col ${
-                      isPdfFullscreen ? 'fixed inset-0 z-[9999] rounded-none border-0 w-screen h-screen' : ''
-                    }`}
+                    className={`overflow-hidden rounded-xl border border-gray-200 bg-neutral-800 flex flex-col ${isPdfFullscreen ? 'fixed inset-0 z-[9999] rounded-none border-0 w-screen h-screen' : ''
+                      }`}
                     onContextMenu={(event) => event.preventDefault()}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-900 px-4 py-2.5 text-white select-none">
@@ -871,11 +869,10 @@ export default function ResourceDetail() {
                             <button
                               type="button"
                               onClick={() => setShowPdfSidebar((prev) => !prev)}
-                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
-                                showPdfSidebar
+                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${showPdfSidebar
                                   ? 'bg-orange-600/20 text-orange-400 border-orange-500/50'
                                   : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border-neutral-700 hover:text-white'
-                              }`}
+                                }`}
                               title={showPdfSidebar ? 'Hide Page Navigator & Contents' : 'Show Page Navigator & Contents'}
                               aria-label="Toggle Page Navigator"
                             >
@@ -949,11 +946,10 @@ export default function ResourceDetail() {
                               <button
                                 type="button"
                                 onClick={() => setPdfPageViewMode('single')}
-                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                  pdfPageViewMode === 'single'
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${pdfPageViewMode === 'single'
                                     ? 'bg-neutral-700 text-orange-400 shadow-sm'
                                     : 'text-neutral-400 hover:text-white'
-                                }`}
+                                  }`}
                                 title="Single Page View (Fit Top-to-Bottom)"
                               >
                                 <Square className="size-3.5" />
@@ -962,11 +958,10 @@ export default function ResourceDetail() {
                               <button
                                 type="button"
                                 onClick={() => setPdfPageViewMode('two-page')}
-                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                  pdfPageViewMode === 'two-page'
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${pdfPageViewMode === 'two-page'
                                     ? 'bg-neutral-700 text-orange-400 shadow-sm'
                                     : 'text-neutral-400 hover:text-white'
-                                }`}
+                                  }`}
                                 title="Two-Page Book View (Fit Top-to-Bottom)"
                               >
                                 <BookOpenCheck className="size-3.5" />
@@ -983,11 +978,10 @@ export default function ResourceDetail() {
                               <button
                                 type="button"
                                 onClick={() => setPdfFitMode('page')}
-                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                  pdfFitMode === 'page'
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${pdfFitMode === 'page'
                                     ? 'bg-neutral-700 text-orange-400 shadow-sm'
                                     : 'text-neutral-400 hover:text-white'
-                                }`}
+                                  }`}
                                 title="Fit to Page (Top-to-Bottom)"
                               >
                                 <MoveVertical className="size-3.5" />
@@ -996,11 +990,10 @@ export default function ResourceDetail() {
                               <button
                                 type="button"
                                 onClick={() => setPdfFitMode('width')}
-                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
-                                  pdfFitMode === 'width'
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${pdfFitMode === 'width'
                                     ? 'bg-neutral-700 text-orange-400 shadow-sm'
                                     : 'text-neutral-400 hover:text-white'
-                                }`}
+                                  }`}
                                 title="Fit to Width"
                               >
                                 <MoveHorizontal className="size-3.5" />
@@ -1040,11 +1033,10 @@ export default function ResourceDetail() {
                             <button
                               type="button"
                               onClick={() => setPdfSidebarTab('thumbnails')}
-                              className={`p-2.5 rounded-lg transition-all cursor-pointer ${
-                                pdfSidebarTab === 'thumbnails'
+                              className={`p-2.5 rounded-lg transition-all cursor-pointer ${pdfSidebarTab === 'thumbnails'
                                   ? 'bg-neutral-800 text-orange-400 border border-neutral-600 shadow-sm'
                                   : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
-                              }`}
+                                }`}
                               title="Page Thumbnails"
                               aria-label="Page Thumbnails"
                             >
@@ -1053,11 +1045,10 @@ export default function ResourceDetail() {
                             <button
                               type="button"
                               onClick={() => setPdfSidebarTab('outline')}
-                              className={`p-2.5 rounded-lg transition-all cursor-pointer ${
-                                pdfSidebarTab === 'outline'
+                              className={`p-2.5 rounded-lg transition-all cursor-pointer ${pdfSidebarTab === 'outline'
                                   ? 'bg-neutral-800 text-orange-400 border border-neutral-600 shadow-sm'
                                   : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
-                              }`}
+                                }`}
                               title="Table of Contents"
                               aria-label="Table of Contents"
                             >
@@ -1156,11 +1147,10 @@ export default function ResourceDetail() {
                                         className="group cursor-pointer flex flex-col items-center"
                                       >
                                         <div
-                                          className={`relative w-36 sm:w-40 aspect-[1/1.414] bg-white rounded-md overflow-hidden shadow transition-all flex items-center justify-center ${
-                                            isCurrent
+                                          className={`relative w-36 sm:w-40 aspect-[1/1.414] bg-white rounded-md overflow-hidden shadow transition-all flex items-center justify-center ${isCurrent
                                               ? 'ring-2 ring-orange-500 ring-offset-2 ring-offset-[#2d2d2d] shadow-lg'
                                               : 'border border-neutral-700 group-hover:border-neutral-500 opacity-90 group-hover:opacity-100'
-                                          }`}
+                                            }`}
                                         >
                                           {isLockedThumbnail ? (
                                             <div className="flex flex-col items-center justify-center text-amber-400 gap-1.5 p-3 text-center bg-neutral-900/90 w-full h-full">
@@ -1183,9 +1173,8 @@ export default function ResourceDetail() {
                                           )}
                                         </div>
                                         <span
-                                          className={`text-xs mt-1.5 font-medium transition-colors ${
-                                            isCurrent ? 'text-orange-400 font-bold' : 'text-neutral-400 group-hover:text-neutral-200'
-                                          }`}
+                                          className={`text-xs mt-1.5 font-medium transition-colors ${isCurrent ? 'text-orange-400 font-bold' : 'text-neutral-400 group-hover:text-neutral-200'
+                                            }`}
                                         >
                                           Page {pageNum} {isLockedThumbnail && '🔒'}
                                         </span>
@@ -1209,9 +1198,8 @@ export default function ResourceDetail() {
                                           return (
                                             <div key={item.key} className="space-y-1">
                                               <div
-                                                className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 transition-colors group cursor-pointer ${
-                                                  item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'hover:bg-neutral-800 text-neutral-300'
-                                                }`}
+                                                className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 transition-colors group cursor-pointer ${item.pageNumber === pdfPage ? 'bg-orange-500/20 text-orange-300 font-semibold' : 'hover:bg-neutral-800 text-neutral-300'
+                                                  }`}
                                               >
                                                 {/* Expand / Collapse Toggle Arrow */}
                                                 {hasChildren ? (
@@ -1242,9 +1230,8 @@ export default function ResourceDetail() {
                                                     title={isExpanded ? 'Collapse Section' : 'Expand Section'}
                                                   >
                                                     <ChevronDown
-                                                      className={`size-3.5 transition-transform duration-200 ${
-                                                        isExpanded ? 'rotate-0 text-orange-400' : '-rotate-90 text-neutral-500'
-                                                      }`}
+                                                      className={`size-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-0 text-orange-400' : '-rotate-90 text-neutral-500'
+                                                        }`}
                                                     />
                                                   </button>
                                                 ) : (
@@ -1331,19 +1318,19 @@ export default function ResourceDetail() {
                         )}
                         {/* When on a locked page (Page 8+), show the Unlock Paywall Prompt */}
                         {isCurrentlyOnLockedPage ? (
-                          <div className="relative mx-auto w-full max-w-xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 border border-orange-500/30 rounded-2xl p-8 sm:p-10 text-center shadow-2xl my-auto text-white">
-                            <div className="size-16 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center mx-auto mb-5 border border-orange-500/40 shadow-inner">
+                          <div className="relative mx-auto w-full max-w-xl bg-gradient-to-br from-white via-orange-50/70 to-orange-100/90 border border-orange-200/80 rounded-2xl p-8 sm:p-10 text-center shadow-2xl my-auto text-gray-900">
+                            <div className="size-16 bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg shadow-orange-500/25">
                               <Lock className="size-8" />
                             </div>
-                            <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                            <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900 mb-2">
                               Preview Cap Reached (7 of {displayTotalPages} Pages)
                             </h3>
-                            <p className="text-sm text-neutral-300 max-w-md mx-auto mb-6 leading-relaxed">
-                              You have reached the end of the free 7-page preview for this resource. To unlock and read all <strong className="text-white">{displayTotalPages} pages</strong>, please upgrade to the <span className="font-semibold text-orange-400">{PLAN_NAMES[requiredPlan] || requiredPlan}</span> plan or higher.
+                            <p className="text-sm text-gray-600 max-w-md mx-auto mb-6 leading-relaxed">
+                              You have reached the end of the free 7-page preview for this resource. To unlock and read all <strong className="text-gray-900 font-bold">{displayTotalPages} pages</strong>, please upgrade to the <span className="font-bold text-orange-600">{PLAN_NAMES[requiredPlan] || requiredPlan}</span> plan or higher.
                             </p>
                             {userPlan && (
-                              <p className="text-xs text-neutral-400 mb-6 bg-neutral-800/80 rounded-lg py-2 px-4 inline-block border border-neutral-700">
-                                Your current active plan: <strong className="text-neutral-200">{PLAN_NAMES[userPlan] || userPlan}</strong> {isSubExpired && '(Expired)'}
+                              <p className="text-xs text-orange-900 font-medium mb-6 bg-white/90 rounded-lg py-2 px-4 inline-block border border-orange-200/70 shadow-xs">
+                                Your current active plan: <strong className="text-orange-950 font-bold">{PLAN_NAMES[userPlan] || userPlan}</strong> {isSubExpired && '(Expired)'}
                               </p>
                             )}
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -1358,7 +1345,7 @@ export default function ResourceDetail() {
                                     navigate('/Zyndex/About/Pricing');
                                   }
                                 }}
-                                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl text-sm hover:from-orange-700 hover:to-red-700 shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-600 text-white font-semibold rounded-xl text-sm hover:from-orange-600 hover:to-amber-700 shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
                               >
                                 <ShieldCheck className="size-4" />
                                 Upgrade Plan to Unlock All {displayTotalPages} Pages
@@ -1366,7 +1353,7 @@ export default function ResourceDetail() {
                               <button
                                 type="button"
                                 onClick={() => setPdfPage(PREVIEW_CAP)}
-                                className="w-full sm:w-auto px-5 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl text-sm font-medium transition-colors cursor-pointer border border-neutral-700"
+                                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-orange-50 text-gray-700 hover:text-gray-900 rounded-xl text-sm font-semibold transition-colors cursor-pointer border border-orange-200 shadow-xs"
                               >
                                 Back to Page {PREVIEW_CAP}
                               </button>
@@ -1529,8 +1516,8 @@ export default function ResourceDetail() {
                         Submit as Anonymous Feedback
                       </span>
                       <p className="text-[11px] text-slate-500">
-                        {isAnonymous 
-                          ? 'Your name and email address will be hidden from the admin portal.' 
+                        {isAnonymous
+                          ? 'Your name and email address will be hidden from the admin portal.'
                           : 'Your name and email address will be visible to administrators.'}
                       </p>
                     </div>

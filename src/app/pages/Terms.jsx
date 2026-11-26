@@ -109,8 +109,8 @@ export default function Terms() {
       title: '7. Digital Content Usage Rules',
       content: [
         {
-          subtitle: 'Digital Rights Management (DRM)',
-          text: 'Certain Content may be protected by Digital Rights Management (DRM) technology to prevent unauthorized copying and distribution. You agree not to circumvent, disable, or interfere with any DRM measures or security features of the Service.'
+          subtitle: 'Digital Rights Management (DRM) & 7-Page Preview Policy',
+          text: 'Certain Content is protected by Digital Rights Management (DRM) and dynamic server-side streaming controls to prevent unauthorized reproduction and extraction. Free and tier-restricted users accessing higher-tier resources are granted an online preview of the first 7 pages, allowing readers to evaluate resource relevance and view the total page count before upgrading. Free users retain complete, unlimited page access to all resources designated for their authorized tier. Attempting to bypass, decompile, or intercept pages beyond the authorized preview cap violates these Terms.'
         },
         {
           subtitle: 'Download Limits',

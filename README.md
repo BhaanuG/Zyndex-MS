@@ -238,11 +238,11 @@ Zyndex models the academic ecosystem around three foundational concepts: **Catal
 
    - Resources are organized by academic level (`Undergraduate`, `Postgraduate`, `PhD`), department (`Computer Science`, `Electrical Engineering`, etc.), semester, and required tier (`FREE`, `STUDENT_BASIC`, `STUDENT_PLUS`, `RESEARCHER_PRO`).
 
-   - Files are stored on the server filesystem under `backend/uploads/` and streamed securely. PDF files requested by free-tier users are dynamically sliced in-memory via **Apache PDFBox** to prevent access beyond the 10-page preview ceiling.
+   - Files are stored on the server filesystem under `backend/uploads/` and streamed securely. For documents that require a higher plan tier, users are granted a 7-page preview cap with live total page counts, allowing readers to preview the first 7 pages before upgrading. Free users retain unlimited page reading on all resources designated for their plan.
 
 2. **Subscription & Entitlement Model**:
 
-   - **Free / Demo**: Public documents only, 10-page preview limit, maximum 5 readings per day, online viewing only.
+   - **Free / Demo**: Unlimited reading on accessible catalog documents, 7-page preview cap on locked higher-tier documents, maximum 5 readings per day, online viewing only.
 
    - **Student Basic (₹99/mo)**: Digital books, academic journals, unlimited online reading, personal reading history.
 
@@ -1295,7 +1295,7 @@ This section compiles all operational constraints, entitlement gates, pricing ta
 | **User Inactivity Tracking**| Every successful login updates timestamp | `auth-service/.../AuthController.java` | `login` | Updates `users.last_active_at = NOW()` | Drives real-time active session analytics across the platform. |
 | **Admin Privilege Bypass** | User has role `admin` | `access-service/.../AccessController.java` | `check` | None | Bypasses all tier restrictions, page limits, and daily reading quotas. |
 | **Free Tier Daily Limit** | Free users restricted to 5 distinct document reads/day | `access-service/.../AccessController.java` | `check` | Queries `zyndex_usage.usages` | Blocks reading 6th document with upgrade prompt. |
-| **Free Tier Preview Slicing**| Free users viewing PDFs receive first 10 pages only | `content-service/.../ResourceController.java` | `serveFile` | None (in-memory PDFBox clone) | Slices PDF in-memory; completely omits pages 10+ from HTTP response. |
+| **Free Tier Preview Slicing**| Free and lower-tier users viewing locked higher-tier documents receive first 7 pages preview cap; authorized tier documents have full unlimited pages | `access-service/.../AccessController.java`, `content-service/.../ResourceController.java` | `serveFile`, `check` | None (in-memory PDFBox clone) | Slices PDF in-memory for preview or serves authorized full document. |
 | **Direct Download Entitlement**| Direct PDF downloads require Researcher Pro or higher (Tier >= 3) | `access-service/.../AccessController.java` | `check` (`permission=DOWNLOAD`) | Evaluates active plan tier | Blocks download button for Free, Student Basic, and Student Plus. |
 | **Student Basic Plan** | ₹99/mo (Tier 1) | `subscription-service/.../DbInitializer.java` | `initPlans` | `plans.price_paise = 9900` | Grants unlimited online reading of textbooks and journals. |
 | **Student Plus Plan** | ₹199/mo (Tier 2) | `subscription-service/.../DbInitializer.java` | `initPlans` | `plans.price_paise = 19900` | Grants complete catalog reading, offline browser cache, and advanced filtering. |
