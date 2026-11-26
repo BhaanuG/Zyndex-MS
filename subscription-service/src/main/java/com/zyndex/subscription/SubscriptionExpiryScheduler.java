@@ -50,7 +50,7 @@ public class SubscriptionExpiryScheduler {
                            COALESCE(u.username, CONCAT('User #', s.user_id)) AS user_name,
                            u.email AS user_email
                     FROM subscriptions s
-                    LEFT JOIN zyndex_auth.users u ON s.user_id = u.id
+                    LEFT JOIN users u ON s.user_id = u.id
                     WHERE s.status = 'ACTIVE' 
                       AND s.end_date IS NOT NULL 
                       AND s.end_date <= NOW()
@@ -102,7 +102,7 @@ public class SubscriptionExpiryScheduler {
                            COALESCE(u.username, CONCAT('Scholar #', s.user_id)) AS user_name,
                            u.email AS user_email
                     FROM subscriptions s
-                    JOIN zyndex_auth.users u ON s.user_id = u.id
+                    JOIN users u ON s.user_id = u.id
                     WHERE s.status = 'ACTIVE'
                       AND s.end_date >= NOW() + INTERVAL 23 HOUR
                       AND s.end_date <= NOW() + INTERVAL 25 HOUR

@@ -43,7 +43,7 @@ eureka:
 
 zyndex:
   otp-mail-from: ${OTP_MAIL_FROM:${OTP_SMTP_USER:}}
-  auth-db-name: ${AUTH_DB_NAME:zyndex_auth}
+  auth-db-name: ${AUTH_DB_NAME:zyndex_db}
   receiver-upi-id: ${RECEIVER_UPI_ID:zyndex@icici}
 
 payment:
