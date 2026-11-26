@@ -85,14 +85,9 @@ class AccountEmailService {
                 If you did not authorize this plan upgrade or believe any of the information above is incorrect, please contact our support team immediately.
 
                 Thank you for choosing Zyndex!
-
-                Best regards,
-                Zyndex Team
-                %s
                 """.formatted(
                         username, username, email, effectiveOrderId, effectiveUtr, effectivePaymentTime,
-                        effectiveStatus, previousPlan, newPlan, activationDate, validUntil, email,
-                        properties.otpMailFrom()));
+                        effectiveStatus, previousPlan, newPlan, activationDate, validUntil, email));
     }
 
     private String signupConfirmationText(String name, String email, String plan, String validUntil) {
@@ -135,11 +130,7 @@ class AccountEmailService {
                 Email: %s
 
                 For assistance, reach out to our team via the Help Center or Contact page.
-
-                Best regards,
-                Zyndex Team
-                %s
-                """.formatted(name, name, email, createdTimestamp, plan, validUntil, email, properties.otpMailFrom());
+                """.formatted(name, name, email, createdTimestamp, plan, validUntil, email);
     }
 
             private String signupConfirmationHtml(String name, String email, String plan, String validUntil) {
@@ -223,9 +214,6 @@ class AccountEmailService {
                     Status: ACTIVE
                     
                     You now have full access matching your plan tier!
-
-                    Best regards,
-                    Zyndex Team
                     """.formatted(name, amount, plan, durationDays, plan, durationDays, amount);
 
             String html = """
@@ -240,7 +228,10 @@ class AccountEmailService {
                         <tr><td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">Status</td><td style="padding: 10px; border: 1px solid #e2e8f0; color: #16a34a; font-weight: bold;">ACTIVE</td></tr>
                       </table>
                       <p>Access control rules are successfully applied. You can now download and view content corresponding to your plan.</p>
-                      <p>Best regards,<br/><strong>Zyndex Team</strong></p>
+                      <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b; margin-top: 24px;">
+                        <p style="margin: 0;">Best regards,</p>
+                        <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Team</p>
+                      </div>
                     </div>
                     """.formatted(escapeHtml(name), escapeHtml(plan), amount, durationDays);
 
@@ -269,12 +260,7 @@ class AccountEmailService {
                 Action Required
 
                 Please review this request in the Zyndex Admin Panel. For security reasons, passwords and other authentication credentials are not included in this notification email.
-
-                Regards,
-
-                Zyndex Security System
-                %s
-                """.formatted(fullName, displayName, email, dateTime, properties.otpMailFrom()));
+                """.formatted(fullName, displayName, email, dateTime));
             boolean requesterSent = sendSafely(email, "Zyndex | Admin Access Request Received", """
                 Dear %s,
 
@@ -291,11 +277,7 @@ class AccountEmailService {
                 Request Status: Pending Review
 
                 You will receive a separate email once a decision has been made. Please do not submit another request unless asked.
-
-                Best regards,
-                Zyndex Administration Team
-                %s
-                """.formatted(fullName, fullName, displayName, email, dateTime, properties.otpMailFrom()));
+                """.formatted(fullName, fullName, displayName, email, dateTime));
             return Map.of("adminEmailSent", adminSent, "requesterEmailSent", requesterSent);
     }
 
@@ -317,11 +299,7 @@ class AccountEmailService {
                 Approved On: %s
 
                 Your administrator privileges are now active. Login to Zyndex: %s
-
-                Best regards,
-                Zyndex Administration Team
-                %s
-                """.formatted(fullName, fullName, displayName, email, dateTime, properties.frontendUrl(), properties.otpMailFrom()) : """
+                """.formatted(fullName, fullName, displayName, email, dateTime, properties.frontendUrl()) : """
                 Dear %s,
 
                 Thank you for your interest in becoming a Zyndex administrator.
@@ -336,11 +314,7 @@ class AccountEmailService {
 
                 Reason for Decision:
                 %s
-
-                Best regards,
-                Zyndex Administration Team
-                %s
-                """.formatted(fullName, fullName, displayName, email, dateTime, reason.isBlank() ? "No reason provided." : reason, properties.otpMailFrom());
+                """.formatted(fullName, fullName, displayName, email, dateTime, reason.isBlank() ? "No reason provided." : reason);
         return sendSafely(email, subject, text);
     }
 
@@ -357,11 +331,7 @@ class AccountEmailService {
                 You can now use your new password to sign in. For your security, please do not share your password with anyone.
 
                 If you did not make this change, contact the Zyndex Support Team at %s immediately.
-
-                Best regards,
-                Zyndex Security Team
-                %s
-                """.formatted(username, username, email, LocalDateTime.now().toString().replace('T', ' '), properties.mainAdminEmail(), properties.otpMailFrom()));
+                """.formatted(username, username, email, LocalDateTime.now().toString().replace('T', ' '), properties.mainAdminEmail()));
     }
 
     boolean sendMaintenanceScheduledEmail(String name, String email) {
@@ -378,11 +348,7 @@ class AccountEmailService {
                 Please save any in-progress reading sessions and work immediately. All your account records, reading histories, and active subscriptions remain completely safe and preserved.
 
                 We apologize for any temporary inconvenience and appreciate your patience while we optimize our services.
-
-                Warm regards,
-                The Zyndex Systems Team
-                %s
-                """.formatted(name, properties.otpMailFrom()));
+                """.formatted(name));
     }
 
     boolean sendMaintenanceActiveEmail(String name, String email) {
@@ -399,11 +365,7 @@ class AccountEmailService {
                 Our engineering team is actively performing system enhancements to bring you higher performance and reliability. We will dispatch an automated confirmation email as soon as the platform is fully back online.
 
                 Thank you for your cooperation and understanding.
-
-                Sincerely,
-                Zyndex Technical Operations
-                %s
-                """.formatted(name, properties.otpMailFrom()));
+                """.formatted(name));
     }
 
     boolean sendMaintenanceCancelledEmail(String name, String email) {
@@ -421,11 +383,7 @@ class AccountEmailService {
                 Support Contact: %s
 
                 We apologize for any confusion caused by the initial notice and thank you for your understanding.
-
-                Warm regards,
-                The Zyndex Systems Team
-                %s
-                """.formatted(name, properties.mainAdminEmail(), properties.otpMailFrom()));
+                """.formatted(name, properties.mainAdminEmail()));
     }
 
     boolean sendMaintenanceConcludedEmail(String name, String email) {
@@ -439,11 +397,7 @@ class AccountEmailService {
                 Support Contact: %s
 
                 Thank you for your patience and support!
-
-                Best regards,
-                The Zyndex Team
-                %s
-                """.formatted(name, properties.mainAdminEmail(), properties.otpMailFrom()));
+                """.formatted(name, properties.mainAdminEmail()));
     }
 
     private boolean sendSafely(String to, String subject, String text) {
@@ -579,10 +533,6 @@ class AccountEmailService {
                 %s
 
                 If you have questions regarding your updated access permissions or require assistance, please contact the primary administrator at %s.
-
-                Best regards,
-                Zyndex Platform Security & Administration
-                %s
                 """.formatted(
                 username,
                 username,
@@ -603,8 +553,7 @@ class AccountEmailService {
                       - Personalized study dashboard, reading history, bookmarks, and resource rating privileges.
                       - Administrative console permissions have been gracefully revoked.
                       """.trim(),
-                properties.mainAdminEmail(),
-                properties.otpMailFrom()
+                properties.mainAdminEmail()
         );
 
         try {
@@ -645,10 +594,6 @@ class AccountEmailService {
                 We appreciate every moment you spent learning, researching, and contributing to Zyndex. If your academic needs ever change, or if you wish to return in the future, our doors will always remain open for you.
 
                 If this deletion was unintended or unauthorized, please contact our principal administrator immediately at %s.
-
-                Warm regards and best wishes for your academic journey,
-                The Zyndex Team
-                %s
                 """.formatted(
                 username,
                 email,
@@ -658,8 +603,7 @@ class AccountEmailService {
                 timestamp,
                 reasonsSummary,
                 commentsSummary,
-                properties.mainAdminEmail(),
-                properties.otpMailFrom()
+                properties.mainAdminEmail()
         );
 
         // 2. Comprehensive notification email to the Platform Owner (Bhaanugali)
