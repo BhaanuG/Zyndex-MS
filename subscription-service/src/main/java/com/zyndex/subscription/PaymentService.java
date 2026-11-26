@@ -1032,17 +1032,19 @@ public class PaymentService {
         String userName = String.valueOf(user.get("name"));
         String userEmail = String.valueOf(user.get("email"));
         LocalDateTime now = LocalDateTime.now();
+        String formattedTimestamp = now.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         try {
-            SimpleMailMessage msg = new SimpleMailMessage();
+            jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(mimeMessage, true, "UTF-8");
             String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "lmno1432@gmail.com";
             if (!from.contains("<")) {
-                msg.setFrom("Zyndex Team <" + from + ">");
+                helper.setFrom(from, "Zyndex Team");
             } else {
-                msg.setFrom(from);
+                helper.setFrom(from);
             }
-            msg.setTo("Bhaanugali@gmail.com", "Bhaanugali99sai@gmail.com");
-            msg.setSubject("Zyndex Payment Hold Notification — UTR Verification Required (" + utr + ")");
+            helper.setTo(new String[]{"Bhaanugali@gmail.com", "Bhaanugali99sai@gmail.com"});
+            helper.setSubject("Zyndex Payment Hold Notification — UTR Verification Required (" + utr + ")");
 
             String text = String.format(
                     """
@@ -1064,13 +1066,81 @@ public class PaymentService {
                     Action Required:
                     Please verify this UTR in your bank statement (Union Bank / UPI app) and Confirm or Decline the payment in the Admin Portal Payments page.
                     """,
-                    userName, userEmail, now.toString(), utr,
+                    userName, userEmail, formattedTimestamp, utr,
                     presentPlan.replace("_", " "), previousPlan.replace("_", " "),
                     amountRupees, paymentId, orderId
             );
 
-            msg.setText(text);
-            mailSender.send(msg);
+            String htmlBody = """
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <title>Zyndex Payment Hold Notification</title>
+                      <style>
+                        body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                        .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                        .header-box { background: linear-gradient(135deg, #ea580c 0%%, #c2410c 100%%); padding: 24px 20px; text-align: center; }
+                        .content-box { padding: 24px 20px; }
+                        .table-style td { padding: 6px 0; font-size: 13px; word-break: break-word; }
+                        .action-banner { background-color: #fff7ed; border-left: 4px solid #ea580c; border-radius: 6px; padding: 14px 16px; margin: 18px 0; font-size: 13px; color: #7c2d12; line-height: 1.5; }
+                      </style>
+                    </head>
+                    <body>
+                        <div class="email-wrapper">
+                            <div class="header-box">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex Admin</h1>
+                                <p style="color: #ffedd5; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Payment Verification Required (UTR On Hold)</p>
+                            </div>
+                            <div class="content-box">
+                                <p style="margin: 0 0 14px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Attention Admin,</p>
+                                <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
+                                    A user has submitted a UPI transaction reference (UTR) on Zyndex. The payment is currently on <strong>HOLD</strong> pending manual verification against bank records.
+                                </p>
+
+                                <div class="action-banner">
+                                    <strong>⚡ Action Required:</strong><br>
+                                    Please cross-reference this UTR with your bank account/UPI statement. Open the <strong>Admin Portal &gt; Payments</strong> page to Confirm or Decline this transaction.
+                                </div>
+
+                                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 18px 0;">
+                                    <h3 style="margin: 0 0 10px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #ea580c; letter-spacing: 0.5px;">Payment &amp; User Details</h3>
+                                    <table class="table-style" style="width: 100%%; font-size: 13px; color: #334155; border-collapse: collapse;">
+                                        <tr><td style="width: 42%%; color: #64748b; font-weight: 600;">Customer Name:</td><td style="font-weight: 500;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Customer Email:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">UTR / Ref Number:</td><td style="font-family: monospace; font-weight: 700; color: #ea580c; font-size: 14px;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Plan Requested:</td><td><strong style="color: #ea580c;">%s</strong></td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Previous Plan:</td><td>%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Amount Expected:</td><td><strong>₹%.2f</strong></td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Payment ID:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Order ID:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Submitted Time:</td><td>%s</td></tr>
+                                    </table>
+                                </div>
+
+                                <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
+                                    <p style="margin: 0;">Automated Notification from</p>
+                                    <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Subscription Engine</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                    """.formatted(
+                            userName,
+                            userEmail,
+                            utr,
+                            presentPlan.replace("_", " "),
+                            previousPlan.replace("_", " "),
+                            amountRupees,
+                            paymentId,
+                            orderId,
+                            formattedTimestamp
+                    );
+
+            helper.setText(text, htmlBody);
+            mailSender.send(mimeMessage);
             log.info("Admin payment hold notification email sent to Bhaanugali@gmail.com and Bhaanugali99sai@gmail.com for payment {}", paymentId);
         } catch (Exception e) {
             log.warn("Failed to send admin hold notification email: {}", e.getMessage());
@@ -1285,15 +1355,16 @@ public class PaymentService {
         }
 
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
+            jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(mimeMessage, true, "UTF-8");
             String from = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom.trim() : "lmno1432@gmail.com";
             if (!from.contains("<")) {
-                message.setFrom("Zyndex Billing <" + from + ">");
+                helper.setFrom(from, "Zyndex Billing");
             } else {
-                message.setFrom(from);
+                helper.setFrom(from);
             }
-            message.setTo(userEmail);
-            message.setSubject("Zyndex Payment Verification Update: " + statusTitle + " [" + paymentId + "]");
+            helper.setTo(userEmail);
+            helper.setSubject("Zyndex Payment Verification Update: " + statusTitle + " [" + paymentId + "]");
 
             double amountRupees = amountPaise / 100.0;
             String text = String.format(
@@ -1319,8 +1390,89 @@ public class PaymentService {
                     amountRupees, (utr != null ? utr : "N/A"), reason
             );
 
-            message.setText(text);
-            mailSender.send(message);
+            boolean isDeclinedOrNotReceived = "DECLINED".equalsIgnoreCase(statusTitle) || "NOT RECEIVED".equalsIgnoreCase(statusTitle);
+            String badgeBg = isDeclinedOrNotReceived ? "#fef2f2" : "#f1f5f9";
+            String badgeText = isDeclinedOrNotReceived ? "#dc2626" : "#475569";
+            String badgeBorder = isDeclinedOrNotReceived ? "#fecaca" : "#cbd5e1";
+
+            String htmlBody = """
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <title>Zyndex Payment Verification Update</title>
+                      <style>
+                        body { margin: 0; padding: 16px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #1e293b; }
+                        .email-wrapper { width: 100%%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                        .header-box { background: linear-gradient(135deg, #ea580c 0%%, #dc2626 100%%); padding: 24px 20px; text-align: center; }
+                        .content-box { padding: 24px 20px; }
+                        .table-style td { padding: 6px 0; font-size: 13px; word-break: break-word; }
+                        .note-banner { background-color: #fff7ed; border-left: 4px solid #ea580c; border-radius: 6px; padding: 14px 16px; margin: 18px 0; font-size: 13px; color: #7c2d12; line-height: 1.5; }
+                      </style>
+                    </head>
+                    <body>
+                        <div class="email-wrapper">
+                            <div class="header-box">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Zyndex</h1>
+                                <p style="color: #ffedd5; margin: 6px 0 0 0; font-size: 13px; font-weight: 500;">Payment Verification &amp; Subscription Update</p>
+                            </div>
+                            <div class="content-box">
+                                <p style="margin: 0 0 14px 0; font-size: 16px; font-weight: 600; color: #0f172a;">Dear %s,</p>
+                                <p style="margin: 0 0 16px 0; color: #334155; line-height: 1.6;">
+                                    This is an official verification update regarding your recent subscription payment for the <strong>%s</strong> plan.
+                                </p>
+
+                                <div style="display: inline-block; background-color: %s; color: %s; border: 1px solid %s; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">
+                                    Verification Status: %s
+                                </div>
+
+                                <div class="note-banner">
+                                    <strong>Administrator Reason / Feedback:</strong><br>
+                                    <p style="margin: 6px 0 0 0; font-style: italic;">"%s"</p>
+                                </div>
+
+                                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 18px 0;">
+                                    <h3 style="margin: 0 0 10px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #ea580c; letter-spacing: 0.5px;">Transaction Summary</h3>
+                                    <table class="table-style" style="width: 100%%; font-size: 13px; color: #334155; border-collapse: collapse;">
+                                        <tr><td style="width: 42%%; color: #64748b; font-weight: 600;">Payment ID:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Order ID:</td><td style="font-family: monospace;">%s</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Plan Requested:</td><td><strong>%s</strong></td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Amount:</td><td>₹%.2f</td></tr>
+                                        <tr><td style="color: #64748b; font-weight: 600;">Submitted UTR:</td><td style="font-family: monospace; font-weight: 600;">%s</td></tr>
+                                    </table>
+                                </div>
+
+                                <div style="background-color: #f1f5f9; border-left: 4px solid #0284c7; padding: 12px 14px; border-radius: 6px; margin: 18px 0; font-size: 12px; color: #0f172a; line-height: 1.5;">
+                                    <strong>Next Steps:</strong><br>
+                                    Your account remains safely active on our <strong>Free Academic Tier</strong>. If you made the bank transfer or have a new transaction reference, you can retry from your billing page or reply with your payment receipt.
+                                </div>
+
+                                <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; font-size: 13px; color: #64748b;">
+                                    <p style="margin: 0;">Best regards,</p>
+                                    <p style="margin: 4px 0 0 0; font-weight: 700; color: #0f172a;">Zyndex Billing &amp; Support Team</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                    """.formatted(
+                            userName,
+                            planId.replace("_", " "),
+                            badgeBg,
+                            badgeText,
+                            badgeBorder,
+                            statusTitle,
+                            (reason != null && !reason.isBlank() ? reason : "No specific notes provided."),
+                            paymentId,
+                            orderId,
+                            planId.replace("_", " "),
+                            amountRupees,
+                            (utr != null ? utr : "N/A")
+                    );
+
+            helper.setText(text, htmlBody);
+            mailSender.send(mimeMessage);
             log.info("Sent payment {} notification email to {}", statusTitle, userEmail);
         } catch (Exception e) {
             log.warn("Failed to deliver payment status email to {}: {}", userEmail, e.getMessage());
