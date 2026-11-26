@@ -1080,33 +1080,7 @@ export default function ResourceDetail() {
                                 )}
                               </h3>
                               <div className="flex items-center gap-1">
-                                {pdfSidebarTab === 'outline' && pdfOutline && pdfOutline.length > 0 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const anyExpanded = Object.values(expandedOutlineNodes).some(Boolean);
-                                      if (anyExpanded) {
-                                        setExpandedOutlineNodes({});
-                                      } else {
-                                        const all = {};
-                                        const markAll = (items) => {
-                                          items.forEach((it) => {
-                                            if (it.items && it.items.length > 0) {
-                                              all[it.key] = true;
-                                              markAll(it.items);
-                                            }
-                                          });
-                                        };
-                                        markAll(pdfOutline);
-                                        setExpandedOutlineNodes(all);
-                                      }
-                                    }}
-                                    className="px-1.5 py-0.5 text-[11px] font-medium rounded text-neutral-300 hover:text-white hover:bg-neutral-700 cursor-pointer"
-                                    title={Object.values(expandedOutlineNodes).some(Boolean) ? 'Collapse all sections' : 'Expand all sections'}
-                                  >
-                                    {Object.values(expandedOutlineNodes).some(Boolean) ? 'Collapse All' : 'Expand All'}
-                                  </button>
-                                )}
+                                
                                 <button
                                   type="button"
                                   onClick={() => setShowPdfSidebar(false)}
