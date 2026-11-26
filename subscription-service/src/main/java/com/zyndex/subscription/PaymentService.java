@@ -933,7 +933,7 @@ public class PaymentService {
                     COALESCE(u.username, CONCAT('User #', p.user_id)) AS user_name,
                     COALESCE(u.email, 'N/A') AS user_email
                 FROM payments p
-                LEFT JOIN zyndex_auth.users u ON p.user_id = u.id
+                LEFT JOIN users u ON p.user_id = u.id
                 ORDER BY 
                     CASE p.status
                         WHEN 'REVIEW_REQUIRED' THEN 1
@@ -1147,13 +1147,13 @@ public class PaymentService {
         }
         try {
             List<Map<String, Object>> users = jdbc.queryForList(
-                    "SELECT username AS name, email FROM zyndex_auth.users WHERE id = ?", userId
+                    "SELECT username AS name, email FROM users WHERE id = ?", userId
             );
             if (!users.isEmpty() && users.get(0).get("email") != null) {
                 return users.get(0);
             }
         } catch (Exception e) {
-            log.debug("Direct DB lookup from zyndex_auth failed: {}", e.getMessage());
+            log.debug("Direct DB lookup for user failed: {}", e.getMessage());
         }
 
         try {

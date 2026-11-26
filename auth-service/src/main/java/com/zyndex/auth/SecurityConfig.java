@@ -27,6 +27,7 @@ public class SecurityConfig {
                     "/api/auth/register",
                     "/api/auth/admin-request",
                     "/api/users/internal/plan-upgrade-email",
+                    "/api/users/*/profile",
                     "/api/auth/login",
                     "/api/auth/check-login",
                     "/api/auth/account-details",
