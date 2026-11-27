@@ -57,7 +57,7 @@ export default function FAQ() {
     },
     {
       question: 'What happens if my payment UTR is pending review?',
-      answer: 'UPI payments with a valid 12-digit bank UTR undergo automated reconciliation and swift administrator verification (usually within 15 to 30 minutes). During initial submission, a 2-minute status hold modal allows rapid automated confirmation before routing to your billing dashboard.',
+      answer: 'UPI payments with a valid 12-digit bank UTR instantly unlock an automated 12-Hour Provisional Grace Period, giving you immediate access to all premium tier resources while statements are reconciled. During this window, our billing desk audits the transaction. Once confirmed, your subscription is marked as fully verified. If a submitted UTR is found invalid or rejected upon grace period expiration, access seamlessly reverts to the Free Academic Plan.',
     },
     {
       question: 'What academic subject categories are available on Zyndex?',

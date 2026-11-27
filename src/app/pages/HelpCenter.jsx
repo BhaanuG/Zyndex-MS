@@ -1392,7 +1392,8 @@ export default function HelpCenter() {
           <li>Scan the displayed dynamic UPI QR Code using any UPI application (Google Pay, PhonePe, Paytm, BHIM, or banking app) presented in the secure checkout interface.</li>
           <li>Complete payment and copy the 12-digit <strong>UTR / Bank Reference Number</strong> from your payment receipt.</li>
           <li>Enter the 12-digit UTR into the verification box on Zyndex and click <strong>Submit Verification</strong>.</li>
-          <li>Our backend verifies the reference and upgrades your account tier immediately. An automated HTML invoice receipt is dispatched to your email.</li>
+          <li>Submitting your UTR immediately unlocks an automated <strong>12-Hour Provisional Grace Period</strong>, granting instant full access to your selected tier while administrators and automated reconciliation confirm the bank transaction. Upon verification, your plan transitions smoothly to verified status. If declined or upon grace expiry, the account safely reverts to the Free tier.</li>
+          <li>Note: Direct UPI QR transfer is our primary active method. Cards, Net Banking, and Wallets are marked as "Coming Soon" with simulated auto-settlement disabled for your security.</li>
         </ol>
       `,
       tags: ['plan', 'upgrade', 'upi', 'utr', 'payment', 'scholar', 'billing'],

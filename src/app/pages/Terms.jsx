@@ -139,6 +139,14 @@ export default function Terms() {
           text: 'Zyndex offers individual scholar subscription tiers: Free / Demo (₹0/mo), Student Basic (₹99/mo), Student Plus (₹199/mo), PhD Scholar / Researcher (₹499/mo), Academic Faculty & Educator (₹999/mo), and Distinguished Fellow & Scholar (₹1,999/mo). Upgrades are paid in Indian Rupees (INR) via direct merchant UPI transfer presented in the dedicated checkout screen with 12-digit UTR reference validation. QR payment sessions expire strictly after 5 minutes, and subsequent UTR submission windows remain valid for 10 minutes before auto-expiring.'
         },
         {
+          subtitle: '12-Hour Instant Provisional Grace Period Policy',
+          text: 'To ensure scholars experience zero disruption to their research while financial statements are reconciled, submitting a valid 12-digit UPI UTR instantly grants an automated 12-Hour Provisional Grace Period. During this 12-hour grace window, your chosen subscription tier is immediately unlocked with full access to all corresponding academic resources and platform features. Our billing desk and automated verification system audit and reconcile the transaction within this window. Upon bank verification, your subscription transitions seamlessly to fully verified status for its full billing term. If a submitted UTR is found invalid, erroneous, unpaid, or declined by administrative review upon expiry of the grace period, platform access automatically reverts to the Free tier without penalty.'
+        },
+        {
+          subtitle: 'Supported Payment Gateways & Coming Soon Methods',
+          text: 'Direct merchant UPI QR transfer is our primary, actively supported payment method, offering instantaneous verification and zero intermediary processing surcharges. Additional payment options—including Credit/Debit Cards, Net Banking, and Digital Wallets—are currently marked as "Coming Soon" and undergo ongoing integration testing. Simulated or unauthorized auto-settlement on pending payment rails is strictly prohibited and disabled across all checkout endpoints.'
+        },
+        {
           subtitle: 'Active Plan Exclusivity Rule',
           text: 'To ensure billing clarity and prevent duplicate or conflicting entitlements, a scholar with an active subscription is locked into their chosen plan until the active duration concludes. Scholars cannot purchase, select, or pay for another plan while an existing subscription period is active.'
         },
@@ -148,7 +156,7 @@ export default function Terms() {
         },
         {
           subtitle: 'Color-Coded Status Tracking & Portal Transparency',
-          text: 'Every transaction is authoritatively logged with distinct visual indicators across user and admin portals: Active/Initiated (Blue), Success/Approved (Green), Cancelled or Declined by Admin (Red), Under Admin Verification (Amber), and Session Expired (Dark Gray). Users can review real-time transaction statuses directly under Profile & Billing.'
+          text: 'Every transaction is authoritatively logged with distinct visual indicators across user and admin portals: Active/Initiated (Blue), Success/Approved (Green), Cancelled or Declined by Admin (Red), Under Admin Verification / Grace Period (Amber), and Session Expired (Dark Gray). Users can review real-time transaction statuses directly under Profile & Billing.'
         },
         {
           subtitle: 'Strict Invoice Privacy & Single-Browser Security',

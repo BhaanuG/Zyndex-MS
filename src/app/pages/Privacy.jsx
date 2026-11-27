@@ -28,7 +28,7 @@ export default function Privacy() {
       content: [
         {
           subtitle: 'Personal Information & Roles',
-          text: 'Name, email address, password hash, and user role selection (Student, Teacher / Educator, Researcher, Professional, or General Reader). Optional profile details such as college/university affiliations or profession for customized recommendations. We DO NOT collect or store payment secrets or debit details—all payments are processed via direct UPI UTR verification without storing payment credentials.'
+          text: 'Name, email address, password hash, and user role selection (Student, Teacher / Educator, Researcher, Professional, or General Reader). Optional profile details such as college/university affiliations or profession for customized recommendations. We DO NOT collect or store payment card secrets, CVVs, or net banking passwords—all subscription transactions are conducted through direct merchant UPI with 12-digit UTR reference validation. During the 12-hour provisional grace period, transactional state is audited in an encrypted audit ledger until bank reconciliation completes.'
         },
         {
           subtitle: 'Account & Reading Telemetry',
@@ -126,7 +126,7 @@ export default function Privacy() {
         },
         {
           subtitle: 'Multi-Layer Security & Device Authorization Architecture',
-          text: 'Zyndex implements defense-in-depth security measures: TLS 1.3 encryption for all data in transit, AES-256 encryption at rest, BCrypt cryptographic password hashing, short-lived single-use OTP handshakes, dynamic geometric challenge verification, and automated session invalidation on tab closure or workstation lock. Additionally, our 24-hour trusted device system automatically revokes device privileges at midnight (12:00 AM IST) daily, and grants users immediate self-service revocation of any active browser login via their Profile settings. In the event an account is accessed concurrently on another device, the superseded session receives an automated notice and is securely closed after a 15-second grace window to protect scholar integrity. Invoices and financial statements are cryptographically tied to the authenticated user browser; external or unauthorized requests are masked as 404 Not Found and redirected to the login portal after 60 seconds.'
+          text: 'Zyndex implements defense-in-depth security measures: TLS 1.3 encryption for all data in transit, AES-256 encryption at rest, BCrypt cryptographic password hashing, short-lived single-use OTP handshakes, dynamic geometric challenge verification, and automated session invalidation on tab closure or workstation lock. Additionally, our 24-hour trusted device system automatically revokes device privileges at midnight (12:00 AM IST) daily, and grants users immediate self-service revocation of any active browser login via their Profile settings. In the event an account is accessed concurrently on another device, the superseded session receives an automated notice and is securely closed after a 15-second grace window to protect scholar integrity. Invoices and financial statements are cryptographically tied to the authenticated user browser; external or unauthorized requests are masked as 404 Not Found and redirected to the login portal after 60 seconds. All user confirmations, alerts, and system prompts utilize in-app modal dialog popups rather than insecure native browser dialogs, eliminating URL spoofing risks.'
         },
         {
           subtitle: 'No Guarantee Disclaimer',
