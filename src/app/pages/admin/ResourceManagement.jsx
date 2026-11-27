@@ -149,6 +149,15 @@ export default function ResourceManagement() {
   const [pdfPage, setPdfPage] = useState(1);
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.0);
+  const userHasCustomScaleRef = useRef(false);
+  const touchStateRef = useRef({
+    startX: 0,
+    startY: 0,
+    initialDistance: 0,
+    initialScale: 1.0,
+    isPinching: false,
+    hasMoved: false,
+  });
   const [pdfRotation, setPdfRotation] = useState(0);
   const [pdfPageViewMode, setPdfPageViewMode] = useState('single');
   const [pdfFitMode, setPdfFitMode] = useState('page');
@@ -216,6 +225,7 @@ export default function ResourceManagement() {
     setPdfDocument(null);
     setPdfPage(1);
     setPdfPageCount(0);
+    userHasCustomScaleRef.current = false;
     setPdfScale(1.0);
     setPdfRotation(0);
     setPdfPageViewMode('single');
@@ -488,8 +498,9 @@ export default function ResourceManagement() {
   }, [showPdfSidebar, pdfSidebarTab, pdfPage, pdfDocument, pdfPageCount]);
 
   // Responsive scale & fit
+  // Once the user adjusts zoom manually or pinches, their zoom level remains fixed across page transitions
   useEffect(() => {
-    if (!pdfDocument) return;
+    if (!pdfDocument || userHasCustomScaleRef.current) return;
     let cancelled = false;
 
     const pagePromises = [pdfDocument.getPage(pdfPage)];
@@ -498,7 +509,7 @@ export default function ResourceManagement() {
     }
 
     Promise.all(pagePromises).then(([page1, page2]) => {
-      if (cancelled || !page1) return;
+      if (cancelled || !page1 || userHasCustomScaleRef.current) return;
       const vp1 = page1.getViewport({ scale: 1, rotation: pdfRotation });
       const vp2 = page2 ? page2.getViewport({ scale: 1, rotation: pdfRotation }) : null;
 
@@ -635,6 +646,81 @@ export default function ResourceManagement() {
       } catch (e) { }
     };
   }, [pdfDocument, pdfPage, pdfScale, pdfRotation, pdfPageViewMode, pdfPageCount, isPdfFullscreen]);
+
+  // Touch handlers for mobile swipe page navigation and 2-finger pinch-to-zoom
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      // Two-finger pinch gesture start
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      touchStateRef.current = {
+        startX: (t1.clientX + t2.clientX) / 2,
+        startY: (t1.clientY + t2.clientY) / 2,
+        initialDistance: Math.max(10, dist),
+        initialScale: pdfScale,
+        isPinching: true,
+        hasMoved: false,
+      };
+    } else if (e.touches.length === 1) {
+      // Single finger touch start for left/right swipe
+      const t = e.touches[0];
+      touchStateRef.current = {
+        startX: t.clientX,
+        startY: t.clientY,
+        initialDistance: 0,
+        initialScale: pdfScale,
+        isPinching: false,
+        hasMoved: false,
+      };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2 && touchStateRef.current.isPinching) {
+      // Two-finger pinch gesture active
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      if (touchStateRef.current.initialDistance > 0) {
+        const factor = dist / touchStateRef.current.initialDistance;
+        const newScale = Math.min(2.5, Math.max(0.35, Number((touchStateRef.current.initialScale * factor).toFixed(2))));
+        userHasCustomScaleRef.current = true;
+        setPdfScale(newScale);
+      }
+    } else if (e.touches.length === 1 && !touchStateRef.current.isPinching) {
+      touchStateRef.current.hasMoved = true;
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStateRef.current.isPinching) {
+      if (e.touches.length < 2) {
+        touchStateRef.current.isPinching = false;
+      }
+      return;
+    }
+
+    if (e.changedTouches.length === 1 && touchStateRef.current.hasMoved) {
+      const endTouch = e.changedTouches[0];
+      const deltaX = endTouch.clientX - touchStateRef.current.startX;
+      const deltaY = endTouch.clientY - touchStateRef.current.startY;
+
+      // Check if horizontal movement dominates and exceeds threshold (swipe)
+      if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+        if (deltaX < 0) {
+          // Swiped Left -> Go to Next Page
+          const step = (isPdfFullscreen && pdfPageViewMode === 'two-page') ? 2 : 1;
+          setPdfPage((prev) => Math.min(pdfPageCount, prev + step));
+        } else {
+          // Swiped Right -> Go to Previous Page
+          const step = (isPdfFullscreen && pdfPageViewMode === 'two-page') ? 2 : 1;
+          setPdfPage((prev) => Math.max(1, prev - step));
+        }
+      }
+    }
+    touchStateRef.current.hasMoved = false;
+  };
 
   const loadResources = async (search = '') => {
     try {
@@ -1772,7 +1858,10 @@ export default function ResourceManagement() {
                           <button
                             type="button"
                             disabled={pdfScale <= 0.6}
-                            onClick={() => setPdfScale((s) => Math.max(0.6, Number((s - 0.15).toFixed(2))))}
+                            onClick={() => {
+                              userHasCustomScaleRef.current = true;
+                              setPdfScale((s) => Math.max(0.6, Number((s - 0.15).toFixed(2))));
+                            }}
                             className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer"
                             title="Zoom Out"
                           >
@@ -1782,7 +1871,10 @@ export default function ResourceManagement() {
                           <button
                             type="button"
                             disabled={pdfScale >= 2.5}
-                            onClick={() => setPdfScale((s) => Math.min(2.5, Number((s + 0.15).toFixed(2))))}
+                            onClick={() => {
+                              userHasCustomScaleRef.current = true;
+                              setPdfScale((s) => Math.min(2.5, Number((s + 0.15).toFixed(2))));
+                            }}
                             className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer"
                             title="Zoom In"
                           >
@@ -1790,7 +1882,10 @@ export default function ResourceManagement() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setPdfScale(1.0)}
+                            onClick={() => {
+                              userHasCustomScaleRef.current = false;
+                              setPdfScale(1.0);
+                            }}
                             className="rounded p-1 hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer"
                             title="Reset 100%"
                           >
@@ -2063,7 +2158,10 @@ export default function ResourceManagement() {
                         {/* PDF Canvas Viewport Area */}
                         <div
                           ref={pdfViewerAreaRef}
-                          className="flex-1 overflow-auto p-1.5 sm:p-6 flex items-center justify-center bg-neutral-800 relative min-h-[300px]"
+                          className="flex-1 overflow-auto p-1.5 sm:p-6 flex items-center justify-center bg-neutral-800 relative min-h-[300px] touch-pan-y"
+                          onTouchStart={handleTouchStart}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleTouchEnd}
                         >
                           {isPageRendering && (
                             <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 flex items-center gap-1.5 sm:gap-2 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border border-neutral-700 pointer-events-none shadow-md">

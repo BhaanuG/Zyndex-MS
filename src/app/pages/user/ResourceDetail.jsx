@@ -56,6 +56,15 @@ export default function ResourceDetail() {
   const [pdfPage, setPdfPage] = useState(1);
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.15);
+  const userHasCustomScaleRef = useRef(false);
+  const touchStateRef = useRef({
+    startX: 0,
+    startY: 0,
+    initialDistance: 0,
+    initialScale: 1.15,
+    isPinching: false,
+    hasMoved: false,
+  });
   const [pdfRotation, setPdfRotation] = useState(0);
   const [pdfPageViewMode, setPdfPageViewMode] = useState('single'); // 'single' | 'two-page'
   const [pdfFitMode, setPdfFitMode] = useState('page'); // 'page' (fit-to-page / top-to-bottom) | 'width' (fit-to-width)
@@ -386,6 +395,7 @@ export default function ResourceDetail() {
         }
         setPdfDocument(document);
         setPdfPageCount(document.numPages);
+        userHasCustomScaleRef.current = false;
         setDownloadProgress(100);
       })
       .catch((error) => {
@@ -602,8 +612,9 @@ export default function ResourceDetail() {
   }, [pdfPage, showPdfSidebar, pdfSidebarTab]);
 
   // Automatically adjust scale responsively based on screen size, container width, and fit mode
+  // Once the user adjusts zoom manually or pinches, their zoom level remains fixed across page transitions
   useEffect(() => {
-    if (!pdfDocument) return;
+    if (!pdfDocument || userHasCustomScaleRef.current) return;
 
     let cancelled = false;
 
@@ -613,7 +624,7 @@ export default function ResourceDetail() {
     }
 
     Promise.all(pagePromises).then(([page1, page2]) => {
-      if (cancelled || !page1) return;
+      if (cancelled || !page1 || userHasCustomScaleRef.current) return;
       const vp1 = page1.getViewport({ scale: 1, rotation: pdfRotation });
       const vp2 = page2 ? page2.getViewport({ scale: 1, rotation: pdfRotation }) : null;
 
@@ -784,6 +795,81 @@ export default function ResourceDetail() {
     };
   }, [pdfDocument, pdfPage, pdfScale, pdfRotation, pdfPageViewMode, pdfPageCount]);
 
+  // Touch handlers for mobile swipe page navigation and 2-finger pinch-to-zoom
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      // Two-finger pinch gesture start
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      touchStateRef.current = {
+        startX: (t1.clientX + t2.clientX) / 2,
+        startY: (t1.clientY + t2.clientY) / 2,
+        initialDistance: Math.max(10, dist),
+        initialScale: pdfScale,
+        isPinching: true,
+        hasMoved: false,
+      };
+    } else if (e.touches.length === 1) {
+      // Single finger touch start for left/right swipe
+      const t = e.touches[0];
+      touchStateRef.current = {
+        startX: t.clientX,
+        startY: t.clientY,
+        initialDistance: 0,
+        initialScale: pdfScale,
+        isPinching: false,
+        hasMoved: false,
+      };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2 && touchStateRef.current.isPinching) {
+      // Two-finger pinch gesture active
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      if (touchStateRef.current.initialDistance > 0) {
+        const factor = dist / touchStateRef.current.initialDistance;
+        const newScale = Math.min(2.5, Math.max(0.35, Number((touchStateRef.current.initialScale * factor).toFixed(2))));
+        userHasCustomScaleRef.current = true;
+        setPdfScale(newScale);
+      }
+    } else if (e.touches.length === 1 && !touchStateRef.current.isPinching) {
+      touchStateRef.current.hasMoved = true;
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStateRef.current.isPinching) {
+      if (e.touches.length < 2) {
+        touchStateRef.current.isPinching = false;
+      }
+      return;
+    }
+
+    if (e.changedTouches.length === 1 && touchStateRef.current.hasMoved) {
+      const endTouch = e.changedTouches[0];
+      const deltaX = endTouch.clientX - touchStateRef.current.startX;
+      const deltaY = endTouch.clientY - touchStateRef.current.startY;
+
+      // Check if horizontal movement dominates and exceeds threshold (swipe)
+      if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+        if (deltaX < 0) {
+          // Swiped Left -> Go to Next Page
+          const step = (isPdfFullscreen && pdfPageViewMode === 'two-page') ? 2 : 1;
+          setPdfPage((prev) => Math.min(maxNavigablePage, prev + step));
+        } else {
+          // Swiped Right -> Go to Previous Page
+          const step = (isPdfFullscreen && pdfPageViewMode === 'two-page') ? 2 : 1;
+          setPdfPage((prev) => Math.max(1, prev - step));
+        }
+      }
+    }
+    touchStateRef.current.hasMoved = false;
+  };
+
   return (
     <UserLayout>
       <div className="py-4 sm:py-8 px-4 sm:px-[2.5cm]">
@@ -942,9 +1028,45 @@ export default function ResourceDetail() {
                         <button type="button" disabled={pdfPage >= maxNavigablePage || (pdfPageViewMode === 'two-page' && pdfPage + 1 >= maxNavigablePage)} onClick={() => setPdfPage((page) => Math.min(maxNavigablePage, page + (pdfPageViewMode === 'two-page' ? 2 : 1)))} className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Next page" title="Next page"><ChevronRight className="size-5" /></button>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2">
-                        <button type="button" disabled={pdfScale <= 0.35} onClick={() => setPdfScale((scale) => Math.max(0.35, Number((scale - 0.15).toFixed(2))))} className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom out" title="Zoom out"><Minus className="size-4" /></button>
+                        <button
+                          type="button"
+                          disabled={pdfScale <= 0.35}
+                          onClick={() => {
+                            userHasCustomScaleRef.current = true;
+                            setPdfScale((scale) => Math.max(0.35, Number((scale - 0.15).toFixed(2))));
+                          }}
+                          className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer"
+                          aria-label="Zoom out"
+                          title="Zoom out"
+                        >
+                          <Minus className="size-4" />
+                        </button>
                         <span className="w-9 sm:w-12 text-center text-[11px] sm:text-xs font-semibold">{Math.round(pdfScale * 100)}%</span>
-                        <button type="button" disabled={pdfScale >= 2.5} onClick={() => setPdfScale((scale) => Math.min(2.5, Number((scale + 0.15).toFixed(2))))} className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer" aria-label="Zoom in" title="Zoom in"><Plus className="size-4" /></button>
+                        <button
+                          type="button"
+                          disabled={pdfScale >= 2.5}
+                          onClick={() => {
+                            userHasCustomScaleRef.current = true;
+                            setPdfScale((scale) => Math.min(2.5, Number((scale + 0.15).toFixed(2))));
+                          }}
+                          className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer"
+                          aria-label="Zoom in"
+                          title="Zoom in"
+                        >
+                          <Plus className="size-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            userHasCustomScaleRef.current = false;
+                            setPdfScale(1.0);
+                          }}
+                          className="rounded p-1 hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer"
+                          title="Reset Zoom"
+                          aria-label="Reset Zoom"
+                        >
+                          <RotateCcw className="size-3.5" />
+                        </button>
                         <div className="h-5 w-px bg-neutral-700 mx-1" />
                         {/* Continuous rotation controls in Full Screen */}
                         {isPdfFullscreen && (
@@ -1317,7 +1439,13 @@ export default function ResourceDetail() {
                       )}
 
                       {/* Main PDF Canvas Area */}
-                      <div className="flex-1 overflow-auto p-1.5 sm:p-4 flex items-center justify-center bg-neutral-700 relative min-h-[350px]" ref={pdfViewerAreaRef}>
+                      <div
+                        className="flex-1 overflow-auto p-1.5 sm:p-4 flex items-center justify-center bg-neutral-700 relative min-h-[350px] touch-pan-y"
+                        ref={pdfViewerAreaRef}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                      >
                         {isPageRendering && (
                           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 flex items-center gap-1.5 sm:gap-2 bg-neutral-900/80 backdrop-blur-sm text-neutral-300 text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-neutral-700 pointer-events-none shadow-md">
                             <div className="size-2.5 sm:size-3 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
