@@ -149,6 +149,7 @@ export default function ResourceManagement() {
   const [pdfPage, setPdfPage] = useState(1);
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfScale, setPdfScale] = useState(1.0);
+  const pdfScaleRef = useRef(1.0);
   const userHasCustomScaleRef = useRef(false);
   const touchStateRef = useRef({
     startX: 0,
@@ -157,7 +158,44 @@ export default function ResourceManagement() {
     initialScale: 1.0,
     isPinching: false,
     hasMoved: false,
+    centerX: 0,
+    centerY: 0,
   });
+
+  const updatePdfScale = (newScale, focalX = null, focalY = null) => {
+    const clampedScale = Math.min(2.5, Math.max(0.35, Number(newScale.toFixed(2))));
+    const oldScale = pdfScaleRef.current;
+    if (Math.abs(clampedScale - oldScale) < 0.005) return;
+
+    const container = pdfViewerAreaRef.current;
+    if (container && focalX !== null && focalY !== null) {
+      const rect = container.getBoundingClientRect();
+      const pointerX = focalX - rect.left;
+      const pointerY = focalY - rect.top;
+
+      const scrollX = container.scrollLeft;
+      const scrollY = container.scrollTop;
+
+      const scaleRatio = clampedScale / oldScale;
+      const targetScrollLeft = (scrollX + pointerX) * scaleRatio - pointerX;
+      const targetScrollTop = (scrollY + pointerY) * scaleRatio - pointerY;
+
+      pdfScaleRef.current = clampedScale;
+      userHasCustomScaleRef.current = true;
+      setPdfScale(clampedScale);
+
+      requestAnimationFrame(() => {
+        if (container) {
+          container.scrollLeft = targetScrollLeft;
+          container.scrollTop = targetScrollTop;
+        }
+      });
+    } else {
+      pdfScaleRef.current = clampedScale;
+      userHasCustomScaleRef.current = true;
+      setPdfScale(clampedScale);
+    }
+  };
   const [pdfRotation, setPdfRotation] = useState(0);
   const [pdfPageViewMode, setPdfPageViewMode] = useState('single');
   const [pdfFitMode, setPdfFitMode] = useState('page');
@@ -647,18 +685,22 @@ export default function ResourceManagement() {
     };
   }, [pdfDocument, pdfPage, pdfScale, pdfRotation, pdfPageViewMode, pdfPageCount, isPdfFullscreen]);
 
-  // Touch handlers for mobile swipe page navigation and 2-finger pinch-to-zoom
+  // Touch handlers for mobile swipe page navigation and 2-finger focal pinch-to-zoom
   const handleTouchStart = (e) => {
     if (e.touches.length === 2) {
       // Two-finger pinch gesture start
       const t1 = e.touches[0];
       const t2 = e.touches[1];
       const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const centerX = (t1.clientX + t2.clientX) / 2;
+      const centerY = (t1.clientY + t2.clientY) / 2;
       touchStateRef.current = {
-        startX: (t1.clientX + t2.clientX) / 2,
-        startY: (t1.clientY + t2.clientY) / 2,
+        startX: centerX,
+        startY: centerY,
+        centerX,
+        centerY,
         initialDistance: Math.max(10, dist),
-        initialScale: pdfScale,
+        initialScale: pdfScaleRef.current,
         isPinching: true,
         hasMoved: false,
       };
@@ -668,8 +710,10 @@ export default function ResourceManagement() {
       touchStateRef.current = {
         startX: t.clientX,
         startY: t.clientY,
+        centerX: t.clientX,
+        centerY: t.clientY,
         initialDistance: 0,
-        initialScale: pdfScale,
+        initialScale: pdfScaleRef.current,
         isPinching: false,
         hasMoved: false,
       };
@@ -678,15 +722,17 @@ export default function ResourceManagement() {
 
   const handleTouchMove = (e) => {
     if (e.touches.length === 2 && touchStateRef.current.isPinching) {
-      // Two-finger pinch gesture active
+      // Two-finger pinch gesture active with focal point tracking
       const t1 = e.touches[0];
       const t2 = e.touches[1];
       const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const currentCenterX = (t1.clientX + t2.clientX) / 2;
+      const currentCenterY = (t1.clientY + t2.clientY) / 2;
+
       if (touchStateRef.current.initialDistance > 0) {
         const factor = dist / touchStateRef.current.initialDistance;
-        const newScale = Math.min(2.5, Math.max(0.35, Number((touchStateRef.current.initialScale * factor).toFixed(2))));
-        userHasCustomScaleRef.current = true;
-        setPdfScale(newScale);
+        const targetScale = touchStateRef.current.initialScale * factor;
+        updatePdfScale(targetScale, currentCenterX, currentCenterY);
       }
     } else if (e.touches.length === 1 && !touchStateRef.current.isPinching) {
       touchStateRef.current.hasMoved = true;
@@ -721,6 +767,28 @@ export default function ResourceManagement() {
     }
     touchStateRef.current.hasMoved = false;
   };
+
+  // Trackpad pinch-to-zoom (Wheel event with ctrlKey) and Ctrl+Wheel zoom towards pointer
+  useEffect(() => {
+    const container = pdfViewerAreaRef.current;
+    if (!container) return undefined;
+
+    const handleWheel = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        // Zoom step proportional to wheel delta
+        const zoomDelta = -e.deltaY * 0.006;
+        const currentScale = pdfScaleRef.current;
+        const newScale = currentScale + zoomDelta;
+        updatePdfScale(newScale, e.clientX, e.clientY);
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [pdfDocument]);
 
   const loadResources = async (search = '') => {
     try {
@@ -1884,7 +1952,7 @@ export default function ResourceManagement() {
                             type="button"
                             onClick={() => {
                               userHasCustomScaleRef.current = false;
-                              setPdfScale(1.0);
+                              updatePdfScale(1.0);
                             }}
                             className="rounded p-1 hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer"
                             title="Reset 100%"
@@ -2158,7 +2226,7 @@ export default function ResourceManagement() {
                         {/* PDF Canvas Viewport Area */}
                         <div
                           ref={pdfViewerAreaRef}
-                          className="flex-1 overflow-auto p-1.5 sm:p-6 flex items-center justify-center bg-neutral-800 relative min-h-[300px] touch-pan-y"
+                          className="flex-1 overflow-auto p-1.5 sm:p-6 flex bg-neutral-800 relative min-h-[300px] touch-pan-y"
                           onTouchStart={handleTouchStart}
                           onTouchMove={handleTouchMove}
                           onTouchEnd={handleTouchEnd}
