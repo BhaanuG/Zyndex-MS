@@ -649,16 +649,17 @@ export default function ResourceDetail() {
     }
   }, [pdfPage, showPdfSidebar, pdfSidebarTab]);
 
-  // Automatically adjust scale responsively based on screen size, container width, and fit mode
-  // Once the user adjusts zoom manually or pinches, their zoom level remains fixed across page transitions
+  // Automatically adjust initial scale responsively when document first loads or display mode changes
+  // It NEVER re-runs on pdfPage changes, ensuring your zoom level remains completely fixed across pages
   useEffect(() => {
     if (!pdfDocument || userHasCustomScaleRef.current) return;
 
     let cancelled = false;
 
-    const pagePromises = [pdfDocument.getPage(pdfPage)];
-    if (isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPage + 1 <= pdfPageCount) {
-      pagePromises.push(pdfDocument.getPage(pdfPage + 1));
+    // Use page 1 as the representative dimension for initial viewport fitting
+    const pagePromises = [pdfDocument.getPage(1)];
+    if (isPdfFullscreen && pdfPageViewMode === 'two-page' && pdfPageCount >= 2) {
+      pagePromises.push(pdfDocument.getPage(2));
     }
 
     Promise.all(pagePromises).then(([page1, page2]) => {
@@ -666,6 +667,7 @@ export default function ResourceDetail() {
       const vp1 = page1.getViewport({ scale: 1, rotation: pdfRotation });
       const vp2 = page2 ? page2.getViewport({ scale: 1, rotation: pdfRotation }) : null;
 
+      let targetScale = 1.0;
       if (isPdfFullscreen) {
         // Available space inside fullscreen viewer container
         const availableHeight = Math.max(100, window.innerHeight - 80);
@@ -676,7 +678,7 @@ export default function ResourceDetail() {
           const totalWidthNeeded = vp2 ? (vp1.width + vp2.width + 24) : vp1.width;
           if (totalWidthNeeded > 0 && availableWidth > 200) {
             const widthScale = availableWidth / totalWidthNeeded;
-            setPdfScale(Math.max(0.35, Math.min(2.5, Number(widthScale.toFixed(2)))));
+            targetScale = Math.max(0.35, Math.min(2.5, Number(widthScale.toFixed(2))));
           }
         } else {
           const maxPageHeight = vp2 ? Math.max(vp1.height, vp2.height) : vp1.height;
@@ -686,7 +688,7 @@ export default function ResourceDetail() {
           if (totalWidthNeeded * fitScale > availableWidth) {
             fitScale = availableWidth / totalWidthNeeded;
           }
-          setPdfScale(Math.max(0.25, Math.min(2.5, Number(fitScale.toFixed(2)))));
+          targetScale = Math.max(0.25, Math.min(2.5, Number(fitScale.toFixed(2))));
         }
       } else {
         // Non-fullscreen standard viewer: fit page within container / viewport responsively
@@ -696,18 +698,19 @@ export default function ResourceDetail() {
         const availableWidth = Math.max(160, containerWidth - padding);
 
         if (vp1.width > 0 && availableWidth > 0) {
-          // On mobile screens, fit page width so text is readable without side-cut
-          // On desktop, keep comfortable zoom up to 1.15
           const responsiveScale = Math.min(1.15, availableWidth / vp1.width);
-          setPdfScale(Math.max(0.35, Math.min(2.0, Number(responsiveScale.toFixed(2)))));
+          targetScale = Math.max(0.35, Math.min(2.0, Number(responsiveScale.toFixed(2))));
         }
       }
+
+      pdfScaleRef.current = targetScale;
+      setPdfScale(targetScale);
     }).catch(() => { });
 
     return () => {
       cancelled = true;
     };
-  }, [isPdfFullscreen, pdfRotation, pdfPageViewMode, pdfFitMode, showPdfSidebar, pdfPage, pdfPageCount, pdfDocument]);
+  }, [isPdfFullscreen, pdfRotation, pdfPageViewMode, pdfFitMode, showPdfSidebar, pdfDocument]);
 
   useEffect(() => {
     if (!pdfDocument || !pdfCanvasRef.current) return undefined;
@@ -1100,8 +1103,7 @@ export default function ResourceDetail() {
                           type="button"
                           disabled={pdfScale <= 0.35}
                           onClick={() => {
-                            userHasCustomScaleRef.current = true;
-                            setPdfScale((scale) => Math.max(0.35, Number((scale - 0.15).toFixed(2))));
+                            updatePdfScale(pdfScaleRef.current - 0.15);
                           }}
                           className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer"
                           aria-label="Zoom out"
@@ -1114,8 +1116,7 @@ export default function ResourceDetail() {
                           type="button"
                           disabled={pdfScale >= 2.5}
                           onClick={() => {
-                            userHasCustomScaleRef.current = true;
-                            setPdfScale((scale) => Math.min(2.5, Number((scale + 0.15).toFixed(2))));
+                            updatePdfScale(pdfScaleRef.current + 0.15);
                           }}
                           className="rounded p-1 hover:bg-white/10 disabled:opacity-40 cursor-pointer"
                           aria-label="Zoom in"
